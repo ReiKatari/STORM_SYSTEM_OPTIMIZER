@@ -26,7 +26,7 @@ namespace StormSystemOptimizer.Views
             if (DataContext is NetworkViewModel vm) await vm.SetDnsPresetCommand.ExecuteAsync("Quad9");
         }
 
-        private async void BtnDnsAdGuard_Click(object sender, RoutedEventArgs e)
+        private async void BtnDnsAdguard_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is NetworkViewModel vm) await vm.SetDnsPresetCommand.ExecuteAsync("AdGuard");
         }

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 
@@ -36,6 +37,144 @@ namespace StormSystemOptimizer.Services
             });
         }
 
+        public async Task<bool> RunSfcScanAsync(Action<string>? onOutput = null)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "sfc.exe",
+                        Arguments = "/scannow",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    };
+                    using var p = Process.Start(psi);
+                    if (p != null)
+                    {
+                        p.OutputDataReceived += (s, e) => { if (!string.IsNullOrEmpty(e.Data)) onOutput?.Invoke(e.Data); };
+                        p.BeginOutputReadLine();
+                        p.WaitForExit(120000);
+                        return p.ExitCode == 0;
+                    }
+                    return false;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> RunDismRestoreHealthAsync(Action<string>? onOutput = null)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "dism.exe",
+                        Arguments = "/Online /Cleanup-Image /RestoreHealth",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    };
+                    using var p = Process.Start(psi);
+                    if (p != null)
+                    {
+                        p.OutputDataReceived += (s, e) => { if (!string.IsNullOrEmpty(e.Data)) onOutput?.Invoke(e.Data); };
+                        p.BeginOutputReadLine();
+                        p.WaitForExit(180000);
+                        return p.ExitCode == 0;
+                    }
+                    return false;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> CleanComponentStoreAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "dism.exe",
+                        Arguments = "/Online /Cleanup-Image /StartComponentCleanup /ResetBase",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(60000);
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public bool RebuildIconCache()
+        {
+            try
+            {
+                string script = @"
+Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+Start-Sleep -Seconds 1
+Remove-Item -Force ""$env:LOCALAPPDATA\IconCache.db"" -ErrorAction SilentlyContinue
+Remove-Item -Force ""$env:LOCALAPPDATA\Microsoft\Windows\Explorer\iconcache*"" -ErrorAction SilentlyContinue
+Remove-Item -Force ""$env:LOCALAPPDATA\Microsoft\Windows\Explorer\thumbcache*"" -ErrorAction SilentlyContinue
+Start-Process explorer.exe
+";
+                var psi = new ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"{script}\"")
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                using var p = Process.Start(psi);
+                p?.WaitForExit(5000);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool ResetWinsock()
+        {
+            try
+            {
+                var psi = new ProcessStartInfo("netsh.exe", "winsock reset")
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                using var p = Process.Start(psi);
+                p?.WaitForExit(3000);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool ResetWindowsStore()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo("wsreset.exe") { CreateNoWindow = true, UseShellExecute = true });
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public void LaunchSnapin(string command, string? args = null)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(command, args ?? "") { UseShellExecute = true });
+            }
+            catch { }
+        }
+
         public async Task<bool> RunSsdTrimAsync(string driveLetter = "C:")
         {
             return await Task.Run(() =>
@@ -64,7 +203,6 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                // Create / duplicate Ultimate Performance GUID
                 var psi = new ProcessStartInfo
                 {
                     FileName = "powercfg.exe",
@@ -75,7 +213,6 @@ namespace StormSystemOptimizer.Services
                 using var p = Process.Start(psi);
                 p?.WaitForExit(3000);
 
-                // Set active
                 var setPsi = new ProcessStartInfo
                 {
                     FileName = "powercfg.exe",

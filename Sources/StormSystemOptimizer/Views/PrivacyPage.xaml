@@ -11,70 +11,109 @@
     </Page.DataContext>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
-        <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
+        <StackPanel HorizontalAlignment="Stretch">
 
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,20">
-                <StackPanel>
-                    <TextBlock Text="Защита приватности и телеметрии" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                    <TextBlock Text="Блокировка нежелательного сбора пользовательских данных, рекламных идентификаторов и фонового трекинга Windows."
-                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
-                    <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                </StackPanel>
-            </Border>
-
-            <!-- Toggles -->
+            <!-- Top Header -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
+
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="Отключить диагностическую телеметрию (AllowTelemetry)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock Text="Запрещает отправку подробных отчетов и диагностических данных на сервера Microsoft." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="Защита приватности и телеметрии" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Блокировка нежелательного сбора пользовательских данных, рекламных идентификаторов, телеметрии ввода и фонового трекинга Windows."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    </StackPanel>
+
+                    <Button Command="{Binding ApplyPrivacySettingsCommand}"
+                            Grid.Column="1" Content="🛡️ Применить защиту"
+                            FontWeight="Bold" Padding="18,10" Cursor="Hand" VerticalAlignment="Center"
+                            Background="{DynamicResource StormHeroGradient}"
+                            Foreground="#FFFFFF">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Toggles List -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock Text="Отключить диагностическую телеметрию (AllowTelemetry)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Text="Запрещает отправку подробных отчетов, диагностических логов и данных оборудования на сервера Microsoft." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                     <CheckBox Grid.Column="1" IsChecked="{Binding IsTelemetryDisabled, Mode=TwoWay}" VerticalAlignment="Center" Content="Заблокировано" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
                 </Grid>
             </Border>
 
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Отключить рекламный ID (Advertising ID)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock Text="Предотвращает показ персонализированной рекламы на основе ваших интересов и действий в приложениях." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock Text="Отключить рекламный идентификатор (Advertising ID)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Text="Предотвращает показ таргетированной рекламы и сбор персонального профиля активности в приложениях." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                     <CheckBox Grid.Column="1" IsChecked="{Binding IsAdIdDisabled, Mode=TwoWay}" VerticalAlignment="Center" Content="Заблокировано" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
                 </Grid>
             </Border>
 
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,24">
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Отключить журнал действий (Activity Feed &amp; PublishUserActivities)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock Text="Запрещает сбор истории запущенных приложений и синхронизацию с облачным профилем." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock Text="Отключить историю активности и синхронизацию с облаком (Timeline)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Text="Блокирует публикацию истории открытых файлов, посещенных веб-страниц и приложений в облако учетной записи." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                     <CheckBox Grid.Column="1" IsChecked="{Binding IsActivityFeedDisabled, Mode=TwoWay}" VerticalAlignment="Center" Content="Заблокировано" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
                 </Grid>
             </Border>
 
-            <Button Command="{Binding ApplyPrivacySettingsCommand}" Content="💾 Сохранить и применить настройки приватности" FontWeight="Bold" FontSize="14" Padding="24,14" Cursor="Hand" Background="{DynamicResource StormHeroGradient}" Foreground="#FFFFFF">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock Text="Отключить телеметрию рукописного ввода и клавиатуры (Input Telemetry)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Text="Запрещает сбор вводимого текста и шаблонов набора для предотвращения скрытого кейлоггинга." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <CheckBox Grid.Column="1" IsChecked="True" IsEnabled="False" VerticalAlignment="Center" Content="Заблокировано" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                </Grid>
+            </Border>
 
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock Text="Отключить поисковые подсказки Bing и веб-рекламу в меню «Пуск»" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                        <TextBlock Text="Ускоряет поиск в меню Пуск, отключает фоновые сетевые запросы к сервисам Bing при каждом поиске файла." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <CheckBox Grid.Column="1" IsChecked="True" IsEnabled="False" VerticalAlignment="Center" Content="Заблокировано" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                </Grid>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </Page>
