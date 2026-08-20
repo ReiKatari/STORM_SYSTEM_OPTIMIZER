@@ -63,10 +63,7 @@ namespace StormSystemOptimizer.Themes
                 var data = new { Theme = CurrentTheme.ToString() };
                 File.WriteAllText(_configPath, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
             }
-            catch
-            {
-                // Ignore config write failures
-            }
+            catch { }
         }
 
         public void ApplyTheme(ThemeType theme, Window? window = null)
@@ -74,42 +71,42 @@ namespace StormSystemOptimizer.Themes
             CurrentTheme = theme;
             SaveCurrentTheme();
 
-            string themeUri = theme switch
+            try
             {
-                ThemeType.StormDark => "ms-appx:///Themes/StormDarkTheme.xaml",
-                ThemeType.StormNight => "ms-appx:///Themes/StormNightTheme.xaml",
-                ThemeType.StormDay => "ms-appx:///Themes/StormDayTheme.xaml",
-                ThemeType.StormMidnight => "ms-appx:///Themes/StormMidnightTheme.xaml",
-                _ => "ms-appx:///Themes/StormDarkTheme.xaml"
-            };
-
-            var newDict = new ResourceDictionary { Source = new Uri(themeUri) };
-
-            // Update merged dictionaries
-            var merged = Application.Current.Resources.MergedDictionaries;
-            for (int i = merged.Count - 1; i >= 0; i--)
-            {
-                var d = merged[i];
-                if (d.Source != null && d.Source.ToString().Contains("/Themes/Storm"))
+                string themeUri = theme switch
                 {
-                    merged.RemoveAt(i);
+                    ThemeType.StormDark => "ms-appx:///Themes/StormDarkTheme.xaml",
+                    ThemeType.StormNight => "ms-appx:///Themes/StormNightTheme.xaml",
+                    ThemeType.StormDay => "ms-appx:///Themes/StormDayTheme.xaml",
+                    ThemeType.StormMidnight => "ms-appx:///Themes/StormMidnightTheme.xaml",
+                    _ => "ms-appx:///Themes/StormDarkTheme.xaml"
+                };
+
+                var newDict = new ResourceDictionary { Source = new Uri(themeUri) };
+                var merged = Application.Current.Resources.MergedDictionaries;
+
+                if (merged.Count > 1)
+                {
+                    merged[1] = newDict;
+                }
+                else
+                {
+                    merged.Add(newDict);
+                }
+
+                if (window?.Content is FrameworkElement rootElement)
+                {
+                    rootElement.RequestedTheme = theme == ThemeType.StormDay
+                        ? ElementTheme.Light
+                        : ElementTheme.Dark;
+                }
+
+                if (window != null)
+                {
+                    UpdateWindowTitleBar(window, theme);
                 }
             }
-            merged.Add(newDict);
-
-            // Set FrameworkElement RequestedTheme on root if window exists
-            if (window?.Content is FrameworkElement rootElement)
-            {
-                rootElement.RequestedTheme = theme == ThemeType.StormDay
-                    ? ElementTheme.Light
-                    : ElementTheme.Dark;
-            }
-
-            // Update TitleBar styling if window is active
-            if (window != null)
-            {
-                UpdateWindowTitleBar(window, theme);
-            }
+            catch { }
 
             ThemeChanged?.Invoke(this, theme);
         }
@@ -129,15 +126,6 @@ namespace StormSystemOptimizer.Themes
                 {
                     var titleBar = appWindow.TitleBar;
                     titleBar.ExtendsContentIntoTitleBar = true;
-
-                    Windows.UI.Color bgColor = theme switch
-                    {
-                        ThemeType.StormDark => Windows.UI.Color.FromArgb(255, 16, 20, 29),
-                        ThemeType.StormNight => Windows.UI.Color.FromArgb(255, 0, 0, 0),
-                        ThemeType.StormDay => Windows.UI.Color.FromArgb(255, 244, 247, 251),
-                        ThemeType.StormMidnight => Windows.UI.Color.FromArgb(255, 12, 10, 29),
-                        _ => Windows.UI.Color.FromArgb(255, 16, 20, 29)
-                    };
 
                     Windows.UI.Color fgColor = isDark
                         ? Windows.UI.Color.FromArgb(255, 241, 245, 249)
@@ -162,10 +150,7 @@ namespace StormSystemOptimizer.Themes
                     titleBar.ButtonInactiveForegroundColor = Windows.UI.Color.FromArgb(120, fgColor.R, fgColor.G, fgColor.B);
                 }
             }
-            catch
-            {
-                // Fallback if AppWindow custom TitleBar is not supported
-            }
+            catch { }
         }
     }
 }
