@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Management;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using StormSystemOptimizer.Models;
@@ -17,69 +16,65 @@ namespace StormSystemOptimizer.Services
         private string _gpuName = string.Empty;
         private string _osVersion = string.Empty;
 
-        private TimeSpan _prevCpuTime = TimeSpan.Zero;
-        private DateTime _prevTime = DateTime.UtcNow;
+        private ulong _prevIdle = 0;
+        private ulong _prevKernel = 0;
+        private ulong _prevUser = 0;
 
         private HardwareMonitorService()
         {
-            InitializeHardwareInfoAsync();
+            // Initial immediate registry fetch (microseconds)
+            try
+            {
+                using var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+                if (reg != null)
+                {
+                    string prodName = reg.GetValue("ProductName")?.ToString() ?? "Windows 11";
+                    string displayVer = reg.GetValue("DisplayVersion")?.ToString() ?? "";
+                    _osVersion = $"{prodName} {displayVer}".Trim();
+                }
+            }
+            catch { }
+            if (string.IsNullOrEmpty(_osVersion)) _osVersion = "Windows 11 Pro 64-bit";
+
+            try
+            {
+                using var cpuReg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+                if (cpuReg != null)
+                {
+                    _cpuName = cpuReg.GetValue("ProcessorNameString")?.ToString()?.Trim() ?? "Процессор x64";
+                }
+            }
+            catch { }
+            if (string.IsNullOrEmpty(_cpuName)) _cpuName = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER") ?? "x64 CPU";
+
+            _gpuName = "Видеоадаптер Windows";
+
+            // Initialize CPU times baseline
+            GetCpuTimes(out _prevIdle, out _prevKernel, out _prevUser);
         }
 
-        private async void InitializeHardwareInfoAsync()
+        private static void GetCpuTimes(out ulong idle, out ulong kernel, out ulong user)
         {
-            await Task.Run(() =>
+            idle = 0; kernel = 0; user = 0;
+            if (NativeMethods.GetSystemTimes(out var fIdle, out var fKernel, out var fUser))
             {
-                try
-                {
-                    // OS Name
-                    using var reg = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
-                    if (reg != null)
-                    {
-                        string prodName = reg.GetValue("ProductName")?.ToString() ?? "Windows 11";
-                        string displayVer = reg.GetValue("DisplayVersion")?.ToString() ?? "";
-                        _osVersion = $"{prodName} {displayVer}".Trim();
-                    }
-                    if (string.IsNullOrEmpty(_osVersion)) _osVersion = Environment.OSVersion.ToString();
-
-                    // CPU Name
-                    using var cpuReg = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
-                    if (cpuReg != null)
-                    {
-                        _cpuName = cpuReg.GetValue("ProcessorNameString")?.ToString()?.Trim() ?? "Процессор x64";
-                    }
-
-                    // GPU Name via WMI
-                    using var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController");
-                    foreach (var obj in searcher.Get())
-                    {
-                        string? name = obj["Name"]?.ToString();
-                        if (!string.IsNullOrEmpty(name))
-                        {
-                            _gpuName = name;
-                            break;
-                        }
-                    }
-                }
-                catch
-                {
-                    if (string.IsNullOrEmpty(_cpuName)) _cpuName = Environment.GetEnvironmentVariable("PROCESSOR_IDENTIFIER") ?? "x64 CPU";
-                    if (string.IsNullOrEmpty(_gpuName)) _gpuName = "Видеоадаптер Windows";
-                    if (string.IsNullOrEmpty(_osVersion)) _osVersion = "Windows 11 Pro 64-bit";
-                }
-            });
+                idle = ((ulong)fIdle.dwHighDateTime << 32) | (uint)fIdle.dwLowDateTime;
+                kernel = ((ulong)fKernel.dwHighDateTime << 32) | (uint)fKernel.dwLowDateTime;
+                user = ((ulong)fUser.dwHighDateTime << 32) | (uint)fUser.dwLowDateTime;
+            }
         }
 
         public SystemMetrics GetCurrentMetrics()
         {
             var metrics = new SystemMetrics
             {
-                ProcessorName = string.IsNullOrEmpty(_cpuName) ? "Процессор x64" : _cpuName,
-                GpuName = string.IsNullOrEmpty(_gpuName) ? "Графический адаптер" : _gpuName,
-                OsVersion = string.IsNullOrEmpty(_osVersion) ? "Windows 11" : _osVersion,
+                ProcessorName = _cpuName,
+                GpuName = _gpuName,
+                OsVersion = _osVersion,
                 SystemUptime = TimeSpan.FromMilliseconds(Environment.TickCount64)
             };
 
-            // 1. RAM via GlobalMemoryStatusEx
+            // 1. RAM via GlobalMemoryStatusEx (instant kernel call)
             var memStatus = new NativeMethods.MEMORYSTATUSEX();
             memStatus.dwLength = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.MEMORYSTATUSEX));
             if (NativeMethods.GlobalMemoryStatusEx(ref memStatus))
@@ -92,7 +87,7 @@ namespace StormSystemOptimizer.Services
                 metrics.RamUsedGb = usedGb;
                 metrics.RamAvailableGb = availGb;
                 metrics.RamUsagePercentage = memStatus.dwMemoryLoad;
-                metrics.RamStandbyGb = Math.Max(0.5, availGb * 0.4); // Estimated Standby cache
+                metrics.RamStandbyGb = Math.Max(0.5, availGb * 0.4);
             }
 
             // 2. Primary Disk (C:)
@@ -113,37 +108,32 @@ namespace StormSystemOptimizer.Services
             }
             catch { }
 
-            // 3. CPU Usage Calculation
+            // 3. CPU Usage Calculation via GetSystemTimes (1 microsecond native call)
             try
             {
-                var now = DateTime.UtcNow;
-                var totalCpuTime = TimeSpan.Zero;
-                var procs = Process.GetProcesses();
-                foreach (var p in procs)
-                {
-                    try { totalCpuTime += p.TotalProcessorTime; }
-                    catch { }
-                    finally { p.Dispose(); }
-                }
+                GetCpuTimes(out ulong idle, out ulong kernel, out ulong user);
+                ulong usrDiff = user - _prevUser;
+                ulong kerDiff = kernel - _prevKernel;
+                ulong idlDiff = idle - _prevIdle;
 
-                if (_prevCpuTime != TimeSpan.Zero && (now - _prevTime).TotalMilliseconds > 200)
+                ulong sysTotal = usrDiff + kerDiff;
+                if (sysTotal > 0)
                 {
-                    var timeDiff = (now - _prevTime).TotalMilliseconds;
-                    var cpuDiff = (totalCpuTime - _prevCpuTime).TotalMilliseconds;
-                    double usage = (cpuDiff / (timeDiff * Environment.ProcessorCount)) * 100.0;
-                    metrics.CpuUsagePercentage = Math.Clamp(Math.Round(usage, 1), 1.0, 100.0);
+                    double cpuPercent = ((double)(sysTotal - idlDiff) / sysTotal) * 100.0;
+                    metrics.CpuUsagePercentage = Math.Clamp(Math.Round(cpuPercent, 1), 1.0, 100.0);
                 }
                 else
                 {
-                    metrics.CpuUsagePercentage = 12.0; // fallback initial estimate
+                    metrics.CpuUsagePercentage = 5.0;
                 }
 
-                _prevCpuTime = totalCpuTime;
-                _prevTime = now;
+                _prevIdle = idle;
+                _prevKernel = kernel;
+                _prevUser = user;
             }
             catch
             {
-                metrics.CpuUsagePercentage = 15.0;
+                metrics.CpuUsagePercentage = 5.0;
             }
 
             return metrics;
