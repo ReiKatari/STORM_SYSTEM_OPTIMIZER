@@ -13,15 +13,75 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
         <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
 
+            <!-- Header -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,20">
                 <StackPanel>
-                    <TextBlock Text="Настройки и Темы оформления" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                    <TextBlock Text="Выбор темы визуального оформления и параметров поведения STORM OPTIMIZER." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBlock Text="Настройки и Обновления" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Выбор темы визуального оформления, параметры интеграции с Windows и проверка обновлений с GitHub." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
             </Border>
 
+            <!-- Updates Card -->
+            <Border Background="{DynamicResource StormCardGradient}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,24">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="🔄 Обновления программы" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2" Margin="10,0,0,0">
+                                <TextBlock Text="{Binding AppVersion}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding UpdateStatusText}" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                        <TextBlock Text="При обновлении приложение аккуратно завершит текущие задачи, установит новую версию и автоматически перезапустится."
+                                   FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <!-- Update Action Buttons -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding CheckForUpdatesCommand}"
+                                Content="↺ Проверить"
+                                Padding="16,10"
+                                Cursor="Hand"
+                                Background="{DynamicResource CardBackgroundBrush}"
+                                Foreground="{DynamicResource TextPrimaryBrush}"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
+                                Margin="0,0,8,0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Button Command="{Binding InstallUpdateCommand}"
+                                Content="⚡ Обновить сейчас"
+                                FontWeight="Bold"
+                                Padding="18,10"
+                                Cursor="Hand"
+                                Background="{DynamicResource StormHeroGradient}"
+                                Foreground="#FFFFFF">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
             <!-- Theme Picker Cards -->
-            <TextBlock Text="Визуальные темы (4 стиля)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+            <TextBlock Text="Визуальные темы (4 стиля оформления)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
             <Grid Margin="0,0,0,24">
                 <Grid.ColumnDefinitions>
@@ -96,7 +156,7 @@
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
                 <StackPanel>
                     <TextBlock Text="О программе" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                    <TextBlock Text="STORM SYSTEM OPTIMIZER — Профессиональное решение для сканирования и тонкой настройки Windows." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                    <TextBlock Text="STORM SYSTEM OPTIMIZER — Профессиональное решение для сканирования, управления процессами и тонкой настройки Windows." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                         <TextBlock Text="Версия: " FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
                         <TextBlock Text="{Binding AppVersion}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>

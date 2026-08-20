@@ -4,8 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StormSystemOptimizer"
-        Title="STORM SYSTEM OPTIMIZER v0.0.1"
-        Height="780" Width="1180"
+        Title="STORM SYSTEM OPTIMIZER v0.0.2"
+        Height="780" Width="1200"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource AppBackgroundBrush}">
 
@@ -39,12 +39,34 @@
                 <TextBlock Text="STORM" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center"/>
                 <TextBlock Text=" SYSTEM OPTIMIZER" FontWeight="SemiBold" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                 <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="v0.0.1" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    <TextBlock Text="v0.0.2" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                 </Border>
             </StackPanel>
 
-            <!-- Theme Switcher Button -->
+            <!-- Header Quick Action Buttons -->
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0" WindowChrome.IsHitTestVisibleInChrome="True">
+                <!-- Check Updates Button -->
+                <Button Click="BtnCheckUpdates_Click"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1"
+                        Cursor="Hand"
+                        Padding="10,4"
+                        Margin="0,0,8,0">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="↺ " FontSize="12" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        <TextBlock x:Name="TxtHeaderUpdate" Text="Обновления" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Theme Switcher Button -->
                 <Button x:Name="BtnThemeToggle" Click="BtnThemeToggle_Click"
                         Background="{DynamicResource CardBackgroundBrush}"
                         BorderBrush="{DynamicResource CardBorderBrush}"
@@ -136,6 +158,9 @@
                             <RadioButton x:Name="NavDashboard" Content="⚡  Панель состояния" Tag="Dashboard"
                                          IsChecked="True" Click="NavButton_Click" GroupName="NavGroup"
                                          Style="{DynamicResource NavRadioButtonStyle}"/>
+                            <RadioButton Content="📊  Менеджер процессов" Tag="Processes"
+                                         Click="NavButton_Click" GroupName="NavGroup"
+                                         Style="{DynamicResource NavRadioButtonStyle}"/>
                             <RadioButton Content="🔍  Глубокое сканирование" Tag="Scanner"
                                          Click="NavButton_Click" GroupName="NavGroup"
                                          Style="{DynamicResource NavRadioButtonStyle}"/>
@@ -145,7 +170,7 @@
                             <RadioButton Content="⚙  Службы Windows" Tag="Services"
                                          Click="NavButton_Click" GroupName="NavGroup"
                                          Style="{DynamicResource NavRadioButtonStyle}"/>
-                            <RadioButton Content="🌐  Оптимизация сети" Tag="Network"
+                            <RadioButton Content="🌐  Ускорение интернета" Tag="Network"
                                          Click="NavButton_Click" GroupName="NavGroup"
                                          Style="{DynamicResource NavRadioButtonStyle}"/>
                             <RadioButton Content="🛡  Приватность" Tag="Privacy"
@@ -172,7 +197,7 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <Ellipse Width="8" Height="8" Fill="#10B981" Margin="0,0,8,0"/>
-                    <TextBlock Text="STORM Engine готов к работе • Система стабильна" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBlock Text="STORM Engine v0.0.2 готов • Система стабильна" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
                 <TextBlock Grid.Column="1" Text="100% Safe Optimization • WPF .NET 8" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
             </Grid>
