@@ -14,9 +14,9 @@
     <Color x:Key="StormAccentPressedColor">#00B4DB</Color>
     <Color x:Key="StormGlowColor">#3300D2FF</Color>
 
-    <Color x:Key="StormTextPrimaryColor">#F1F5F9</Color>
-    <Color x:Key="StormTextSecondaryColor">#94A3B8</Color>
-    <Color x:Key="StormTextMutedColor">#64748B</Color>
+    <Color x:Key="StormTextPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="StormTextSecondaryColor">#F1F5F9</Color>
+    <Color x:Key="StormTextMutedColor">#E2E8F0</Color>
 
     <Color x:Key="StormBadgeSafeBgColor">#052E16</Color>
     <Color x:Key="StormBadgeSafeTextColor">#34D399</Color>

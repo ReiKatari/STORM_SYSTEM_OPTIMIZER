@@ -32,6 +32,17 @@ namespace StormSystemOptimizer.Controls
         public static MessageBoxResult Show(string message, string title = "STORM SYSTEM OPTIMIZER", MessageBoxButton buttons = MessageBoxButton.OK, MessageBoxImage icon = MessageBoxImage.Information)
         {
             var msgBox = new StormMessageBox();
+
+            if (Application.Current?.MainWindow != null && Application.Current.MainWindow.IsVisible)
+            {
+                msgBox.Owner = Application.Current.MainWindow;
+                msgBox.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            }
+            else
+            {
+                msgBox.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            }
+
             msgBox.TxtTitle.Text = title;
             msgBox.TxtMessage.Text = message;
 

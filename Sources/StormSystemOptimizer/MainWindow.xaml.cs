@@ -40,6 +40,7 @@ namespace StormSystemOptimizer
                     "Dashboard" => new DashboardPage(),
                     "Processes" => new ProcessesPage(),
                     "Disks" => new DisksPage(),
+                    "Benchmarks" => new BenchmarksPage(),
                     "Scanner" => new ScannerPage(),
                     "Startup" => new StartupPage(),
                     "Services" => new ServicesPage(),

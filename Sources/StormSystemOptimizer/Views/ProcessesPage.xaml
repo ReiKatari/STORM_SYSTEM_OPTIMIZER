@@ -29,7 +29,7 @@
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="Глубокий анализ и менеджер процессов" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
                         <TextBlock Text="Детальное исследование всех запущенных процессов, определение нагрузки на память, назначение и рекомендации по безопасному завершению."
-                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
 
                         <!-- Stats badges -->
                         <StackPanel Orientation="Horizontal">
@@ -101,7 +101,7 @@
             <!-- Search & Filters -->
             <Grid Grid.Row="1" Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="320"/>
+                    <ColumnDefinition Width="280"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
@@ -115,14 +115,14 @@
                          BorderThickness="1"
                          VerticalAlignment="Center"/>
 
-                <!-- Filter Category Buttons -->
+                <!-- Filter Category Buttons with dynamic active states -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
                     <!-- All -->
-                    <Button Click="BtnFilterAll_Click" Content="Все процессы" Padding="12,6" Margin="0,0,6,0" Cursor="Hand"
-                            Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                    <Button x:Name="BtnFilterAll" Click="BtnFilterAll_Click" Content="Все процессы" Padding="14,7" Margin="0,0,8,0" Cursor="Hand"
+                            FontWeight="Bold" Background="{DynamicResource AccentGlowBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="6" Padding="{TemplateBinding Padding}">
                                     <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
                             </ControlTemplate>
@@ -130,8 +130,8 @@
                     </Button>
 
                     <!-- SafeToKill -->
-                    <Button Click="BtnFilterSafe_Click" Content="🟢 Безопасно завершить" Padding="12,6" Margin="0,0,6,0" Cursor="Hand"
-                            Background="{DynamicResource BadgeSafeBgBrush}" Foreground="{DynamicResource BadgeSafeTextBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                    <Button x:Name="BtnFilterSafe" Click="BtnFilterSafe_Click" Content="🟢 Безопасно завершить" Padding="14,7" Margin="0,0,8,0" Cursor="Hand"
+                            FontWeight="SemiBold" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -142,8 +142,8 @@
                     </Button>
 
                     <!-- UserApp -->
-                    <Button Click="BtnFilterUser_Click" Content="🟡 Пользовательские" Padding="12,6" Margin="0,0,6,0" Cursor="Hand"
-                            Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                    <Button x:Name="BtnFilterUser" Click="BtnFilterUser_Click" Content="🟡 Пользовательские" Padding="14,7" Margin="0,0,8,0" Cursor="Hand"
+                            FontWeight="SemiBold" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -154,8 +154,8 @@
                     </Button>
 
                     <!-- CriticalSystem -->
-                    <Button Click="BtnFilterSystem_Click" Content="🔴 Системные Windows" Padding="12,6" Cursor="Hand"
-                            Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                    <Button x:Name="BtnFilterSystem" Click="BtnFilterSystem_Click" Content="🔴 Системные Windows" Padding="14,7" Cursor="Hand"
+                            FontWeight="SemiBold" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -203,10 +203,10 @@
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding ProcessName}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                            <TextBlock Text="PID: " FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
+                                            <TextBlock Text="PID: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                             <TextBlock Text="{Binding ProcessId}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                                            <TextBlock Text=" • Потоков: " FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="8,0,0,0"/>
-                                            <TextBlock Text="{Binding ThreadsCount}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text=" • Потоков: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0"/>
+                                            <TextBlock Text="{Binding ThreadsCount}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                         </StackPanel>
                                     </StackPanel>
 
@@ -219,7 +219,7 @@
                                     <!-- Memory Usage -->
                                     <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,16,0">
                                         <TextBlock Text="{Binding FormattedMemory}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}" HorizontalAlignment="Right"/>
-                                        <TextBlock Text="Память RAM" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right"/>
+                                        <TextBlock Text="Память RAM" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
                                     </StackPanel>
 
                                     <!-- Status Badge -->

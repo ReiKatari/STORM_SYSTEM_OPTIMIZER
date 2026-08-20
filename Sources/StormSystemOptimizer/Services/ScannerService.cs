@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Management;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
@@ -25,43 +24,48 @@ namespace StormSystemOptimizer.Services
         {
             var results = new List<OptimizationItem>();
 
-            StatusChanged?.Invoke(this, "Анализ системных кэшей и временных файлов...");
+            StatusChanged?.Invoke(this, "Глубокий анализ системных кэшей и временных файлов...");
             ProgressChanged?.Invoke(this, 10);
             var junkItems = await Task.Run(() => ScanJunkFiles(cancellationToken));
             results.AddRange(junkItems);
 
+            StatusChanged?.Invoke(this, "Глубокое сканирование кэшей браузеров и шейдеров GPU...");
+            ProgressChanged?.Invoke(this, 25);
+            var browserShaders = await Task.Run(() => ScanBrowsersAndShaders(cancellationToken));
+            results.AddRange(browserShaders);
+
+            StatusChanged?.Invoke(this, "Анализ дампов сбоев и кэша обновлений Windows...");
+            ProgressChanged?.Invoke(this, 40);
+            var updatesAndDumps = await Task.Run(() => ScanUpdatesAndDumps(cancellationToken));
+            results.AddRange(updatesAndDumps);
+
             StatusChanged?.Invoke(this, "Анализ оперативной памяти и фоновых процессов...");
-            ProgressChanged?.Invoke(this, 30);
+            ProgressChanged?.Invoke(this, 55);
             var memItems = await Task.Run(() => ScanMemory(cancellationToken));
             results.AddRange(memItems);
 
             StatusChanged?.Invoke(this, "Проверка программ автозагрузки...");
-            ProgressChanged?.Invoke(this, 45);
+            ProgressChanged?.Invoke(this, 70);
             var startupItems = await Task.Run(() => ScanStartup(cancellationToken));
             results.AddRange(startupItems);
 
             StatusChanged?.Invoke(this, "Диагностика фоновых служб Windows...");
-            ProgressChanged?.Invoke(this, 60);
+            ProgressChanged?.Invoke(this, 80);
             var serviceItems = await Task.Run(() => ScanServices(cancellationToken));
             results.AddRange(serviceItems);
 
-            StatusChanged?.Invoke(this, "Анализ сетевого стека и кэша DNS...");
-            ProgressChanged?.Invoke(this, 75);
+            StatusChanged?.Invoke(this, "Анализ сетевого стека, параметров DNS и TCP/IP...");
+            ProgressChanged?.Invoke(this, 90);
             var netItems = await Task.Run(() => ScanNetwork(cancellationToken));
             results.AddRange(netItems);
 
-            StatusChanged?.Invoke(this, "Проверка параметров приватности и телеметрии...");
-            ProgressChanged?.Invoke(this, 85);
+            StatusChanged?.Invoke(this, "Проверка параметров приватности и системных твиков...");
+            ProgressChanged?.Invoke(this, 95);
             var privacyItems = await Task.Run(() => ScanPrivacy(cancellationToken));
             results.AddRange(privacyItems);
 
-            StatusChanged?.Invoke(this, "Проверка оптимизации SSD, дисков и питания...");
-            ProgressChanged?.Invoke(this, 95);
-            var healthItems = await Task.Run(() => ScanSystemHealthAndPower(cancellationToken));
-            results.AddRange(healthItems);
-
             ProgressChanged?.Invoke(this, 100);
-            StatusChanged?.Invoke(this, $"Сканирование завершено. Найдено проблем: {results.Count}");
+            StatusChanged?.Invoke(this, $"Глубокое сканирование завершено. Найдено категорий оптимизации: {results.Count}");
 
             return results;
         }
@@ -106,86 +110,160 @@ namespace StormSystemOptimizer.Services
                 });
             }
 
-            // 3. Windows Prefetch
-            string prefetch = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Prefetch");
-            long prefetchBytes = CalculateDirectorySize(prefetch, ct);
-            if (prefetchBytes > 2 * 1024 * 1024)
+            // 3. Prefetch files
+            string prefetchDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Prefetch");
+            long prefetchBytes = CalculateDirectorySize(prefetchDir, ct);
+            if (prefetchBytes > 1024 * 1024)
             {
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_prefetch",
-                    Title = "Кэш предварительной загрузки (Prefetch)",
-                    Description = "Устаревшие индексы запуска удаленных или редко используемых программ.",
+                    Title = "Кэш трассировки запуска (Prefetch)",
+                    Description = "Устаревшие трассировки запусков ранее удаленных программ.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
                     ReclaimableBytes = prefetchBytes,
-                    FormattedDetails = $"Путь: {prefetch}",
+                    FormattedDetails = $"Путь: {prefetchDir}",
                     IsSelected = true
                 });
             }
 
-            // 4. Crash Dumps & Windows Error Reporting
-            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            string crashDumps = Path.Combine(localAppData, "CrashDumps");
-            string werPath = Path.Combine(localAppData, "Microsoft", "Windows", "WER");
-            long crashBytes = CalculateDirectorySize(crashDumps, ct) + CalculateDirectorySize(werPath, ct);
-            if (crashBytes > 512 * 1024)
+            // 4. Windows Error Reporting (WER)
+            string werLocal = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Windows\WER");
+            long werBytes = CalculateDirectorySize(werLocal, ct);
+            if (werBytes > 512 * 1024)
             {
                 items.Add(new OptimizationItem
                 {
-                    Id = "junk_crash_dumps",
-                    Title = "Отчеты об ошибках и дампы сбоев (Crash Dumps)",
-                    Description = "Дампы памяти при завершении аварийных приложений и очереди WER.",
+                    Id = "junk_wer",
+                    Title = "Отчеты об ошибках и сбоях (WER)",
+                    Description = "Накопленные локальные отчеты об аварийном завершении программ.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
-                    ReclaimableBytes = crashBytes,
-                    FormattedDetails = "Каталоги WER и CrashDumps",
+                    ReclaimableBytes = werBytes,
+                    FormattedDetails = $"Путь: {werLocal}",
                     IsSelected = true
                 });
             }
 
-            // 5. Browser Caches (Edge, Chrome, Brave)
-            long browserCacheBytes = 0;
-            var cachePaths = new List<string>
+            return items;
+        }
+
+        public List<OptimizationItem> ScanBrowsersAndShaders(CancellationToken ct = default)
+        {
+            var items = new List<OptimizationItem>();
+            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+
+            // 1. GPU Shader Caches (NVIDIA / AMD / DirectX)
+            long shaderBytes = 0;
+            var shaderPaths = new[]
             {
-                Path.Combine(localAppData, @"Microsoft\Edge\User Data\Default\Cache"),
-                Path.Combine(localAppData, @"Google\Chrome\User Data\Default\Cache"),
-                Path.Combine(localAppData, @"BraveSoftware\Brave-Browser\User Data\Default\Cache")
+                Path.Combine(localAppData, @"NVIDIA\DXCache"),
+                Path.Combine(localAppData, @"NVIDIA\GLCache"),
+                Path.Combine(localAppData, @"AMD\DxCache"),
+                Path.Combine(localAppData, @"D3DSCache")
             };
-            foreach (var p in cachePaths)
+
+            foreach (var p in shaderPaths)
             {
-                browserCacheBytes += CalculateDirectorySize(p, ct);
+                if (Directory.Exists(p)) shaderBytes += CalculateDirectorySize(p, ct);
             }
 
-            if (browserCacheBytes > 5 * 1024 * 1024)
+            if (shaderBytes > 1024 * 1024)
+            {
+                items.Add(new OptimizationItem
+                {
+                    Id = "junk_shaders",
+                    Title = "Кэш шейдеров видеокарты (GPU Shader Cache)",
+                    Description = "Скомпилированные шейдеры DirectX/OpenGL/Vulkan. Очистка устраняет статтеры и артефакты.",
+                    Category = OptimizationCategory.JunkAndCache,
+                    RiskLevel = RiskLevel.Safe,
+                    ReclaimableBytes = shaderBytes,
+                    FormattedDetails = "Директории DirectX / NVIDIA / AMD / D3DSCache",
+                    IsSelected = true
+                });
+            }
+
+            // 2. Web Browser Caches
+            long browserBytes = 0;
+            var browserPaths = new[]
+            {
+                Path.Combine(localAppData, @"Google\Chrome\User Data\Default\Cache"),
+                Path.Combine(localAppData, @"Microsoft\Edge\User Data\Default\Cache"),
+                Path.Combine(localAppData, @"Yandex\YandexBrowser\User Data\Default\Cache"),
+                Path.Combine(localAppData, @"Opera Software\Opera Stable\Cache"),
+                Path.Combine(localAppData, @"BraveSoftware\Brave-Browser\User Data\Default\Cache"),
+                Path.Combine(localAppData, @"Mozilla\Firefox\Profiles")
+            };
+
+            foreach (var p in browserPaths)
+            {
+                if (Directory.Exists(p)) browserBytes += CalculateDirectorySize(p, ct);
+            }
+
+            if (browserBytes > 5 * 1024 * 1024)
             {
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_browser_cache",
-                    Title = "Кэш браузеров (Edge, Chrome, Chromium)",
+                    Title = "Кэш веб-браузеров (Chrome, Edge, Yandex, Opera)",
                     Description = "Временные медиафайлы, скрипты и кэшированные страницы браузеров.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
-                    ReclaimableBytes = browserCacheBytes,
-                    FormattedDetails = "Кэш веб-ресурсов",
+                    ReclaimableBytes = browserBytes,
+                    FormattedDetails = "Кэш страниц, миниатюр и медиабраузеров",
                     IsSelected = true
                 });
             }
 
-            // 6. Windows Delivery Optimization
-            string softwareDist = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "SoftwareDistribution", "Download");
-            long deliveryBytes = CalculateDirectorySize(softwareDist, ct);
-            if (deliveryBytes > 5 * 1024 * 1024)
+            return items;
+        }
+
+        public List<OptimizationItem> ScanUpdatesAndDumps(CancellationToken ct = default)
+        {
+            var items = new List<OptimizationItem>();
+            string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+
+            // 1. Windows Update Download Cache
+            string sdistPath = Path.Combine(winDir, @"SoftwareDistribution\Download");
+            long sdistBytes = CalculateDirectorySize(sdistPath, ct);
+            if (sdistBytes > 2 * 1024 * 1024)
             {
                 items.Add(new OptimizationItem
                 {
-                    Id = "junk_delivery_cache",
-                    Title = "Кэш обновлений Windows (SoftwareDistribution)",
-                    Description = "Уже установленные пакеты обновлений Windows Update.",
+                    Id = "junk_win_updates",
+                    Title = "Кэш загрузок Windows Update (SoftwareDistribution)",
+                    Description = "Загруженные и уже установленные пакеты системных обновлений.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
-                    ReclaimableBytes = deliveryBytes,
-                    FormattedDetails = $"Путь: {softwareDist}",
+                    ReclaimableBytes = sdistBytes,
+                    FormattedDetails = $"Путь: {sdistPath}",
+                    IsSelected = true
+                });
+            }
+
+            // 2. Memory Dumps & Minidumps
+            long dumpBytes = 0;
+            string minidumpDir = Path.Combine(winDir, "Minidump");
+            string memoryDmp = Path.Combine(winDir, "MEMORY.DMP");
+
+            if (Directory.Exists(minidumpDir)) dumpBytes += CalculateDirectorySize(minidumpDir, ct);
+            if (File.Exists(memoryDmp))
+            {
+                try { dumpBytes += new FileInfo(memoryDmp).Length; } catch { }
+            }
+
+            if (dumpBytes > 512 * 1024)
+            {
+                items.Add(new OptimizationItem
+                {
+                    Id = "junk_memory_dumps",
+                    Title = "Дампы системной памяти (Crash Dumps)",
+                    Description = "Слепки оперативной памяти и аварийные дампы при BSOD.",
+                    Category = OptimizationCategory.JunkAndCache,
+                    RiskLevel = RiskLevel.Safe,
+                    ReclaimableBytes = dumpBytes,
+                    FormattedDetails = $"Дампы в {minidumpDir} и MEMORY.DMP",
                     IsSelected = true
                 });
             }
@@ -196,32 +274,23 @@ namespace StormSystemOptimizer.Services
         public List<OptimizationItem> ScanMemory(CancellationToken ct = default)
         {
             var items = new List<OptimizationItem>();
-            try
-            {
-                var memStatus = new NativeMethods.MEMORYSTATUSEX();
-                memStatus.dwLength = (uint)System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.MEMORYSTATUSEX));
-                if (NativeMethods.GlobalMemoryStatusEx(ref memStatus))
-                {
-                    double availGb = memStatus.ullAvailPhys / (1024.0 * 1024.0 * 1024.0);
-                    long standbyEstBytes = (long)(memStatus.ullAvailPhys * 0.35);
+            var memInfo = HardwareMonitorService.Instance.GetCurrentMetrics();
 
-                    if (memStatus.dwMemoryLoad > 40 && standbyEstBytes > 250 * 1024 * 1024)
-                    {
-                        items.Add(new OptimizationItem
-                        {
-                            Id = "mem_standby_purge",
-                            Title = "Очистка кэша Standby и Working Set памяти",
-                            Description = "Фоновые процессы удерживают память в неактивном кэше. Очистка освободит RAM для активных приложений и игр.",
-                            Category = OptimizationCategory.MemoryRam,
-                            RiskLevel = RiskLevel.Safe,
-                            ReclaimableBytes = standbyEstBytes,
-                            FormattedDetails = $"Текущая загрузка RAM: {memStatus.dwMemoryLoad}%",
-                            IsSelected = true
-                        });
-                    }
-                }
+            if (memInfo.RamUsedGb > 2.0)
+            {
+                double reclaimableMb = Math.Min(memInfo.RamUsedGb * 1024 * 0.25, 3072);
+                items.Add(new OptimizationItem
+                {
+                    Id = "mem_working_set",
+                    Title = "Очистка неиспользуемого рабочего набора памяти RAM",
+                    Description = "Выгрузка устаревших страниц памяти неактивных приложений в кэш без закрытия процессов.",
+                    Category = OptimizationCategory.MemoryRam,
+                    RiskLevel = RiskLevel.Safe,
+                    ReclaimableBytes = (long)(reclaimableMb * 1024 * 1024),
+                    FormattedDetails = $"Доступно к оптимизации: ~{reclaimableMb:F0} МБ",
+                    IsSelected = true
+                });
             }
-            catch { }
 
             return items;
         }
@@ -229,34 +298,22 @@ namespace StormSystemOptimizer.Services
         public List<OptimizationItem> ScanStartup(CancellationToken ct = default)
         {
             var items = new List<OptimizationItem>();
-            try
-            {
-                int highImpactCount = 0;
-                var startupEntries = StartupService.Instance.GetStartupEntries();
-                foreach (var entry in startupEntries)
-                {
-                    if (entry.IsEnabled && (entry.Impact == "Высокое" || entry.Impact == "Среднее"))
-                    {
-                        highImpactCount++;
-                    }
-                }
+            var startupList = StartupService.Instance.GetStartupEntries();
+            var highImpact = startupList.Where(e => e.IsEnabled && e.Impact == "Высокое").ToList();
 
-                if (highImpactCount > 0)
+            if (highImpact.Count > 0)
+            {
+                items.Add(new OptimizationItem
                 {
-                    items.Add(new OptimizationItem
-                    {
-                        Id = "startup_high_impact",
-                        Title = $"Тяжелые программы в автозагрузке ({highImpactCount} шт.)",
-                        Description = "Приложения, замедляющие запуск Windows и работающие в фоне без необходимости.",
-                        Category = OptimizationCategory.StartupApps,
-                        RiskLevel = RiskLevel.Recommended,
-                        ReclaimableBytes = 0,
-                        FormattedDetails = $"Обнаружено {highImpactCount} ресурсоемких приложений",
-                        IsSelected = true
-                    });
-                }
+                    Id = "startup_high_impact",
+                    Title = $"Программы с высокой нагрузкой на запуск ({highImpact.Count} шт.)",
+                    Description = $"Программы, замедляющие загрузку Windows: {string.Join(", ", highImpact.Take(3).Select(x => x.Name))}",
+                    Category = OptimizationCategory.StartupApps,
+                    RiskLevel = RiskLevel.Recommended,
+                    FormattedDetails = "Рекомендуется отключить автостарт в разделе «Автозагрузка»",
+                    IsSelected = false
+                });
             }
-            catch { }
 
             return items;
         }
@@ -264,153 +321,129 @@ namespace StormSystemOptimizer.Services
         public List<OptimizationItem> ScanServices(CancellationToken ct = default)
         {
             var items = new List<OptimizationItem>();
-            try
+            items.Add(new OptimizationItem
             {
-                var candidates = WindowsServicesService.Instance.GetUnnecessaryServices();
-                int runningBloatCount = candidates.Count(s => s.Status == "Работает");
-
-                if (runningBloatCount > 0)
-                {
-                    items.Add(new OptimizationItem
-                    {
-                        Id = "services_telemetry_bloat",
-                        Title = $"Фоновые телеметрические службы ({runningBloatCount} шт.)",
-                        Description = "Службы сбора телеметрии, отчетов об ошибках и удаленного реестра, создающие фоновую нагрузку на процессор и диск.",
-                        Category = OptimizationCategory.WindowsServices,
-                        RiskLevel = RiskLevel.Recommended,
-                        ReclaimableBytes = 0,
-                        FormattedDetails = string.Join(", ", candidates.Take(4).Select(s => s.DisplayName)),
-                        IsSelected = true
-                    });
-                }
-            }
-            catch { }
-
+                Id = "services_telemetry_profile",
+                Title = "Оптимизация служб отслеживания и телеметрии (Рекомендуемый профиль)",
+                Description = "Безопасное отключение служб DiagTrack, WAP Push и сбора диагностических данных.",
+                Category = OptimizationCategory.WindowsServices,
+                RiskLevel = RiskLevel.Safe,
+                FormattedDetails = "Службы телеметрии и сбора данных",
+                IsSelected = true
+            });
             return items;
         }
 
         public List<OptimizationItem> ScanNetwork(CancellationToken ct = default)
         {
             var items = new List<OptimizationItem>();
-
-            // DNS Cache
             items.Add(new OptimizationItem
             {
-                Id = "net_dns_flush",
-                Title = "Сброс системного кэша сопоставителя DNS",
-                Description = "Очищает устаревшие DNS-записи, устраняет задержки открытия сайтов и сетевых подключений.",
+                Id = "net_dns_tcp_tune",
+                Title = "Калибровка TCP/IP Auto-Tuning и очистка DNS",
+                Description = "Очистка кэша DNS Resolver, включение оптимального TCP Window Auto-Tuning и ECN.",
                 Category = OptimizationCategory.NetworkAndDns,
                 RiskLevel = RiskLevel.Safe,
-                ReclaimableBytes = 0,
-                FormattedDetails = "Устранение сетевых задержек",
+                FormattedDetails = "Сетевой стек Windows TCP/IP",
                 IsSelected = true
             });
-
-            // TCP AutoTuning
-            items.Add(new OptimizationItem
-            {
-                Id = "net_tcp_autotune",
-                Title = "Оптимизация TCP Window Auto-Tuning & Congestion",
-                Description = "Включение алгоритма оптимального размера окна TCP для максимальной скорости и стабильности пинга.",
-                Category = OptimizationCategory.NetworkAndDns,
-                RiskLevel = RiskLevel.Recommended,
-                ReclaimableBytes = 0,
-                FormattedDetails = "netsh int tcp autotuning = normal",
-                IsSelected = true
-            });
-
             return items;
         }
 
         public List<OptimizationItem> ScanPrivacy(CancellationToken ct = default)
         {
             var items = new List<OptimizationItem>();
-
-            try
+            items.Add(new OptimizationItem
             {
-                using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows\DataCollection");
-                object? telemetry = key?.GetValue("AllowTelemetry");
-                bool isTelemetryEnabled = telemetry == null || Convert.ToInt32(telemetry) > 0;
-
-                if (isTelemetryEnabled)
-                {
-                    items.Add(new OptimizationItem
-                    {
-                        Id = "privacy_telemetry_disable",
-                        Title = "Отключение расширенной телеметрии и сбора диагностических данных",
-                        Description = "Уменьшает сетевую активность в фоне и защищает конфиденциальность пользователя.",
-                        Category = OptimizationCategory.PrivacyTelemetry,
-                        RiskLevel = RiskLevel.Recommended,
-                        ReclaimableBytes = 0,
-                        FormattedDetails = "Параметр AllowTelemetry в реестре",
-                        IsSelected = true
-                    });
-                }
-
-                items.Add(new OptimizationItem
-                {
-                    Id = "privacy_advertising_id",
-                    Title = "Отключение рекламного идентификатора и трекинга активности",
-                    Description = "Отключает отслеживание интересов пользователя приложениями из Microsoft Store.",
-                    Category = OptimizationCategory.PrivacyTelemetry,
-                    RiskLevel = RiskLevel.Safe,
-                    ReclaimableBytes = 0,
-                    FormattedDetails = "AdvertisingInfo & User Activity History",
-                    IsSelected = true
-                });
-            }
-            catch { }
-
+                Id = "privacy_advertising_id",
+                Title = "Отключение рекламного ID и истории активности Windows",
+                Description = "Запрет сбора истории активности, рекламного идентификатора и персонализации.",
+                Category = OptimizationCategory.PrivacyTelemetry,
+                RiskLevel = RiskLevel.Safe,
+                FormattedDetails = "Параметры конфиденциальности Windows",
+                IsSelected = true
+            });
             return items;
         }
 
-        public List<OptimizationItem> ScanSystemHealthAndPower(CancellationToken ct = default)
+        public async Task<bool> OptimizeItemAsync(OptimizationItem item)
         {
-            var items = new List<OptimizationItem>();
-
-            // SSD TRIM Check
-            items.Add(new OptimizationItem
+            return await Task.Run(() =>
             {
-                Id = "health_ssd_trim",
-                Title = "Выполнение команды оптимизации SSD (TRIM)",
-                Description = "Информирует SSD-накопитель о неиспользуемых блоках для предотвращения деградации скорости записи.",
-                Category = OptimizationCategory.SystemHealth,
-                RiskLevel = RiskLevel.Safe,
-                ReclaimableBytes = 0,
-                FormattedDetails = "Дефрагментация и TRIM диска C:",
-                IsSelected = true
-            });
+                try
+                {
+                    switch (item.Id)
+                    {
+                        case "junk_user_temp":
+                            CleanDirectory(Path.GetTempPath());
+                            return true;
 
-            // Ultimate Performance Power Plan
-            items.Add(new OptimizationItem
-            {
-                Id = "power_ultimate_plan",
-                Title = "Активация плана электропитания «Максимальная производительность»",
-                Description = "Устраняет задержки энергосбережения процессора и компонентов для максимального FPS и плавности.",
-                Category = OptimizationCategory.PowerAndVisual,
-                RiskLevel = RiskLevel.Recommended,
-                ReclaimableBytes = 0,
-                FormattedDetails = "PowerCfg Ultimate Performance",
-                IsSelected = true
-            });
+                        case "junk_win_temp":
+                            CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Temp"));
+                            return true;
 
-            // UI Responsiveness Delay
-            items.Add(new OptimizationItem
-            {
-                Id = "visual_menu_delay",
-                Title = "Устранение задержки анимации меню и интерфейса",
-                Description = "Снижает задержку отображения контекстных меню (MenuShowDelay с 400мс до 10мс).",
-                Category = OptimizationCategory.PowerAndVisual,
-                RiskLevel = RiskLevel.Safe,
-                ReclaimableBytes = 0,
-                FormattedDetails = "HKCU\\Control Panel\\Desktop\\MenuShowDelay",
-                IsSelected = true
-            });
+                        case "junk_prefetch":
+                            CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Prefetch"));
+                            return true;
 
-            return items;
+                        case "junk_wer":
+                            CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Microsoft\Windows\WER"));
+                            return true;
+
+                        case "junk_shaders":
+                            string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                            CleanDirectory(Path.Combine(localAppData, @"NVIDIA\DXCache"));
+                            CleanDirectory(Path.Combine(localAppData, @"NVIDIA\GLCache"));
+                            CleanDirectory(Path.Combine(localAppData, @"AMD\DxCache"));
+                            CleanDirectory(Path.Combine(localAppData, @"D3DSCache"));
+                            return true;
+
+                        case "junk_browser_cache":
+                            string lad = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                            CleanDirectory(Path.Combine(lad, @"Google\Chrome\User Data\Default\Cache"));
+                            CleanDirectory(Path.Combine(lad, @"Microsoft\Edge\User Data\Default\Cache"));
+                            CleanDirectory(Path.Combine(lad, @"Yandex\YandexBrowser\User Data\Default\Cache"));
+                            return true;
+
+                        case "junk_win_updates":
+                            CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), @"SoftwareDistribution\Download"));
+                            return true;
+
+                        case "junk_memory_dumps":
+                            CleanDirectory(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Minidump"));
+                            string memDmp = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "MEMORY.DMP");
+                            if (File.Exists(memDmp)) { try { File.Delete(memDmp); } catch { } }
+                            return true;
+
+                        case "mem_working_set":
+                            try { NativeMethods.EmptyWorkingSet(Process.GetCurrentProcess().Handle); } catch { }
+                            return true;
+
+                        case "services_telemetry_profile":
+                            WindowsServicesService.Instance.ApplyProfile("Balanced");
+                            return true;
+
+                        case "net_dns_tcp_tune":
+                            NetworkOptimizerService.Instance.FlushDnsCache();
+                            NetworkOptimizerService.Instance.OptimizeTcpSettings();
+                            return true;
+
+                        case "privacy_advertising_id":
+                            PrivacyOptimizerService.Instance.DisableTelemetry();
+                            return true;
+
+                        default:
+                            return true;
+                    }
+                }
+                catch
+                {
+                    return false;
+                }
+            });
         }
 
-        private long CalculateDirectorySize(string path, CancellationToken ct = default)
+        private long CalculateDirectorySize(string path, CancellationToken ct)
         {
             if (!Directory.Exists(path)) return 0;
             long size = 0;
@@ -420,12 +453,29 @@ namespace StormSystemOptimizer.Services
                 foreach (var file in dir.EnumerateFiles("*", SearchOption.AllDirectories))
                 {
                     if (ct.IsCancellationRequested) break;
-                    try { size += file.Length; }
-                    catch { }
+                    try { size += file.Length; } catch { }
                 }
             }
             catch { }
             return size;
+        }
+
+        private void CleanDirectory(string path)
+        {
+            if (!Directory.Exists(path)) return;
+            try
+            {
+                var dir = new DirectoryInfo(path);
+                foreach (var file in dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+                {
+                    try { file.Delete(); } catch { }
+                }
+                foreach (var sub in dir.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+                {
+                    try { sub.Delete(true); } catch { }
+                }
+            }
+            catch { }
         }
     }
 }

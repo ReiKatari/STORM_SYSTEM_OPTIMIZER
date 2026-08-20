@@ -94,14 +94,16 @@
                     <StackPanel>
                         <Grid Margin="0,0,0,8">
                             <TextBlock Text="ПРОЦЕССОР (CPU)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="⚡" FontSize="14" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                            <Border HorizontalAlignment="Right" Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2">
+                                <TextBlock Text="{Binding CpuTemperatureText}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                            </Border>
                         </Grid>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <TextBlock Text="{Binding CpuUsage}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <TextBlock Text="%" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Bottom" Margin="4,0,0,4"/>
                         </StackPanel>
                         <ProgressBar Value="{Binding CpuUsage}" Maximum="100" Height="6" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding CpuName}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding CpuName}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Border>
 
@@ -117,7 +119,7 @@
                             <TextBlock Text="%" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AccentSecondaryBrush}" VerticalAlignment="Bottom" Margin="4,0,0,4"/>
                         </StackPanel>
                         <ProgressBar Value="{Binding RamUsage}" Maximum="100" Height="6" Foreground="{DynamicResource AccentSecondaryBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding RamDetails}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding RamDetails}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Border>
 
@@ -126,14 +128,16 @@
                     <StackPanel>
                         <Grid Margin="0,0,0,8">
                             <TextBlock Text="СИСТЕМНЫЙ ДИСК" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="🖴" FontSize="14" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                            <Border HorizontalAlignment="Right" Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2">
+                                <TextBlock Text="{Binding DiskTemperatureText}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                            </Border>
                         </Grid>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <TextBlock Text="{Binding DiskUsage, StringFormat={}{0:F0}}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <TextBlock Text="%" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Bottom" Margin="4,0,0,4"/>
                         </StackPanel>
                         <ProgressBar Value="{Binding DiskUsage}" Maximum="100" Height="6" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding DiskDetails}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{Binding DiskDetails}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
                     </StackPanel>
                 </Border>
 
