@@ -1,4 +1,4 @@
-# STORM SYSTEM OPTIMIZER ⚡
+<h1 align="center">STORM SYSTEM OPTIMIZER ⚡</h1>
 
 <p align="center">
   <img src="Files/StormLogo.png" alt="STORM SYSTEM OPTIMIZER Logo" width="220" />
