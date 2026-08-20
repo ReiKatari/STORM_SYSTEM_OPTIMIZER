@@ -11,29 +11,142 @@
     </Page.DataContext>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
-        <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
+        <StackPanel MaxWidth="960" HorizontalAlignment="Stretch">
 
+            <!-- Header -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,20">
                 <StackPanel>
-                    <TextBlock Text="Оптимизация сети и DNS" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                    <TextBlock Text="Тонкая настройка сетевого стека Windows, TCP Window Auto-Tuning, RSS и мгновенная очистка DNS кэша."
+                    <TextBlock Text="Глубокая оптимизация и ускорение интернета" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Комплексная калибровка параметров TCP Window Auto-Tuning, RSS/RSC, снятие ограничений QoS и сетевого троттлинга Windows, а также мгновенная смена DNS на сверхскоростные серверы."
                                FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
                     <TextBlock Text="{Binding DnsStatus}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                 </StackPanel>
             </Border>
 
-            <!-- Cards -->
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+            <!-- 1-Click TCP & Network Stack Booster -->
+            <Border Background="{DynamicResource StormCardGradient}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="Сброс и очистка кэша DNS Resolver" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock Text="Очищает устаревшие записи сопоставителя DNS для решения проблем с подключением к серверам." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="⚡ Полное ускорение сетевого стека TCP/IP &amp; QoS" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Включает CTCP Congestion Provider, RSS/RSC аппаратную разгрузку пакетов, TCPNoDelay, отключает 20% резервирование полосы пропускания QoS и сетевой троттлинг Windows."
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
-                    <Button Command="{Binding FlushDnsCommand}" Grid.Column="1" Content="Очистить DNS" Padding="18,10" Cursor="Hand" Background="{DynamicResource AccentGlowBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                    <Button Command="{Binding OptimizeTcpCommand}" Grid.Column="1" Content="⚡ Применить ускорение" FontWeight="Bold" Padding="20,12" Cursor="Hand" Background="{DynamicResource StormHeroGradient}" Foreground="#FFFFFF">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- DNS Presets Switcher -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Быстрое переключение высокоскоростных DNS-серверов" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Назначение защищенных и низколатентных серверов DNS для ускорения открытия сайтов и снижения пинга в играх." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <Border HorizontalAlignment="Right" VerticalAlignment="Center" Background="{DynamicResource AccentGlowBrush}" CornerRadius="6" Padding="8,4">
+                            <TextBlock Text="{Binding ActiveDnsProvider, StringFormat='Активен: {0}'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- DNS Button Grid -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Cloudflare -->
+                        <Button Click="BtnDnsCloudflare_Click" Grid.Column="0" Margin="0,0,6,0" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="Cloudflare" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="1.1.1.1" FontSize="11" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Сверхбыстрый" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!-- Google -->
+                        <Button Click="BtnDnsGoogle_Click" Grid.Column="1" Margin="3,0,3,0" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="Google Public" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="8.8.8.8" FontSize="11" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Стабильный" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!-- Quad9 -->
+                        <Button Click="BtnDnsQuad9_Click" Grid.Column="2" Margin="3,0,3,0" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="Quad9 Security" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="9.9.9.9" FontSize="11" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Безопасный" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!-- AdGuard -->
+                        <Button Click="BtnDnsAdGuard_Click" Grid.Column="3" Margin="3,0,3,0" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="AdGuard DNS" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="94.140.14.14" FontSize="11" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="Без рекламы" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <!-- DHCP Default -->
+                        <Button Click="BtnDnsDhcp_Click" Grid.Column="4" Margin="6,0,0,0" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                                        <StackPanel HorizontalAlignment="Center">
+                                            <TextBlock Text="Провайдер" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="DHCP Авто" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="По умолчанию" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </Grid>
+
+                    <Button Command="{Binding FlushDnsCommand}" Content="↺ Мгновенный сброс кэша сопоставителя DNS" HorizontalAlignment="Left" Padding="14,8" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -42,32 +155,10 @@
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
-                </Grid>
+                </StackPanel>
             </Border>
 
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Оптимизация TCP Window Auto-Tuning &amp; RSS" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock Text="Активирует Receive Side Scaling и нормальный уровень автоподстройки окна TCP для высокой пропускной способности." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    </StackPanel>
-                    <Button Command="{Binding OptimizeTcpCommand}" Grid.Column="1" Content="Оптимизировать TCP" Padding="18,10" Cursor="Hand" Background="{DynamicResource StormHeroGradient}" Foreground="#FFFFFF">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                </Grid>
-            </Border>
-
-            <!-- Ping Latency Monitor -->
+            <!-- Ping & DNS Benchmark Tool -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -75,12 +166,12 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="Проверка сетевой задержки (Ping)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock Text="{Binding PingTarget, StringFormat='Цель: {0}'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="Тестирование задержки сети и бенчмарк DNS" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding BenchmarkResults}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="{Binding PingText}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,16,0"/>
-                        <Button Command="{Binding MeasurePingCommand}" Content="Измерить" Padding="16,8" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                        <Button Command="{Binding RunDnsBenchmarkCommand}" Content="⚡ Тест DNS" Padding="16,8" Cursor="Hand" Background="{DynamicResource AccentGlowBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
