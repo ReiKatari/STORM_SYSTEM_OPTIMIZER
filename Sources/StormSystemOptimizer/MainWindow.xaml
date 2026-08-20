@@ -1,0 +1,124 @@
+<Window
+    x:Class="StormSystemOptimizer.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:StormSystemOptimizer"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="STORM SYSTEM OPTIMIZER v0.0.1">
+
+    <Grid Background="{ThemeResource AppBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="48"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="28"/>
+        </Grid.RowDefinitions>
+
+        <!-- Custom TitleBar -->
+        <Grid x:Name="AppTitleBar" Grid.Row="0" Background="{ThemeResource NavSidebarBrush}" Padding="16,0,16,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Storm Logo & App Name -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
+                <Image Source="ms-appx:///Assets/Square44x44Logo.targetsize-24_altform-unplated.png" Width="24" Height="24"/>
+                <TextBlock Text="STORM" FontWeight="Bold" FontSize="15" Foreground="{ThemeResource AccentPrimaryBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="SYSTEM OPTIMIZER" FontWeight="SemiBold" FontSize="14" Foreground="{ThemeResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="4" Padding="6,2,6,2" Margin="6,0,0,0">
+                    <TextBlock Text="v0.0.1" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                </Border>
+            </StackPanel>
+
+            <!-- Quick Theme Switcher in TitleBar -->
+            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8" Margin="0,0,120,0">
+                <Button x:Name="BtnThemeToggle" Click="BtnThemeToggle_Click" ToolTipService.ToolTip="Переключить тему оформления (STORM DARK / NIGHT / DAY / MIDNIGHT)"
+                        Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" CornerRadius="6" Padding="8,4">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <FontIcon Glyph="&#xE790;" FontSize="14" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                        <TextBlock x:Name="TxtCurrentTheme" Text="STORM DARK" FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Content Area with NavigationView -->
+        <NavigationView x:Name="NavView" Grid.Row="1"
+                        PaneDisplayMode="Left"
+                        IsBackButtonVisible="Collapsed"
+                        IsSettingsVisible="False"
+                        SelectionChanged="NavView_SelectionChanged"
+                        Background="{ThemeResource AppBackgroundBrush}">
+
+            <NavigationView.MenuItems>
+                <NavigationViewItem Tag="Dashboard" Content="Панель состояния" ToolTipService.ToolTip="Мониторинг ресурсов и экспресс-буст">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE707;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                
+                <NavigationViewItem Tag="Scanner" Content="Глубокое сканирование" ToolTipService.ToolTip="Анализ и устранение проблем всей системы">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE721;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Tag="Startup" Content="Автозагрузка" ToolTipService.ToolTip="Управление программами автозапуска">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE7B5;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Tag="Services" Content="Службы Windows" ToolTipService.ToolTip="Оптимизация фоновых служб и телеметрии">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE713;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Tag="Network" Content="Оптимизация сети" ToolTipService.ToolTip="Сброс DNS, настройка TCP/IP и пинг">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE774;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Tag="Privacy" Content="Приватность" ToolTipService.ToolTip="Отключение сбора данных и телеметрии">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE72E;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+
+                <NavigationViewItem Tag="SystemTools" Content="Инструменты" ToolTipService.ToolTip="Точки восстановления, SSD TRIM и электропитание">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE90F;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.MenuItems>
+
+            <NavigationView.FooterMenuItems>
+                <NavigationViewItem Tag="Settings" Content="Настройки и Темы" ToolTipService.ToolTip="Выбор темы и параметры программы">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE713;"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+            </NavigationView.FooterMenuItems>
+
+            <Frame x:Name="ContentFrame" Padding="20" Background="{ThemeResource AppBackgroundBrush}"/>
+        </NavigationView>
+
+        <!-- Status Bar -->
+        <Grid Grid.Row="2" Background="{ThemeResource NavSidebarBrush}" Padding="16,0,16,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
+                <Ellipse Width="8" Height="8" Fill="#10B981"/>
+                <TextBlock x:Name="TxtStatusBar" Text="STORM Engine готов к работе • Система стабильна" FontSize="11" Foreground="{ThemeResource TextSecondaryBrush}"/>
+            </StackPanel>
+            <TextBlock Grid.Column="1" Text="100% Safe Optimization • WinUI 3" FontSize="11" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center"/>
+        </Grid>
+    </Grid>
+</Window>
