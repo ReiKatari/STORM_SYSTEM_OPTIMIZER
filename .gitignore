@@ -1,0 +1,23 @@
+## .NET & Visual Studio Ignore
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+[Bb]in/
+[Oo]bj/
+.vs/
+.vscode/
+*.swp
+*~
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.appx
+_ReSharper*/
+*.VC.db
+*.opendb

@@ -1,0 +1,212 @@
+<Page
+    x:Class="StormSystemOptimizer.Views.DashboardPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:StormSystemOptimizer.Views"
+    xmlns:vm="using:StormSystemOptimizer.ViewModels"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Spacing="24" MaxWidth="1100" HorizontalAlignment="Stretch" Margin="0,0,16,24">
+
+            <!-- Hero Banner / Quick Boost Card -->
+            <Border Background="{ThemeResource StormCardGradient}"
+                    BorderBrush="{ThemeResource CardBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="14"
+                    Padding="28"
+                    Shadow="{ThemeResource SharedShadow}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Spacing="12" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="6" Padding="8,4">
+                                <TextBlock Text="СИСТЕМНЫЙ МОНИТОР" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                            </Border>
+                            <Border Background="{ThemeResource BadgeSafeBgBrush}" CornerRadius="6" Padding="8,4">
+                                <TextBlock Text="БЕЗОПАСНЫЙ РЕЖИМ" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource BadgeSafeTextBrush}"/>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Text="Производительность и Здоровье ПК" FontSize="26" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Мгновенное освобождение оперативной памяти, сброс сетевого кэша и оптимизация фоновых процессов без закрытия приложений."
+                                   FontSize="14" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap" MaxWidth="620"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,12,0,0">
+                            <Button Command="{x:Bind ViewModel.QuickStormBoostCommand}"
+                                    IsEnabled="{x:Bind ViewModel.IsNotOptimizing, Mode=OneWay}"
+                                    Background="{ThemeResource StormHeroGradient}"
+                                    Foreground="#FFFFFF"
+                                    FontWeight="Bold"
+                                    FontSize="14"
+                                    CornerRadius="8"
+                                    Padding="24,12">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE7E8;" FontSize="16"/>
+                                    <TextBlock Text="{x:Bind ViewModel.OptimizeButtonText, Mode=OneWay}"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Click="BtnOpenScanner_Click"
+                                    Background="{ThemeResource CardBackgroundBrush}"
+                                    BorderBrush="{ThemeResource CardBorderBrush}"
+                                    Foreground="{ThemeResource TextPrimaryBrush}"
+                                    FontWeight="SemiBold"
+                                    CornerRadius="8"
+                                    Padding="18,12">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE721;" FontSize="16" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                                    <TextBlock Text="Полное сканирование системы"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Storm Shield Emblem & Health Score -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" Margin="24,0,0,0">
+                        <Border Width="110" Height="110" CornerRadius="55" Background="{ThemeResource AccentGlowBrush}"
+                                BorderBrush="{ThemeResource AccentPrimaryBrush}" BorderThickness="2" HorizontalAlignment="Center">
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock Text="{x:Bind ViewModel.HealthScore, Mode=OneWay}" FontSize="32" FontWeight="ExtraBold" Foreground="{ThemeResource AccentPrimaryBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="БАЛЛОВ" FontSize="9" FontWeight="Bold" Foreground="{ThemeResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="{x:Bind ViewModel.HealthStatusText, Mode=OneWay}" FontSize="12" FontWeight="SemiBold" Foreground="{ThemeResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Real-Time Hardware Diagnostics Grid -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- CPU Card -->
+                <Border Grid.Column="0" Margin="0,0,10,0" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                    <StackPanel Spacing="10">
+                        <Grid>
+                            <TextBlock Text="ПРОЦЕССОР (CPU)" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource TextSecondaryBrush}"/>
+                            <FontIcon Glyph="&#xE950;" FontSize="16" Foreground="{ThemeResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{x:Bind ViewModel.CpuUsage, Mode=OneWay}" FontSize="28" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+                            <TextBlock Text="%" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource AccentPrimaryBrush}" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+                        </StackPanel>
+                        <ProgressBar Value="{x:Bind ViewModel.CpuUsage, Mode=OneWay}" Maximum="100" Height="6" CornerRadius="3" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="{x:Bind ViewModel.CpuName, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- RAM Card -->
+                <Border Grid.Column="1" Margin="5,0,5,0" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                    <StackPanel Spacing="10">
+                        <Grid>
+                            <TextBlock Text="ПАМЯТЬ (RAM)" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource TextSecondaryBrush}"/>
+                            <FontIcon Glyph="&#xE950;" FontSize="16" Foreground="{ThemeResource AccentSecondaryBrush}" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{x:Bind ViewModel.RamUsage, Mode=OneWay}" FontSize="28" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+                            <TextBlock Text="%" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource AccentSecondaryBrush}" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+                        </StackPanel>
+                        <ProgressBar Value="{x:Bind ViewModel.RamUsage, Mode=OneWay}" Maximum="100" Height="6" CornerRadius="3" Foreground="{ThemeResource AccentSecondaryBrush}"/>
+                        <TextBlock Text="{x:Bind ViewModel.RamDetails, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Disk Card -->
+                <Border Grid.Column="2" Margin="5,0,5,0" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                    <StackPanel Spacing="10">
+                        <Grid>
+                            <TextBlock Text="СИСТЕМНЫЙ ДИСК" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource TextSecondaryBrush}"/>
+                            <FontIcon Glyph="&#xEDA2;" FontSize="16" Foreground="{ThemeResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="{x:Bind ViewModel.DiskUsage, Mode=OneWay}" FontSize="28" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+                            <TextBlock Text="%" FontSize="16" FontWeight="SemiBold" Foreground="{ThemeResource AccentPrimaryBrush}" VerticalAlignment="Bottom" Margin="0,0,0,4"/>
+                        </StackPanel>
+                        <ProgressBar Value="{x:Bind ViewModel.DiskUsage, Mode=OneWay}" Maximum="100" Height="6" CornerRadius="3" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="{x:Bind ViewModel.DiskDetails, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextMutedBrush}" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- System Info Card -->
+                <Border Grid.Column="3" Margin="10,0,0,0" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                    <StackPanel Spacing="8">
+                        <Grid>
+                            <TextBlock Text="ИНФО СИСТЕМЫ" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource TextSecondaryBrush}"/>
+                            <FontIcon Glyph="&#xE770;" FontSize="16" Foreground="{ThemeResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                        </Grid>
+                        <TextBlock Text="{x:Bind ViewModel.OsVersion, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Foreground="{ThemeResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock Text="{x:Bind ViewModel.GpuName, Mode=OneWay}" FontSize="11" Foreground="{ThemeResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+                        <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,4,0,0">
+                            <TextBlock Text="Время работы:" FontSize="11" Foreground="{ThemeResource TextMutedBrush}"/>
+                            <TextBlock Text="{x:Bind ViewModel.UptimeString, Mode=OneWay}" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Quick Action Cards Section -->
+            <TextBlock Text="Быстрые действия оптимизации" FontSize="18" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Click="BtnDnsFlush_Click" Grid.Column="0" Margin="0,0,10,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                        Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" CornerRadius="10" Padding="16">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="6" Padding="8">
+                                <FontIcon Glyph="&#xE774;" FontSize="16" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                            </Border>
+                            <TextBlock Text="Сброс кэша DNS" FontSize="14" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Устраняет задержки сети и сетевые ошибки при открытии веб-ресурсов." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Click="BtnTrimSsd_Click" Grid.Column="1" Margin="5,0,5,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                        Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" CornerRadius="10" Padding="16">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="6" Padding="8">
+                                <FontIcon Glyph="&#xEDA2;" FontSize="16" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                            </Border>
+                            <TextBlock Text="Оптимизация SSD (TRIM)" FontSize="14" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Очищает неиспользуемые блоки на SSD диске для поддержки максимальной скорости записи." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Button>
+
+                <Button Click="BtnPowerPlan_Click" Grid.Column="2" Margin="10,0,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                        Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" CornerRadius="10" Padding="16">
+                    <StackPanel Spacing="8">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="6" Padding="8">
+                                <FontIcon Glyph="&#xE945;" FontSize="16" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                            </Border>
+                            <TextBlock Text="Макс. Производительность" FontSize="14" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Включает режим Ultimate Performance питания для максимального FPS и скорости." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>

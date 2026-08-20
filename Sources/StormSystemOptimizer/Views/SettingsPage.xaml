@@ -1,0 +1,140 @@
+<Page
+    x:Class="StormSystemOptimizer.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:StormSystemOptimizer.Views"
+    xmlns:vm="using:StormSystemOptimizer.ViewModels"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="24" MaxWidth="1000" HorizontalAlignment="Stretch" Margin="0,0,16,24">
+
+            <!-- Header -->
+            <Border Background="{ThemeResource StormCardGradient}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel Spacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE713;" FontSize="20" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="Настройки и Темы оформления STORM" FontSize="20" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                    <TextBlock Text="Персонализация интерфейса, выбор цветовых тем и конфигурация фонового режима." FontSize="13" Foreground="{ThemeResource TextSecondaryBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Themes Selection Section -->
+            <StackPanel Spacing="12">
+                <TextBlock Text="Темы оформления STORM" FontSize="16" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+                <TextBlock Text="Выберите одну из 4 эксклюзивных фирменных тем оформления:" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- STORM DARK -->
+                    <Button Click="BtnThemeDark_Click" Grid.Column="0" Margin="0,0,8,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                            Background="#10141D" BorderBrush="#00D2FF" BorderThickness="2" CornerRadius="10" Padding="14">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Ellipse Width="12" Height="12" Fill="#00D2FF"/>
+                                <TextBlock Text="STORM DARK" FontSize="13" FontWeight="Bold" Foreground="#F1F5F9"/>
+                            </StackPanel>
+                            <Border Background="#181F2C" CornerRadius="6" Height="36" Padding="6">
+                                <TextBlock Text="Кибер-тёмная тема" FontSize="10" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- STORM NIGHT -->
+                    <Button Click="BtnThemeNight_Click" Grid.Column="1" Margin="4,0,4,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                            Background="#000000" BorderBrush="#00F0FF" BorderThickness="2" CornerRadius="10" Padding="14">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Ellipse Width="12" Height="12" Fill="#00F0FF"/>
+                                <TextBlock Text="STORM NIGHT" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            </StackPanel>
+                            <Border Background="#0A0B10" CornerRadius="6" Height="36" Padding="6">
+                                <TextBlock Text="Глубокий OLED чёрный" FontSize="10" Foreground="#A1A1AA" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- STORM DAY -->
+                    <Button Click="BtnThemeDay_Click" Grid.Column="2" Margin="4,0,4,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                            Background="#F4F7FB" BorderBrush="#0284C7" BorderThickness="2" CornerRadius="10" Padding="14">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Ellipse Width="12" Height="12" Fill="#0284C7"/>
+                                <TextBlock Text="STORM DAY" FontSize="13" FontWeight="Bold" Foreground="#0F172A"/>
+                            </StackPanel>
+                            <Border Background="#FFFFFF" CornerRadius="6" Height="36" Padding="6">
+                                <TextBlock Text="Светлая современная" FontSize="10" Foreground="#475569" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- STORM MIDNIGHT -->
+                    <Button Click="BtnThemeMidnight_Click" Grid.Column="3" Margin="8,0,0,0" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                            Background="#0C0A1D" BorderBrush="#A855F7" BorderThickness="2" CornerRadius="10" Padding="14">
+                        <StackPanel Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <Ellipse Width="12" Height="12" Fill="#A855F7"/>
+                                <TextBlock Text="STORM MIDNIGHT" FontSize="13" FontWeight="Bold" Foreground="#FAF5FF"/>
+                            </StackPanel>
+                            <Border Background="#15112B" CornerRadius="6" Height="36" Padding="6">
+                                <TextBlock Text="Космическая фиолетовая" FontSize="10" Foreground="#C084FC" VerticalAlignment="Center"/>
+                            </Border>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </StackPanel>
+
+            <!-- General Options -->
+            <StackPanel Spacing="12">
+                <TextBlock Text="Параметры работы" FontSize="16" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+
+                <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="Сворачивать в системный трей при закрытии" FontSize="14" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Программа продолжает фоновый мониторинг без блокировки панели задач." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.MinimizeToTray, Mode=TwoWay}" OnContent="Вкл" OffContent="Выкл"/>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- About Section -->
+            <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Column="0" Source="ms-appx:///Assets/Square150x150Logo.scale-200.png" Width="64" Height="64" Margin="0,0,20,0" VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="1" Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="STORM SYSTEM OPTIMIZER" FontSize="16" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="4" Padding="6,2">
+                                <TextBlock Text="Версия 0.0.1" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                            </Border>
+                        </StackPanel>
+                        <TextBlock Text="Высокопроизводительный оптимизатор Windows на WinUI 3 (Windows App SDK / .NET)." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
+                        <TextBlock Text="GitHub: https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER" FontSize="12" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="Разработчик: ReiKatari / STORM Software © 2026. Все права защищены." FontSize="11" Foreground="{ThemeResource TextMutedBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Page>
