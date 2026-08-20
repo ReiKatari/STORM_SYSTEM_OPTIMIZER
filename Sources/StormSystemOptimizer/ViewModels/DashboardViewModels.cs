@@ -1,9 +1,9 @@
 using System;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.UI.Dispatching;
 using StormSystemOptimizer.Models;
 using StormSystemOptimizer.Services;
 using StormSystemOptimizer.Themes;
@@ -36,13 +36,13 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public void SetTheme(ThemeType theme)
         {
-            ThemeManager.Instance.ApplyTheme(theme, App.MainWindow);
+            ThemeManager.Instance.ApplyTheme(theme, Application.Current.MainWindow);
         }
     }
 
     public partial class DashboardViewModel : ObservableObject
     {
-        private readonly DispatcherQueueTimer _timer;
+        private readonly DispatcherTimer _timer;
 
         [ObservableProperty]
         private double _cpuUsage;
@@ -90,8 +90,10 @@ namespace StormSystemOptimizer.ViewModels
         {
             RefreshMetrics();
 
-            _timer = DispatcherQueue.GetForCurrentThread().CreateTimer();
-            _timer.Interval = TimeSpan.FromSeconds(2);
+            _timer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
             _timer.Tick += (s, e) => RefreshMetrics();
             _timer.Start();
         }
@@ -111,7 +113,6 @@ namespace StormSystemOptimizer.ViewModels
             OsVersion = metrics.OsVersion;
             UptimeString = $"{metrics.SystemUptime.Days * 24 + metrics.SystemUptime.Hours}ч {metrics.SystemUptime.Minutes}м";
 
-            // Calculate dynamic health score
             double penalty = (RamUsage > 75 ? 15 : 0) + (CpuUsage > 50 ? 10 : 0) + (DiskUsage > 85 ? 15 : 0);
             HealthScore = Math.Clamp((int)(100 - penalty), 40, 100);
             HealthStatusText = HealthScore >= 85 ? "Отличное состояние" : (HealthScore >= 70 ? "Требуется оптимизация" : "Система перегружена");

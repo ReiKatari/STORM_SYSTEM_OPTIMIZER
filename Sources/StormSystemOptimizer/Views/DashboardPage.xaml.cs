@@ -1,23 +1,14 @@
-using System;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+using System.Windows;
+using System.Windows.Controls;
 using StormSystemOptimizer.Services;
-using StormSystemOptimizer.ViewModels;
 
 namespace StormSystemOptimizer.Views
 {
-    public sealed partial class DashboardPage : Page
+    public partial class DashboardPage : Page
     {
-        public DashboardViewModel ViewModel { get; } = new();
-
         public DashboardPage()
         {
-            this.InitializeComponent();
-        }
-
-        private void BtnOpenScanner_Click(object sender, RoutedEventArgs e)
-        {
-            Frame.Navigate(typeof(ScannerPage));
+            InitializeComponent();
         }
 
         private void BtnDnsFlush_Click(object sender, RoutedEventArgs e)

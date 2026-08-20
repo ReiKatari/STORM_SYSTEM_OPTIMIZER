@@ -2,7 +2,8 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
-using Microsoft.UI.Xaml;
+using System.Windows;
+using System.Windows.Interop;
 
 namespace StormSystemOptimizer.Services
 {
@@ -14,7 +15,7 @@ namespace StormSystemOptimizer.Services
         private NativeMethods.NOTIFYICONDATA _nid;
         private bool _isCreated = false;
         private IntPtr _hwnd = IntPtr.Zero;
-        private Window? _mainWindow;
+        private Icon? _trayIcon;
 
         private const int TRAY_ICON_ID = 1001;
         private const int WM_TRAYICON = 0x8000 + 1;
@@ -23,18 +24,18 @@ namespace StormSystemOptimizer.Services
 
         public void Initialize(Window window)
         {
-            _mainWindow = window;
-            _hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-
             try
             {
-                string iconPath = Path.Combine(AppContext.BaseDirectory, "Assets", "AppIcon.ico");
+                var helper = new WindowInteropHelper(window);
+                _hwnd = helper.Handle;
+
+                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "AppIcon.ico");
                 IntPtr hIcon = IntPtr.Zero;
 
                 if (File.Exists(iconPath))
                 {
-                    using var icon = new Icon(iconPath, new Size(16, 16));
-                    hIcon = icon.Handle;
+                    _trayIcon = new System.Drawing.Icon(iconPath, new System.Drawing.Size(16, 16));
+                    hIcon = _trayIcon.Handle;
                 }
 
                 _nid = new NativeMethods.NOTIFYICONDATA
@@ -67,22 +68,25 @@ namespace StormSystemOptimizer.Services
             catch { }
         }
 
-        public void MinimizeToTray()
+        public void MinimizeToTray(Window window)
         {
-            if (_hwnd != IntPtr.Zero)
+            try
             {
-                NativeMethods.ShowWindow(_hwnd, NativeMethods.SW_HIDE);
-                ShowNotification("STORM OPTIMIZER в фоне", "Приложение свернуто в трей. Нажмите значок для открытия.");
+                window.Hide();
+                ShowNotification("STORM OPTIMIZER в фоне", "Приложение свернуто в трей.");
             }
+            catch { }
         }
 
-        public void RestoreFromTray()
+        public void RestoreFromTray(Window window)
         {
-            if (_hwnd != IntPtr.Zero)
+            try
             {
-                NativeMethods.ShowWindow(_hwnd, NativeMethods.SW_RESTORE);
-                NativeMethods.SetForegroundWindow(_hwnd);
+                window.Show();
+                window.WindowState = WindowState.Normal;
+                window.Activate();
             }
+            catch { }
         }
 
         public void RemoveIcon()
@@ -92,6 +96,7 @@ namespace StormSystemOptimizer.Services
                 NativeMethods.Shell_NotifyIcon(NativeMethods.NIM_DELETE, ref _nid);
                 _isCreated = false;
             }
+            _trayIcon?.Dispose();
         }
     }
 }

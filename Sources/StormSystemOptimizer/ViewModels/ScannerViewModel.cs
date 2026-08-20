@@ -2,9 +2,9 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.UI.Dispatching;
 using StormSystemOptimizer.Models;
 using StormSystemOptimizer.Services;
 
@@ -12,8 +12,6 @@ namespace StormSystemOptimizer.ViewModels
 {
     public partial class ScannerViewModel : ObservableObject
     {
-        private readonly DispatcherQueue _dispatcher;
-
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotScanning))]
         private bool _isScanning = false;
@@ -52,124 +50,120 @@ namespace StormSystemOptimizer.ViewModels
 
         public ScannerViewModel()
         {
-            _dispatcher = DispatcherQueue.GetForCurrentThread();
-
-            ScannerService.Instance.ProgressChanged += (s, p) => _dispatcher.TryEnqueue(() => ScanProgress = p);
-            ScannerService.Instance.StatusChanged += (s, msg) => _dispatcher.TryEnqueue(() => ScanStatus = msg);
-            OptimizationEngine.Instance.FixProgressChanged += (s, p) => _dispatcher.TryEnqueue(() => ScanProgress = p);
-            OptimizationEngine.Instance.FixStatusChanged += (s, msg) => _dispatcher.TryEnqueue(() => ScanStatus = msg);
+            ScannerService.Instance.ProgressChanged += (s, p) => Application.Current?.Dispatcher.Invoke(() => ScanProgress = p);
+            ScannerService.Instance.StatusChanged += (s, msg) => Application.Current?.Dispatcher.Invoke(() => ScanStatus = msg);
+            OptimizationEngine.Instance.FixProgressChanged += (s, p) => Application.Current?.Dispatcher.Invoke(() => ScanProgress = p);
+            OptimizationEngine.Instance.FixStatusChanged += (s, msg) => Application.Current?.Dispatcher.Invoke(() => ScanStatus = msg);
         }
 
         [RelayCommand]
         public async Task StartScanAsync()
         {
             if (IsScanning || IsFixing) return;
+
             IsScanning = true;
             ScanProgress = 0;
             AllIssues.Clear();
             FilteredIssues.Clear();
 
-            var results = await ScannerService.Instance.ScanAllAsync();
+            var issues = await ScannerService.Instance.ScanAllAsync();
 
-            foreach (var item in results)
+            AllIssues.Clear();
+            foreach (var item in issues)
             {
                 AllIssues.Add(item);
             }
 
-            UpdateStats();
-            ApplyFilter();
+            ApplyFilter(SelectedFilter);
+            UpdateStatistics();
+
             IsScanning = false;
+            ScanStatus = $"Сканирование завершено. Найдено проблем: {AllIssues.Count}.";
         }
 
         [RelayCommand]
         public async Task FixSelectedAsync()
         {
-            if (IsFixing || AllIssues.Count == 0) return;
+            var selected = AllIssues.Where(x => x.IsSelected && !x.IsFixed).ToList();
+            if (selected.Count == 0 || IsFixing || IsScanning) return;
+
             IsFixing = true;
             ScanProgress = 0;
 
-            var itemsToFix = AllIssues.Where(i => i.IsSelected && !i.IsFixed).ToList();
-            long totalFreed = await OptimizationEngine.Instance.FixItemsAsync(itemsToFix);
+            await OptimizationEngine.Instance.FixItemsAsync(selected);
 
-            UpdateStats();
+            UpdateStatistics();
             IsFixing = false;
-
-            string freedMb = (totalFreed / (1024.0 * 1024.0)).ToString("F1");
-            ScanStatus = $"Успешно устранено проблем: {itemsToFix.Count}. Освобождено: {freedMb} МБ";
-
-            TrayService.Instance.ShowNotification("Оптимизация завершена!", $"Устранено проблем: {itemsToFix.Count}. Система ускорена.");
+            ScanStatus = $"Оптимизация завершена. Успешно исправлено {selected.Count(x => x.IsFixed)} элементов.";
         }
 
         [RelayCommand]
         public async Task FixSafeOnlyAsync()
         {
-            SelectSafeOnly();
+            foreach (var item in AllIssues)
+            {
+                item.IsSelected = (item.RiskLevel == RiskLevel.Safe && !item.IsFixed);
+            }
             await FixSelectedAsync();
         }
 
         [RelayCommand]
         public void SelectAll()
         {
-            foreach (var item in FilteredIssues) item.IsSelected = true;
+            foreach (var item in FilteredIssues.Where(x => !x.IsFixed))
+            {
+                item.IsSelected = true;
+            }
         }
 
         [RelayCommand]
         public void DeselectAll()
         {
-            foreach (var item in FilteredIssues) item.IsSelected = false;
-        }
-
-        [RelayCommand]
-        public void SelectSafeOnly()
-        {
-            foreach (var item in AllIssues)
+            foreach (var item in FilteredIssues)
             {
-                item.IsSelected = (item.RiskLevel == RiskLevel.Safe);
+                item.IsSelected = false;
             }
         }
 
-        public void SetFilter(string filter)
+        public void ApplyFilter(string filter)
         {
             SelectedFilter = filter;
-            ApplyFilter();
-        }
-
-        private void ApplyFilter()
-        {
             FilteredIssues.Clear();
-            var query = AllIssues.AsEnumerable();
 
-            if (SelectedFilter == "Мусор и кэш")
-                query = query.Where(i => i.Category == OptimizationCategory.JunkAndCache);
-            else if (SelectedFilter == "Память")
-                query = query.Where(i => i.Category == OptimizationCategory.MemoryRam);
-            else if (SelectedFilter == "Автозапуск")
-                query = query.Where(i => i.Category == OptimizationCategory.StartupApps);
-            else if (SelectedFilter == "Службы")
-                query = query.Where(i => i.Category == OptimizationCategory.WindowsServices);
-            else if (SelectedFilter == "Сеть и DNS")
-                query = query.Where(i => i.Category == OptimizationCategory.NetworkAndDns);
-            else if (SelectedFilter == "Приватность")
-                query = query.Where(i => i.Category == OptimizationCategory.PrivacyTelemetry);
-            else if (SelectedFilter == "Система и Питание")
-                query = query.Where(i => i.Category == OptimizationCategory.SystemHealth || i.Category == OptimizationCategory.PowerAndVisual);
+            var filtered = filter switch
+            {
+                "Кэш и Мусор" => AllIssues.Where(x => x.Category == OptimizationCategory.JunkAndCache),
+                "Память (RAM)" => AllIssues.Where(x => x.Category == OptimizationCategory.MemoryRam),
+                "Автозагрузка" => AllIssues.Where(x => x.Category == OptimizationCategory.StartupApps),
+                "Службы Windows" => AllIssues.Where(x => x.Category == OptimizationCategory.WindowsServices),
+                "Сеть и DNS" => AllIssues.Where(x => x.Category == OptimizationCategory.NetworkAndDns),
+                "Приватность" => AllIssues.Where(x => x.Category == OptimizationCategory.PrivacyTelemetry),
+                "Диски и TRIM" => AllIssues.Where(x => x.Category == OptimizationCategory.SystemHealth),
+                "Питание" => AllIssues.Where(x => x.Category == OptimizationCategory.PowerAndVisual),
+                _ => AllIssues
+            };
 
-            foreach (var item in query)
+            foreach (var item in filtered)
             {
                 FilteredIssues.Add(item);
             }
         }
 
-        private void UpdateStats()
+        private void UpdateStatistics()
         {
-            IssuesCount = AllIssues.Count(i => !i.IsFixed);
-            SafeIssuesCount = AllIssues.Count(i => !i.IsFixed && i.RiskLevel == RiskLevel.Safe);
-            RecommendedCount = AllIssues.Count(i => !i.IsFixed && i.RiskLevel == RiskLevel.Recommended);
+            IssuesCount = AllIssues.Count(x => !x.IsFixed);
+            SafeIssuesCount = AllIssues.Count(x => x.RiskLevel == RiskLevel.Safe && !x.IsFixed);
+            RecommendedCount = AllIssues.Count(x => x.RiskLevel == RiskLevel.Recommended && !x.IsFixed);
 
-            long totalBytes = AllIssues.Where(i => !i.IsFixed).Sum(i => i.ReclaimableBytes);
-            if (totalBytes <= 0) TotalReclaimableText = "0 МБ";
-            else if (totalBytes < 1024 * 1024 * 1024) TotalReclaimableText = $"{totalBytes / (1024.0 * 1024.0):F1} МБ";
-            else TotalReclaimableText = $"{totalBytes / (1024.0 * 1024.0 * 1024.0):F2} ГБ";
+            long totalBytes = AllIssues.Where(x => !x.IsFixed).Sum(x => x.ReclaimableBytes);
+            if (totalBytes > 1024 * 1024 * 1024)
+            {
+                TotalReclaimableText = $"{totalBytes / (1024.0 * 1024.0 * 1024.0):F2} ГБ";
+            }
+            else
+            {
+                TotalReclaimableText = $"{totalBytes / (1024.0 * 1024.0):F1} МБ";
+            }
         }
     }
 }

@@ -1,110 +1,96 @@
-<Page
-    x:Class="StormSystemOptimizer.Views.NetworkPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:StormSystemOptimizer.Views"
-    xmlns:vm="using:StormSystemOptimizer.ViewModels"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+<Page x:Class="StormSystemOptimizer.Views.NetworkPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      Title="Network">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="20" MaxWidth="1000" HorizontalAlignment="Stretch" Margin="0,0,16,24">
+    <Page.DataContext>
+        <vm:NetworkViewModel/>
+    </Page.DataContext>
 
-            <!-- Header -->
-            <Border Background="{ThemeResource StormCardGradient}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                <StackPanel Spacing="6">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE774;" FontSize="20" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                        <TextBlock Text="Оптимизация сетевого стека и ускорение DNS" FontSize="20" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                    </StackPanel>
-                    <TextBlock Text="Снижение задержек (ping), оптимизация размера пакетов TCP и устранение троттлинга сетевой карты." FontSize="13" Foreground="{ThemeResource TextSecondaryBrush}"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
+
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="Оптимизация сети и DNS" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Тонкая настройка сетевого стека Windows, TCP Window Auto-Tuning, RSS и мгновенная очистка DNS кэша."
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+                    <TextBlock Text="{Binding DnsStatus}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                 </StackPanel>
             </Border>
 
-            <!-- Ping / Latency Test Card -->
-            <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+            <!-- Cards -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-
-                    <StackPanel Spacing="6">
-                        <TextBlock Text="ТЕКУЩИЙ ПИНГ И СТАБИЛЬНОСТЬ" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource TextSecondaryBrush}"/>
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{x:Bind ViewModel.PingText, Mode=OneWay}" FontSize="28" FontWeight="Bold" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                            <TextBlock Text="{x:Bind ViewModel.PingTarget, Mode=OneWay}" FontSize="14" Foreground="{ThemeResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Text="Тест задержки сетевого подключения к ближайшим корневым узлам." FontSize="12" Foreground="{ThemeResource TextMutedBrush}"/>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Сброс и очистка кэша DNS Resolver" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Очищает устаревшие записи сопоставителя DNS для решения проблем с подключением к серверам." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
-
-                    <Button Grid.Column="1" Command="{x:Bind ViewModel.TestPingCommand}"
-                            IsEnabled="{x:Bind ViewModel.IsNotMeasuring, Mode=OneWay}"
-                            Background="{ThemeResource CardHoverBrush}" BorderBrush="{ThemeResource CardBorderBrush}" CornerRadius="8" Padding="14,10" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE72C;" FontSize="14" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                            <TextBlock Text="Замерить задержку"/>
-                        </StackPanel>
+                    <Button Command="{Binding FlushDnsCommand}" Grid.Column="1" Content="Очистить DNS" Padding="18,10" Cursor="Hand" Background="{DynamicResource AccentGlowBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
                     </Button>
                 </Grid>
             </Border>
 
-            <!-- Action Modules -->
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Оптимизация TCP Window Auto-Tuning &amp; RSS" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Активирует Receive Side Scaling и нормальный уровень автоподстройки окна TCP для высокой пропускной способности." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <Button Command="{Binding OptimizeTcpCommand}" Grid.Column="1" Content="Оптимизировать TCP" Padding="18,10" Cursor="Hand" Background="{DynamicResource StormHeroGradient}" Foreground="#FFFFFF">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
 
-                <!-- DNS Flush -->
-                <Border Grid.Column="0" Margin="0,0,10,0" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                    <StackPanel Spacing="14">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="8" Padding="8">
-                                <FontIcon Glyph="&#xE774;" FontSize="18" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                            </Border>
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Сброс кэша DNS" FontSize="16" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Очистка таблицы DNS Resolver Cache" FontSize="11" Foreground="{ThemeResource TextMutedBrush}"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <TextBlock Text="Очищает сохраненные IP адреса серверов, исправляет ошибки сбоя соединения с сайтами и играми." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-
-                        <Button Command="{x:Bind ViewModel.FlushDnsCommand}" Background="{ThemeResource StormHeroGradient}" Foreground="#FFFFFF" FontWeight="Bold" CornerRadius="8" Padding="16,8" HorizontalAlignment="Stretch">
-                            <TextBlock Text="Сбросить кэш DNS" HorizontalAlignment="Center"/>
+            <!-- Ping Latency Monitor -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Проверка сетевой задержки (Ping)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding PingTarget, StringFormat='Цель: {0}'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding PingText}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                        <Button Command="{Binding MeasurePingCommand}" Content="Измерить" Padding="16,8" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
                         </Button>
                     </StackPanel>
-                </Border>
-
-                <!-- TCP AutoTuning & CTCP -->
-                <Border Grid.Column="1" Margin="10,0,0,0" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                    <StackPanel Spacing="14">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="8" Padding="8">
-                                <FontIcon Glyph="&#xEC1B;" FontSize="18" Foreground="{ThemeResource AccentSecondaryBrush}"/>
-                            </Border>
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Оптимизация TCP/IP" FontSize="16" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Тюнинг стека и троттлинга сети" FontSize="11" Foreground="{ThemeResource TextMutedBrush}"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <TextBlock Text="Активирует автонастройку окна TCP, алгоритм CTCP и отключает системный NetworkThrottlingIndex." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-
-                        <Button Command="{x:Bind ViewModel.OptimizeTcpCommand}" Background="{ThemeResource CardHoverBrush}" BorderBrush="{ThemeResource CardBorderBrush}" Foreground="{ThemeResource TextPrimaryBrush}" FontWeight="Bold" CornerRadius="8" Padding="16,8" HorizontalAlignment="Stretch">
-                            <TextBlock Text="Применить TCP-оптимизацию" HorizontalAlignment="Center"/>
-                        </Button>
-                    </StackPanel>
-                </Border>
-            </Grid>
-
-            <!-- Status Banner -->
-            <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE73E;" FontSize="14" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                    <TextBlock Text="{x:Bind ViewModel.DnsStatus, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
-                </StackPanel>
+                </Grid>
             </Border>
 
         </StackPanel>

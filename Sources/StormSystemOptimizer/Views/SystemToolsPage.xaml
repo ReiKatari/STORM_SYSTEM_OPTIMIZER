@@ -1,135 +1,114 @@
-<Page
-    x:Class="StormSystemOptimizer.Views.SystemToolsPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:StormSystemOptimizer.Views"
-    xmlns:vm="using:StormSystemOptimizer.ViewModels"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+<Page x:Class="StormSystemOptimizer.Views.SystemToolsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      Title="SystemTools">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="20" MaxWidth="1000" HorizontalAlignment="Stretch" Margin="0,0,16,24">
+    <Page.DataContext>
+        <vm:SystemToolsViewModel/>
+    </Page.DataContext>
 
-            <!-- Header -->
-            <Border Background="{ThemeResource StormCardGradient}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                <StackPanel Spacing="6">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE90F;" FontSize="20" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                        <TextBlock Text="Системные инструменты и оптимизаторы" FontSize="20" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                    </StackPanel>
-                    <TextBlock Text="Специализированные утилиты для создания контрольных точек, оптимизации дисков и тонкой настройки Windows." FontSize="13" Foreground="{ThemeResource TextSecondaryBrush}"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
+
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="Системные инструменты и утилиты" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Набор быстрых утилит для обслуживания SSD, создания снимков восстановления и калибровки отзывчивости Windows."
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+                    <TextBlock Text="{Binding ToolStatus}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                 </StackPanel>
             </Border>
 
-            <!-- Tools Grid -->
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- 1. Restore Point -->
-                <Border Grid.Row="0" Grid.Column="0" Margin="0,0,10,14" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                    <StackPanel Spacing="12">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="8" Padding="8">
-                                <FontIcon Glyph="&#xE777;" FontSize="18" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                            </Border>
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Точка восстановления Windows" FontSize="15" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Создание снапшота реестра и системы" FontSize="11" Foreground="{ThemeResource TextMutedBrush}"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <TextBlock Text="Создает безопасную точку восстановления Windows перед внесением изменений." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-
-                        <Button Command="{x:Bind ViewModel.CreateRestorePointCommand}"
-                                IsEnabled="{x:Bind ViewModel.IsNotBusy, Mode=OneWay}"
-                                Background="{ThemeResource CardHoverBrush}" BorderBrush="{ThemeResource CardBorderBrush}" CornerRadius="8" Padding="14,8" HorizontalAlignment="Stretch">
-                            <TextBlock Text="Создать точку восстановления" HorizontalAlignment="Center"/>
-                        </Button>
+            <!-- Tool Cards -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Создать контрольную точку восстановления (Restore Point)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Создает снимок состояния системного реестра и драйверов для быстрого отката в случае необходимости." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
-                </Border>
+                    <Button Command="{Binding CreateRestorePointCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="🛡 Создать точку" Padding="18,10" Cursor="Hand" Background="{DynamicResource AccentGlowBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
 
-                <!-- 2. SSD TRIM -->
-                <Border Grid.Row="0" Grid.Column="1" Margin="10,0,0,14" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                    <StackPanel Spacing="12">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="8" Padding="8">
-                                <FontIcon Glyph="&#xEDA2;" FontSize="18" Foreground="{ThemeResource AccentSecondaryBrush}"/>
-                            </Border>
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Оптимизация накопителей (TRIM)" FontSize="15" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Очистка неиспользуемых блоков SSD" FontSize="11" Foreground="{ThemeResource TextMutedBrush}"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <TextBlock Text="Выполняет команду TRIM и оптимизацию томов NTFS для максимальной скорости записи." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-
-                        <Button Command="{x:Bind ViewModel.RunSsdTrimCommand}"
-                                IsEnabled="{x:Bind ViewModel.IsNotBusy, Mode=OneWay}"
-                                Background="{ThemeResource CardHoverBrush}" BorderBrush="{ThemeResource CardBorderBrush}" CornerRadius="8" Padding="14,8" HorizontalAlignment="Stretch">
-                            <TextBlock Text="Запустить TRIM для диска C:" HorizontalAlignment="Center"/>
-                        </Button>
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Оптимизация твердотельного накопителя (SSD TRIM)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Посылает контроллеру накопителя команду освобождения удаленных блоков для предотвращения деградации скорости." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
-                </Border>
+                    <Button Command="{Binding RunSsdTrimCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="🖴 Запустить TRIM" Padding="18,10" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
 
-                <!-- 3. Ultimate Power Plan -->
-                <Border Grid.Row="1" Grid.Column="0" Margin="0,0,10,0" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                    <StackPanel Spacing="12">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="8" Padding="8">
-                                <FontIcon Glyph="&#xE945;" FontSize="18" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                            </Border>
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Ultimate Performance План" FontSize="15" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Схема питания максимальной производительности" FontSize="11" Foreground="{ThemeResource TextMutedBrush}"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <TextBlock Text="Разблокирует скрытый профиль энергопотребления для устранения микрофризов в играх." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-
-                        <Button Command="{x:Bind ViewModel.ActivateUltimatePowerPlanCommand}"
-                                Background="{ThemeResource StormHeroGradient}" Foreground="#FFFFFF" FontWeight="Bold" CornerRadius="8" Padding="14,8" HorizontalAlignment="Stretch">
-                            <TextBlock Text="Активировать Ultimate Power" HorizontalAlignment="Center"/>
-                        </Button>
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Активировать схему питания «Ultimate Performance»" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Разблокирует и включает максимальный скрытый профиль питания Windows с отключенным троттлингом." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
-                </Border>
+                    <Button Command="{Binding ActivateUltimatePlanCommand}" Grid.Column="1" Content="⚡ Включить Ultimate" Padding="18,10" Cursor="Hand" Background="{DynamicResource StormHeroGradient}" Foreground="#FFFFFF">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
+            </Border>
 
-                <!-- 4. UI Responsiveness -->
-                <Border Grid.Row="1" Grid.Column="1" Margin="10,0,0,0" Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                    <StackPanel Spacing="12">
-                        <StackPanel Orientation="Horizontal" Spacing="10">
-                            <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="8" Padding="8">
-                                <FontIcon Glyph="&#xE790;" FontSize="18" Foreground="{ThemeResource AccentSecondaryBrush}"/>
-                            </Border>
-                            <StackPanel Spacing="2">
-                                <TextBlock Text="Ускорение отклика интерфейса" FontSize="15" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Снижение задержки MenuShowDelay до 10 мс" FontSize="11" Foreground="{ThemeResource TextMutedBrush}"/>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <TextBlock Text="Убирает 400 мс задержку открытия контекстных меню и окон в Windows." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-
-                        <Button Command="{x:Bind ViewModel.OptimizeVisualLatencyCommand}"
-                                Background="{ThemeResource CardHoverBrush}" BorderBrush="{ThemeResource CardBorderBrush}" CornerRadius="8" Padding="14,8" HorizontalAlignment="Stretch">
-                            <TextBlock Text="Ускорить отклик меню" HorizontalAlignment="Center"/>
-                        </Button>
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Снизить задержку интерфейса (MenuShowDelay)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Снижает задержку отклика контекстных меню и анимаций с 400 мс до сверхбыстрых 10 мс." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
-                </Border>
-
-            </Grid>
-
-            <!-- Status Banner -->
-            <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE90F;" FontSize="14" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                    <TextBlock Text="{x:Bind ViewModel.ToolStatus, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
-                </StackPanel>
+                    <Button Command="{Binding OptimizeResponsivenessCommand}" Grid.Column="1" Content="🚀 Ускорить меню" Padding="18,10" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Grid>
             </Border>
 
         </StackPanel>

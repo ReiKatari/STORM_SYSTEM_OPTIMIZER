@@ -1,98 +1,79 @@
-<Page
-    x:Class="StormSystemOptimizer.Views.PrivacyPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:StormSystemOptimizer.Views"
-    xmlns:vm="using:StormSystemOptimizer.ViewModels"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+<Page x:Class="StormSystemOptimizer.Views.PrivacyPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      Title="Privacy">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Spacing="20" MaxWidth="1000" HorizontalAlignment="Stretch" Margin="0,0,16,24">
+    <Page.DataContext>
+        <vm:PrivacyViewModel/>
+    </Page.DataContext>
 
-            <!-- Header -->
-            <Border Background="{ThemeResource StormCardGradient}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel MaxWidth="900" HorizontalAlignment="Stretch">
+
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="Защита приватности и телеметрии" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Блокировка нежелательного сбора пользовательских данных, рекламных идентификаторов и фонового трекинга Windows."
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+                    <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Toggles -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-
-                    <StackPanel Spacing="6">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon Glyph="&#xE72E;" FontSize="20" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                            <TextBlock Text="Приватность и защита от слежения" FontSize="20" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                        </StackPanel>
-                        <TextBlock Text="Отключение скрытого сбора телеметрии Windows, рекламного профилирования и фонового трекинга." FontSize="13" Foreground="{ThemeResource TextSecondaryBrush}"/>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Отключить диагностическую телеметрию (AllowTelemetry)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Запрещает отправку подробных отчетов и диагностических данных на сервера Microsoft." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
-
-                    <Button Grid.Column="1" Command="{x:Bind ViewModel.ApplyPrivacySettingsCommand}"
-                            Background="{ThemeResource StormHeroGradient}" Foreground="#FFFFFF" FontWeight="Bold" CornerRadius="8" Padding="16,10" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE73E;" FontSize="14"/>
-                            <TextBlock Text="Применить защиту"/>
-                        </StackPanel>
-                    </Button>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding IsTelemetryDisabled, Mode=TwoWay}" VerticalAlignment="Center" Content="Заблокировано" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
                 </Grid>
             </Border>
 
-            <!-- Toggles List -->
-            <StackPanel Spacing="10">
-
-                <!-- 1. Telemetry -->
-                <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Отключить сбор диагностических данных (AllowTelemetry)" FontSize="14" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Запрещает отправку системных журналов, дампов сбоев и статистики использования в Microsoft." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.IsTelemetryDisabled, Mode=TwoWay}" OnContent="Заблокировано" OffContent="Разрешено"/>
-                    </Grid>
-                </Border>
-
-                <!-- 2. Advertising ID -->
-                <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Отключить рекламный идентификатор (Advertising ID)" FontSize="14" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Предотвращает таргетирование рекламы и отслеживание действий в приложениях Windows." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.IsAdIdDisabled, Mode=TwoWay}" OnContent="Заблокировано" OffContent="Разрешено"/>
-                    </Grid>
-                </Border>
-
-                <!-- 3. Activity History Feed -->
-                <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="18,14">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Spacing="2">
-                            <TextBlock Text="Отключить синхронизацию журнала активности (Activity Feed)" FontSize="14" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Блокирует отправку истории открытых документов и приложений в облако." FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <ToggleSwitch Grid.Column="1" IsOn="{x:Bind ViewModel.IsActivityFeedDisabled, Mode=TwoWay}" OnContent="Заблокировано" OffContent="Разрешено"/>
-                    </Grid>
-                </Border>
-
-            </StackPanel>
-
-            <!-- Status Banner -->
-            <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon Glyph="&#xE73E;" FontSize="14" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                    <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
-                </StackPanel>
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Отключить рекламный ID (Advertising ID)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Предотвращает показ персонализированной рекламы на основе ваших интересов и действий в приложениях." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding IsAdIdDisabled, Mode=TwoWay}" VerticalAlignment="Center" Content="Заблокировано" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
+                </Grid>
             </Border>
+
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,24">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Отключить журнал действий (Activity Feed &amp; PublishUserActivities)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Запрещает сбор истории запущенных приложений и синхронизацию с облачным профилем." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </StackPanel>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding IsActivityFeedDisabled, Mode=TwoWay}" VerticalAlignment="Center" Content="Заблокировано" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
+                </Grid>
+            </Border>
+
+            <Button Command="{Binding ApplyPrivacySettingsCommand}" Content="💾 Сохранить и применить настройки приватности" FontWeight="Bold" FontSize="14" Padding="24,14" Cursor="Hand" Background="{DynamicResource StormHeroGradient}" Foreground="#FFFFFF">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
 
         </StackPanel>
     </ScrollViewer>

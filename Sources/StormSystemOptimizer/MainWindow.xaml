@@ -1,124 +1,212 @@
-<Window
-    x:Class="StormSystemOptimizer.MainWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:StormSystemOptimizer"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="STORM SYSTEM OPTIMIZER v0.0.1">
+<Window x:Class="StormSystemOptimizer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:StormSystemOptimizer"
+        Title="STORM SYSTEM OPTIMIZER v0.0.1"
+        Height="780" Width="1180"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource AppBackgroundBrush}">
 
-    <Grid Background="{ThemeResource AppBackgroundBrush}">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="48"
+                      CornerRadius="0"
+                      GlassFrameThickness="0"
+                      ResizeBorderThickness="6"
+                      UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+
+    <Grid Background="{DynamicResource AppBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="48"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="28"/>
         </Grid.RowDefinitions>
 
-        <!-- Custom TitleBar -->
-        <Grid x:Name="AppTitleBar" Grid.Row="0" Background="{ThemeResource NavSidebarBrush}" Padding="16,0,16,0">
+        <!-- Custom Dark TitleBar -->
+        <Grid Grid.Row="0" Background="{DynamicResource NavSidebarBrush}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Storm Logo & App Name -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
-                <Image Source="ms-appx:///Assets/Square44x44Logo.targetsize-24_altform-unplated.png" Width="24" Height="24"/>
-                <TextBlock Text="STORM" FontWeight="Bold" FontSize="15" Foreground="{ThemeResource AccentPrimaryBrush}" VerticalAlignment="Center"/>
-                <TextBlock Text="SYSTEM OPTIMIZER" FontWeight="SemiBold" FontSize="14" Foreground="{ThemeResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="4" Padding="6,2,6,2" Margin="6,0,0,0">
-                    <TextBlock Text="v0.0.1" FontSize="11" FontWeight="Bold" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+            <!-- Storm Logo & Title -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
+                <Image Source="/Assets/StoreLogo.png" Width="24" Height="24" Margin="0,0,10,0"/>
+                <TextBlock Text="STORM" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text=" SYSTEM OPTIMIZER" FontWeight="SemiBold" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="v0.0.1" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                 </Border>
             </StackPanel>
 
-            <!-- Quick Theme Switcher in TitleBar -->
-            <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8" Margin="0,0,120,0">
-                <Button x:Name="BtnThemeToggle" Click="BtnThemeToggle_Click" ToolTipService.ToolTip="Переключить тему оформления (STORM DARK / NIGHT / DAY / MIDNIGHT)"
-                        Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" CornerRadius="6" Padding="8,4">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <FontIcon Glyph="&#xE790;" FontSize="14" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                        <TextBlock x:Name="TxtCurrentTheme" Text="STORM DARK" FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+            <!-- Theme Switcher Button -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0" WindowChrome.IsHitTestVisibleInChrome="True">
+                <Button x:Name="BtnThemeToggle" Click="BtnThemeToggle_Click"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        BorderBrush="{DynamicResource CardBorderBrush}"
+                        BorderThickness="1"
+                        Cursor="Hand"
+                        Padding="10,4">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="🎨 " FontSize="12"/>
+                        <TextBlock x:Name="TxtCurrentTheme" Text="STORM DARK" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </StackPanel>
+                </Button>
+            </StackPanel>
+
+            <!-- Caption Buttons (Minimize, Maximize, Close) -->
+            <StackPanel Grid.Column="3" Orientation="Horizontal" WindowChrome.IsHitTestVisibleInChrome="True">
+                <Button Click="BtnMinimize_Click" Width="46" Height="48" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Cursor="Hand" Content="🗕">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bd" Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="#33FFFFFF"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <Button Click="BtnMaximize_Click" Width="46" Height="48" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Cursor="Hand" Content="🗖">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bd" Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="#33FFFFFF"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <Button Click="BtnClose_Click" Width="46" Height="48" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Cursor="Hand" Content="✕">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="bd" Background="{TemplateBinding Background}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="bd" Property="Background" Value="#E81123"/>
+                                    <Setter Property="Foreground" Value="#FFFFFF"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
                 </Button>
             </StackPanel>
         </Grid>
 
-        <!-- Main Content Area with NavigationView -->
-        <NavigationView x:Name="NavView" Grid.Row="1"
-                        PaneDisplayMode="Left"
-                        IsBackButtonVisible="Collapsed"
-                        IsSettingsVisible="False"
-                        SelectionChanged="NavView_SelectionChanged"
-                        Background="{ThemeResource AppBackgroundBrush}">
+        <!-- Main Layout (Sidebar + Content Frame) -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="240"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-            <NavigationView.MenuItems>
-                <NavigationViewItem Tag="Dashboard" Content="Панель состояния" ToolTipService.ToolTip="Мониторинг ресурсов и экспресс-буст">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE707;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-                
-                <NavigationViewItem Tag="Scanner" Content="Глубокое сканирование" ToolTipService.ToolTip="Анализ и устранение проблем всей системы">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE721;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+            <!-- Navigation Sidebar -->
+            <Border Grid.Column="0" Background="{DynamicResource NavSidebarBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="0,0,1,0">
+                <DockPanel LastChildFill="True">
+                    <!-- Footer Item: Settings -->
+                    <Border DockPanel.Dock="Bottom" Padding="12,12,12,12">
+                        <RadioButton x:Name="NavSettings" Content="⚙  Настройки и Темы" Tag="Settings"
+                                     Click="NavButton_Click" GroupName="NavGroup"
+                                     Style="{DynamicResource NavRadioButtonStyle}"/>
+                    </Border>
 
-                <NavigationViewItem Tag="Startup" Content="Автозагрузка" ToolTipService.ToolTip="Управление программами автозапуска">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE7B5;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
+                    <!-- Navigation Items List -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="12,16,12,16">
+                            <RadioButton x:Name="NavDashboard" Content="⚡  Панель состояния" Tag="Dashboard"
+                                         IsChecked="True" Click="NavButton_Click" GroupName="NavGroup"
+                                         Style="{DynamicResource NavRadioButtonStyle}"/>
+                            <RadioButton Content="🔍  Глубокое сканирование" Tag="Scanner"
+                                         Click="NavButton_Click" GroupName="NavGroup"
+                                         Style="{DynamicResource NavRadioButtonStyle}"/>
+                            <RadioButton Content="🚀  Автозагрузка" Tag="Startup"
+                                         Click="NavButton_Click" GroupName="NavGroup"
+                                         Style="{DynamicResource NavRadioButtonStyle}"/>
+                            <RadioButton Content="⚙  Службы Windows" Tag="Services"
+                                         Click="NavButton_Click" GroupName="NavGroup"
+                                         Style="{DynamicResource NavRadioButtonStyle}"/>
+                            <RadioButton Content="🌐  Оптимизация сети" Tag="Network"
+                                         Click="NavButton_Click" GroupName="NavGroup"
+                                         Style="{DynamicResource NavRadioButtonStyle}"/>
+                            <RadioButton Content="🛡  Приватность" Tag="Privacy"
+                                         Click="NavButton_Click" GroupName="NavGroup"
+                                         Style="{DynamicResource NavRadioButtonStyle}"/>
+                            <RadioButton Content="🎛  Инструменты ОС" Tag="SystemTools"
+                                         Click="NavButton_Click" GroupName="NavGroup"
+                                         Style="{DynamicResource NavRadioButtonStyle}"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
 
-                <NavigationViewItem Tag="Services" Content="Службы Windows" ToolTipService.ToolTip="Оптимизация фоновых служб и телеметрии">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE713;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-
-                <NavigationViewItem Tag="Network" Content="Оптимизация сети" ToolTipService.ToolTip="Сброс DNS, настройка TCP/IP и пинг">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE774;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-
-                <NavigationViewItem Tag="Privacy" Content="Приватность" ToolTipService.ToolTip="Отключение сбора данных и телеметрии">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE72E;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-
-                <NavigationViewItem Tag="SystemTools" Content="Инструменты" ToolTipService.ToolTip="Точки восстановления, SSD TRIM и электропитание">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE90F;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-            </NavigationView.MenuItems>
-
-            <NavigationView.FooterMenuItems>
-                <NavigationViewItem Tag="Settings" Content="Настройки и Темы" ToolTipService.ToolTip="Выбор темы и параметры программы">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE713;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-            </NavigationView.FooterMenuItems>
-
-            <Frame x:Name="ContentFrame" Padding="20" Background="{ThemeResource AppBackgroundBrush}"/>
-        </NavigationView>
+            <!-- Main Content View Area -->
+            <Frame x:Name="MainContentFrame" Grid.Column="1" NavigationUIVisibility="Hidden" Background="{DynamicResource AppBackgroundBrush}"/>
+        </Grid>
 
         <!-- Status Bar -->
-        <Grid Grid.Row="2" Background="{ThemeResource NavSidebarBrush}" Padding="16,0,16,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-                <Ellipse Width="8" Height="8" Fill="#10B981"/>
-                <TextBlock x:Name="TxtStatusBar" Text="STORM Engine готов к работе • Система стабильна" FontSize="11" Foreground="{ThemeResource TextSecondaryBrush}"/>
-            </StackPanel>
-            <TextBlock Grid.Column="1" Text="100% Safe Optimization • WinUI 3" FontSize="11" Foreground="{ThemeResource TextMutedBrush}" VerticalAlignment="Center"/>
-        </Grid>
+        <Border Grid.Row="2" Background="{DynamicResource NavSidebarBrush}" Padding="16,0,16,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Width="8" Height="8" Fill="#10B981" Margin="0,0,8,0"/>
+                    <TextBlock Text="STORM Engine готов к работе • Система стабильна" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="100% Safe Optimization • WPF .NET 8" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
     </Grid>
+
+    <Window.Resources>
+        <!-- NavRadioButtonStyle -->
+        <Style x:Key="NavRadioButtonStyle" TargetType="RadioButton">
+            <Setter Property="Height" Value="42"/>
+            <Setter Property="Margin" Value="0,2,0,2"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bd" Background="Transparent" CornerRadius="8" Padding="14,0">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource CardHoverBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource AccentGlowBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 </Window>

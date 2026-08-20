@@ -1,41 +1,40 @@
 using System;
 using System.IO;
-using Microsoft.UI.Xaml;
-using StormSystemOptimizer.Services;
+using System.Windows;
+using System.Windows.Threading;
 using StormSystemOptimizer.Themes;
 
 namespace StormSystemOptimizer
 {
     public partial class App : Application
     {
-        public static MainWindow? MainWindow { get; private set; }
-
-        public App()
+        protected override void OnStartup(StartupEventArgs e)
         {
-            this.InitializeComponent();
-            this.UnhandledException += App_UnhandledException;
+            base.OnStartup(e);
+
+            AppDomain.CurrentDomain.UnhandledException += (s, args) =>
+            {
+                LogCrash(args.ExceptionObject as Exception);
+            };
+
+            DispatcherUnhandledException += (s, args) =>
+            {
+                LogCrash(args.Exception);
+                args.Handled = true;
+            };
+
+            // Apply saved theme
+            ThemeManager.Instance.ApplyTheme(ThemeManager.Instance.CurrentTheme);
         }
 
-        private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+        private void LogCrash(Exception? ex)
         {
+            if (ex == null) return;
             try
             {
-                string logFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StormSystemOptimizer", "crash.log");
-                Directory.CreateDirectory(Path.GetDirectoryName(logFile)!);
-                File.AppendAllText(logFile, $"[{DateTime.Now}] Exception: {e.Message}\n{e.Exception}\n\n");
-            }
-            catch { }
-        }
-
-        protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
-        {
-            MainWindow = new MainWindow();
-            MainWindow.Activate();
-
-            try
-            {
-                ThemeManager.Instance.ApplyTheme(ThemeManager.Instance.CurrentTheme, MainWindow);
-                TrayService.Instance.Initialize(MainWindow);
+                string logDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StormSystemOptimizer");
+                Directory.CreateDirectory(logDir);
+                File.AppendAllText(Path.Combine(logDir, "crash.log"), $"[{DateTime.Now}] {ex}\n\n");
             }
             catch { }
         }

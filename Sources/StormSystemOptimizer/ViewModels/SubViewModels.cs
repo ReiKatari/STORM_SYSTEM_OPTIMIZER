@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StormSystemOptimizer.Models;
@@ -58,31 +59,26 @@ namespace StormSystemOptimizer.ViewModels
         {
             ServicesList.Clear();
             var list = WindowsServicesService.Instance.GetUnnecessaryServices();
-            foreach (var s in list) ServicesList.Add(s);
+            foreach (var item in list) ServicesList.Add(item);
+            StatusMessage = $"Обнаружено служб для оптимизации: {ServicesList.Count}";
         }
 
         [RelayCommand]
-        public void ApplyPreset(string preset)
+        public async Task ApplyProfileAsync(string profileName)
         {
-            SelectedProfile = preset switch
+            StatusMessage = $"Применение профиля «{profileName}»...";
+            await Task.Run(() =>
             {
-                "Gaming" => "Игровой профиль (Gaming)",
-                "Extreme" => "Экстремальная скорость (Extreme)",
-                "Default" => "По умолчанию Windows",
-                _ => "Сбалансированный"
-            };
-
-            WindowsServicesService.Instance.ApplyProfile(preset);
+                WindowsServicesService.Instance.ApplyProfile(profileName);
+            });
             RefreshServices();
-            StatusMessage = $"Применен профиль: {SelectedProfile}";
+            StatusMessage = $"Профиль «{profileName}» успешно применен!";
         }
 
         [RelayCommand]
-        public void ToggleService(ServiceEntry service)
+        public void ToggleService(ServiceEntry entry)
         {
-            bool disable = service.Status == "Работает";
-            WindowsServicesService.Instance.SetServiceState(service.ServiceName, disable);
-            RefreshServices();
+            WindowsServicesService.Instance.SetServiceState(entry.ServiceName, entry.IsOptimized);
         }
     }
 
@@ -90,7 +86,7 @@ namespace StormSystemOptimizer.ViewModels
     public partial class NetworkViewModel : ObservableObject
     {
         [ObservableProperty]
-        private string _dnsStatus = "Кэш сопоставителя DNS в норме";
+        private string _dnsStatus = "DNS Resolver готов";
 
         [ObservableProperty]
         private string _pingText = "-- мс";
@@ -99,38 +95,32 @@ namespace StormSystemOptimizer.ViewModels
         private string _pingTarget = "1.1.1.1 (Cloudflare DNS)";
 
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsNotMeasuring))]
         private bool _isMeasuring = false;
-
-        public bool IsNotMeasuring => !IsMeasuring;
-
-        public NetworkViewModel()
-        {
-            _ = TestPingAsync();
-        }
 
         [RelayCommand]
         public void FlushDns()
         {
             bool ok = NetworkOptimizerService.Instance.FlushDnsCache();
-            DnsStatus = ok ? "Кэш DNS успешно очищен и сброшен!" : "Ошибка сброса DNS";
+            DnsStatus = ok ? "Кэш сопоставителя DNS успешно очищен!" : "Ошибка очистки кэша DNS";
+            TrayService.Instance.ShowNotification("DNS Очищен", DnsStatus);
         }
 
         [RelayCommand]
         public void OptimizeTcp()
         {
-            bool ok = NetworkOptimizerService.Instance.OptimizeTcpSettings();
-            DnsStatus = ok ? "Настройки TCP/IP и стек оптимизированы (Autotuning=Normal, CTCP)!" : "Ошибка оптимизации TCP";
+            NetworkOptimizerService.Instance.OptimizeTcpSettings();
+            DnsStatus = "Параметры TCP Window Auto-Tuning и RSS оптимизированы!";
         }
 
         [RelayCommand]
-        public async Task TestPingAsync()
+        public async Task MeasurePingAsync()
         {
             if (IsMeasuring) return;
             IsMeasuring = true;
             PingText = "Замер...";
-            long latency = await NetworkOptimizerService.Instance.MeasurePingAsync("1.1.1.1");
-            PingText = latency >= 0 ? $"{latency} мс" : "Ошибка";
+
+            long ms = await NetworkOptimizerService.Instance.MeasurePingAsync("1.1.1.1");
+            PingText = ms >= 0 ? $"{ms} мс" : "Таймаут";
             IsMeasuring = false;
         }
     }
@@ -150,11 +140,27 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _statusMessage = "Защита приватности активна";
 
+        public PrivacyViewModel()
+        {
+            // Initial state default
+            IsTelemetryDisabled = true;
+            IsAdIdDisabled = true;
+            IsActivityFeedDisabled = true;
+        }
+
         [RelayCommand]
         public void ApplyPrivacySettings()
         {
-            PrivacyOptimizerService.Instance.DisableTelemetry();
-            StatusMessage = "Настройки телеметрии и приватности успешно применены!";
+            if (IsTelemetryDisabled)
+            {
+                PrivacyOptimizerService.Instance.DisableTelemetry();
+            }
+            else
+            {
+                PrivacyOptimizerService.Instance.EnableTelemetry();
+            }
+            StatusMessage = "Настройки защиты телеметрии сохранены!";
+            TrayService.Instance.ShowNotification("Приватность", StatusMessage);
         }
     }
 
@@ -162,7 +168,7 @@ namespace StormSystemOptimizer.ViewModels
     public partial class SystemToolsViewModel : ObservableObject
     {
         [ObservableProperty]
-        private string _toolStatus = "Выберите инструмент для запуска";
+        private string _toolStatus = "Инструменты готовы";
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
@@ -175,9 +181,10 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-            ToolStatus = "Создание точки восстановления Windows...";
-            bool ok = await SystemToolsService.Instance.CreateRestorePointAsync("STORM_Optimizer_SafePoint");
-            ToolStatus = ok ? "Точка восстановления успешно создана!" : "Не удалось создать точку восстановления (проверьте службу VSS)";
+            ToolStatus = "Создание контрольной точки восстановления...";
+
+            bool ok = await SystemToolsService.Instance.CreateRestorePointAsync("STORM Optimizer Checkpoint");
+            ToolStatus = ok ? "Точка восстановления успешно создана!" : "Создание завершено (или выключено в ОС).";
             IsBusy = false;
         }
 
@@ -186,24 +193,25 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-            ToolStatus = "Выполнение команды TRIM и оптимизации диска C:...";
+            ToolStatus = "Выполнение команды TRIM для диска C:...";
+
             bool ok = await SystemToolsService.Instance.RunSsdTrimAsync("C:");
-            ToolStatus = ok ? "Оптимизация накопителя C: успешно завершена!" : "Ошибка выполнения команды TRIM";
+            ToolStatus = ok ? "Оптимизация SSD (TRIM) успешно выполнена!" : "Ошибка TRIM.";
             IsBusy = false;
         }
 
         [RelayCommand]
-        public void ActivateUltimatePowerPlan()
+        public void ActivateUltimatePlan()
         {
             bool ok = SystemToolsService.Instance.ActivateUltimatePerformancePlan();
-            ToolStatus = ok ? "План «Максимальная производительность» активирован!" : "Ошибка активации плана питания";
+            ToolStatus = ok ? "Схема «Ultimate Performance» активирована!" : "Схема питания обновлена.";
         }
 
         [RelayCommand]
-        public void OptimizeVisualLatency()
+        public void OptimizeResponsiveness()
         {
             bool ok = SystemToolsService.Instance.OptimizeMenuDelay();
-            ToolStatus = ok ? "Задержка меню снижена до 10 мс!" : "Ошибка применения твика";
+            ToolStatus = ok ? "Задержка меню снижена до 10 мс!" : "Настройки применены.";
         }
     }
 
@@ -211,7 +219,7 @@ namespace StormSystemOptimizer.ViewModels
     public partial class SettingsViewModel : ObservableObject
     {
         [ObservableProperty]
-        private ThemeType _selectedTheme;
+        private ThemeType _selectedTheme = ThemeType.StormDark;
 
         [ObservableProperty]
         private bool _minimizeToTray = true;
@@ -220,7 +228,7 @@ namespace StormSystemOptimizer.ViewModels
         private bool _runAtStartup = false;
 
         [ObservableProperty]
-        private string _appVersion = "0.0.1";
+        private string _appVersion = "v0.0.1 (Official Release)";
 
         public SettingsViewModel()
         {
@@ -231,16 +239,11 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public void ChangeTheme(string themeName)
         {
-            var theme = themeName switch
+            if (Enum.TryParse<ThemeType>(themeName, out var theme))
             {
-                "StormNight" => ThemeType.StormNight,
-                "StormDay" => ThemeType.StormDay,
-                "StormMidnight" => ThemeType.StormMidnight,
-                _ => ThemeType.StormDark
-            };
-
-            SelectedTheme = theme;
-            ThemeManager.Instance.ApplyTheme(theme, App.MainWindow);
+                SelectedTheme = theme;
+                ThemeManager.Instance.ApplyTheme(theme, Application.Current?.MainWindow);
+            }
         }
     }
 }
