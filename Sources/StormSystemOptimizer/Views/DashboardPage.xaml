@@ -15,8 +15,7 @@
                     BorderBrush="{ThemeResource CardBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="14"
-                    Padding="28"
-                    Shadow="{ThemeResource SharedShadow}">
+                    Padding="28">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
