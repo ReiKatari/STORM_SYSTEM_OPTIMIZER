@@ -23,3 +23,15 @@ _ReSharper*/
 *.opendb
 Assembling/
 *.ps1
+*.cmd
+*.pri
+*.winmd
+*.dll
+*.exe
+*.pdb
+*.json
+!README.md
+!Sources/**
+!Files/**
+Files/*.exe
+Files/*.zip
