@@ -1,30 +1,37 @@
-using System;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using StormSystemOptimizer.Models;
+using System.Windows;
+using System.Windows.Controls;
 using StormSystemOptimizer.ViewModels;
 
 namespace StormSystemOptimizer.Views
 {
-    public sealed partial class ServicesPage : Page
+    public partial class ServicesPage : Page
     {
-        public ServicesViewModel ViewModel { get; } = new();
-
         public ServicesPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
-        private void BtnPresetBalanced_Click(object sender, RoutedEventArgs e) => ViewModel.ApplyPresetCommand.Execute("Balanced");
-        private void BtnPresetGaming_Click(object sender, RoutedEventArgs e) => ViewModel.ApplyPresetCommand.Execute("Gaming");
-        private void BtnPresetExtreme_Click(object sender, RoutedEventArgs e) => ViewModel.ApplyPresetCommand.Execute("Extreme");
-        private void BtnPresetDefault_Click(object sender, RoutedEventArgs e) => ViewModel.ApplyPresetCommand.Execute("Default");
-
-        private void BtnToggleService_Click(object sender, RoutedEventArgs e)
+        private async void BtnProfileBalanced_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.DataContext is ServiceEntry service)
+            if (DataContext is ServicesViewModel vm)
             {
-                ViewModel.ToggleService(service);
+                await vm.ApplyProfileCommand.ExecuteAsync("Balanced");
+            }
+        }
+
+        private async void BtnProfileGaming_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ServicesViewModel vm)
+            {
+                await vm.ApplyProfileCommand.ExecuteAsync("Gaming");
+            }
+        }
+
+        private async void BtnProfileDefault_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ServicesViewModel vm)
+            {
+                await vm.ApplyProfileCommand.ExecuteAsync("Default");
             }
         }
     }

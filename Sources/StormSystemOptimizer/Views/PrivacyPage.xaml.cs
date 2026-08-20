@@ -1,16 +1,12 @@
-using System;
-using Microsoft.UI.Xaml.Controls;
-using StormSystemOptimizer.ViewModels;
+using System.Windows.Controls;
 
 namespace StormSystemOptimizer.Views
 {
-    public sealed partial class PrivacyPage : Page
+    public partial class PrivacyPage : Page
     {
-        public PrivacyViewModel ViewModel { get; } = new();
-
         public PrivacyPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
     }
 }

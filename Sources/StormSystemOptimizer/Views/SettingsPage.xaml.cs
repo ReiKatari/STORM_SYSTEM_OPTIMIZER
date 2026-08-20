@@ -1,39 +1,35 @@
-using System;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
+using System.Windows;
+using System.Windows.Controls;
 using StormSystemOptimizer.Models;
 using StormSystemOptimizer.Themes;
-using StormSystemOptimizer.ViewModels;
 
 namespace StormSystemOptimizer.Views
 {
-    public sealed partial class SettingsPage : Page
+    public partial class SettingsPage : Page
     {
-        public SettingsViewModel ViewModel { get; } = new();
-
         public SettingsPage()
         {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
         private void BtnThemeDark_Click(object sender, RoutedEventArgs e)
         {
-            ThemeManager.Instance.ApplyTheme(ThemeType.StormDark, App.MainWindow);
+            ThemeManager.Instance.ApplyTheme(ThemeType.StormDark, Application.Current.MainWindow);
         }
 
         private void BtnThemeNight_Click(object sender, RoutedEventArgs e)
         {
-            ThemeManager.Instance.ApplyTheme(ThemeType.StormNight, App.MainWindow);
+            ThemeManager.Instance.ApplyTheme(ThemeType.StormNight, Application.Current.MainWindow);
         }
 
         private void BtnThemeDay_Click(object sender, RoutedEventArgs e)
         {
-            ThemeManager.Instance.ApplyTheme(ThemeType.StormDay, App.MainWindow);
+            ThemeManager.Instance.ApplyTheme(ThemeType.StormDay, Application.Current.MainWindow);
         }
 
         private void BtnThemeMidnight_Click(object sender, RoutedEventArgs e)
         {
-            ThemeManager.Instance.ApplyTheme(ThemeType.StormMidnight, App.MainWindow);
+            ThemeManager.Instance.ApplyTheme(ThemeType.StormMidnight, Application.Current.MainWindow);
         }
     }
 }

@@ -1,172 +1,225 @@
-<Page
-    x:Class="StormSystemOptimizer.Views.ScannerPage"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:StormSystemOptimizer.Views"
-    xmlns:models="using:StormSystemOptimizer.Models"
-    xmlns:vm="using:StormSystemOptimizer.ViewModels"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006">
+<Page x:Class="StormSystemOptimizer.Views.ScannerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:local="clr-namespace:StormSystemOptimizer.Views"
+      xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      Title="Scanner">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Page.DataContext>
+        <vm:ScannerViewModel x:Name="ViewModel"/>
+    </Page.DataContext>
 
-        <!-- Top Header & Controls -->
-        <Border Grid.Row="0" Background="{ThemeResource StormCardGradient}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+    <Border Padding="20">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+        <!-- Top Header & Scan Buttons -->
+        <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Spacing="6">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE721;" FontSize="20" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                        <TextBlock Text="Глубокое сканирование всей системы" FontSize="20" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                    </StackPanel>
-                    <TextBlock Text="{x:Bind ViewModel.ScanStatus, Mode=OneWay}" FontSize="13" Foreground="{ThemeResource TextSecondaryBrush}"/>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Глубокое сканирование всей системы" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="{Binding ScanStatus}" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+
+                    <!-- Scan Progress Bar -->
+                    <Grid Height="8" Margin="0,0,24,0">
+                        <ProgressBar Value="{Binding ScanProgress}" Maximum="100" Height="8" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    </Grid>
                 </StackPanel>
 
-                <!-- Action Buttons -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <Button Command="{x:Bind ViewModel.StartScanCommand}"
-                            IsEnabled="{x:Bind ViewModel.IsNotScanning, Mode=OneWay}"
-                            Background="{ThemeResource AccentPrimaryBrush}" Foreground="#000000" FontWeight="Bold" CornerRadius="8" Padding="16,10">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE721;" FontSize="14"/>
+                <!-- Action Button -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding StartScanCommand}"
+                            IsEnabled="{Binding IsNotScanning}"
+                            Background="{DynamicResource StormHeroGradient}"
+                            Foreground="#FFFFFF"
+                            FontWeight="Bold"
+                            FontSize="13"
+                            Cursor="Hand"
+                            Padding="20,12">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔍 " FontSize="14"/>
                             <TextBlock Text="Начать сканирование"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{x:Bind ViewModel.FixSafeOnlyCommand}"
-                            IsEnabled="{x:Bind ViewModel.IsNotFixing, Mode=OneWay}"
-                            Background="{ThemeResource BadgeSafeBgBrush}" BorderBrush="{ThemeResource BadgeSafeTextBrush}" BorderThickness="1"
-                            Foreground="{ThemeResource BadgeSafeTextBrush}" FontWeight="Bold" CornerRadius="8" Padding="16,10">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE73E;" FontSize="14"/>
-                            <TextBlock Text="Исправить 100% безопасные"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Command="{x:Bind ViewModel.FixSelectedCommand}"
-                            IsEnabled="{x:Bind ViewModel.IsNotFixing, Mode=OneWay}"
-                            Background="{ThemeResource StormHeroGradient}" Foreground="#FFFFFF" FontWeight="Bold" CornerRadius="8" Padding="18,10">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <FontIcon Glyph="&#xE7E8;" FontSize="14"/>
-                            <TextBlock Text="Оптимизировать выбранное"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Stats Bar & Progress -->
-        <Grid Grid.Row="1" Margin="0,0,0,16">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+        <!-- Stats & Filter Bar -->
+        <Grid Grid.Row="1" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-            <!-- Stats summary pills -->
-            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12" Margin="0,0,0,10">
-                <Border Background="{ThemeResource CardBackgroundBrush}" BorderBrush="{ThemeResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,6">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock Text="Найдено проблем:" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}"/>
-                        <TextBlock Text="{x:Bind ViewModel.IssuesCount, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
+            <!-- Stats Badges -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,10,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Найдено проблем: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="{Binding IssuesCount}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
-
-                <Border Background="{ThemeResource BadgeSafeBgBrush}" CornerRadius="8" Padding="12,6">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock Text="Безопасных:" FontSize="12" Foreground="{ThemeResource BadgeSafeTextBrush}"/>
-                        <TextBlock Text="{x:Bind ViewModel.SafeIssuesCount, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="{ThemeResource BadgeSafeTextBrush}"/>
+                <Border Background="{DynamicResource BadgeSafeBgBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,10,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Безопасных: " FontSize="12" Foreground="{DynamicResource BadgeSafeTextBrush}"/>
+                        <TextBlock Text="{Binding SafeIssuesCount}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BadgeSafeTextBrush}"/>
                     </StackPanel>
                 </Border>
-
-                <Border Background="{ThemeResource BadgeRecommendedBgBrush}" CornerRadius="8" Padding="12,6">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock Text="Рекомендуемых:" FontSize="12" Foreground="{ThemeResource BadgeRecommendedTextBrush}"/>
-                        <TextBlock Text="{x:Bind ViewModel.RecommendedCount, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="{ThemeResource BadgeRecommendedTextBrush}"/>
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Освобождаемо: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="{Binding TotalReclaimableText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                     </StackPanel>
                 </Border>
-
-                <Border Background="{ThemeResource AccentGlowBrush}" CornerRadius="8" Padding="12,6">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
-                        <TextBlock Text="Освобождаемое место:" FontSize="12" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                        <TextBlock Text="{x:Bind ViewModel.TotalReclaimableText, Mode=OneWay}" FontSize="12" FontWeight="Bold" Foreground="{ThemeResource AccentPrimaryBrush}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Select Helpers -->
-                <Button Command="{x:Bind ViewModel.SelectAllCommand}" Content="Выбрать все" Background="Transparent" Foreground="{ThemeResource TextSecondaryBrush}" FontSize="11" Padding="8,4"/>
-                <Button Command="{x:Bind ViewModel.DeselectAllCommand}" Content="Снять выбор" Background="Transparent" Foreground="{ThemeResource TextSecondaryBrush}" FontSize="11" Padding="8,4"/>
             </StackPanel>
 
-            <!-- Progress Bar -->
-            <ProgressBar Grid.Row="1" Value="{x:Bind ViewModel.ScanProgress, Mode=OneWay}" Maximum="100" Height="4" CornerRadius="2" Foreground="{ThemeResource AccentPrimaryBrush}"/>
+            <!-- Quick Select Buttons -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Command="{Binding SelectAllCommand}" Content="Выбрать все" Margin="0,0,8,0" Cursor="Hand" Padding="10,6"
+                        Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+                <Button Command="{Binding DeselectAllCommand}" Content="Снять выбор" Cursor="Hand" Padding="10,6"
+                        Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
         </Grid>
 
         <!-- Issues List View -->
-        <ListView Grid.Row="2"
-                  ItemsSource="{x:Bind ViewModel.FilteredIssues, Mode=OneWay}"
-                  SelectionMode="None"
-                  Padding="0,0,8,0">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:OptimizationItem">
-                    <Border Background="{ThemeResource CardBackgroundBrush}"
-                            BorderBrush="{ThemeResource CardBorderBrush}"
-                            BorderThickness="1"
-                            CornerRadius="10"
-                            Padding="16,14"
-                            Margin="0,0,0,10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+        <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="0,0,0,16">
+            <ListBox ItemsSource="{Binding FilteredIssues}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Padding" Value="0"/>
+                        <Setter Property="Margin" Value="0,0,0,8"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <ContentPresenter/>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
 
-                            <!-- Checkbox -->
-                            <CheckBox Grid.Column="0" IsChecked="{x:Bind IsSelected, Mode=TwoWay}" IsEnabled="{x:Bind IsNotFixed, Mode=OneWay}" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                                <!-- Checkbox -->
+                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
 
-                            <!-- Title, Description & Details -->
-                            <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="{x:Bind Title}" FontSize="14" FontWeight="Bold" Foreground="{ThemeResource TextPrimaryBrush}"/>
-                                    
-                                    <!-- Risk Level Badge -->
-                                    <Border Background="{ThemeResource BadgeSafeBgBrush}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind RiskBadgeText}" FontSize="9" FontWeight="Bold" Foreground="{ThemeResource BadgeSafeTextBrush}"/>
-                                    </Border>
-
-                                    <!-- Category Pill -->
-                                    <Border Background="{ThemeResource CardHoverBrush}" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                        <TextBlock Text="{x:Bind CategoryName}" FontSize="9" Foreground="{ThemeResource TextSecondaryBrush}"/>
-                                    </Border>
+                                <!-- Title and Details -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                        <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,0"/>
+                                        <Border Background="{DynamicResource BadgeSafeBgBrush}" CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="{Binding RiskBadgeText}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BadgeSafeTextBrush}"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
-                                
-                                <TextBlock Text="{x:Bind Description}" FontSize="12" Foreground="{ThemeResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-                                <TextBlock Text="{x:Bind FormattedDetails}" FontSize="11" Foreground="{ThemeResource TextMutedBrush}"/>
-                            </StackPanel>
 
-                            <!-- Reclaimable Space -->
-                            <TextBlock Grid.Column="2" Text="{x:Bind FormattedSize}" FontSize="14" FontWeight="Bold" Foreground="{ThemeResource AccentPrimaryBrush}" VerticalAlignment="Center" Margin="16,0,20,0"/>
+                                <!-- Reclaimable Size -->
+                                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                    <TextBlock Text="{Binding FormattedSize}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                                    <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
 
-                            <!-- Status Badge -->
-                            <Border Grid.Column="3" CornerRadius="6" Padding="8,4" VerticalAlignment="Center"
-                                    Background="{ThemeResource CardHoverBrush}">
-                                <TextBlock Text="{x:Bind StatusText, Mode=OneWay}" FontSize="11" FontWeight="SemiBold" Foreground="{ThemeResource TextSecondaryBrush}"/>
+        <!-- Bottom Action Bar -->
+        <Border Grid.Row="3" Background="{DynamicResource NavSidebarBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Text="Все оптимизации проверены и гарантируют 100% стабильность работы Windows." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+
+                <Button Command="{Binding FixSafeOnlyCommand}"
+                        IsEnabled="{Binding IsNotFixing}"
+                        Grid.Column="1"
+                        Content="🛡 Исправить 100% безопасные"
+                        Margin="0,0,12,0"
+                        Cursor="Hand"
+                        Padding="18,10"
+                        Background="{DynamicResource CardBackgroundBrush}"
+                        Foreground="{DynamicResource BadgeSafeTextBrush}"
+                        BorderBrush="{DynamicResource CardBorderBrush}">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <Button Command="{Binding FixSelectedCommand}"
+                        IsEnabled="{Binding IsNotFixing}"
+                        Grid.Column="2"
+                        Content="⚡ Оптимизировать выбранное"
+                        FontWeight="Bold"
+                        Cursor="Hand"
+                        Padding="22,10"
+                        Background="{DynamicResource StormHeroGradient}"
+                        Foreground="#FFFFFF">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </Grid>
+        </Border>
     </Grid>
+    </Border>
 </Page>
