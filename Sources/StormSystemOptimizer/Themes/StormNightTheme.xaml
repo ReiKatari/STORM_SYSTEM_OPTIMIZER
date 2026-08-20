@@ -3,27 +3,27 @@
 
     <!-- Colors -->
     <Color x:Key="StormAppBackgroundColor">#000000</Color>
-    <Color x:Key="StormNavSidebarColor">#050507</Color>
-    <Color x:Key="StormCardBackgroundColor">#0A0B10</Color>
-    <Color x:Key="StormCardHoverColor">#12141F</Color>
-    <Color x:Key="StormCardBorderColor">#1E2235</Color>
+    <Color x:Key="StormNavSidebarColor">#07080D</Color>
+    <Color x:Key="StormCardBackgroundColor">#0E1017</Color>
+    <Color x:Key="StormCardHoverColor">#161924</Color>
+    <Color x:Key="StormCardBorderColor">#1F2438</Color>
 
-    <Color x:Key="StormAccentColor">#00F0FF</Color>
-    <Color x:Key="StormAccentSecondaryColor">#39FF14</Color>
-    <Color x:Key="StormAccentHoverColor">#5CFAFF</Color>
-    <Color x:Key="StormAccentPressedColor">#00B8C4</Color>
-    <Color x:Key="StormGlowColor">#4000F0FF</Color>
+    <Color x:Key="StormAccentColor">#00C2E8</Color>
+    <Color x:Key="StormAccentSecondaryColor">#38BDF8</Color>
+    <Color x:Key="StormAccentHoverColor">#7DD3FC</Color>
+    <Color x:Key="StormAccentPressedColor">#0284C7</Color>
+    <Color x:Key="StormGlowColor">#3300C2E8</Color>
 
-    <Color x:Key="StormTextPrimaryColor">#FFFFFF</Color>
-    <Color x:Key="StormTextSecondaryColor">#A1A1AA</Color>
-    <Color x:Key="StormTextMutedColor">#52525B</Color>
+    <Color x:Key="StormTextPrimaryColor">#F8FAFC</Color>
+    <Color x:Key="StormTextSecondaryColor">#94A3B8</Color>
+    <Color x:Key="StormTextMutedColor">#64748B</Color>
 
-    <Color x:Key="StormBadgeSafeBgColor">#022C22</Color>
-    <Color x:Key="StormBadgeSafeTextColor">#10B981</Color>
-    <Color x:Key="StormBadgeRecommendedBgColor">#082F49</Color>
-    <Color x:Key="StormBadgeRecommendedTextColor">#0EA5E9</Color>
-    <Color x:Key="StormBadgeAdvancedBgColor">#451A03</Color>
-    <Color x:Key="StormBadgeAdvancedTextColor">#F59E0B</Color>
+    <Color x:Key="StormBadgeSafeBgColor">#064E3B</Color>
+    <Color x:Key="StormBadgeSafeTextColor">#34D399</Color>
+    <Color x:Key="StormBadgeRecommendedBgColor">#0C4A6E</Color>
+    <Color x:Key="StormBadgeRecommendedTextColor">#38BDF8</Color>
+    <Color x:Key="StormBadgeAdvancedBgColor">#78350F</Color>
+    <Color x:Key="StormBadgeAdvancedTextColor">#FBBF24</Color>
 
     <!-- Brushes -->
     <SolidColorBrush x:Key="AppBackgroundBrush" Color="{StaticResource StormAppBackgroundColor}"/>
@@ -51,12 +51,12 @@
 
     <!-- Gradients -->
     <LinearGradientBrush x:Key="StormHeroGradient" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#00F0FF" Offset="0.0"/>
-        <GradientStop Color="#39FF14" Offset="1.0"/>
+        <GradientStop Color="#00B4D8" Offset="0.0"/>
+        <GradientStop Color="#0284C7" Offset="1.0"/>
     </LinearGradientBrush>
 
     <LinearGradientBrush x:Key="StormCardGradient" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#0E1017" Offset="0.0"/>
-        <GradientStop Color="#05060A" Offset="1.0"/>
+        <GradientStop Color="#121520" Offset="0.0"/>
+        <GradientStop Color="#08090E" Offset="1.0"/>
     </LinearGradientBrush>
 </ResourceDictionary>

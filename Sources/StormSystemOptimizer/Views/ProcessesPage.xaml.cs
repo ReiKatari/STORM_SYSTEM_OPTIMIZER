@@ -15,22 +15,22 @@ namespace StormSystemOptimizer.Views
 
         private void BtnFilterAll_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is ProcessesViewModel vm) vm.SelectedFilter = "Все процессы";
+            if (DataContext is ProcessesViewModel vm) vm.SetFilter("Все процессы");
         }
 
         private void BtnFilterSafe_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is ProcessesViewModel vm) vm.SelectedFilter = "Безопасно завершить";
+            if (DataContext is ProcessesViewModel vm) vm.SetFilter("Безопасно завершить");
         }
 
         private void BtnFilterUser_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is ProcessesViewModel vm) vm.SelectedFilter = "Пользовательские";
+            if (DataContext is ProcessesViewModel vm) vm.SetFilter("Пользовательские");
         }
 
         private void BtnFilterSystem_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is ProcessesViewModel vm) vm.SelectedFilter = "Системные Windows";
+            if (DataContext is ProcessesViewModel vm) vm.SetFilter("Системные Windows");
         }
 
         private async void BtnEndProcess_Click(object sender, RoutedEventArgs e)

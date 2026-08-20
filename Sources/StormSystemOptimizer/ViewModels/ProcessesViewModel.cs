@@ -45,9 +45,25 @@ namespace StormSystemOptimizer.ViewModels
         public ObservableCollection<ProcessInfoItem> AllProcesses { get; } = new();
         public ObservableCollection<ProcessInfoItem> FilteredProcesses { get; } = new();
 
+        public bool IsFilterAllSelected => SelectedFilter == "Все процессы";
+        public bool IsFilterSafeSelected => SelectedFilter == "Безопасно завершить";
+        public bool IsFilterUserSelected => SelectedFilter == "Пользовательские";
+        public bool IsFilterSystemSelected => SelectedFilter == "Системные Windows";
+
         public ProcessesViewModel()
         {
             _ = RefreshProcessesAsync();
+        }
+
+        [RelayCommand]
+        public void SetFilter(string filterName)
+        {
+            SelectedFilter = filterName;
+            OnPropertyChanged(nameof(IsFilterAllSelected));
+            OnPropertyChanged(nameof(IsFilterSafeSelected));
+            OnPropertyChanged(nameof(IsFilterUserSelected));
+            OnPropertyChanged(nameof(IsFilterSystemSelected));
+            ApplyFilters();
         }
 
         [RelayCommand]

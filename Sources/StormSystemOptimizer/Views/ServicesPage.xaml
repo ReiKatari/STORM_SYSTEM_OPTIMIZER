@@ -17,41 +17,63 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Profiles Bar -->
+            <!-- Profiles Header Bar -->
             <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <StackPanel>
                     <TextBlock Text="Оптимизация фоновых служб Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                    <TextBlock Text="Отключение неиспользуемых фоновых служб телеметрии, сбора отчетов и отслеживания." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+                    <TextBlock Text="Отключение фоновых служб телеметрии, сбора отчетов и скрытого отслеживания без повреждения ключевых компонентов ОС."
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
 
-                    <StackPanel Orientation="Horizontal">
-                        <Button Click="BtnProfileBalanced_Click" Content="⚖ Рекомендуемый (Balanced)" Margin="0,0,10,0" Padding="14,8" Cursor="Hand" Background="{DynamicResource AccentGlowBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                        <Button Click="BtnProfileGaming_Click" Content="🎮 Игровой режим (Gaming)" Margin="0,0,10,0" Padding="14,8" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                        <Button Click="BtnProfileDefault_Click" Content="↺ Сброс по умолчанию (Default)" Padding="14,8" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                    </StackPanel>
+                    <Grid>
+                        <StackPanel Orientation="Horizontal">
+                            <!-- Balanced -->
+                            <Button Click="BtnProfileBalanced_Click" Content="⚖ Рекомендуемый (Balanced)" Margin="0,0,8,0" Padding="14,8" Cursor="Hand" Background="{DynamicResource AccentGlowBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- Gaming -->
+                            <Button Click="BtnProfileGaming_Click" Content="🎮 Игровой (Gaming)" Margin="0,0,8,0" Padding="14,8" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- Extreme -->
+                            <Button Click="BtnProfileExtreme_Click" Content="⚡ Экстремальный (Extreme)" Margin="0,0,8,0" Padding="14,8" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <!-- Default -->
+                            <Button Click="BtnProfileDefault_Click" Content="↺ По умолчанию (Default)" Padding="14,8" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Status Message -->
+                        <TextBlock Text="{Binding StatusMessage}" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    </Grid>
                 </StackPanel>
             </Border>
 
@@ -78,21 +100,32 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="130"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
+                                    <!-- Service Info -->
                                     <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding DisplayName}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
                                         <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                        <TextBlock Text="{Binding ServiceName}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="0,2,0,0"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                            <TextBlock Text="Имя службы: " FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
+                                            <TextBlock Text="{Binding ServiceName}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                            <TextBlock Text=" • Автозапуск: " FontSize="10" Foreground="{DynamicResource TextMutedBrush}" Margin="8,0,0,0"/>
+                                            <TextBlock Text="{Binding StartupType}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                        </StackPanel>
                                     </StackPanel>
 
-                                    <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="4" Padding="8,4" Margin="16,0,16,0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding RecommendedStartupType}" FontSize="11" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                    <!-- Status Badge -->
+                                    <Border Grid.Column="1" Background="{Binding StatusBgColor}" BorderBrush="{Binding StatusColor}" BorderThickness="1" CornerRadius="6" Padding="10,4" Margin="16,0,16,0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Статус: " FontSize="10" Foreground="{Binding StatusColor}"/>
+                                            <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="Bold" Foreground="{Binding StatusColor}"/>
+                                        </StackPanel>
                                     </Border>
 
-                                    <CheckBox Grid.Column="2" IsChecked="{Binding IsOptimized, Mode=TwoWay}" VerticalAlignment="Center" Content="Оптимизировано" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
+                                    <!-- State CheckBox -->
+                                    <CheckBox Grid.Column="2" IsChecked="{Binding IsOptimized, Mode=TwoWay}" VerticalAlignment="Center" Content="Отключено" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
                                 </Grid>
                             </Border>
                         </DataTemplate>

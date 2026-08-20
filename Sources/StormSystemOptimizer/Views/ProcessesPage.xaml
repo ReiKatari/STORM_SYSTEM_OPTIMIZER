@@ -103,7 +103,6 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="320"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Search Input -->
@@ -118,7 +117,9 @@
 
                 <!-- Filter Category Buttons -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="16,0,0,0" VerticalAlignment="Center">
-                    <Button Click="BtnFilterAll_Click" Content="Все" Padding="12,6" Margin="0,0,6,0" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+                    <!-- All -->
+                    <Button Click="BtnFilterAll_Click" Content="Все процессы" Padding="12,6" Margin="0,0,6,0" Cursor="Hand"
+                            Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -127,7 +128,10 @@
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
-                    <Button Click="BtnFilterSafe_Click" Content="🟢 Безопасно завершить" Padding="12,6" Margin="0,0,6,0" Cursor="Hand" Background="{DynamicResource BadgeSafeBgBrush}" Foreground="{DynamicResource BadgeSafeTextBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+
+                    <!-- SafeToKill -->
+                    <Button Click="BtnFilterSafe_Click" Content="🟢 Безопасно завершить" Padding="12,6" Margin="0,0,6,0" Cursor="Hand"
+                            Background="{DynamicResource BadgeSafeBgBrush}" Foreground="{DynamicResource BadgeSafeTextBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -136,7 +140,10 @@
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
-                    <Button Click="BtnFilterUser_Click" Content="🟡 Пользовательские" Padding="12,6" Margin="0,0,6,0" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+
+                    <!-- UserApp -->
+                    <Button Click="BtnFilterUser_Click" Content="🟡 Пользовательские" Padding="12,6" Margin="0,0,6,0" Cursor="Hand"
+                            Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
@@ -145,7 +152,10 @@
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
-                    <Button Click="BtnFilterSystem_Click" Content="🔴 Системные Windows" Padding="12,6" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
+
+                    <!-- CriticalSystem -->
+                    <Button Click="BtnFilterSystem_Click" Content="🔴 Системные Windows" Padding="12,6" Cursor="Hand"
+                            Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextMutedBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
                         <Button.Template>
                             <ControlTemplate TargetType="Button">
                                 <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">

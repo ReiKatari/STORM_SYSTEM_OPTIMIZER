@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using StormSystemOptimizer.Controls;
 using StormSystemOptimizer.Models;
 using StormSystemOptimizer.Services;
 using StormSystemOptimizer.Themes;
@@ -13,9 +14,6 @@ namespace StormSystemOptimizer
         public MainWindow()
         {
             InitializeComponent();
-
-            ThemeManager.Instance.ThemeChanged += (s, t) => UpdateThemeButtonLabel(t);
-            UpdateThemeButtonLabel(ThemeManager.Instance.CurrentTheme);
 
             Loaded += async (s, e) =>
             {
@@ -41,6 +39,7 @@ namespace StormSystemOptimizer
                 {
                     "Dashboard" => new DashboardPage(),
                     "Processes" => new ProcessesPage(),
+                    "Disks" => new DisksPage(),
                     "Scanner" => new ScannerPage(),
                     "Startup" => new StartupPage(),
                     "Services" => new ServicesPage(),
@@ -65,7 +64,7 @@ namespace StormSystemOptimizer
             if (res.HasUpdate)
             {
                 TxtHeaderUpdate.Text = $"v{res.LatestVersion} доступна!";
-                var answer = MessageBox.Show($"Обнаружена новая версия STORM SYSTEM OPTIMIZER v{res.LatestVersion}!\n\nХотите загрузить и установить обновление прямо сейчас?", "Обновление доступно", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                var answer = StormMessageBox.Show($"Обнаружена новая версия STORM SYSTEM OPTIMIZER v{res.LatestVersion}!\n\nХотите загрузить и установить обновление прямо сейчас?", "Обновление доступно", MessageBoxButton.YesNo, MessageBoxImage.Information);
                 if (answer == MessageBoxResult.Yes)
                 {
                     if (!string.IsNullOrEmpty(res.DownloadUrl))
@@ -82,35 +81,8 @@ namespace StormSystemOptimizer
             else
             {
                 TxtHeaderUpdate.Text = "Актуально";
-                MessageBox.Show($"У вас установлена самая свежая версия: v{UpdateService.CurrentVersion}", "Обновлений не найдено", MessageBoxButton.OK, MessageBoxImage.Information);
+                StormMessageBox.Show($"У вас установлена самая свежая версия: v{UpdateService.CurrentVersion}", "Обновлений не найдено", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-        }
-
-        private void BtnThemeToggle_Click(object sender, RoutedEventArgs e)
-        {
-            var current = ThemeManager.Instance.CurrentTheme;
-            var next = current switch
-            {
-                ThemeType.StormDark => ThemeType.StormNight,
-                ThemeType.StormNight => ThemeType.StormDay,
-                ThemeType.StormDay => ThemeType.StormMidnight,
-                ThemeType.StormMidnight => ThemeType.StormDark,
-                _ => ThemeType.StormDark
-            };
-
-            ThemeManager.Instance.ApplyTheme(next, this);
-        }
-
-        private void UpdateThemeButtonLabel(ThemeType theme)
-        {
-            TxtCurrentTheme.Text = theme switch
-            {
-                ThemeType.StormDark => "STORM DARK",
-                ThemeType.StormNight => "STORM NIGHT",
-                ThemeType.StormDay => "STORM DAY",
-                ThemeType.StormMidnight => "STORM MIDNIGHT",
-                _ => "STORM DARK"
-            };
         }
 
         private void BtnMinimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;

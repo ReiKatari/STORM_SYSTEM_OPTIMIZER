@@ -27,6 +27,14 @@ namespace StormSystemOptimizer.Views
             }
         }
 
+        private async void BtnProfileExtreme_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is ServicesViewModel vm)
+            {
+                await vm.ApplyProfileCommand.ExecuteAsync("Extreme");
+            }
+        }
+
         private async void BtnProfileDefault_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is ServicesViewModel vm)
