@@ -28,12 +28,20 @@ namespace StormSystemOptimizer.Models
         [ObservableProperty]
         private string _registryPath = string.Empty;
 
-        public string ImpactBadgeColor => Impact switch
+        public string ImpactTextColor => Impact switch
         {
             "Высокое" => "#EF4444",
             "Среднее" => "#F59E0B",
             "Низкое" => "#10B981",
-            _ => "#6B7280"
+            _ => "#94A3B8"
+        };
+
+        public string ImpactBgColor => Impact switch
+        {
+            "Высокое" => "#26EF4444",
+            "Среднее" => "#26F59E0B",
+            "Низкое" => "#2610B981",
+            _ => "#2694A3B8"
         };
     }
 
@@ -62,6 +70,20 @@ namespace StormSystemOptimizer.Models
 
         [ObservableProperty]
         private string _recommendedAction = "Отключить";
+
+        public string StatusColor => Status switch
+        {
+            "Работает" => "#10B981",
+            "Отключено" => "#EF4444",
+            _ => "#94A3B8"
+        };
+
+        public string StatusBgColor => Status switch
+        {
+            "Работает" => "#2610B981",
+            "Отключено" => "#26EF4444",
+            _ => "#2694A3B8"
+        };
     }
 
     public class SystemMetrics
