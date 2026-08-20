@@ -19,7 +19,6 @@ namespace StormSystemOptimizer
 
             // Default Page
             NavView.SelectedItem = NavView.MenuItems[0];
-            ContentFrame.Navigate(typeof(DashboardPage));
 
             UpdateThemeButtonLabel(ThemeManager.Instance.CurrentTheme);
             ThemeManager.Instance.ThemeChanged += (s, t) => UpdateThemeButtonLabel(t);
