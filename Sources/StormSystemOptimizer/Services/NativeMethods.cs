@@ -50,6 +50,9 @@ namespace StormSystemOptimizer.Services
         public static extern int EmptyWorkingSet(IntPtr hwProc);
 
         [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool GetSystemTimes(out System.Runtime.InteropServices.ComTypes.FILETIME lpIdleTime, out System.Runtime.InteropServices.ComTypes.FILETIME lpKernelTime, out System.Runtime.InteropServices.ComTypes.FILETIME lpUserTime);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
         public static extern IntPtr OpenProcess(uint processAccess, bool bInheritHandle, int processId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
