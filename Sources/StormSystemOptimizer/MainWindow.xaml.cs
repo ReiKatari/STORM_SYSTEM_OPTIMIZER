@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media.Imaging;
 using StormSystemOptimizer.Controls;
 using StormSystemOptimizer.Models;
 using StormSystemOptimizer.Services;
@@ -18,7 +20,12 @@ namespace StormSystemOptimizer
             try
             {
                 var iconUri = new Uri("pack://application:,,,/Assets/AppIcon.ico", UriKind.RelativeOrAbsolute);
-                this.Icon = System.Windows.Media.Imaging.BitmapFrame.Create(iconUri);
+                var streamInfo = Application.GetResourceStream(iconUri);
+                if (streamInfo != null)
+                {
+                    using var s = streamInfo.Stream;
+                    this.Icon = BitmapFrame.Create(s);
+                }
             }
             catch { }
 
@@ -65,36 +72,25 @@ namespace StormSystemOptimizer
             }
         }
 
-        private async void BtnCheckUpdates_Click(object sender, RoutedEventArgs e)
+        private void BtnCheckUpdates_Click(object sender, RoutedEventArgs e)
         {
-            TxtHeaderUpdate.Text = "Проверка...";
-            var res = await UpdateService.Instance.CheckForUpdatesAsync();
-            if (res.HasUpdate)
-            {
-                TxtHeaderUpdate.Text = $"v{res.LatestVersion} доступна!";
-                var answer = StormMessageBox.Show($"Обнаружена новая версия STORM SYSTEM OPTIMIZER v{res.LatestVersion}!\n\nХотите загрузить и установить обновление прямо сейчас?", "Обновление доступно", MessageBoxButton.YesNo, MessageBoxImage.Information);
-                if (answer == MessageBoxResult.Yes)
-                {
-                    if (!string.IsNullOrEmpty(res.DownloadUrl))
-                    {
-                        TxtHeaderUpdate.Text = "Скачивание...";
-                        await UpdateService.Instance.DownloadAndApplyUpdateAsync(res.DownloadUrl);
-                    }
-                    else
-                    {
-                        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(res.ReleasePageUrl) { UseShellExecute = true });
-                    }
-                }
-            }
-            else
-            {
-                TxtHeaderUpdate.Text = "Актуально";
-                StormMessageBox.Show($"У вас установлена самая свежая версия: v{UpdateService.CurrentVersion}", "Обновлений не найдено", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            MainContentFrame.Navigate(new SettingsPage());
         }
 
-        private void BtnMinimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
-        private void BtnMaximize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-        private void BtnClose_Click(object sender, RoutedEventArgs e) => Close();
+        private void BtnMinimize_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void BtnMaximize_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        }
+
+        private void BtnClose_Click(object sender, RoutedEventArgs e)
+        {
+            TrayService.Instance.RemoveIcon();
+            Application.Current.Shutdown();
+        }
     }
 }

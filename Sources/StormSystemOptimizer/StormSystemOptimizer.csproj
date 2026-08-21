@@ -18,9 +18,6 @@
 
   <ItemGroup>
     <Resource Include="Assets\**" />
-    <Content Include="Assets\AppIcon.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
 
   <ItemGroup>
