@@ -29,7 +29,7 @@ namespace StormSystemOptimizer.Services
             var junkItems = await Task.Run(() => ScanJunkFiles(cancellationToken));
             results.AddRange(junkItems);
 
-            StatusChanged?.Invoke(this, "Глубокое сканирование кэшей браузеров и шейдеров GPU...");
+            StatusChanged?.Invoke(this, "Глубокое сканирование кэшей браузеров и шейдеров...");
             ProgressChanged?.Invoke(this, 25);
             var browserShaders = await Task.Run(() => ScanBrowsersAndShaders(cancellationToken));
             results.AddRange(browserShaders);
@@ -59,7 +59,7 @@ namespace StormSystemOptimizer.Services
             var netItems = await Task.Run(() => ScanNetwork(cancellationToken));
             results.AddRange(netItems);
 
-            StatusChanged?.Invoke(this, "Проверка параметров приватности и системных твиков...");
+            StatusChanged?.Invoke(this, "Проверка параметров приватности и системных настроек...");
             ProgressChanged?.Invoke(this, 95);
             var privacyItems = await Task.Run(() => ScanPrivacy(cancellationToken));
             results.AddRange(privacyItems);
@@ -82,7 +82,7 @@ namespace StormSystemOptimizer.Services
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_user_temp",
-                    Title = "Временные файлы пользователя (User Temp)",
+                    Title = "Временные файлы пользователя",
                     Description = "Кэш установок, временные файлы приложений и распаковщиков.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
@@ -100,7 +100,7 @@ namespace StormSystemOptimizer.Services
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_win_temp",
-                    Title = "Временные системные файлы (Windows Temp)",
+                    Title = "Временные системные файлы",
                     Description = "Логи системных обновлений, дампы установки пакетов и сервисный кэш.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
@@ -118,7 +118,7 @@ namespace StormSystemOptimizer.Services
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_prefetch",
-                    Title = "Кэш трассировки запуска (Prefetch)",
+                    Title = "Кэш трассировки запуска",
                     Description = "Устаревшие трассировки запусков ранее удаленных программ.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
@@ -136,7 +136,7 @@ namespace StormSystemOptimizer.Services
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_wer",
-                    Title = "Отчеты об ошибках и сбоях (WER)",
+                    Title = "Отчеты об ошибках и сбоях",
                     Description = "Накопленные локальные отчеты об аварийном завершении программ.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
@@ -154,7 +154,7 @@ namespace StormSystemOptimizer.Services
             var items = new List<OptimizationItem>();
             string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 
-            // 1. GPU Shader Caches (NVIDIA / AMD / DirectX)
+            // 1. GPU Shader Caches
             long shaderBytes = 0;
             var shaderPaths = new[]
             {
@@ -174,7 +174,7 @@ namespace StormSystemOptimizer.Services
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_shaders",
-                    Title = "Кэш шейдеров видеокарты (GPU Shader Cache)",
+                    Title = "Кэш шейдеров видеокарты",
                     Description = "Скомпилированные шейдеры DirectX/OpenGL/Vulkan. Очистка устраняет статтеры и артефакты.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
@@ -206,7 +206,7 @@ namespace StormSystemOptimizer.Services
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_browser_cache",
-                    Title = "Кэш веб-браузеров (Chrome, Edge, Yandex, Opera)",
+                    Title = "Кэш веб-браузеров",
                     Description = "Временные медиафайлы, скрипты и кэшированные страницы браузеров.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
@@ -232,7 +232,7 @@ namespace StormSystemOptimizer.Services
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_win_updates",
-                    Title = "Кэш загрузок Windows Update (SoftwareDistribution)",
+                    Title = "Кэш загрузок обновлений Windows",
                     Description = "Загруженные и уже установленные пакеты системных обновлений.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
@@ -258,7 +258,7 @@ namespace StormSystemOptimizer.Services
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_memory_dumps",
-                    Title = "Дампы системной памяти (Crash Dumps)",
+                    Title = "Дампы системной памяти",
                     Description = "Слепки оперативной памяти и аварийные дампы при BSOD.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
@@ -282,7 +282,7 @@ namespace StormSystemOptimizer.Services
                 items.Add(new OptimizationItem
                 {
                     Id = "mem_working_set",
-                    Title = "Очистка неиспользуемого рабочего набора памяти RAM",
+                    Title = "Очистка неиспользуемого набора оперативной памяти",
                     Description = "Выгрузка устаревших страниц памяти неактивных приложений в кэш без закрытия процессов.",
                     Category = OptimizationCategory.MemoryRam,
                     RiskLevel = RiskLevel.Safe,
@@ -324,7 +324,7 @@ namespace StormSystemOptimizer.Services
             items.Add(new OptimizationItem
             {
                 Id = "services_telemetry_profile",
-                Title = "Оптимизация служб отслеживания и телеметрии (Рекомендуемый профиль)",
+                Title = "Оптимизация служб отслеживания и телеметрии",
                 Description = "Безопасное отключение служб DiagTrack, WAP Push и сбора диагностических данных.",
                 Category = OptimizationCategory.WindowsServices,
                 RiskLevel = RiskLevel.Safe,
@@ -340,7 +340,7 @@ namespace StormSystemOptimizer.Services
             items.Add(new OptimizationItem
             {
                 Id = "net_dns_tcp_tune",
-                Title = "Калибровка TCP/IP Auto-Tuning и очистка DNS",
+                Title = "Калибровка сетевого стека и очистка DNS",
                 Description = "Очистка кэша DNS Resolver, включение оптимального TCP Window Auto-Tuning и ECN.",
                 Category = OptimizationCategory.NetworkAndDns,
                 RiskLevel = RiskLevel.Safe,
@@ -356,7 +356,7 @@ namespace StormSystemOptimizer.Services
             items.Add(new OptimizationItem
             {
                 Id = "privacy_advertising_id",
-                Title = "Отключение рекламного ID и истории активности Windows",
+                Title = "Отключение рекламного идентификатора и истории активности",
                 Description = "Запрет сбора истории активности, рекламного идентификатора и персонализации.",
                 Category = OptimizationCategory.PrivacyTelemetry,
                 RiskLevel = RiskLevel.Safe,

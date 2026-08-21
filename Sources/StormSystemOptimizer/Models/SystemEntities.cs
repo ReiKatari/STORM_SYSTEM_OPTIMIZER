@@ -57,6 +57,9 @@ namespace StormSystemOptimizer.Models
         private string _description = string.Empty;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(StatusColor))]
+        [NotifyPropertyChangedFor(nameof(StatusBgColor))]
+        [NotifyPropertyChangedFor(nameof(StatusText))]
         private string _status = "Работает";
 
         [ObservableProperty]
@@ -71,17 +74,23 @@ namespace StormSystemOptimizer.Models
         [ObservableProperty]
         private string _recommendedAction = "Отключить";
 
+        public string StatusText => Status;
+
         public string StatusColor => Status switch
         {
             "Работает" => "#10B981",
+            "Остановлена" => "#F59E0B",
             "Отключено" => "#EF4444",
+            "Отключена" => "#EF4444",
             _ => "#94A3B8"
         };
 
         public string StatusBgColor => Status switch
         {
             "Работает" => "#2610B981",
+            "Остановлена" => "#26F59E0B",
             "Отключено" => "#26EF4444",
+            "Отключена" => "#26EF4444",
             _ => "#2694A3B8"
         };
     }

@@ -11,15 +11,15 @@ namespace StormOptimizerInstaller
 {
     public class InstallerForm : Form
     {
-        private ProgressBar progressBar;
-        private Label lblStatus;
-        private Label lblTitle;
-        private Label lblSubtitle;
-        private Button btnInstall;
-        private Button btnCancel;
-        private CheckBox chkDesktop;
-        private CheckBox chkRunAfter;
-        private Panel headerPanel;
+        private ProgressBar progressBar = null!;
+        private Label lblStatus = null!;
+        private Label lblTitle = null!;
+        private Label lblSubtitle = null!;
+        private Button btnInstall = null!;
+        private Button btnCancel = null!;
+        private CheckBox chkDesktop = null!;
+        private CheckBox chkRunAfter = null!;
+        private Panel headerPanel = null!;
 
         public InstallerForm()
         {
@@ -28,7 +28,7 @@ namespace StormOptimizerInstaller
 
         private void InitializeComponent()
         {
-            this.Text = "Установка STORM SYSTEM OPTIMIZER v0.0.4";
+            this.Text = "Установка STORM SYSTEM OPTIMIZER v0.0.5";
             this.Size = new Size(580, 420);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -47,7 +47,7 @@ namespace StormOptimizerInstaller
 
             lblTitle = new Label
             {
-                Text = "⚡ STORM SYSTEM OPTIMIZER v0.0.4",
+                Text = "⚡ STORM SYSTEM OPTIMIZER v0.0.5",
                 Font = new Font("Segoe UI", 14f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(14, 165, 233),
                 AutoSize = true,
@@ -302,8 +302,8 @@ namespace StormOptimizerInstaller
                 using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer");
                 if (key != null)
                 {
-                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v0.0.4");
-                    key.SetValue("DisplayVersion", "0.0.4");
+                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v0.0.5");
+                    key.SetValue("DisplayVersion", "0.0.5");
                     key.SetValue("Publisher", "STORM Software");
                     key.SetValue("DisplayIcon", targetIco);
                     key.SetValue("InstallLocation", targetDir);

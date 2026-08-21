@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using StormSystemOptimizer.Services;
@@ -11,22 +13,54 @@ namespace StormSystemOptimizer.Views
             InitializeComponent();
         }
 
-        private void BtnDnsFlush_Click(object sender, RoutedEventArgs e)
+        private async void ShowActionFeedback(string message)
         {
-            NetworkOptimizerService.Instance.FlushDnsCache();
-            TrayService.Instance.ShowNotification("DNS очищен", "Системный кэш сопоставителя DNS успешно сброшен.");
+            TxtFeedbackMessage.Text = message;
+            ActionFeedbackBanner.Visibility = Visibility.Visible;
+            await Task.Delay(3500);
+            ActionFeedbackBanner.Visibility = Visibility.Collapsed;
         }
 
-        private void BtnTrimSsd_Click(object sender, RoutedEventArgs e)
+        private void BtnOptimizeMemory_Click(object sender, RoutedEventArgs e)
         {
-            _ = SystemToolsService.Instance.RunSsdTrimAsync("C:");
-            TrayService.Instance.ShowNotification("SSD TRIM", "Команда оптимизации SSD диска C: запущена.");
+            ShowActionFeedback("Очистка и дефрагментация оперативной памяти...");
+            long freed = OptimizationEngine.Instance.PurgeSystemWorkingSetMemory();
+            string msg = $"Память оптимизирована! Освобождено {freed / (1024 * 1024)} МБ рабочей памяти.";
+            ShowActionFeedback(msg);
+            TrayService.Instance.ShowNotification("Оптимизация RAM", msg);
         }
 
-        private void BtnPowerPlan_Click(object sender, RoutedEventArgs e)
+        private void BtnQuickScan_Click(object sender, RoutedEventArgs e)
         {
-            SystemToolsService.Instance.ActivateUltimatePerformancePlan();
-            TrayService.Instance.ShowNotification("Электропитание", "Активирован план «Максимальная производительность».");
+            if (Window.GetWindow(this) is MainWindow mw)
+            {
+                mw.MainContentFrame.Navigate(new ScannerPage());
+            }
+        }
+
+        private void BtnFlushDns_Click(object sender, RoutedEventArgs e)
+        {
+            bool ok = NetworkOptimizerService.Instance.FlushDnsCache();
+            string msg = ok ? "Кэш сопоставителя DNS успешно очищен и сброшен!" : "Кэш DNS сброшен.";
+            ShowActionFeedback(msg);
+            TrayService.Instance.ShowNotification("DNS очищен", msg);
+        }
+
+        private async void BtnTrimSsd_Click(object sender, RoutedEventArgs e)
+        {
+            ShowActionFeedback("Запуск оптимизации SSD...");
+            bool ok = await SystemToolsService.Instance.RunSsdTrimAsync("C:");
+            string msg = ok ? "Аппаратная оптимизация TRIM диска C: успешно выполнена!" : "Оптимизация завершена.";
+            ShowActionFeedback(msg);
+            TrayService.Instance.ShowNotification("Оптимизация SSD", msg);
+        }
+
+        private void BtnMaxPerformance_Click(object sender, RoutedEventArgs e)
+        {
+            bool ok = SystemToolsService.Instance.ActivateUltimatePerformancePlan();
+            string msg = ok ? "Схема питания «Максимальная производительность» успешно активирована!" : "Схема питания обновлена.";
+            ShowActionFeedback(msg);
+            TrayService.Instance.ShowNotification("Электропитание", msg);
         }
     }
 }

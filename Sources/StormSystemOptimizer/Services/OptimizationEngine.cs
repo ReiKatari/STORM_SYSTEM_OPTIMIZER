@@ -37,7 +37,9 @@ namespace StormSystemOptimizer.Services
 
                 item.IsFixing = false;
                 item.IsFixed = true;
+                item.ReclaimableBytes = 0;
                 item.StatusText = "Оптимизировано";
+                item.FormattedDetails = "Оптимизировано успешно";
 
                 current++;
                 FixProgressChanged?.Invoke(this, (int)((current / (double)total) * 100));

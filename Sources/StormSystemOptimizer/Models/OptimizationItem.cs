@@ -21,6 +21,7 @@ namespace StormSystemOptimizer.Models
         private RiskLevel _riskLevel = RiskLevel.Safe;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(FormattedSize))]
         private long _reclaimableBytes;
 
         [ObservableProperty]
@@ -31,6 +32,7 @@ namespace StormSystemOptimizer.Models
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotFixed))]
+        [NotifyPropertyChangedFor(nameof(FormattedSize))]
         private bool _isFixed = false;
 
         public bool IsNotFixed => !IsFixed;
@@ -50,7 +52,7 @@ namespace StormSystemOptimizer.Models
             OptimizationCategory.NetworkAndDns => "Сеть и DNS",
             OptimizationCategory.PrivacyTelemetry => "Приватность и телеметрия",
             OptimizationCategory.SystemHealth => "Здоровье системы и дисков",
-            OptimizationCategory.PowerAndVisual => "Электропитание и визуальные твики",
+            OptimizationCategory.PowerAndVisual => "Электропитание и визуальные настройки",
             _ => "Оптимизация"
         };
 
@@ -66,6 +68,7 @@ namespace StormSystemOptimizer.Models
         {
             get
             {
+                if (IsFixed) return "0 Б (Очищено)";
                 if (ReclaimableBytes <= 0) return string.Empty;
                 if (ReclaimableBytes < 1024) return $"{ReclaimableBytes} Б";
                 if (ReclaimableBytes < 1024 * 1024) return $"{ReclaimableBytes / 1024.0:F1} КБ";

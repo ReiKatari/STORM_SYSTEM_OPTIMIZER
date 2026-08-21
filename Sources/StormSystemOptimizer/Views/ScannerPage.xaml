@@ -3,12 +3,11 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:StormSystemOptimizer.Views"
       xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
       Title="Scanner">
 
     <Page.DataContext>
-        <vm:ScannerViewModel x:Name="ViewModel"/>
+        <vm:ScannerViewModel/>
     </Page.DataContext>
 
     <Border Padding="20">
@@ -20,206 +19,143 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-        <!-- Top Header & Scan Buttons -->
-        <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <!-- Top Header & Scanning Actions -->
+            <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0">
-                    <TextBlock Text="Глубокое сканирование всей системы" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                    <TextBlock Text="{Binding ScanStatus}" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Глубокое сканирование и оптимизация" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Интеллектуальный анализ кэша, системного мусора, реестра, сетевых логов и настроек конфиденциальности."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
 
-                    <!-- Scan Progress Bar -->
-                    <Grid Height="8" Margin="0,0,24,0">
-                        <ProgressBar Value="{Binding ScanProgress}" Maximum="100" Height="8" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                    </Grid>
-                </StackPanel>
-
-                <!-- Action Button -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Command="{Binding StartScanCommand}"
-                            IsEnabled="{Binding IsNotScanning}"
-                            Background="{DynamicResource StormHeroGradient}"
-                            Foreground="#FFFFFF"
-                            FontWeight="Bold"
-                            FontSize="13"
-                            Cursor="Hand"
-                            Padding="20,12">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
+                        <!-- Stats badges -->
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="🔍 " FontSize="14"/>
-                            <TextBlock Text="Начать сканирование"/>
+                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,10,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Найдено проблем: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding IssuesCount}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Освобождаемый объем: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding TotalReclaimableText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}"/>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
-                    </Button>
+                    </StackPanel>
+
+                    <!-- Top Action Buttons -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding StartScanCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Content="🔍 Начать сканирование"
+                                Style="{StaticResource StormSecondaryButton}"
+                                Margin="0,0,10,0"/>
+
+                        <Button Command="{Binding FixSelectedCommand}"
+                                IsEnabled="{Binding CanFix}"
+                                Content="⚡ Оптимизировать выбранное"
+                                Style="{StaticResource StormHeroButton}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Live Scan Progress Bar -->
+            <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16"
+                    Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel>
+                    <Grid Margin="0,0,0,8">
+                        <TextBlock Text="{Binding CurrentScanCategory}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding ScanProgress, StringFormat='{}{0}%'}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                    </Grid>
+                    <ProgressBar Value="{Binding ScanProgress}" Maximum="100" Height="8" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderThickness="0" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding ScanStatusText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
-            </Grid>
-        </Border>
+            </Border>
 
-        <!-- Stats & Filter Bar -->
-        <Grid Grid.Row="1" Margin="0,0,0,12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <!-- Issues List -->
+            <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12">
+                <ListBox ItemsSource="{Binding ScanItems}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Margin" Value="0,0,0,8"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <ContentPresenter/>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="150"/>
+                                    </Grid.ColumnDefinitions>
 
-            <!-- Stats Badges -->
-            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,10,0">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Найдено проблем: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        <TextBlock Text="{Binding IssuesCount}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                    </StackPanel>
-                </Border>
-                <Border Background="{DynamicResource BadgeSafeBgBrush}" CornerRadius="6" Padding="10,6" Margin="0,0,10,0">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Безопасных: " FontSize="12" Foreground="{DynamicResource BadgeSafeTextBrush}"/>
-                        <TextBlock Text="{Binding SafeIssuesCount}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource BadgeSafeTextBrush}"/>
-                    </StackPanel>
-                </Border>
-                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="Освобождаемо: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        <TextBlock Text="{Binding TotalReclaimableText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+                                    <!-- Neon Solid Square CheckBox -->
+                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,16,0" Cursor="Hand"/>
 
-            <!-- Quick Select Buttons -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal">
-                <Button Command="{Binding SelectAllCommand}" Content="Выбрать все" Margin="0,0,8,0" Cursor="Hand" Padding="10,6"
-                        Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-                <Button Command="{Binding DeselectAllCommand}" Content="Снять выбор" Cursor="Hand" Padding="10,6"
-                        Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </StackPanel>
-        </Grid>
-
-        <!-- Issues List View -->
-        <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="0,0,0,16">
-            <ListBox ItemsSource="{Binding FilteredIssues}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                        <Setter Property="Padding" Value="0"/>
-                        <Setter Property="Margin" Value="0,0,0,8"/>
-                        <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="ListBoxItem">
-                                    <ContentPresenter/>
-                                </ControlTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-
-                                <!-- Checkbox -->
-                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-
-                                <!-- Title and Details -->
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                        <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,10,0"/>
-                                        <Border Background="{DynamicResource BadgeSafeBgBrush}" CornerRadius="4" Padding="6,2">
-                                            <TextBlock Text="{Binding RiskBadgeText}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource BadgeSafeTextBrush}"/>
-                                        </Border>
+                                    <!-- Details with TextWrapping -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                        <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
+                                        <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,4"/>
+                                        <TextBlock Text="{Binding FormattedDetails}" FontSize="11" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
-                                </StackPanel>
 
-                                <!-- Reclaimable Size -->
-                                <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                    <TextBlock Text="{Binding FormattedSize}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
-                                    <TextBlock Text="{Binding StatusText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </Border>
+                                    <!-- Size -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,16,0">
+                                        <TextBlock Text="{Binding FormattedSize}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}" HorizontalAlignment="Right"/>
+                                        <TextBlock Text="Объем" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
+                                    </StackPanel>
 
-        <!-- Bottom Action Bar -->
-        <Border Grid.Row="3" Background="{DynamicResource NavSidebarBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Column="0" Text="Все оптимизации проверены и гарантируют 100% стабильность работы Windows." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-
-                <Button Command="{Binding FixSafeOnlyCommand}"
-                        IsEnabled="{Binding IsNotFixing}"
-                        Grid.Column="1"
-                        Content="🛡 Исправить 100% безопасные"
-                        Margin="0,0,12,0"
-                        Cursor="Hand"
-                        Padding="18,10"
-                        Background="{DynamicResource CardBackgroundBrush}"
-                        Foreground="{DynamicResource BadgeSafeTextBrush}"
-                        BorderBrush="{DynamicResource CardBorderBrush}">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <!-- Category Badge with distinct high-contrast colors -->
+                                    <Border Grid.Column="3" Background="{Binding CategoryBgColor}" BorderBrush="{Binding CategoryTextColor}" BorderThickness="1" CornerRadius="6" Padding="10,4" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <TextBlock Text="{Binding CategoryName}" FontSize="11" FontWeight="Bold" Foreground="{Binding CategoryTextColor}"/>
+                                    </Border>
+                                </Grid>
                             </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Border>
 
-                <Button Command="{Binding FixSelectedCommand}"
-                        IsEnabled="{Binding IsNotFixing}"
-                        Grid.Column="2"
-                        Content="⚡ Оптимизировать выбранное"
-                        FontWeight="Bold"
-                        Cursor="Hand"
-                        Padding="22,10"
-                        Background="{DynamicResource StormHeroGradient}"
-                        Foreground="#FFFFFF">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
-                </Button>
-            </Grid>
-        </Border>
-    </Grid>
+            <!-- Bottom Multi-Select Helpers & Safe Optimization Note with TextWrapping -->
+            <Border Grid.Row="3" Margin="0,12,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding SelectAllCommand}" Content="Выбрать все" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,8,0"/>
+                        <Button Command="{Binding DeselectAllCommand}" Content="Снять выбор" Style="{StaticResource StormSecondaryButton}" Padding="12,6"/>
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="1"
+                               Text="Все оптимизации проверены и гарантируют полную безопасность и целостность вашей операционной системы Windows."
+                               FontSize="11"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               TextWrapping="Wrap"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               Margin="16,0,0,0"/>
+                </Grid>
+            </Border>
+        </Grid>
     </Border>
 </Page>

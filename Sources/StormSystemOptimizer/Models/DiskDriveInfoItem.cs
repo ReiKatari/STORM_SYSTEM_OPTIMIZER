@@ -36,23 +36,29 @@ namespace StormSystemOptimizer.Models
         private int _healthPercentage = 100;
 
         [ObservableProperty]
-        private string _healthStatusText = "100% Отличное (S.M.A.R.T. OK)";
+        private string _healthStatus = "Исправен 100%";
 
         [ObservableProperty]
-        private string _healthColor = "#10B981";
+        private string _statusColor = "#10B981";
 
         [ObservableProperty]
-        private string _temperatureText = "32 °C";
+        private string _statusBgColor = "#2610B981";
+
+        [ObservableProperty]
+        private string _temperature = "34 °C";
 
         [ObservableProperty]
         private bool _isSsd = true;
 
         [ObservableProperty]
-        private string _fragmentationStatus = "Анализ не проводился";
+        private string _fragmentationStatus = "Готов к анализу";
 
+        public string SpaceUsageSummary => $"{UsedSizeGb:F1} ГБ / {TotalSizeGb:F1} ГБ занято";
+        public string FreePercentSummary => $"Свободно {FreeSizeGb:F1} ГБ ({Math.Max(0, 100 - UsedPercentage):F0}%)";
+        public double UsedSpacePercent => UsedPercentage;
+        public string FragmentationSummary => FragmentationStatus;
+        public string OptimizationActionName => IsSsd ? "⚡ TRIM Оптимизация" : "⚡ Дефрагментация";
         public string FormattedTotal => $"{TotalSizeGb:F1} ГБ";
         public string FormattedFree => $"{FreeSizeGb:F1} ГБ свободно";
-        public string FormattedUsed => $"{UsedSizeGb:F1} ГБ занято";
-        public string FormattedUsageText => $"{UsedPercentage:F0}% заполнено";
     }
 }

@@ -1,4 +1,5 @@
 <Page x:Class="StormSystemOptimizer.Views.DisksPage"
+      x:Name="RootDisksPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -7,13 +8,13 @@
       Title="Disks">
 
     <Page.DataContext>
-        <vm:DisksViewModel/>
+        <vm:DisksViewModel x:Name="ViewModel"/>
     </Page.DataContext>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
         <StackPanel HorizontalAlignment="Stretch">
 
-            <!-- Top Header -->
+            <!-- Top Header & Global Actions -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -21,38 +22,41 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Margin="0,0,20,0">
-                        <TextBlock Text="Диагностика накопителей, S.M.A.R.T. и Дефрагментация" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock Text="Глубокая информация о состоянии дисков, температуре, проценте здоровья и аппаратная оптимизация TRIM / дефрагментация секторов."
-                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Диагностика накопителей и служба дефрагментации" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Детальная информация о накопителях (HDD, SSD, NVMe), проверка состояния, анализ фрагментации, TRIM-оптимизация и глубокая дефрагментация."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Статус: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
-                    <Button Command="{Binding LoadDrivesCommand}"
-                            IsEnabled="{Binding IsNotBusy}"
-                            Grid.Column="1" Content="↺ Обновить диски"
-                            Padding="16,8" Cursor="Hand" VerticalAlignment="Center"
-                            Background="{DynamicResource AppBackgroundBrush}"
-                            Foreground="{DynamicResource TextPrimaryBrush}"
-                            BorderBrush="{DynamicResource CardBorderBrush}">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
+                    <!-- Global Actions -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding OptimizeAllDrivesCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Content="⚡ Оптимизировать все диски"
+                                Style="{StaticResource StormHeroButton}"
+                                Margin="0,0,10,0"/>
+
+                        <Button Command="{Binding LoadDrivesCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Content="↺ Обновить"
+                                Style="{StaticResource StormSecondaryButton}"/>
+                    </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Drives Cards List -->
-            <TextBlock Text="Локальные физические и логические накопители" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+            <!-- Disks List -->
+            <TextBlock Text="💾 Физические накопители и логические тома" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
 
-            <ItemsControl ItemsSource="{Binding Drives}" Margin="0,0,0,16">
+            <ItemsControl ItemsSource="{Binding Drives}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                        <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,14">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
@@ -60,133 +64,93 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Top Row: Drive Letter, Model, Health Badge, Temp -->
-                                <Grid Grid.Row="0" Margin="0,0,0,12">
+                                <!-- Top Row: Volume Letter, Model, Drive Type & Status Badges -->
+                                <Grid Grid.Row="0" Margin="0,0,0,14">
                                     <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Drive Icon & Name -->
-                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="8" Width="42" Height="42" Margin="0,0,12,0">
-                                            <TextBlock Text="💾" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                        <StackPanel VerticalAlignment="Center">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="Диск " FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <StackPanel Grid.Column="0">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <!-- Volume Letter Badge -->
+                                            <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="6" Padding="10,4" Margin="0,0,10,0">
                                                 <TextBlock Text="{Binding VolumeLetter}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                                                <TextBlock Text=" " FontSize="16" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                <TextBlock Text="{Binding VolumeLabel}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                <TextBlock Text="{Binding Model}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                <TextBlock Text=" • " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                <TextBlock Text="{Binding MediaType}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}"/>
-                                                <TextBlock Text=" • " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                <TextBlock Text="{Binding FileSystem}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            </StackPanel>
+                                            </Border>
+
+                                            <!-- Volume Label or Model -->
+                                            <TextBlock Text="{Binding Model}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                            <TextBlock Text="Тип: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding DriveType}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                            <TextBlock Text=" • Файловая система: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0"/>
+                                            <TextBlock Text="{Binding FileSystem}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text=" • Шина: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0"/>
+                                            <TextBlock Text="{Binding InterfaceType}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text=" • Температура: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0"/>
+                                            <TextBlock Text="{Binding Temperature}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}"/>
                                         </StackPanel>
                                     </StackPanel>
 
-                                    <!-- Health & Temp Badges -->
-                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <Border Background="{Binding StatusBgColor}" CornerRadius="6" Padding="10,6" Margin="0,0,8,0">
+                                    <!-- Status Badges on Right with high-contrast text and border -->
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <!-- Health Badge -->
+                                        <Border Background="{Binding StatusBgColor}" BorderBrush="{Binding StatusColor}" BorderThickness="1.5" CornerRadius="6" Padding="10,5" Margin="0,0,8,0">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="Состояние: " FontSize="11" Foreground="{Binding StatusColor}"/>
                                                 <TextBlock Text="{Binding HealthStatus}" FontSize="11" FontWeight="Bold" Foreground="{Binding StatusColor}"/>
                                             </StackPanel>
                                         </Border>
-                                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
-                                            <TextBlock Text="{Binding Temperature}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+
+                                        <!-- Fragmentation Badge -->
+                                        <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Фрагментация: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding FragmentationSummary}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </StackPanel>
                                         </Border>
                                     </StackPanel>
                                 </Grid>
 
-                                <!-- Middle Row: Storage Bar & Stats -->
-                                <Grid Grid.Row="1" Margin="0,0,0,10">
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto"/>
-                                        <RowDefinition Height="Auto"/>
-                                    </Grid.RowDefinitions>
-
-                                    <Grid Grid.Row="0" Margin="0,0,0,6">
-                                        <TextBlock Text="{Binding SpaceUsageSummary}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Left"/>
-                                        <TextBlock Text="{Binding FreePercentSummary}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                                <!-- Middle Row: Capacity ProgressBar & Free Space info -->
+                                <StackPanel Grid.Row="1" Margin="0,0,0,14">
+                                    <Grid Margin="0,0,0,6">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Свободно: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding FreeSpaceText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text=" из " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding TotalSizeText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding UsedPercentText, StringFormat='Занято: {0}'}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
                                     </Grid>
 
-                                    <ProgressBar Grid.Row="1" Value="{Binding UsedSpacePercent}" Maximum="100" Height="8"
-                                                 Background="{DynamicResource AppBackgroundBrush}"
-                                                 Foreground="{DynamicResource AccentPrimaryBrush}"
-                                                 BorderThickness="0"/>
-                                </Grid>
+                                    <ProgressBar Value="{Binding UsedPercent}" Maximum="100" Height="8" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderThickness="0"/>
+                                </StackPanel>
 
-                                <!-- Bottom Row: Fragmentation & Action Button -->
-                                <Grid Grid.Row="2" Margin="0,6,0,0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+                                <!-- Bottom Row: Action Buttons for this drive -->
+                                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <!-- Analyze button -->
+                                    <Button Command="{Binding ElementName=RootDisksPage, Path=DataContext.AnalyzeDriveCommand}"
+                                            CommandParameter="{Binding VolumeLetter}"
+                                            Content="🔍 Анализ тома"
+                                            Style="{StaticResource StormSecondaryButton}"
+                                            Margin="0,0,8,0"/>
 
-                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                        <TextBlock Text="Фрагментация: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                        <TextBlock Text="{Binding FragmentationSummary}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    </StackPanel>
-
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                                        <Button Command="{Binding ((vm:DisksViewModel)DataContext).AnalyzeDriveCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                CommandParameter="{Binding VolumeLetter}"
-                                                IsEnabled="{Binding ((vm:DisksViewModel)DataContext).IsNotBusy, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                Content="🔍 Анализ тома"
-                                                Padding="12,6" Margin="0,0,8,0" Cursor="Hand"
-                                                Background="{DynamicResource AppBackgroundBrush}"
-                                                Foreground="{DynamicResource TextPrimaryBrush}"
-                                                BorderBrush="{DynamicResource CardBorderBrush}">
-                                            <Button.Template>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Button.Template>
-                                        </Button>
-
-                                        <Button Command="{Binding ((vm:DisksViewModel)DataContext).DefragDriveCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                CommandParameter="{Binding VolumeLetter}"
-                                                IsEnabled="{Binding ((vm:DisksViewModel)DataContext).IsNotBusy, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                Content="{Binding OptimizationActionName}"
-                                                FontWeight="Bold"
-                                                Padding="14,6" Cursor="Hand"
-                                                Background="{DynamicResource StormHeroGradient}"
-                                                Foreground="#FFFFFF">
-                                            <Button.Template>
-                                                <ControlTemplate TargetType="Button">
-                                                    <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Button.Template>
-                                        </Button>
-                                    </StackPanel>
-                                </Grid>
+                                    <!-- Optimize/Defrag button -->
+                                    <Button Command="{Binding ElementName=RootDisksPage, Path=DataContext.DefragDriveCommand}"
+                                            CommandParameter="{Binding VolumeLetter}"
+                                            Content="{Binding OptimizationActionName, FallbackValue='⚡ Оптимизировать'}"
+                                            Style="{StaticResource StormHeroButton}"
+                                            Padding="16,8"/>
+                                </StackPanel>
                             </Grid>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <!-- Defrag Live Console Output -->
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
-                <StackPanel>
-                    <TextBlock Text="🖥️ Консоль выполнения оптимизации накопителей" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12" Height="140">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <TextBlock Text="{Binding LiveDefragOutput}" FontFamily="Consolas" FontSize="12" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
-                        </ScrollViewer>
-                    </Border>
-                </StackPanel>
-            </Border>
         </StackPanel>
     </ScrollViewer>
 </Page>

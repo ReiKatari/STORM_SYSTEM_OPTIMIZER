@@ -22,7 +22,7 @@
                 <StackPanel>
                     <TextBlock Text="Менеджер автозагрузки Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
                     <TextBlock Text="Отключение ресурсоемких фоновых программ значительно ускоряет время загрузки системы и освобождает оперативную память."
-                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                     <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                 </StackPanel>
             </Border>
@@ -55,9 +55,9 @@
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Name & Command -->
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
                                         <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
-                                        <TextBlock Text="{Binding Command}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Text="{Binding Command}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
                                             <TextBlock Text="Раздел: " FontSize="10" Foreground="{DynamicResource TextMutedBrush}"/>
                                             <TextBlock Text="{Binding Location}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>

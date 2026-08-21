@@ -7,87 +7,70 @@
       Title="Services">
 
     <Page.DataContext>
-        <vm:ServicesViewModel x:Name="ViewModel"/>
+        <vm:ServicesViewModel/>
     </Page.DataContext>
 
     <Border Padding="20">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- Profiles Header Bar -->
+            <!-- Top Header -->
             <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Оптимизация фоновых служб Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                    <TextBlock Text="Отключение фоновых служб телеметрии, сбора отчетов и скрытого отслеживания без повреждения ключевых компонентов ОС."
-                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,14"/>
-
-                    <!-- Profile Buttons -->
-                    <WrapPanel Orientation="Horizontal" Margin="0,0,0,10">
-                        <!-- Balanced -->
-                        <Button x:Name="BtnProfileBalanced" Click="BtnProfileBalanced_Click" Content="⚖ Рекомендуемый (Balanced)" Margin="0,0,8,8" Padding="14,8" Cursor="Hand"
-                                FontWeight="Bold" Background="{DynamicResource AccentGlowBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-
-                        <!-- Gaming -->
-                        <Button x:Name="BtnProfileGaming" Click="BtnProfileGaming_Click" Content="🎮 Игровой (Gaming)" Margin="0,0,8,8" Padding="14,8" Cursor="Hand"
-                                FontWeight="SemiBold" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-
-                        <!-- Extreme -->
-                        <Button x:Name="BtnProfileExtreme" Click="BtnProfileExtreme_Click" Content="⚡ Экстремальный (Extreme)" Margin="0,0,8,8" Padding="14,8" Cursor="Hand"
-                                FontWeight="SemiBold" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-
-                        <!-- Default -->
-                        <Button x:Name="BtnProfileDefault" Click="BtnProfileDefault_Click" Content="↺ По умолчанию (Default)" Margin="0,0,8,8" Padding="14,8" Cursor="Hand"
-                                FontWeight="SemiBold" Background="{DynamicResource CardBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                    </WrapPanel>
-
-                    <!-- Status Notification Badge -->
-                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Статус применения: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                        </StackPanel>
-                    </Border>
+                    <TextBlock Text="Оптимизация служб Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Настройка фоновых системных служб. Отключение неиспользуемых сервисов снижает фоновую нагрузку на процессор и память."
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                 </StackPanel>
             </Border>
 
-            <!-- Services List -->
-            <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12">
-                <ListBox ItemsSource="{Binding ServicesList}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <!-- Optimization Profile Presets -->
+            <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock Text="Профили быстрой конфигурации" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Применение предварительно настроенных безопасных конфигураций служб в один клик." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Recommended -->
+                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Recommended"
+                                Content="⚖ Рекомендуемый"
+                                Style="{StaticResource StormHeroButton}"
+                                Margin="0,0,8,0"/>
+
+                        <!-- Gaming -->
+                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Gaming"
+                                Content="🎮 Игровой"
+                                Style="{StaticResource StormSecondaryButton}"
+                                Margin="0,0,8,0"/>
+
+                        <!-- Extreme -->
+                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Extreme"
+                                Content="⚡ Экстремальный"
+                                Style="{StaticResource StormSecondaryButton}"
+                                Margin="0,0,8,0"/>
+
+                        <!-- Default / Reset -->
+                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Default"
+                                Content="↺ По умолчанию"
+                                Style="{StaticResource StormSecondaryButton}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Services List with Dynamic Live Status Color Badges -->
+            <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12">
+                <ListBox ItemsSource="{Binding Services}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -108,25 +91,29 @@
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="140"/>
+                                        <ColumnDefinition Width="160"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Service Info -->
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding DisplayName}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,2"/>
-                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                    <!-- Service Title & Description -->
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding DisplayName}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding ServiceName, StringFormat=' ({0})'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                     </StackPanel>
 
-                                    <!-- Live Status Badge -->
-                                    <Border Grid.Column="1" Background="{Binding StatusBgColor}" CornerRadius="6" Padding="10,6" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="Bold" Foreground="{Binding StatusColor}"/>
+                                    <!-- Live Status Badge with high-contrast distinct background and text -->
+                                    <Border Grid.Column="1" Background="{Binding StatusBgColor}" BorderBrush="{Binding StatusColor}" BorderThickness="1.5" CornerRadius="6" Padding="10,5" Margin="0,0,16,0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="Статус: " FontSize="10" Foreground="{Binding StatusColor}"/>
+                                            <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="Bold" Foreground="{Binding StatusColor}"/>
+                                        </StackPanel>
                                     </Border>
 
-                                    <!-- Enable / Disable Toggle -->
-                                    <CheckBox Grid.Column="2" IsChecked="{Binding IsDisabled, Mode=TwoWay}"
-                                              Click="ChkService_Click"
-                                              VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                    <!-- Toggle CheckBox -->
+                                    <CheckBox Grid.Column="2" IsChecked="{Binding IsOptimized, Mode=TwoWay}" VerticalAlignment="Center" Content="Оптимизировано" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
                                 </Grid>
                             </Border>
                         </DataTemplate>
