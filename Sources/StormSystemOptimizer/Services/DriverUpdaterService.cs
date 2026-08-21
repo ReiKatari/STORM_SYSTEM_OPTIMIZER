@@ -44,19 +44,19 @@ namespace StormSystemOptimizer.Services
 
                         if (name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) || name.Contains("GeForce", StringComparison.OrdinalIgnoreCase))
                         {
-                            latestVer = "582.66 WHQL";
+                            latestVer = "582.66";
                             downloadUrl = "https://www.nvidia.com/Download/index.aspx";
                             updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
                         }
                         else if (name.Contains("AMD", StringComparison.OrdinalIgnoreCase) || name.Contains("Radeon", StringComparison.OrdinalIgnoreCase))
                         {
-                            latestVer = "24.8.1 Adrenalin";
+                            latestVer = "24.8.1";
                             downloadUrl = "https://www.amd.com/en/support";
                             updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
                         }
                         else if (name.Contains("Intel", StringComparison.OrdinalIgnoreCase))
                         {
-                            latestVer = "32.0.101.5972 WHQL";
+                            latestVer = "32.0.101.5972";
                             downloadUrl = "https://www.intel.com/content/www/us/en/download-center/home.html";
                             updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
                         }
@@ -117,7 +117,7 @@ namespace StormSystemOptimizer.Services
                             DeviceName = name,
                             ProviderName = provider,
                             CurrentVersion = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}",
-                            LatestVersion = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? $"{version} WHQL" : $"v{version} WHQL",
+                            LatestVersion = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}",
                             DriverDate = FormatWmiDate(rawDate),
                             Category = category,
                             IsUpdateAvailable = false,
@@ -150,14 +150,14 @@ namespace StormSystemOptimizer.Services
                         char majorLast = p3[p3.Length - 1]; // e.g. '5'
                         string firstTwo = p4.Substring(0, 2); // e.g. "82"
                         string lastTwo = p4.Substring(2); // e.g. "66"
-                        return $"{majorLast}{firstTwo}.{lastTwo} WHQL";
+                        return $"{majorLast}{firstTwo}.{lastTwo}";
                     }
                 }
             }
             else if (provider.Contains("AMD", StringComparison.OrdinalIgnoreCase) ||
                      deviceName.Contains("Radeon", StringComparison.OrdinalIgnoreCase))
             {
-                return rawVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? $"{rawVersion} Adrenalin" : $"v{rawVersion} Adrenalin";
+                return rawVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? rawVersion : $"v{rawVersion}";
             }
 
             return rawVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? rawVersion : $"v{rawVersion}";
