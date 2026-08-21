@@ -1,0 +1,137 @@
+<UserControl x:Class="StormSystemOptimizer.Controls.AscScanButtonControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="200" d:DesignWidth="200"
+             Width="190" Height="190">
+
+    <UserControl.Resources>
+        <!-- Breathing Glow Animation -->
+        <Storyboard x:Key="BreathingGlowStoryboard" RepeatBehavior="Forever" AutoReverse="True">
+            <DoubleAnimation Storyboard.TargetName="GlowEffect"
+                             Storyboard.TargetProperty="BlurRadius"
+                             From="16" To="38" Duration="0:0:1.8">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            <DoubleAnimation Storyboard.TargetName="GlowEffect"
+                             Storyboard.TargetProperty="Opacity"
+                             From="0.6" To="1.0" Duration="0:0:1.8">
+                <DoubleAnimation.EasingFunction>
+                    <SineEase EasingMode="EaseInOut"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+
+        <!-- Radar Ring Rotation Storyboard -->
+        <Storyboard x:Key="RadarRotateStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="RadarSweepTransform"
+                             Storyboard.TargetProperty="Angle"
+                             From="0" To="360" Duration="0:0:2.0"/>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <!-- Outer Breathing Glow Disc -->
+        <Ellipse Width="170" Height="170" Fill="#050B17">
+            <Ellipse.Effect>
+                <DropShadowEffect x:Name="GlowEffect" Color="#00D2FF" BlurRadius="24" ShadowDepth="0" Opacity="0.85"/>
+            </Ellipse.Effect>
+        </Ellipse>
+
+        <!-- Rotating Radar Arc Ring (Visible during Scanning) -->
+        <Grid x:Name="RadarSweepContainer" Width="176" Height="176" RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <RotateTransform x:Name="RadarSweepTransform" Angle="0"/>
+            </Grid.RenderTransform>
+
+            <!-- Multi-layer Gradient Arc with Glowing Head -->
+            <Ellipse Width="174" Height="174" StrokeThickness="3.5">
+                <Ellipse.Stroke>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#0000D2FF" Offset="0.0"/>
+                        <GradientStop Color="#4000D2FF" Offset="0.4"/>
+                        <GradientStop Color="#CC00D2FF" Offset="0.85"/>
+                        <GradientStop Color="#FFFFFFFF" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Ellipse.Stroke>
+            </Ellipse>
+
+            <!-- Glowing Leading Light Point -->
+            <Ellipse Width="8" Height="8" Fill="#FFFFFF" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,-2,0">
+                <Ellipse.Effect>
+                    <DropShadowEffect Color="#00D2FF" BlurRadius="12" ShadowDepth="0" Opacity="1.0"/>
+                </Ellipse.Effect>
+            </Ellipse>
+        </Grid>
+
+        <!-- Outer Border Track -->
+        <Ellipse Width="168" Height="168" Stroke="#1E293B" StrokeThickness="2.5"/>
+
+        <!-- Main Interactive Button -->
+        <Button x:Name="BtnAscScan"
+                Click="BtnAscScan_Click"
+                Width="154" Height="154"
+                Cursor="Hand">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <!-- Button Background with Deep Glass Gradient -->
+                        <Ellipse x:Name="BtnDisc" Stroke="#3300D2FF" StrokeThickness="2">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush Center="0.5,0.4" GradientOrigin="0.5,0.3" RadiusX="0.6" RadiusY="0.6">
+                                    <GradientStop Color="#1E293B" Offset="0.0"/>
+                                    <GradientStop Color="#0F172A" Offset="0.6"/>
+                                    <GradientStop Color="#0A0E1A" Offset="1.0"/>
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+
+                        <!-- Content Overlay Container -->
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="BtnDisc" Property="Stroke" Value="#00D2FF"/>
+                            <Setter TargetName="BtnDisc" Property="StrokeThickness" Value="2.5"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="BtnDisc" Property="Stroke" Value="#38BDF8"/>
+                            <Setter TargetName="BtnDisc" Property="Opacity" Value="0.9"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+
+            <!-- Inner Content Layout -->
+            <Grid Width="140" Height="140">
+                <!-- 1. State: IDLE (Scan Ready) -->
+                <StackPanel x:Name="StateIdle" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="8" Width="36" Height="36" HorizontalAlignment="Center" Margin="0,0,0,6">
+                        <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="СКАНИРОВАТЬ" FontSize="12.5" FontWeight="ExtraBold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Глубокий анализ" FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <!-- 2. State: SCANNING (In Progress) -->
+                <StackPanel x:Name="StateScanning" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBlock x:Name="TxtScanPercent" Text="0%" FontSize="24" FontWeight="ExtraBold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="TxtScanStep" Text="Анализ..." FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="120" Margin="0,2,0,0"/>
+                </StackPanel>
+
+                <!-- 3. State: COMPLETED (Fix Ready) -->
+                <StackPanel x:Name="StateCompleted" Visibility="Collapsed" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="8" Width="34" Height="34" HorizontalAlignment="Center" Margin="0,0,0,4">
+                        <Path Data="{StaticResource GeoCheck}" Fill="{StaticResource IconGradEmerald}" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="ИСПРАВИТЬ" FontSize="13" FontWeight="ExtraBold" Foreground="#10B981" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="TxtIssuesFoundBadge" Text="0 проблем" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Button>
+    </Grid>
+</UserControl>

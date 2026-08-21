@@ -16,10 +16,11 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Top Header -->
-            <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+            <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,14">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -31,114 +32,79 @@
                             <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoServices}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Оптимизация служб Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Оптимизация служб Windows" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Настройка фоновых системных служб. Отключение неиспользуемых сервисов снижает фоновую нагрузку на процессор и память."
-                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <TextBlock Text="{Binding StatusText}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                     </StackPanel>
 
-                    <!-- Top Action Buttons -->
+                    <!-- Header Action Buttons -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding ApplyServicesChangesCommand}"
+                        <Button Command="{Binding ApplyServicesCommand}"
                                 IsEnabled="{Binding IsNotBusy}"
                                 Style="{StaticResource StormHeroButton}"
                                 Padding="16,10"
-                                Margin="0,0,10,0">
+                                Margin="0,0,8,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Border Background="#33FFFFFF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                     <Path Data="{StaticResource GeoDisks}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Применить настройки" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                <TextBlock Text="Применить службы" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
-                        <Button Command="{Binding RefreshServicesCommand}"
+                        <Button Command="{Binding LoadServicesCommand}"
                                 IsEnabled="{Binding IsNotBusy}"
                                 Style="{StaticResource StormSecondaryButton}"
                                 Padding="12,10">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
-                                </Border>
-                                <TextBlock Text="Обновить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" Margin="0,0,6,0"/>
+                                <TextBlock Text="Обновить" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Optimization Profile Presets with active highlights -->
-            <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+            <!-- Presets Bar -->
+            <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,10">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <TextBlock Text="Профили быстрой конфигурации" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Применение предварительно настроенных безопасных конфигураций служб в один клик." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                    </StackPanel>
+                    <TextBlock Grid.Column="0" Text="Готовые профили оптимизации: " FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,14,0"/>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Recommended -->
-                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Recommended"
-                                Style="{StaticResource StormSecondaryButton}"
-                                Margin="0,0,8,0"
-                                Padding="12,7">
+                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="balanced" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,8,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A10B981" CornerRadius="3" Padding="2" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoShield}" Fill="#10B981" Width="10" Height="10" Stretch="Uniform"/>
-                                </Border>
-                                <TextBlock Text="Рекомендуемый" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Ellipse Width="7" Height="7" Fill="#10B981" Margin="0,0,6,0"/>
+                                <TextBlock Text="Безопасный" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- Gaming -->
-                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Gaming"
-                                Style="{StaticResource StormSecondaryButton}"
-                                Margin="0,0,8,0"
-                                Padding="12,7">
+                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="gaming" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,8,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
-                                </Border>
-                                <TextBlock Text="Игровой" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Ellipse Width="7" Height="7" Fill="#00D2FF" Margin="0,0,6,0"/>
+                                <TextBlock Text="Игровой профиль" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Button>
 
-                        <!-- Extreme -->
-                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Extreme"
-                                Style="{StaticResource StormSecondaryButton}"
-                                Margin="0,0,8,0"
-                                Padding="12,7">
+                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="extreme" Style="{StaticResource StormSecondaryButton}" Padding="12,6">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform"/>
-                                </Border>
-                                <TextBlock Text="Экстремальный" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
-                        <!-- Default / Reset -->
-                        <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Default"
-                                Style="{StaticResource StormSecondaryButton}"
-                                Padding="12,7">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
-                                </Border>
-                                <TextBlock Text="По умолчанию" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Ellipse Width="7" Height="7" Fill="#FB7185" Margin="0,0,6,0"/>
+                                <TextBlock Text="Экстремальный" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Services List with Dynamic Live Status Color Badges -->
+            <!-- Services List -->
             <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12">
-                <ListBox ItemsSource="{Binding Services}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox ItemsSource="{Binding ServicesList}" Background="Transparent" BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListBox.ItemContainerStyle>
                         <Style TargetType="ListBoxItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -158,33 +124,38 @@
                             <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="220"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="160"/>
-                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="130"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Service Title & Description -->
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding DisplayName}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            <TextBlock Text="{Binding ServiceName, StringFormat=' ({0})'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                    <!-- Service Display Name -->
+                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding ServiceName, StringFormat='Служба: {0}'}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                                     </StackPanel>
 
-                                    <!-- Live Status Badge with high-contrast distinct background and text -->
-                                    <Border Grid.Column="1" Background="{Binding StatusBgColor}" BorderBrush="{Binding StatusColor}" BorderThickness="1.5" CornerRadius="6" Padding="10,5" Margin="0,0,16,0" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="Статус: " FontSize="10" Foreground="{Binding StatusColor}"/>
-                                            <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="Bold" Foreground="{Binding StatusColor}"/>
-                                        </StackPanel>
-                                    </Border>
+                                    <!-- Description -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,10,0">
+                                        <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                        <TextBlock Text="{Binding RecommendedAction}" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,3,0,0"/>
+                                    </StackPanel>
 
-                                    <!-- Dynamic Optimization Toggle CheckBox (Оптимизирована / По умолчанию) -->
-                                    <CheckBox Grid.Column="2"
+                                    <!-- Status / Startup Type -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4">
+                                            <TextBlock Text="{Binding Status}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding StartupType, StringFormat='Тип: {0}'}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                                    </StackPanel>
+
+                                    <!-- Optimized Toggle CheckBox -->
+                                    <CheckBox Grid.Column="3"
                                               IsChecked="{Binding IsOptimized, Mode=TwoWay}"
                                               VerticalAlignment="Center"
-                                              Content="{Binding OptimizationStateText}"
+                                              HorizontalAlignment="Right"
+                                              Content="Отключить"
                                               Foreground="{DynamicResource TextPrimaryBrush}"
                                               Cursor="Hand"/>
                                 </Grid>
@@ -192,6 +163,38 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
+            </Border>
+
+            <!-- FAQ Section with Gradient Vector Icons -->
+            <Border Grid.Row="3" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14" Margin="0,10,0,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoQuestion}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Частые вопросы по Службам Windows (FAQ)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4">
+                        <Expander.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradEmerald}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Чем отличаются профили Безопасный, Игровой и Экстремальный?" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Expander.Header>
+                        <TextBlock Text="Безопасный профиль отключает только бесполезные фоновые службы телеметрии и демонстрационные режимы. Игровой дополнительно освобождает ресурсы от службы индексирования и отчетов об ошибках. Экстремальный отключает службы печати и Bluetooth для максимального FPS." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,2,0,2" TextWrapping="Wrap"/>
+                    </Expander>
+
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold">
+                        <Expander.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeoServices}" Fill="{StaticResource IconGradAmber}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Как вернуть службы в исходное состояние?" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Expander.Header>
+                        <TextBlock Text="Вы можете выбрать профиль «Безопасный» или снять галочки «Отключить» с нужных служб и нажать «Применить службы». Службы вернутся в режим ручного запуска Windows." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,2,0,2" TextWrapping="Wrap"/>
+                    </Expander>
+                </StackPanel>
             </Border>
         </Grid>
     </Border>

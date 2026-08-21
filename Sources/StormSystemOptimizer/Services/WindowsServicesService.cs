@@ -30,7 +30,17 @@ namespace StormSystemOptimizer.Services
             ("PhoneSvc", "Служба телефонной связи", "Управляет состоянием телефонии на ПК.", true, true, true),
             ("SensorService", "Служба датчиков", "Управляет датчиками освещенности и ориентации (на стационарном ПК не нужна).", false, true, true),
             ("TroubleshootingSvc", "Служба рекомендаций по устранению неполадок", "Фоновый запуск средств устранения неполадок.", false, true, true),
-            ("icssvc", "Служба мобильной точки доступа Windows", "Раздача интернета по Wi-Fi (Mobile Hotspot).", false, false, true)
+            ("icssvc", "Служба мобильной точки доступа Windows", "Раздача интернета по Wi-Fi (Mobile Hotspot).", false, false, true),
+            ("SysMain", "SysMain (SuperFetch)", "Предварительная загрузка приложений в оперативную память. На быстрых NVMe SSD только создает фоновую нагрузку.", false, true, true),
+            ("WSearch", "Windows Search", "Служба индексирования файлов для поиска. Нагружает диск постоянным фоновым сканированием.", false, true, true),
+            ("PcaSvc", "Служба помощника по совместимости программ", "Отслеживает запуск старых программ. Замедляет запуск игр и лаунчеров.", false, true, true),
+            ("DPS", "Служба политики диагностики", "Позволяет обнаруживать и устранять проблемы компонентов Windows.", false, true, true),
+            ("WdiServiceHost", "Узел службы диагностики", "Сбор диагностических журналов для поиска неполадок.", true, true, true),
+            ("WdiSystemHost", "Узел системы диагностики", "Сбор телеметрии о производительности системы.", true, true, true),
+            ("PrintNotify", "Служба уведомлений о печати", "Уведомления локальных и сетевых принтеров.", true, true, true),
+            ("Spooler", "Диспетчер печати", "Очередь печати документов. Если у вас нет принтера, служба не требуется.", false, false, true),
+            ("BluetoothUserService", "Служба поддержки пользователей Bluetooth", "Работает с профилями Bluetooth-устройств.", false, false, true),
+            ("bthserv", "Служба поддержки Bluetooth", "Управляет обнаружением и настройкой удаленных устройств Bluetooth.", false, false, true)
         };
 
         private WindowsServicesService() { }
@@ -41,92 +51,92 @@ namespace StormSystemOptimizer.Services
 
             foreach (var item in _knownServices)
             {
-                try
+                int regStart = GetRegistryStartValue(item.Name);
+                bool isOptimized = (regStart == 4);
+
+                string startType = regStart switch
                 {
-                    string status = "Остановлена";
-                    string startType = "Вручную";
-                    bool isOptimized = false;
+                    2 => "Автоматически",
+                    3 => "Вручную",
+                    4 => "Отключено",
+                    _ => "Вручную"
+                };
 
-                    // Check Registry First (Fastest & Safest)
-                    int regStart = GetRegistryStartValue(item.Name);
-                    if (regStart == -1)
-                    {
-                        // Service key does not exist on this OS
-                        continue;
-                    }
+                string status = isOptimized ? "Отключена" : (regStart == 2 ? "Работает" : "Остановлена");
 
-                    startType = regStart switch
-                    {
-                        2 => "Автоматически",
-                        3 => "Вручную",
-                        4 => "Отключено",
-                        _ => "Вручную"
-                    };
-
-                    // Check Live Controller
-                    try
-                    {
-                        using var sc = new ServiceController(item.Name);
-                        if (sc.Status == ServiceControllerStatus.Running)
-                        {
-                            status = "Работает";
-                        }
-                        else if (regStart == 4)
-                        {
-                            status = "Отключено";
-                        }
-                        else
-                        {
-                            status = "Остановлена";
-                        }
-                    }
-                    catch
-                    {
-                        status = regStart == 4 ? "Отключено" : "Остановлена";
-                    }
-
-                    isOptimized = (regStart == 4 || regStart == 3);
-
-                    result.Add(new ServiceEntry
-                    {
-                        ServiceName = item.Name,
-                        DisplayName = item.Display,
-                        Description = item.Desc,
-                        Status = status,
-                        StartupType = startType,
-                        IsSafeToDisable = true,
-                        IsOptimized = isOptimized
-                    });
-                }
-                catch
+                result.Add(new ServiceEntry
                 {
-                    // Safe bypass for individual service inspection
-                }
+                    ServiceName = item.Name,
+                    DisplayName = item.Display,
+                    Description = item.Desc,
+                    Status = status,
+                    StartupType = startType,
+                    IsOptimized = isOptimized,
+                    RecommendedAction = "Отключить для прироста FPS"
+                });
             }
 
             return result;
+        }
+
+        public bool ShouldDisableInPreset(string serviceName, string presetName)
+        {
+            var known = _knownServices.Find(s => s.Name.Equals(serviceName, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrEmpty(known.Name)) return false;
+
+            return presetName.ToLowerInvariant() switch
+            {
+                "gaming" => known.Gaming,
+                "extreme" => known.Extreme,
+                "balanced" or "safe" => known.Balanced,
+                "default" => false,
+                _ => known.Balanced
+            };
+        }
+
+        public int GetRegistryStartValue(string serviceName)
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Services\{serviceName}");
+                if (key != null)
+                {
+                    object? val = key.GetValue("Start");
+                    if (val is int intVal) return intVal;
+                }
+            }
+            catch { }
+            return -1;
         }
 
         public bool SetServiceState(string serviceName, bool disable)
         {
             try
             {
-                int startVal = disable ? 4 : 3; // 4 = Disabled, 3 = Manual (Demand)
+                int newStart = disable ? 4 : 3; // 4 = Disabled, 3 = Manual
+
                 using (var key = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Services\{serviceName}", true))
                 {
-                    key?.SetValue("Start", startVal, RegistryValueKind.DWord);
+                    if (key != null)
+                    {
+                        key.SetValue("Start", newStart, RegistryValueKind.DWord);
+                    }
                 }
 
                 if (disable)
                 {
                     try
                     {
-                        using var sc = new ServiceController(serviceName);
-                        if (sc.Status == ServiceControllerStatus.Running && sc.CanStop)
+                        var psi = new ProcessStartInfo
                         {
-                            sc.Stop();
-                            sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(2));
-                        }
+                            FileName = "net.exe",
+                            Arguments = $"stop {serviceName} /y",
+                            UseShellExecute = false,
+                            CreateNoWindow = true,
+                            WindowStyle = ProcessWindowStyle.Hidden
+                        };
+                        using var proc = Process.Start(psi);
+                        proc?.WaitForExit(500);
                     }
                     catch { }
                 }
@@ -139,39 +149,23 @@ namespace StormSystemOptimizer.Services
             }
         }
 
-        public void ApplyProfile(string profileName)
+        public void ApplyProfile(string profileName) => ApplyPreset(profileName);
+
+        public void ApplyPreset(string presetName)
         {
-            foreach (var s in _knownServices)
+            foreach (var svc in _knownServices)
             {
-                bool shouldDisable = profileName switch
+                bool shouldDisable = presetName.ToLowerInvariant() switch
                 {
-                    "Extreme" => s.Extreme,
-                    "Gaming" => s.Gaming,
-                    "Balanced" => s.Balanced,
-                    "Default" => false,
-                    _ => s.Balanced
+                    "gaming" => svc.Gaming,
+                    "extreme" => svc.Extreme,
+                    "balanced" or "safe" => svc.Balanced,
+                    "default" => false,
+                    _ => svc.Balanced
                 };
 
-                SetServiceState(s.Name, shouldDisable);
+                SetServiceState(svc.Name, shouldDisable);
             }
-        }
-
-        private int GetRegistryStartValue(string serviceName)
-        {
-            try
-            {
-                using var key = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Services\{serviceName}");
-                if (key != null)
-                {
-                    object? val = key.GetValue("Start");
-                    if (val != null)
-                    {
-                        return Convert.ToInt32(val);
-                    }
-                }
-            }
-            catch { }
-            return -1;
         }
     }
 }

@@ -28,6 +28,23 @@ namespace StormSystemOptimizer.Services
 
         private GameBoostService() { }
 
+        public void EnableHighResolutionTimer() => SetHighResolutionTimer(true);
+        public void DisableHighResolutionTimer() => SetHighResolutionTimer(false);
+
+        public void ActivateGameBoost()
+        {
+            try
+            {
+                var cur = Process.GetCurrentProcess();
+                BoostGameProcess(cur);
+                _isGameBoostActive = true;
+                GameBoostStateChanged?.Invoke(true, "STORM GAME BOOST: Активен (Таймер 0.5мс + Режим фокуса)");
+            }
+            catch { }
+        }
+
+        public void DeactivateGameBoost() => DisableGameBoost();
+
         // 1. Timer Resolution (0.500 ms)
         public bool SetHighResolutionTimer(bool enable)
         {
@@ -158,7 +175,7 @@ namespace StormSystemOptimizer.Services
 
                 _isGameBoostActive = true;
                 GameBoostStateChanged?.Invoke(true, $"Игровой режим активирован: {_boostedGameName} (P-Cores + High Priority + 0.5ms Timer)");
-                TrayService.Instance.ShowNotification("STORM Game Boost ⚡", $"Игра «{_boostedGameName}» оптимизирована! Приоритет повышен, таймер 0.5мс включен.");
+                TrayService.Instance.ShowNotification("STORM GAME BOOST ⚡", $"Игра «{_boostedGameName}» оптимизирована! Приоритет повышен, таймер 0.5мс включен.");
 
                 return true;
             }

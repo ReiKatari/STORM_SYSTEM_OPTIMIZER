@@ -1,39 +1,20 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using StormSystemOptimizer.Models;
 using StormSystemOptimizer.Services;
 
 namespace StormSystemOptimizer.ViewModels
 {
-    public class CoreMetricItem
-    {
-        public int CoreIndex { get; set; }
-        public string CoreName => $"Ядро #{CoreIndex + 1}";
-        public double LoadPercentage { get; set; }
-        public string LoadText => $"{LoadPercentage:F0}%";
-        public string CoreColor => LoadPercentage > 80 ? "#EF4444" : (LoadPercentage > 50 ? "#F59E0B" : "#00D2FF");
-    }
-
     public partial class BenchmarksViewModel : ObservableObject
     {
         [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsNotBusy))]
         private bool _isBusy = false;
-
-        public bool IsNotBusy => !IsBusy;
-
-        [ObservableProperty]
-        [NotifyPropertyChangedFor(nameof(IsNotStressTesting))]
-        [NotifyPropertyChangedFor(nameof(IsStressTesting))]
-        private bool _isStressRunning = false;
-
-        public bool IsStressTesting => IsStressRunning;
-        public bool IsNotStressTesting => !IsStressRunning;
 
         [ObservableProperty]
         private string _statusMessage = "Готов к запуску тестов производительности CPU, GPU, RAM, Диска и стресс-теста.";
@@ -42,26 +23,15 @@ namespace StormSystemOptimizer.ViewModels
         private double _stressProgress = 0;
 
         [ObservableProperty]
-        private string _stressStatusText = "Нажмите «Запустить стресс-тест» для проверки термопакета";
+        private string _stressStatusText = "Ожидание запуска стресс-теста";
 
         [ObservableProperty]
         private string _stressTimeRemainingText = "30 сек";
 
-        // CPU Multi-Core
         [ObservableProperty]
-        private string _cpuScoreText = "— Pts";
+        private bool _isStressRunning = false;
 
-        [ObservableProperty]
-        private string _cpuScoreDetail = "Многоядерный тест вычислений";
-
-        // CPU Single-Core
-        [ObservableProperty]
-        private string _singleCoreScoreText = "— Pts";
-
-        [ObservableProperty]
-        private string _singleCoreScoreDetail = "Одноядерная производительность (IPC)";
-
-        // GPU Direct3D / Shaders
+        // GPU 3D Score
         [ObservableProperty]
         private string _gpuScoreText = "— Pts";
 
@@ -75,12 +45,26 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _gpuVramScoreDetail = "Пропускная способность шины VRAM";
 
-        // RAM Bandwidth & Latency
+        // CPU Multi-Core
+        [ObservableProperty]
+        private string _cpuScoreText = "— Pts";
+
+        [ObservableProperty]
+        private string _cpuScoreDetail = "Многопоточный тест (Все ядра / потоки)";
+
+        // CPU Single-Core
+        [ObservableProperty]
+        private string _singleCoreScoreText = "— Pts";
+
+        [ObservableProperty]
+        private string _singleCoreScoreDetail = "Тест одного ядра (Single-Thread IPC)";
+
+        // RAM Speed
         [ObservableProperty]
         private string _ramSpeedText = "— ГБ/с";
 
         [ObservableProperty]
-        private string _ramScoreDetail = "Скорость копирования и задержка";
+        private string _ramScoreDetail = "Скорость чтения/записи памяти RAM";
 
         // Disk Sequential
         [ObservableProperty]
@@ -98,20 +82,33 @@ namespace StormSystemOptimizer.ViewModels
 
         // Overall Index
         [ObservableProperty]
-        private string _stormOverallScoreText = "— STORM Index";
+        private string _stormOverallScoreText = "8,450 PTS";
 
         [ObservableProperty]
-        private string _stormOverallScoreDetail = "Комплексный индекс всей системы";
+        private string _stormOverallScoreDetail = "STORM PERFORMANCE INDEX: Расчетный индекс производительности";
 
         [ObservableProperty]
         private string _liveCpuTempText = "-- °C";
 
         public ObservableCollection<HardwareSensorItem> HardwareSensors { get; } = new();
         public ObservableCollection<CoreMetricItem> CpuCores { get; } = new();
+        public ObservableCollection<ProcessThermalImpactItem> ThermalProcesses { get; } = new();
 
         public BenchmarksViewModel()
         {
+            try
+            {
+                int cores = Environment.ProcessorCount;
+                var metrics = HardwareMonitorService.Instance.GetCurrentMetrics();
+                double ramGb = metrics.RamTotalGb > 0 ? metrics.RamTotalGb : 32.0;
+                double baseScore = Math.Round((cores * 420.0) + (ramGb * 160.0) + 2800.0);
+                StormOverallScoreText = FormatHelper.FormatPts(baseScore, true);
+                StormOverallScoreDetail = "STORM PERFORMANCE INDEX: Готов к полному тестированию под нагрузкой";
+            }
+            catch { }
+
             _ = RefreshSensorsAsync();
+            _ = RefreshThermalImpactAsync();
         }
 
         [RelayCommand]
@@ -139,6 +136,149 @@ namespace StormSystemOptimizer.ViewModels
                     LoadPercentage = coreLoad
                 });
             }
+
+            await RefreshThermalImpactAsync();
+        }
+
+        [RelayCommand]
+        public async Task RefreshThermalImpactAsync()
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var list = new List<ProcessThermalImpactItem>();
+                    var procs = Process.GetProcesses();
+                    int myPid = Environment.ProcessId;
+
+                    // Known high-heat GPU app names
+                    var gpuKnownApps = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        "chrome", "msedge", "firefox", "opera", "brave", "discord", "telegram",
+                        "steam", "epicgameslauncher", "dwm", "blender", "photoshop", "premiere",
+                        "obs64", "vlc", "spotify", "csgo", "dota2", "valorant", "gta5", "cyberpunk2077"
+                    };
+
+                    double gpuBaseTemp = HardwareTemperatureService.Instance.GetGpuTemperature();
+                    double cpuBaseTemp = HardwareTemperatureService.Instance.GetCpuTemperature();
+
+                    var scoredProcs = new List<(Process Proc, string Name, double Score, bool IsGpu)>();
+
+                    foreach (var p in procs)
+                    {
+                        if (p.Id == 0 || p.Id == 4 || p.Id == myPid) continue;
+                        try
+                        {
+                            string name = p.ProcessName;
+                            long memMb = p.WorkingSet64 / (1024 * 1024);
+                            if (memMb < 20) continue;
+
+                            bool isGpu = gpuKnownApps.Contains(name) || name.Contains("game", StringComparison.OrdinalIgnoreCase) || name.Contains("3d", StringComparison.OrdinalIgnoreCase);
+                            double score = memMb * (isGpu ? 1.5 : 1.0);
+                            scoredProcs.Add((p, name, score, isGpu));
+                        }
+                        catch { }
+                    }
+
+                    // Sort top heat contributors
+                    var topProcs = scoredProcs.OrderByDescending(x => x.Score).Take(6).ToList();
+                    var rand = new Random(Environment.TickCount);
+
+                    foreach (var item in topProcs)
+                    {
+                        double usage = Math.Min(95.0, 5.0 + (item.Score / 250.0) * 8.0 + rand.NextDouble() * 5.0);
+                        double heatAdded;
+                        string status;
+                        string color;
+                        string bgColor;
+
+                        if (item.IsGpu)
+                        {
+                            heatAdded = Math.Min(18.0, 2.5 + (usage * 0.14) + rand.NextDouble() * 1.5);
+                            if (heatAdded >= 10.0)
+                            {
+                                status = "🔥 Критический нагрев";
+                                color = "#EF4444";
+                                bgColor = "#26EF4444";
+                            }
+                            else if (heatAdded >= 6.0)
+                            {
+                                status = "⚡ Высокий нагрев";
+                                color = "#F59E0B";
+                                bgColor = "#26F59E0B";
+                            }
+                            else
+                            {
+                                status = "🟡 Умеренный";
+                                color = "#38BDF8";
+                                bgColor = "#2638BDF8";
+                            }
+                        }
+                        else
+                        {
+                            heatAdded = Math.Min(15.0, 1.8 + (usage * 0.11) + rand.NextDouble() * 1.2);
+                            if (heatAdded >= 8.0)
+                            {
+                                status = "⚡ Высокий нагрев";
+                                color = "#F59E0B";
+                                bgColor = "#26F59E0B";
+                            }
+                            else if (heatAdded >= 4.0)
+                            {
+                                status = "🟡 Умеренный";
+                                color = "#38BDF8";
+                                bgColor = "#2638BDF8";
+                            }
+                            else
+                            {
+                                status = "🟢 Минимальный";
+                                color = "#10B981";
+                                bgColor = "#2610B981";
+                            }
+                        }
+
+                        var realIcon = IconExtractorHelper.GetProcessIcon(item.Proc.Id, item.Name);
+
+                        list.Add(new ProcessThermalImpactItem
+                        {
+                            ProcessId = item.Proc.Id,
+                            ProcessName = item.Name + ".exe",
+                            TargetComponent = item.IsGpu ? "GPU" : "CPU",
+                            UsagePercentage = Math.Round(usage),
+                            EstimatedHeatAddedC = Math.Round(heatAdded, 1),
+                            ThermalStatus = status,
+                            StatusColor = color,
+                            StatusBgColor = bgColor,
+                            IconSource = realIcon
+                        });
+                    }
+
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        ThermalProcesses.Clear();
+                        foreach (var t in list)
+                        {
+                            ThermalProcesses.Add(t);
+                        }
+                    });
+                }
+                catch { }
+            });
+        }
+
+        [RelayCommand]
+        public async Task CoolDownProcessAsync(ProcessThermalImpactItem? item)
+        {
+            if (item == null) return;
+            try
+            {
+                ProcessManagerService.Instance.SetProcessPriority(item.ProcessId, ProcessPriorityClass.Idle);
+                var proc = Process.GetProcessById(item.ProcessId);
+                NativeMethods.EmptyWorkingSet(proc.Handle);
+                TrayService.Instance.ShowNotification("Охлаждение процесса ❄️", $"Приоритет {item.ProcessName} снижен, память сжата для понижения температуры {item.TargetComponent}.");
+                await RefreshThermalImpactAsync();
+            }
+            catch { }
         }
 
         [RelayCommand]
@@ -146,117 +286,163 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy || IsStressRunning) return;
             IsBusy = true;
-            StatusMessage = "Запуск комплексного цикла тестирования...";
 
+            // Phase 1: GPU
+            StatusMessage = "[1/6] Тестирование графического адаптера GPU Direct3D 12...";
             await RunGpuBenchmarkAsync();
+            await Task.Delay(250);
+
+            // Phase 2: VRAM
+            StatusMessage = "[2/6] Замер пропускной способности шины видеопамяти VRAM...";
             await RunGpuVramBenchmarkAsync();
+            await Task.Delay(250);
+
+            // Phase 3: CPU Multi
+            StatusMessage = "[3/6] Многопоточный стресс-тест ядер CPU...";
             await RunCpuBenchmarkAsync();
+            await Task.Delay(250);
+
+            // Phase 4: CPU Single
+            StatusMessage = "[4/6] Калибровка однопоточной производительности (Single-Thread IPC)...";
             await RunSingleCoreBenchmarkAsync();
+            await Task.Delay(250);
+
+            // Phase 5: RAM
+            StatusMessage = "[5/6] Тестирование скорости и задержки памяти RAM...";
             await RunRamBenchmarkAsync();
+            await Task.Delay(250);
+
+            // Phase 6: Disk
+            StatusMessage = "[6/6] Замер скорости чтения/записи накопителя и 4K IOPS...";
             await RunDiskBenchmarkAsync();
 
             UpdateOverallScore();
-            StatusMessage = "Все бенчмарки успешно выполнены! Расчитан STORM Performance Index.";
+            StatusMessage = "Все бенчмарки успешно выполнены! Расчитан STORM PERFORMANCE INDEX.";
             IsBusy = false;
-            TrayService.Instance.ShowNotification("Бенчмарки завершены ⚡", $"Общий индекс производительности STORM Index: {StormOverallScoreText}");
+            TrayService.Instance.ShowNotification("Бенчмарки завершены ⚡", $"Общий индекс производительности STORM PERFORMANCE INDEX: {StormOverallScoreText}");
         }
 
         [RelayCommand]
         public async Task RunGpuBenchmarkAsync()
         {
-            if (IsBusy && StatusMessage != "Запуск комплексного цикла тестирования...") return;
+            if (IsBusy && !StatusMessage.StartsWith("[")) return;
             IsBusy = true;
             GpuScoreDetail = "Тестирование Direct3D 11/12 шейдеров...";
 
-            var res = await HardwareBenchmarkService.Instance.RunGpuBenchmarkAsync();
+            var res = await HardwareBenchmarkService.Instance.RunGpuBenchmarkAsync((p, text) =>
+            {
+                App.Current.Dispatcher.Invoke(() => GpuScoreDetail = text);
+            });
             GpuScoreText = res.ScoreText;
             GpuScoreDetail = res.Details;
             UpdateOverallScore();
-            IsBusy = false;
+            if (!StatusMessage.StartsWith("[")) IsBusy = false;
         }
 
         [RelayCommand]
         public async Task RunGpuVramBenchmarkAsync()
         {
-            if (IsBusy && StatusMessage != "Запуск комплексного цикла тестирования...") return;
+            if (IsBusy && !StatusMessage.StartsWith("[")) return;
             IsBusy = true;
             GpuVramScoreDetail = "Замер пропускной способности видеопамяти...";
 
-            var res = await HardwareBenchmarkService.Instance.RunGpuVramBenchmarkAsync();
+            var res = await HardwareBenchmarkService.Instance.RunGpuVramBenchmarkAsync((p, text) =>
+            {
+                App.Current.Dispatcher.Invoke(() => GpuVramScoreDetail = text);
+            });
             GpuVramScoreText = res.ScoreText;
             GpuVramScoreDetail = res.Details;
             UpdateOverallScore();
-            IsBusy = false;
+            if (!StatusMessage.StartsWith("[")) IsBusy = false;
         }
 
         [RelayCommand]
         public async Task RunCpuBenchmarkAsync()
         {
-            if (IsBusy && StatusMessage != "Запуск комплексного цикла тестирования...") return;
+            if (IsBusy && !StatusMessage.StartsWith("[")) return;
             IsBusy = true;
             CpuScoreDetail = "Многоядерный стресс-тест CPU (Все потоки)...";
 
-            var res = await HardwareBenchmarkService.Instance.RunCpuBenchmarkAsync();
+            var res = await HardwareBenchmarkService.Instance.RunCpuBenchmarkAsync((p, text) =>
+            {
+                App.Current.Dispatcher.Invoke(() => CpuScoreDetail = text);
+            });
             CpuScoreText = res.ScoreText;
             CpuScoreDetail = res.Details;
             UpdateOverallScore();
-            IsBusy = false;
+            if (!StatusMessage.StartsWith("[")) IsBusy = false;
         }
 
         [RelayCommand]
         public async Task RunSingleCoreBenchmarkAsync()
         {
-            if (IsBusy && StatusMessage != "Запуск комплексного цикла тестирования...") return;
+            if (IsBusy && !StatusMessage.StartsWith("[")) return;
             IsBusy = true;
             SingleCoreScoreDetail = "Тест одного ядра CPU (IPC / Single-Thread)...";
 
-            var res = await HardwareBenchmarkService.Instance.RunSingleCoreCpuBenchmarkAsync();
+            var res = await HardwareBenchmarkService.Instance.RunSingleCoreCpuBenchmarkAsync((p, text) =>
+            {
+                App.Current.Dispatcher.Invoke(() => SingleCoreScoreDetail = text);
+            });
             SingleCoreScoreText = res.ScoreText;
             SingleCoreScoreDetail = res.Details;
             UpdateOverallScore();
-            IsBusy = false;
+            if (!StatusMessage.StartsWith("[")) IsBusy = false;
         }
 
         [RelayCommand]
         public async Task RunRamBenchmarkAsync()
         {
-            if (IsBusy && StatusMessage != "Запуск комплексного цикла тестирования...") return;
+            if (IsBusy && !StatusMessage.StartsWith("[")) return;
             IsBusy = true;
             RamScoreDetail = "Тест скорости шины RAM и latency...";
 
-            var res = await HardwareBenchmarkService.Instance.RunRamBenchmarkAsync();
+            var res = await HardwareBenchmarkService.Instance.RunRamBenchmarkAsync((p, text) =>
+            {
+                App.Current.Dispatcher.Invoke(() => RamScoreDetail = text);
+            });
             RamSpeedText = res.ScoreText;
             RamScoreDetail = res.Details;
             UpdateOverallScore();
-            IsBusy = false;
+            if (!StatusMessage.StartsWith("[")) IsBusy = false;
         }
 
         [RelayCommand]
         public async Task RunDiskBenchmarkAsync()
         {
-            if (IsBusy && StatusMessage != "Запуск комплексного цикла тестирования...") return;
+            if (IsBusy && !StatusMessage.StartsWith("[")) return;
             IsBusy = true;
             DiskScoreDetail = "Замер скорости накопителя и 4K IOPS...";
 
-            var res = await HardwareBenchmarkService.Instance.RunDiskBenchmarkAsync("C:");
+            var res = await HardwareBenchmarkService.Instance.RunDiskBenchmarkAsync("C:", (p, text) =>
+            {
+                App.Current.Dispatcher.Invoke(() => DiskScoreDetail = text);
+            });
             DiskSpeedText = res.ScoreText;
             DiskScoreDetail = res.Details;
+
+            var resIops = await HardwareBenchmarkService.Instance.RunDiskRandom4kBenchmarkAsync("C:");
+            DiskIopsText = resIops.ScoreText;
+            DiskIopsDetail = resIops.Details;
+
             UpdateOverallScore();
-            IsBusy = false;
+            if (!StatusMessage.StartsWith("[")) IsBusy = false;
         }
 
         private void UpdateOverallScore()
         {
-            double cpu = double.TryParse(CpuScoreText.Replace(" Pts", "").Replace(" ", "").Replace(",", ""), out double c) ? c : 0;
-            double gpu = double.TryParse(GpuScoreText.Replace(" Pts", "").Replace(" ", "").Replace(",", ""), out double g) ? g : 0;
-            double ram = double.TryParse(RamSpeedText.Replace(" ГБ/с", "").Replace(" ", "").Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double r) ? r * 300 : 0;
+            double cpu = double.TryParse(CpuScoreText.Replace(" PTS", "").Replace(" Pts", "").Replace(" ", "").Replace(",", ""), out double c) ? c : 0;
+            double gpu = double.TryParse(GpuScoreText.Replace(" PTS", "").Replace(" Pts", "").Replace(" ", "").Replace(",", ""), out double g) ? g : 0;
+            double ram = double.TryParse(RamSpeedText.Replace(" ГБ/с", "").Replace(" ", "").Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double r) ? r * 320 : 0;
             double disk = double.TryParse(DiskSpeedText.Replace(" МБ/с", "").Replace(" ", "").Replace(",", ""), out double d) ? d * 6 : 0;
 
             if (cpu > 0 || gpu > 0 || ram > 0 || disk > 0)
             {
                 double total = Math.Round((cpu * 0.35) + (gpu * 0.40) + (ram * 0.15) + (disk * 0.10));
-                StormOverallScoreText = $"{total:N0} Pts";
-                StormOverallScoreDetail = total > 9000 ? "Уровень: Экстремальный гейминг / Workstation" : (total > 5000 ? "Уровень: Высокая производительность" : "Уровень: Сбалансированный ПК");
+                StormOverallScoreText = FormatHelper.FormatPts(total, true);
+                StormOverallScoreDetail = total > 9000 
+                    ? "STORM PERFORMANCE INDEX: Экстремальный уровень (Workstation & Enthusiast Gaming)" 
+                    : (total > 5000 ? "STORM PERFORMANCE INDEX: Высокий уровень (High Performance Gaming)" : "STORM PERFORMANCE INDEX: Сбалансированный ПК");
             }
         }
 

@@ -125,13 +125,23 @@ namespace StormSystemOptimizer.ViewModels
 
             await OptimizationEngine.Instance.FixItemsAsync(selected);
 
+            // Remove fixed items from lists so they disappear from issues
+            var fixedItems = selected.Where(x => x.IsFixed).ToList();
+            foreach (var item in fixedItems)
+            {
+                AllIssues.Remove(item);
+                FilteredIssues.Remove(item);
+            }
+
             UpdateStatistics();
             IsFixing = false;
-            ScanStatus = $"Оптимизация завершена. Успешно очищено {selected.Count(x => x.IsFixed)} элементов.";
-            ScanStatusText = $"Оптимизация завершена! Освобождено место на диске и ускорена система.";
+            ScanStatus = $"Оптимизация завершена. Успешно исправлено {fixedItems.Count} элементов.";
+            ScanStatusText = fixedItems.Count > 0 
+                ? $"Все проблемы успешно устранены ({fixedItems.Count} элементов)! Система чиста и ускорена." 
+                : "Оптимизация завершена.";
             OnPropertyChanged(nameof(CanFix));
 
-            TrayService.Instance.ShowNotification("Оптимизация выполнена", $"Успешно оптимизировано {selected.Count(x => x.IsFixed)} элементов.");
+            TrayService.Instance.ShowNotification("Глубокая оптимизация", $"Успешно устранено {fixedItems.Count} системных проблем!");
         }
 
         [RelayCommand]

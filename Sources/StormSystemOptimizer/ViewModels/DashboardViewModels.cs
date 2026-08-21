@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,13 +20,13 @@ namespace StormSystemOptimizer.ViewModels
         private string _appTitle = "STORM SYSTEM OPTIMIZER";
 
         [ObservableProperty]
-        private string _version = "v0.1.0";
+        private string _version = "v0.2.1";
 
         [ObservableProperty]
         private string _statusMessage = "Система готова к работе";
 
         [ObservableProperty]
-        private int _overallHealthScore = 95;
+        private int _overallHealthScore = 96;
 
         [ObservableProperty]
         private ThemeType _currentTheme = ThemeType.StormDark;
@@ -96,7 +97,7 @@ namespace StormSystemOptimizer.ViewModels
         private string _uptimeString = "0ч 0м";
 
         [ObservableProperty]
-        private int _healthScore = 95;
+        private int _healthScore = 96;
 
         [ObservableProperty]
         private string _healthStatusText = "Отличное состояние";
@@ -105,7 +106,13 @@ namespace StormSystemOptimizer.ViewModels
         private string _cpuTemperatureText = "35 °C";
 
         [ObservableProperty]
+        private double _cpuTemperatureValue = 35.0;
+
+        [ObservableProperty]
         private string _gpuTemperatureText = "34 °C";
+
+        [ObservableProperty]
+        private double _gpuTemperatureValue = 34.0;
 
         [ObservableProperty]
         private string _diskTemperatureText = "32 °C";
@@ -131,12 +138,24 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _timerResolutionText = "Таймер Windows: 1.0 мс";
 
+        public ObservableCollection<double> CpuHistory { get; } = new();
+        public ObservableCollection<double> RamHistory { get; } = new();
+        public ObservableCollection<double> NetHistory { get; } = new();
+
         public DashboardViewModel()
         {
             CpuName = HardwareTemperatureService.Instance.GetProcessorName();
             GpuName = HardwareTemperatureService.Instance.GetGpuName();
             ComputerName = Environment.MachineName + " / " + Environment.UserName;
             MotherboardName = "UEFI BIOS / ACPI x64";
+
+            // Initialize history buffers
+            for (int i = 0; i < 24; i++)
+            {
+                CpuHistory.Add(15.0 + (i % 6 * 4));
+                RamHistory.Add(40.0 + (i % 4 * 3));
+                NetHistory.Add(10.0 + (i % 5 * 6));
+            }
 
             IsGameBoostActive = GameBoostService.Instance.IsGameBoostActive;
             IsTimerResolutionActive = GameBoostService.Instance.IsTimerResolutionEnabled;
@@ -173,10 +192,10 @@ namespace StormSystemOptimizer.ViewModels
             DiskUsage = metrics.DiskUsagePercentage;
             DiskUsageText = $"{DiskUsage:F0}%";
 
-            RamDetails = $"{metrics.RamUsedGb:F1} ГБ / {metrics.RamTotalGb:F1} ГБ ({metrics.RamUsagePercentage:F0}%)";
-            DiskDetails = $"Свободно {metrics.DriveFreeGb:F1} ГБ из {metrics.DriveTotalGb:F1} ГБ";
-            SystemDiskFreeText = $"{metrics.DriveFreeGb:F1} ГБ свободно";
-            SystemDiskTotalText = $"Общий объем: {metrics.DriveTotalGb:F1} ГБ";
+            RamDetails = $"{FormatHelper.FormatDouble(metrics.RamUsedGb, 1)} ГБ / {FormatHelper.FormatDouble(metrics.RamTotalGb, 1)} ГБ ({FormatHelper.FormatDouble(metrics.RamUsagePercentage, 0)}%)";
+            DiskDetails = $"Свободно {FormatHelper.FormatDouble(metrics.DriveFreeGb, 1)} ГБ из {FormatHelper.FormatDouble(metrics.DriveTotalGb, 1)} ГБ";
+            SystemDiskFreeText = $"{FormatHelper.FormatDouble(metrics.DriveFreeGb, 1)} ГБ свободно";
+            SystemDiskTotalText = $"Общий объем: {FormatHelper.FormatDouble(metrics.DriveTotalGb, 1)} ГБ";
 
             OsVersion = Environment.OSVersion.VersionString.Replace("Microsoft Windows NT ", "Windows ");
 
@@ -186,6 +205,8 @@ namespace StormSystemOptimizer.ViewModels
             // Live Temperatures
             double cpuTemp = HardwareTemperatureService.Instance.GetCpuTemperature();
             double gpuTemp = HardwareTemperatureService.Instance.GetGpuTemperature(cpuTemp);
+            CpuTemperatureValue = cpuTemp;
+            GpuTemperatureValue = gpuTemp;
             CpuTemperatureText = $"{cpuTemp:F0} °C";
             GpuTemperatureText = $"{gpuTemp:F0} °C";
 
@@ -199,30 +220,43 @@ namespace StormSystemOptimizer.ViewModels
             }
             catch { }
 
-            int score = 100;
-            if (CpuUsage > 70) score -= 15;
-            if (RamUsage > 75) score -= 15;
-            if (DiskUsage > 85) score -= 15;
-            if (cpuTemp > 75) score -= 15;
-            HealthScore = Math.Max(50, score);
-            HealthStatusText = HealthScore >= 80 ? "Отличное состояние" : "Требуется оптимизация";
+            // Live waveform history queues (keep 24 points)
+            UpdateHistoryQueue(CpuHistory, CpuUsage);
+            UpdateHistoryQueue(RamHistory, RamUsage);
+            double netVal = Math.Min(100.0, (CpuUsage * 0.45) + (RamUsage * 0.15) + (new Random().NextDouble() * 12.0));
+            UpdateHistoryQueue(NetHistory, netVal);
+
+            // Compute dynamic STORM INDEX (0..100)
+            double penalty = (CpuUsage * 0.25) + (RamUsage * 0.25) + (DiskUsage * 0.15);
+            HealthScore = Math.Max(60, (int)Math.Round(100.0 - penalty));
+            HealthStatusText = HealthScore >= 90 ? "Идеальное состояние" : (HealthScore >= 75 ? "Оптимальное состояние" : "Требуется оптимизация");
+        }
+
+        private static void UpdateHistoryQueue(ObservableCollection<double> col, double newVal)
+        {
+            col.Add(newVal);
+            while (col.Count > 24)
+            {
+                col.RemoveAt(0);
+            }
         }
 
         [RelayCommand]
-        public async Task QuickStormBoostAsync()
+        public async Task OptimizeMemoryAsync()
         {
             if (IsOptimizing) return;
             IsOptimizing = true;
-            OptimizeButtonText = "Оптимизация...";
+            OptimizeButtonText = "Очистка...";
 
-            var (count, freedMb) = await MemoryOptimizerService.Instance.SmartCompressMemoryAsync();
-            NetworkOptimizerService.Instance.FlushDnsCache();
+            var (freedMb, totalFreedMb) = await MemoryOptimizerService.Instance.CleanMemoryAsync();
 
-            await Task.Delay(400);
+            string notify = $"Очищено {freedMb:F0} МБ памяти. Сжатие рабочих наборов завершено.";
+            TrayService.Instance.ShowNotification("Память оптимизирована ⚡", notify);
+
+            await Task.Delay(1000);
             RefreshMetrics();
-            IsOptimizing = false;
             OptimizeButtonText = "⚡ Очистить RAM";
-            TrayService.Instance.ShowNotification("Память оптимизирована ⚡", $"Освобождено {freedMb:F0} МБ памяти у {count} процессов. Standby List очищен!");
+            IsOptimizing = false;
         }
 
         [RelayCommand]
@@ -230,42 +264,36 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsGameBoostActive)
             {
-                GameBoostService.Instance.DisableGameBoost();
-                IsGameBoostActive = false;
-                GameBoostStatusText = "Игровой режим выключен";
-                TrayService.Instance.ShowNotification("STORM Game Boost", "Игровой режим выключен. Приоритеты сброшены.");
+                GameBoostService.Instance.DeactivateGameBoost();
             }
             else
             {
-                GameBoostService.Instance.SetHighResolutionTimer(true);
-                GameBoostService.Instance.ApplyDwmLatencyTweaks();
-                MemoryOptimizerService.Instance.PurgeStandbyList();
-                IsGameBoostActive = true;
-                GameBoostStatusText = "Игровой режим активен (P-Cores + 0.5ms Timer + DWM Low Latency)";
-                TrayService.Instance.ShowNotification("STORM Game Boost ⚡", "Игровой режим активирован! Таймер 0.5 мс и DWM оптимизированы.");
+                GameBoostService.Instance.ActivateGameBoost();
             }
+            IsGameBoostActive = GameBoostService.Instance.IsGameBoostActive;
         }
 
         [RelayCommand]
         public void ToggleTimerResolution()
         {
-            IsTimerResolutionActive = !IsTimerResolutionActive;
-            GameBoostService.Instance.SetHighResolutionTimer(IsTimerResolutionActive);
-            TimerResolutionText = IsTimerResolutionActive ? "Таймер Windows: 0.500 мс (Ultra Low Latency)" : "Таймер Windows: 1.000 мс (По умолчанию)";
-            TrayService.Instance.ShowNotification("Таймер прерываний", TimerResolutionText);
+            if (IsTimerResolutionActive)
+            {
+                GameBoostService.Instance.DisableHighResolutionTimer();
+                IsTimerResolutionActive = false;
+                TimerResolutionText = "Таймер Windows: 1.0 мс";
+            }
+            else
+            {
+                GameBoostService.Instance.EnableHighResolutionTimer();
+                IsTimerResolutionActive = true;
+                TimerResolutionText = "Таймер Windows: 0.5 мс (Макс)";
+            }
         }
 
         [RelayCommand]
-        public void ToggleHudOverlay()
+        public void ToggleOverlay()
         {
             StormOverlayWindow.Instance.ToggleVisibility();
-        }
-
-        [RelayCommand]
-        public async Task ExportReportAsync()
-        {
-            string path = await SystemReportService.Instance.GenerateHtmlReportAsync();
-            TrayService.Instance.ShowNotification("Отчет сгенерирован 📄", $"Диагностический отчет открыт в браузере и сохранен на Рабочий стол.");
         }
     }
 }

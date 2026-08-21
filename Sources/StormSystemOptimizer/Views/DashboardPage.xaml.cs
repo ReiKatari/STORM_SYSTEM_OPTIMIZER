@@ -13,12 +13,9 @@ namespace StormSystemOptimizer.Views
             InitializeComponent();
         }
 
-        private async void ShowActionFeedback(string message)
+        private void ShowActionFeedback(string message)
         {
-            TxtFeedbackMessage.Text = message;
-            ActionFeedbackBanner.Visibility = Visibility.Visible;
-            await Task.Delay(3500);
-            ActionFeedbackBanner.Visibility = Visibility.Collapsed;
+            TrayService.Instance.ShowNotification("STORM OPTIMIZER", message);
         }
 
         private void BtnOptimizeMemory_Click(object sender, RoutedEventArgs e)

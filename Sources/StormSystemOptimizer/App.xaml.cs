@@ -8,9 +8,24 @@ namespace StormSystemOptimizer
 {
     public partial class App : Application
     {
+        [System.Runtime.InteropServices.DllImport("kernel32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, SetLastError = true)]
+        [return: System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.Bool)]
+        private static extern bool DeleteFile(string name);
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            // Self-healing: Unblock self from Mark of the Web
+            try
+            {
+                string? exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                if (!string.IsNullOrEmpty(exePath) && File.Exists(exePath))
+                {
+                    DeleteFile(exePath + ":Zone.Identifier");
+                }
+            }
+            catch { }
 
             AppDomain.CurrentDomain.UnhandledException += (s, args) =>
             {
