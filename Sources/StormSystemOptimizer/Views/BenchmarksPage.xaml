@@ -28,10 +28,10 @@
                             </Border>
                             <TextBlock Text="Тестирование производительности и стресс-тестирование" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Комплексная оценка быстродействия процессора, памяти и накопителей, мониторинг реальных температур и стресс-тест стабильности."
+                        <TextBlock Text="Комплексная оценка быстродействия видеокарты (GPU), процессора (CPU), памяти (RAM) и накопителей (SSD/NVMe), мониторинг реальных температур и безопасный стресс-тест."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
-                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left" MinHeight="32">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="Статус: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                             </StackPanel>
@@ -68,6 +68,30 @@
                 </Grid>
             </Border>
 
+            <!-- STORM Overall Index Score Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1.5" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="{DynamicResource AccentGlowBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,16,0" VerticalAlignment="Center">
+                        <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradCyan}" Width="24" Height="24" Stretch="Uniform"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock Text="Общий индекс STORM Performance Index" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="{Binding StormOverallScoreDetail}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <Border Grid.Column="2" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="16,8" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding StormOverallScoreText}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    </Border>
+                </Grid>
+            </Border>
+
             <!-- Real-time Hardware Temperature Sensors Grid -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                 <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
@@ -98,18 +122,17 @@
                                                 <Border Background="#1A00D2FF" CornerRadius="4" Padding="4,2" Margin="0,0,6,0">
                                                     <TextBlock Text="{Binding DeviceType}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                                                 </Border>
+                                                <TextBlock Text="{Binding DeviceName}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
                                             </StackPanel>
-                                            <TextBlock Text="{Binding DeviceName}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" Margin="0,4,0,2"/>
-                                            <TextBlock Text="{Binding SensorDetail}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding SensorDetail}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
                                         </StackPanel>
 
-                                        <!-- Temperature Badge -->
-                                        <Border Grid.Column="1" Background="{Binding StatusBgColor}" BorderBrush="{Binding StatusColor}" BorderThickness="1.5" CornerRadius="8" Padding="12,6" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                            <StackPanel HorizontalAlignment="Center">
-                                                <TextBlock Text="{Binding TemperatureText}" FontSize="16" FontWeight="Bold" Foreground="{Binding StatusColor}" HorizontalAlignment="Center"/>
-                                                <TextBlock Text="{Binding StatusLabel}" FontSize="9" FontWeight="Bold" Foreground="{Binding StatusColor}" HorizontalAlignment="Center" Margin="0,1,0,0"/>
-                                            </StackPanel>
-                                        </Border>
+                                        <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding TemperatureText}" FontSize="18" FontWeight="Bold" Foreground="{Binding StatusColor}" HorizontalAlignment="Right"/>
+                                            <Border Background="{Binding StatusBgColor}" BorderBrush="{Binding StatusColor}" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,2,0,0">
+                                                <TextBlock Text="{Binding StatusLabel}" FontSize="10" FontWeight="Bold" Foreground="{Binding StatusColor}" HorizontalAlignment="Center"/>
+                                            </Border>
+                                        </StackPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -118,172 +141,203 @@
                 </WrapPanel>
             </Border>
 
-            <!-- Benchmark Tests Grid -->
+            <!-- Expanded Benchmark Cards Grid (GPU, CPU, RAM, Disk) -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                 <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
                     <Path Data="{StaticResource GeoBenchmarks}" Fill="{StaticResource IconGradPurple}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <TextBlock Text="Модули тестирования производительности" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="Тесты производительности подсистем ПК" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
             </StackPanel>
 
             <Grid Margin="0,0,0,16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <!-- CPU Benchmark Card -->
-                <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,8,0">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
-                                <Path Data="{StaticResource GeoCpu}" Fill="{StaticResource IconGradCyan}" Width="13" Height="13" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="Процессор" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Text="Многопоточный расчет математических операций, хеширования и криптографии." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,12"/>
-
-                        <!-- Score -->
-                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,12">
-                            <StackPanel HorizontalAlignment="Center">
-                                <TextBlock Text="Баллы теста" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding CpuScoreText}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                                <TextBlock Text="{Binding CpuScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Button Command="{Binding RunCpuBenchmarkCommand}"
-                                IsEnabled="{Binding IsNotBusy}"
-                                Style="{StaticResource StormSecondaryButton}"
-                                Padding="12,8">
+                <!-- 1. GPU Direct3D Shader Benchmark -->
+                <Border Grid.Row="0" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,6,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="3" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoCpu}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                                <Border Background="#1AFB7185" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoGpu}" Fill="{StaticResource IconGradRose}" Width="11" Height="11" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Тест процессора" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Тест видеокарты (GPU 3D Shaders)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </Button>
-                    </StackPanel>
+                            <TextBlock Text="{Binding GpuScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding GpuScoreText}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding RunGpuBenchmarkCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Тест GPU" Style="{StaticResource StormSecondaryButton}" Padding="14,8" VerticalAlignment="Center"/>
+                    </Grid>
                 </Border>
 
-                <!-- RAM Benchmark Card -->
-                <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="4,0,4,0">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
-                                <Path Data="{StaticResource GeoRam}" Fill="{StaticResource IconGradPurple}" Width="13" Height="13" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="Оперативная память" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Text="Замер пропускной способности чтения/записи блоков данных и задержки памяти." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,12"/>
-
-                        <!-- Score -->
-                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,12">
-                            <StackPanel HorizontalAlignment="Center">
-                                <TextBlock Text="Скорость передачи" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding RamSpeedText}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                                <TextBlock Text="{Binding RamScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Button Command="{Binding RunRamBenchmarkCommand}"
-                                IsEnabled="{Binding IsNotBusy}"
-                                Style="{StaticResource StormSecondaryButton}"
-                                Padding="12,8">
+                <!-- 2. GPU VRAM Memory Bandwidth -->
+                <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="6,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AC084FC" CornerRadius="3" Padding="3" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoRam}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
+                                <Border Background="#1AFB7185" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoRam}" Fill="{StaticResource IconGradRose}" Width="11" Height="11" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Тест памяти" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Видеопамять (GPU VRAM)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </Button>
-                    </StackPanel>
+                            <TextBlock Text="{Binding GpuVramScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding GpuVramScoreText}" FontSize="20" FontWeight="Bold" Foreground="#FB7185" Margin="0,8,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding RunGpuVramBenchmarkCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Тест VRAM" Style="{StaticResource StormSecondaryButton}" Padding="14,8" VerticalAlignment="Center"/>
+                    </Grid>
                 </Border>
 
-                <!-- Disk Benchmark Card -->
-                <Border Grid.Column="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="8,0,0,0">
-                    <StackPanel>
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
-                                <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradEmerald}" Width="13" Height="13" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="Системный диск" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                        </StackPanel>
-                        <TextBlock Text="Последовательная и случайная скорость чтения/записи накопителя." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,6,0,12"/>
-
-                        <!-- Score -->
-                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,12">
-                            <StackPanel HorizontalAlignment="Center">
-                                <TextBlock Text="Скорость диска" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-                                <TextBlock Text="{Binding DiskSpeedText}" FontSize="24" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Center" Margin="0,4,0,0"/>
-                                <TextBlock Text="{Binding DiskScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Border>
-
-                        <Button Command="{Binding RunDiskBenchmarkCommand}"
-                                IsEnabled="{Binding IsNotBusy}"
-                                Style="{StaticResource StormSecondaryButton}"
-                                Padding="12,8">
+                <!-- 3. CPU Multi-Core -->
+                <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,6,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A34D399" CornerRadius="3" Padding="3" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform"/>
+                                <Border Background="#1A00D2FF" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoCpu}" Fill="{StaticResource IconGradCyan}" Width="11" Height="11" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Тест диска" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Процессор (Multi-Core CPU)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </Button>
-                    </StackPanel>
+                            <TextBlock Text="{Binding CpuScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding CpuScoreText}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,8,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding RunCpuBenchmarkCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Тест CPU" Style="{StaticResource StormSecondaryButton}" Padding="14,8" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 4. CPU Single-Core (IPC) -->
+                <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="6,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A00D2FF" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoCpu}" Fill="{StaticResource IconGradCyan}" Width="11" Height="11" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Процессор (Single-Core IPC)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding SingleCoreScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding SingleCoreScoreText}" FontSize="20" FontWeight="Bold" Foreground="#38BDF8" Margin="0,8,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding RunSingleCoreBenchmarkCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Тест 1 Core" Style="{StaticResource StormSecondaryButton}" Padding="14,8" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 5. RAM Bandwidth & Latency -->
+                <Border Grid.Row="2" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,6,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AC084FC" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoRam}" Fill="{StaticResource IconGradPurple}" Width="11" Height="11" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Память (RAM Скорость &amp; Latency)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding RamScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding RamSpeedText}" FontSize="20" FontWeight="Bold" Foreground="#C084FC" Margin="0,8,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding RunRamBenchmarkCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Тест RAM" Style="{StaticResource StormSecondaryButton}" Padding="14,8" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 6. Disk Sequential & 4K IOPS -->
+                <Border Grid.Row="2" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="6,0,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A34D399" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradEmerald}" Width="11" Height="11" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Диск (Последовательный &amp; 4K IOPS)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding DiskScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding DiskSpeedText}" FontSize="20" FontWeight="Bold" Foreground="#34D399" Margin="0,8,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding RunDiskBenchmarkCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Тест Диска" Style="{StaticResource StormSecondaryButton}" Padding="14,8" VerticalAlignment="Center"/>
+                    </Grid>
                 </Border>
             </Grid>
 
-            <!-- Stress Test Section -->
-            <Border Background="{DynamicResource StormCardGradient}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+            <!-- Safe Stress Test Section with Thermal Guard -->
+            <StackPanel Orientation="Horizontal" Margin="0,16,0,10">
+                <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradAmber}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Безопасный стресс-тест стабильности (30 сек)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
 
-                    <StackPanel Grid.Column="0" Margin="0,0,20,0">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6" VerticalAlignment="Center">
-                            <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
-                                <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradRose}" Width="12" Height="12" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="Стресс-тест стабильности и предельной нагрузки процессора" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding StressTimeRemainingText}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                            </Border>
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="100% нагрузка всех потоков процессора с непрерывным контролем температуры и аварийной защитой от перегрева (Thermal Guard 88°C)."
+                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                            <TextBlock Text="{Binding StressStatusText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                         </StackPanel>
 
-                        <TextBlock Text="Запускает 100% нагрузку всех ядер и потоков процессора для проверки стабильности системы охлаждения и отсутствия троттлинга."
-                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Command="{Binding StartStressTestCommand}"
+                                    IsEnabled="{Binding IsNotStressTesting}"
+                                    Style="{StaticResource StormHeroButton}"
+                                    Margin="0,0,8,0"
+                                    Padding="16,8">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#33FFFFFF" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                        <Path Data="{StaticResource GeoStartup}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
+                                    </Border>
+                                    <TextBlock Text="Запустить стресс-тест" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
 
-                        <!-- Progress and status -->
-                        <ProgressBar Value="{Binding StressProgress}" Maximum="100" Height="8" Background="{DynamicResource AppBackgroundBrush}" Foreground="#EF4444" BorderThickness="0" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding StressStatusText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
-                    </StackPanel>
+                            <Button Command="{Binding StopStressTestCommand}"
+                                    IsEnabled="{Binding IsStressTesting}"
+                                    Style="{StaticResource StormSecondaryButton}"
+                                    Padding="14,8">
+                                <TextBlock Text="Остановить" FontSize="11" FontWeight="Bold" Foreground="#EF4444" VerticalAlignment="Center"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
 
-                    <!-- Stress Actions -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding StartStressTestCommand}"
-                                IsEnabled="{Binding IsNotStressTesting}"
-                                Style="{StaticResource StormHeroButton}"
-                                Margin="0,0,8,0"
-                                Padding="16,10">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#33FFFFFF" CornerRadius="4" Padding="3" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoDashboard}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
-                                </Border>
-                                <TextBlock Text="Запустить стресс-тест" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-
-                        <Button Command="{Binding StopStressTestCommand}"
-                                IsEnabled="{Binding IsStressTesting}"
-                                Content="Стоп"
-                                Style="{StaticResource StormDangerButton}"
-                                Padding="14,10"/>
-                    </StackPanel>
+                    <ProgressBar Grid.Row="1" Value="{Binding StressProgress}" Maximum="100" Height="8" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderThickness="0"/>
                 </Grid>
             </Border>
 

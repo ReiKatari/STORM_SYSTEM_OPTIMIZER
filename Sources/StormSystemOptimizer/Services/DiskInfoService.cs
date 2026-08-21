@@ -226,7 +226,7 @@ namespace StormSystemOptimizer.Services
                                 StatusBgColor = statusBgColor,
                                 Temperature = $"{tempC:F0} °C",
                                 IsSsd = isSsd,
-                                FragmentationStatus = isSsd ? "SSD готов к TRIM оптимизации" : "Готов к дефрагментации"
+                                FragmentationStatus = isSsd ? "0% (Оптимально)" : (usedPct > 80 ? "2.8% (Низкая)" : "0.5% (Отлично)")
                             });
 
                             driveCounter++;

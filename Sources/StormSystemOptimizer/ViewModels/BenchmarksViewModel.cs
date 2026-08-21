@@ -27,7 +27,7 @@ namespace StormSystemOptimizer.ViewModels
         public bool IsNotStressTesting => !IsStressRunning;
 
         [ObservableProperty]
-        private string _statusMessage = "Готов к запуску тестов производительности и стабильности.";
+        private string _statusMessage = "Готов к запуску тестов производительности CPU, GPU, RAM, Диска и стресс-теста.";
 
         [ObservableProperty]
         private double _stressProgress = 0;
@@ -38,23 +38,61 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _stressTimeRemainingText = "30 сек";
 
+        // CPU Multi-Core
         [ObservableProperty]
         private string _cpuScoreText = "— Pts";
 
         [ObservableProperty]
-        private string _cpuScoreDetail = "Готов к тестированию";
+        private string _cpuScoreDetail = "Многоядерный тест вычислений";
 
+        // CPU Single-Core
+        [ObservableProperty]
+        private string _singleCoreScoreText = "— Pts";
+
+        [ObservableProperty]
+        private string _singleCoreScoreDetail = "Одноядерная производительность (IPC)";
+
+        // GPU Direct3D / Shaders
+        [ObservableProperty]
+        private string _gpuScoreText = "— Pts";
+
+        [ObservableProperty]
+        private string _gpuScoreDetail = "Direct3D шейдеры и 3D рендеринг";
+
+        // GPU VRAM
+        [ObservableProperty]
+        private string _gpuVramScoreText = "— ГБ/с";
+
+        [ObservableProperty]
+        private string _gpuVramScoreDetail = "Пропускная способность шины VRAM";
+
+        // RAM Bandwidth & Latency
         [ObservableProperty]
         private string _ramSpeedText = "— ГБ/с";
 
         [ObservableProperty]
-        private string _ramScoreDetail = "Готов к тестированию";
+        private string _ramScoreDetail = "Скорость копирования и задержка";
 
+        // Disk Sequential
         [ObservableProperty]
         private string _diskSpeedText = "— МБ/с";
 
         [ObservableProperty]
-        private string _diskScoreDetail = "Готов к тестированию";
+        private string _diskScoreDetail = "Последовательное чтение / запись";
+
+        // Disk 4K IOPS
+        [ObservableProperty]
+        private string _diskIopsText = "— IOPS";
+
+        [ObservableProperty]
+        private string _diskIopsDetail = "Случайный доступ блоками 4 КБ";
+
+        // Overall Index
+        [ObservableProperty]
+        private string _stormOverallScoreText = "— STORM Index";
+
+        [ObservableProperty]
+        private string _stormOverallScoreDetail = "Комплексный индекс всей системы";
 
         [ObservableProperty]
         private string _liveCpuTempText = "-- °C";
@@ -101,14 +139,69 @@ namespace StormSystemOptimizer.ViewModels
             if (IsBusy || IsStressRunning) return;
             IsBusy = true;
             CpuScoreText = "Тест...";
-            CpuScoreDetail = "Вычисление SHA256 и многопоточный стресс...";
-            StatusMessage = "⚡ Выполняется тест процессора...";
+            CpuScoreDetail = "Многопоточный расчет...";
+            StatusMessage = "⚡ Выполняется многоядерный тест процессора...";
 
             var res = await HardwareBenchmarkService.Instance.RunCpuBenchmarkAsync();
             CpuScoreText = $"{res.NumericScore:N0} Pts";
             CpuScoreDetail = res.Details;
-            StatusMessage = $"Тест CPU завершен: {CpuScoreText} ({res.Rating})";
+            StatusMessage = $"Тест Multi-Core CPU завершен: {CpuScoreText} ({res.Rating})";
 
+            UpdateOverallScore();
+            IsBusy = false;
+        }
+
+        [RelayCommand]
+        public async Task RunSingleCoreBenchmarkAsync()
+        {
+            if (IsBusy || IsStressRunning) return;
+            IsBusy = true;
+            SingleCoreScoreText = "Тест...";
+            SingleCoreScoreDetail = "Расчет 1 ядра...";
+            StatusMessage = "⚡ Выполняется тест одноядерной производительности (IPC)...";
+
+            var res = await HardwareBenchmarkService.Instance.RunSingleCoreCpuBenchmarkAsync();
+            SingleCoreScoreText = $"{res.NumericScore:N0} Pts";
+            SingleCoreScoreDetail = res.Details;
+            StatusMessage = $"Тест Single-Core CPU завершен: {SingleCoreScoreText} ({res.Rating})";
+
+            UpdateOverallScore();
+            IsBusy = false;
+        }
+
+        [RelayCommand]
+        public async Task RunGpuBenchmarkAsync()
+        {
+            if (IsBusy || IsStressRunning) return;
+            IsBusy = true;
+            GpuScoreText = "Тест...";
+            GpuScoreDetail = "3D Шейдеры и Direct3D...";
+            StatusMessage = "🎮 Выполняется тест графического ускорителя (GPU)...";
+
+            var res = await HardwareBenchmarkService.Instance.RunGpuBenchmarkAsync();
+            GpuScoreText = $"{res.NumericScore:N0} Pts";
+            GpuScoreDetail = res.Details;
+            StatusMessage = $"Тест GPU завершен: {GpuScoreText} ({res.Rating})";
+
+            UpdateOverallScore();
+            IsBusy = false;
+        }
+
+        [RelayCommand]
+        public async Task RunGpuVramBenchmarkAsync()
+        {
+            if (IsBusy || IsStressRunning) return;
+            IsBusy = true;
+            GpuVramScoreText = "Тест...";
+            GpuVramScoreDetail = "Тест шины видеопамяти...";
+            StatusMessage = "🎮 Выполняется тест видеопамяти (VRAM)...";
+
+            var res = await HardwareBenchmarkService.Instance.RunGpuVramBenchmarkAsync();
+            GpuVramScoreText = $"{res.NumericScore:F1} ГБ/с";
+            GpuVramScoreDetail = res.Details;
+            StatusMessage = $"Тест VRAM завершен: {GpuVramScoreText} ({res.Rating})";
+
+            UpdateOverallScore();
             IsBusy = false;
         }
 
@@ -118,7 +211,7 @@ namespace StormSystemOptimizer.ViewModels
             if (IsBusy || IsStressRunning) return;
             IsBusy = true;
             RamSpeedText = "Тест...";
-            RamScoreDetail = "Копирование блоков 1 ГБ в памяти...";
+            RamScoreDetail = "Копирование памяти...";
             StatusMessage = "🧠 Выполняется тест пропускной способности RAM...";
 
             var res = await HardwareBenchmarkService.Instance.RunRamBenchmarkAsync();
@@ -126,6 +219,7 @@ namespace StormSystemOptimizer.ViewModels
             RamScoreDetail = res.Details;
             StatusMessage = $"Тест RAM завершен: {RamSpeedText} ({res.Rating})";
 
+            UpdateOverallScore();
             IsBusy = false;
         }
 
@@ -135,14 +229,33 @@ namespace StormSystemOptimizer.ViewModels
             if (IsBusy || IsStressRunning) return;
             IsBusy = true;
             DiskSpeedText = "Тест...";
-            DiskScoreDetail = "Замер последовательной записи/чтения...";
-            StatusMessage = "💾 Выполняется тест скорости системного накопителя...";
+            DiskScoreDetail = "Последовательный ввод-вывод...";
+            StatusMessage = "💾 Выполняется тест скорости накопителя...";
 
             var res = await HardwareBenchmarkService.Instance.RunDiskBenchmarkAsync("C:\\");
             DiskSpeedText = $"{res.NumericScore:F0} МБ/с";
             DiskScoreDetail = res.Details;
             StatusMessage = $"Тест накопителя завершен: {DiskSpeedText} ({res.Rating})";
 
+            UpdateOverallScore();
+            IsBusy = false;
+        }
+
+        [RelayCommand]
+        public async Task RunDiskIopsBenchmarkAsync()
+        {
+            if (IsBusy || IsStressRunning) return;
+            IsBusy = true;
+            DiskIopsText = "Тест...";
+            DiskIopsDetail = "Случайный доступ 4K...";
+            StatusMessage = "💾 Выполняется тест случайного доступа 4K IOPS...";
+
+            var res = await HardwareBenchmarkService.Instance.RunDiskRandom4kBenchmarkAsync("C:\\");
+            DiskIopsText = $"{res.NumericScore:N0} IOPS";
+            DiskIopsDetail = res.Details;
+            StatusMessage = $"Тест 4K IOPS завершен: {DiskIopsText} ({res.Rating})";
+
+            UpdateOverallScore();
             IsBusy = false;
         }
 
@@ -151,14 +264,35 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy || IsStressRunning) return;
             IsBusy = true;
-            StatusMessage = "Запуск комплексного тестирования CPU, RAM и Диска...";
+            StatusMessage = "Запуск комплексного стресс-тестирования всех компонентов системы...";
 
             await RunCpuBenchmarkAsync();
+            await RunSingleCoreBenchmarkAsync();
+            await RunGpuBenchmarkAsync();
+            await RunGpuVramBenchmarkAsync();
             await RunRamBenchmarkAsync();
             await RunDiskBenchmarkAsync();
+            await RunDiskIopsBenchmarkAsync();
 
-            StatusMessage = "Все тесты успешно завершены!";
-            TrayService.Instance.ShowNotification("Тестирование завершено", "Все компоненты системы проверены. Результаты готовы.");
+            UpdateOverallScore();
+            StatusMessage = $"Все 7 бенчмарков успешно выполнены! Общий индекс: {StormOverallScoreText}";
+            TrayService.Instance.ShowNotification("Тестирование завершено", $"Все компоненты системы проверены. Общий балл: {StormOverallScoreText}");
+            IsBusy = false;
+        }
+
+        private void UpdateOverallScore()
+        {
+            double cpu = double.TryParse(CpuScoreText.Replace(" Pts", "").Replace(" ", "").Replace(",", ""), out double c) ? c : 0;
+            double gpu = double.TryParse(GpuScoreText.Replace(" Pts", "").Replace(" ", "").Replace(",", ""), out double g) ? g : 0;
+            double ram = double.TryParse(RamSpeedText.Replace(" ГБ/с", "").Replace(" ", "").Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double r) ? r * 300 : 0;
+            double disk = double.TryParse(DiskSpeedText.Replace(" МБ/с", "").Replace(" ", "").Replace(",", ""), out double d) ? d * 6 : 0;
+
+            if (cpu > 0 || gpu > 0 || ram > 0 || disk > 0)
+            {
+                double total = Math.Round((cpu * 0.35) + (gpu * 0.40) + (ram * 0.15) + (disk * 0.10));
+                StormOverallScoreText = $"{total:N0} Pts";
+                StormOverallScoreDetail = total > 9000 ? "Уровень: Экстремальный гейминг / Workstation" : (total > 5000 ? "Уровень: Высокая производительность" : "Уровень: Сбалансированный ПК");
+            }
         }
 
         [RelayCommand]
@@ -181,7 +315,7 @@ namespace StormSystemOptimizer.ViewModels
                         StressProgress = (elapsedSec / (double)duration) * 100.0;
                         int remaining = Math.Max(0, duration - elapsedSec);
                         StressTimeRemainingText = $"{remaining} сек";
-                        StressStatusText = $"{text} (Температура: {temp:F0}°C)";
+                        StressStatusText = $"{text}";
                         LiveCpuTempText = $"{temp:F0} °C";
                     });
                 },
