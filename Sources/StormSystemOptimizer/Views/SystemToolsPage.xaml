@@ -17,12 +17,12 @@
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <StackPanel>
                     <TextBlock Text="Инструменты восстановления и оснастки Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                    <TextBlock Text="Глубокая проверка целостности системных файлов, восстановление образа ОС через DISM/SFC, сброс сетевых стеков и быстрый доступ к системным оснасткам."
+                    <TextBlock Text="Глубокая проверка целостности системных файлов, восстановление образа ОС, сброс сетевых каталогов и быстрый доступ к системным оснасткам."
                                FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
                     <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Статус: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding ToolStatus}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                            <TextBlock Text="{Binding ToolStatus}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -49,18 +49,10 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <TextBlock Text="🔍 Проверка файлов SFC (/scannow)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="🔍 Проверка системных файлов" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <TextBlock Text="Сканирует и восстанавливает поврежденные системные библиотеки Windows." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
-                        <Button Command="{Binding RunSfcScanCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Запустить" Padding="14,6" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <Button Command="{Binding RunSfcScanCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Запустить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
                     </Grid>
                 </Border>
 
@@ -72,18 +64,10 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <TextBlock Text="💉 Восстановление образа DISM" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Восстанавливает поврежденные системные компоненты из хранилища Windows Update." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <TextBlock Text="💉 Восстановление образа системы" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Восстанавливает поврежденные системные компоненты из хранилища обновлений." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
-                        <Button Command="{Binding RunDismRestoreCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Запустить" Padding="14,6" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <Button Command="{Binding RunDismRestoreCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Запустить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
                     </Grid>
                 </Border>
 
@@ -95,18 +79,10 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <TextBlock Text="🧹 Очистка хранилища WinSxS" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Удаляет устаревшие резервные копии компонентов Windows после обновлений (освобождает до 5-10 ГБ)." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <TextBlock Text="🧹 Очистка хранилища компонентов" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Удаляет устаревшие резервные копии компонентов Windows после обновлений." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
-                        <Button Command="{Binding CleanWinSxSCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить" Padding="14,6" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <Button Command="{Binding CleanWinSxSCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
                     </Grid>
                 </Border>
 
@@ -118,18 +94,10 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <TextBlock Text="🌐 Сброс сетевого стека Winsock" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Сбрасывает конфигурацию каталога Winsock при ошибках DNS или потере соединения." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <TextBlock Text="🌐 Сброс сетевого каталога" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Сбрасывает конфигурацию каталога Winsock при сетевых сбоях или потере соединения." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
-                        <Button Command="{Binding ResetWinsockCommand}" Grid.Column="1" Content="Сбросить" Padding="14,6" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <Button Command="{Binding ResetWinsockCommand}" Grid.Column="1" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
                     </Grid>
                 </Border>
 
@@ -144,15 +112,7 @@
                             <TextBlock Text="🖼️ Перестроить кэш иконок Проводника" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <TextBlock Text="Исправляет поврежденные или белые иконки ярлыков на Рабочем столе и в папках." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
-                        <Button Command="{Binding RebuildIconCacheCommand}" Grid.Column="1" Content="Сбросить" Padding="14,6" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <Button Command="{Binding RebuildIconCacheCommand}" Grid.Column="1" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
                     </Grid>
                 </Border>
 
@@ -164,18 +124,10 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <TextBlock Text="🛒 Сброс Microsoft Store (wsreset)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="🛒 Сброс кэша Магазина Windows" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <TextBlock Text="Очищает кэш Microsoft Store при сбоях загрузки приложений и игр." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
-                        <Button Command="{Binding ResetWindowsStoreCommand}" Grid.Column="1" Content="Сбросить" Padding="14,6" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                        <Button Command="{Binding ResetWindowsStoreCommand}" Grid.Column="1" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -184,60 +136,12 @@
             <TextBlock Text="⚡ Быстрый вызов системных оснасток" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,16,0,10"/>
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
                 <WrapPanel Orientation="Horizontal">
-                    <Button Click="BtnSnapin_Click" Tag="DeviceManager" Content="🔌 Диспетчер устройств" Padding="14,8" Margin="0,0,8,8" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                    <Button Click="BtnSnapin_Click" Tag="TaskManager" Content="📊 Диспетчер задач" Padding="14,8" Margin="0,0,8,8" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                    <Button Click="BtnSnapin_Click" Tag="Regedit" Content="🗝 Редактор реестра" Padding="14,8" Margin="0,0,8,8" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                    <Button Click="BtnSnapin_Click" Tag="DxDiag" Content="🎮 DirectX Диагностика" Padding="14,8" Margin="0,0,8,8" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                    <Button Click="BtnSnapin_Click" Tag="GpEdit" Content="📜 Редактор групповых политик" Padding="14,8" Margin="0,0,8,8" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
-                    <Button Click="BtnSnapin_Click" Tag="EventViewer" Content="📋 Просмотр событий (Event Log)" Padding="14,8" Margin="0,0,8,8" Cursor="Hand" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}">
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
+                    <Button Click="BtnSnapin_Click" Tag="DeviceManager" Content="🔌 Диспетчер устройств" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8"/>
+                    <Button Click="BtnSnapin_Click" Tag="TaskManager" Content="📊 Диспетчер задач" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8"/>
+                    <Button Click="BtnSnapin_Click" Tag="Regedit" Content="🗝 Редактор реестра" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8"/>
+                    <Button Click="BtnSnapin_Click" Tag="DxDiag" Content="🎮 DirectX Диагностика" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8"/>
+                    <Button Click="BtnSnapin_Click" Tag="GpEdit" Content="📜 Редактор групповых политик" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8"/>
+                    <Button Click="BtnSnapin_Click" Tag="EventViewer" Content="📋 Журнал событий Windows" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8"/>
                 </WrapPanel>
             </Border>
         </StackPanel>

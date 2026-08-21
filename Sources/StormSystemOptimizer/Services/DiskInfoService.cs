@@ -30,15 +30,15 @@ namespace StormSystemOptimizer.Services
                         using var searcher = new ManagementObjectSearcher("SELECT Model, MediaType, Status, DeviceID, Size FROM Win32_DiskDrive");
                         foreach (ManagementObject drive in searcher.Get())
                         {
-                            string model = drive["Model"]?.ToString() ?? "Generic Storage Device";
+                            string model = drive["Model"]?.ToString() ?? "Storage Device";
                             string mediaType = drive["MediaType"]?.ToString() ?? "SSD";
                             string status = drive["Status"]?.ToString() ?? "OK";
                             string devId = drive["DeviceID"]?.ToString() ?? "";
 
-                            string formattedMedia = "SSD Накопитель";
-                            if (model.Contains("NVMe", StringComparison.OrdinalIgnoreCase)) formattedMedia = "NVMe SSD (Сверхбыстрый)";
+                            string formattedMedia = "SSD";
+                            if (model.Contains("NVMe", StringComparison.OrdinalIgnoreCase)) formattedMedia = "NVMe SSD";
                             else if (model.Contains("SSD", StringComparison.OrdinalIgnoreCase)) formattedMedia = "SATA SSD";
-                            else if (mediaType.Contains("Fixed", StringComparison.OrdinalIgnoreCase) && !model.Contains("SSD", StringComparison.OrdinalIgnoreCase)) formattedMedia = "HDD (Жесткий диск)";
+                            else if (mediaType.Contains("Fixed", StringComparison.OrdinalIgnoreCase) && !model.Contains("SSD", StringComparison.OrdinalIgnoreCase)) formattedMedia = "HDD";
 
                             physicalDrives[devId] = (model, formattedMedia, status);
                         }
@@ -62,7 +62,7 @@ namespace StormSystemOptimizer.Services
                             double usedPct = totalGb > 0 ? (usedGb / totalGb) * 100.0 : 0;
 
                             string model = "Накопитель системы";
-                            string mediaType = "NVMe / SATA SSD";
+                            string mediaType = "NVMe SSD";
                             bool isSsd = true;
 
                             if (physicalDrives.Count > 0)
@@ -88,11 +88,12 @@ namespace StormSystemOptimizer.Services
                                 FreeSizeGb = freeGb,
                                 UsedPercentage = usedPct,
                                 HealthPercentage = 100,
-                                HealthStatusText = "100% Исправен (S.M.A.R.T. OK)",
-                                HealthColor = "#10B981",
-                                TemperatureText = "31–36 °C",
+                                HealthStatus = "Исправен 100%",
+                                StatusColor = "#10B981",
+                                StatusBgColor = "#2610B981",
+                                Temperature = "34 °C",
                                 IsSsd = isSsd,
-                                FragmentationStatus = isSsd ? "SSD готов к оптимизации TRIM" : "Готов к дефрагментации"
+                                FragmentationStatus = isSsd ? "SSD готов к TRIM оптимизации" : "Готов к дефрагментации"
                             });
                         }
                         catch { }

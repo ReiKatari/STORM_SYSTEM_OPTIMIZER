@@ -3,23 +3,30 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:StormSystemOptimizer.Views"
       xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
       Title="Dashboard">
 
     <Page.DataContext>
-        <vm:DashboardViewModel/>
+        <vm:DashboardViewModel x:Name="ViewModel"/>
     </Page.DataContext>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="20">
-        <StackPanel MaxWidth="1100" HorizontalAlignment="Stretch">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel HorizontalAlignment="Stretch">
 
-            <!-- Hero Banner / Quick Boost Card -->
+            <!-- Live In-Window Action Banner -->
+            <Border x:Name="ActionFeedbackBanner" Visibility="Collapsed" Background="{DynamicResource AccentGlowBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,16">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="⚡ " FontSize="14" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    <TextBlock x:Name="TxtFeedbackMessage" Text="Действие успешно выполнено" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Hero System Status Card -->
             <Border Background="{DynamicResource StormCardGradient}"
                     BorderBrush="{DynamicResource CardBorderBrush}"
                     BorderThickness="1"
                     CornerRadius="14"
-                    Padding="28"
+                    Padding="24"
                     Margin="0,0,0,20">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -27,61 +34,35 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                            <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="6" Padding="8,4" Margin="0,0,8,0">
-                                <TextBlock Text="СИСТЕМНЫЙ МОНИТОР" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                            </Border>
-                            <Border Background="{DynamicResource BadgeSafeBgBrush}" CornerRadius="6" Padding="8,4">
-                                <TextBlock Text="100% БЕЗОПАСНЫЙ РЕЖИМ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource BadgeSafeTextBrush}"/>
-                            </Border>
-                        </StackPanel>
-
-                        <TextBlock Text="Производительность и Здоровье ПК" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Text="Мгновенное освобождение оперативной памяти, сброс сетевого кэша и оптимизация фоновых процессов без закрытия приложений."
-                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" MaxWidth="620" Margin="0,0,0,16"/>
-
-                        <StackPanel Orientation="Horizontal">
-                            <Button Command="{Binding QuickStormBoostCommand}"
-                                    IsEnabled="{Binding IsNotOptimizing}"
-                                    Background="{DynamicResource StormHeroGradient}"
-                                    Foreground="#FFFFFF"
-                                    FontWeight="Bold"
-                                    FontSize="14"
-                                    Cursor="Hand"
-                                    Padding="24,12"
-                                    Margin="0,0,16,0">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Button.Template>
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="⚡ " FontSize="16"/>
-                                    <TextBlock Text="{Binding OptimizeButtonText}"/>
-                                </StackPanel>
-                            </Button>
-                        </StackPanel>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="СОСТОЯНИЕ СИСТЕМЫ И ПРИБОРНАЯ ПАНЕЛЬ"
+                                   FontSize="12"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentPrimaryBrush}"
+                                   Margin="0,0,0,6"/>
+                        <TextBlock Text="Компьютер готов к максимальной производительности"
+                                   FontSize="22"
+                                   FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   Margin="0,0,0,6"/>
+                        <TextBlock Text="Комплексный мониторинг ресурсов, оптимизация памяти, управление питанием и мгновенный доступ к ключевым инструментам."
+                                   FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   TextWrapping="Wrap"/>
                     </StackPanel>
 
-                    <!-- Storm Shield Emblem & Health Score -->
-                    <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="24,0,0,0">
-                        <Border Width="110" Height="110" CornerRadius="55" Background="{DynamicResource AccentGlowBrush}"
-                                BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="2" HorizontalAlignment="Center">
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding HealthScore}" FontSize="34" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Center"/>
-                                <TextBlock Text="БАЛЛОВ" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-                            </StackPanel>
-                        </Border>
-                        <TextBlock Text="{Binding HealthStatusText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" Margin="0,8,0,0"/>
-                    </StackPanel>
+                    <!-- Quick Optimize RAM Button -->
+                    <Button Click="BtnOptimizeMemory_Click"
+                            Grid.Column="1"
+                            Content="⚡ Очистить RAM"
+                            Style="{StaticResource StormHeroButton}"
+                            VerticalAlignment="Center"
+                            Margin="20,0,0,0"/>
                 </Grid>
             </Border>
 
-            <!-- Real-Time Hardware Diagnostics Grid -->
-            <Grid Margin="0,0,0,24">
+            <!-- System Metrics Real-time Telemetry Grid -->
+            <Grid Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -90,139 +71,138 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- CPU Card -->
-                <Border Grid.Column="0" Margin="0,0,10,0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,8,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,8">
-                            <TextBlock Text="ПРОЦЕССОР (CPU)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <Border HorizontalAlignment="Right" Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2">
-                                <TextBlock Text="{Binding CpuTemperatureText}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                            </Border>
+                            <TextBlock Text="ПРОЦЕССОР" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding Metrics.CpuUsageText}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
                         </Grid>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <TextBlock Text="{Binding CpuUsage}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="%" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Bottom" Margin="4,0,0,4"/>
-                        </StackPanel>
-                        <ProgressBar Value="{Binding CpuUsage}" Maximum="100" Height="6" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding CpuName}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+                        <ProgressBar Value="{Binding Metrics.CpuUsage}" Maximum="100" Height="6" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderThickness="0" Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding SystemInfo.CpuName}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
                 <!-- RAM Card -->
-                <Border Grid.Column="1" Margin="5,0,5,0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="4,0,4,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,8">
-                            <TextBlock Text="ПАМЯТЬ (RAM)" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="💾" FontSize="14" Foreground="{DynamicResource AccentSecondaryBrush}" HorizontalAlignment="Right"/>
+                            <TextBlock Text="ОПЕРАТИВНАЯ ПАМЯТЬ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding Metrics.RamUsageText}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}" HorizontalAlignment="Right"/>
                         </Grid>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <TextBlock Text="{Binding RamUsage}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="%" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AccentSecondaryBrush}" VerticalAlignment="Bottom" Margin="4,0,0,4"/>
-                        </StackPanel>
-                        <ProgressBar Value="{Binding RamUsage}" Maximum="100" Height="6" Foreground="{DynamicResource AccentSecondaryBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding RamDetails}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+                        <ProgressBar Value="{Binding Metrics.RamUsage}" Maximum="100" Height="6" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource AccentSecondaryBrush}" BorderThickness="0" Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding Metrics.RamDetailText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Disk Card -->
-                <Border Grid.Column="2" Margin="5,0,5,0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                <!-- System Disk Card -->
+                <Border Grid.Column="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="4,0,4,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,8">
                             <TextBlock Text="СИСТЕМНЫЙ ДИСК" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <Border HorizontalAlignment="Right" Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2">
-                                <TextBlock Text="{Binding DiskTemperatureText}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                            </Border>
+                            <TextBlock Text="{Binding SystemInfo.SystemDriveFreeSpace}" FontSize="13" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Right"/>
                         </Grid>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <TextBlock Text="{Binding DiskUsage, StringFormat={}{0:F0}}" FontSize="28" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="%" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Bottom" Margin="4,0,0,4"/>
-                        </StackPanel>
-                        <ProgressBar Value="{Binding DiskUsage}" Maximum="100" Height="6" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding DiskDetails}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis"/>
+                        <ProgressBar Value="35" Maximum="100" Height="6" Background="{DynamicResource AppBackgroundBrush}" Foreground="#10B981" BorderThickness="0" Margin="0,0,0,10"/>
+                        <TextBlock Text="{Binding SystemInfo.SystemDriveTotalSpace, StringFormat='Общий объем: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
 
-                <!-- System Info Card -->
-                <Border Grid.Column="3" Margin="10,0,0,0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18">
+                <!-- OS / Uptime Card -->
+                <Border Grid.Column="3" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="8,0,0,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,8">
                             <TextBlock Text="ИНФО СИСТЕМЫ" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="🖥" FontSize="14" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                            <TextBlock Text="Windows 64-bit" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
                         </Grid>
-                        <TextBlock Text="{Binding OsVersion}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" Margin="0,0,0,4"/>
-                        <TextBlock Text="{Binding GpuName}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" Margin="0,0,0,8"/>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="Аптайм: " FontSize="11" Foreground="{DynamicResource TextMutedBrush}"/>
-                            <TextBlock Text="{Binding UptimeString}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                        </StackPanel>
+                        <TextBlock Text="{Binding SystemInfo.OsVersion}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,2,0,4" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding Metrics.UptimeText, StringFormat='Время работы: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                     </StackPanel>
                 </Border>
             </Grid>
 
-            <!-- Quick Action Cards Section -->
-            <TextBlock Text="Быстрые действия оптимизации" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+            <!-- Quick Action Command Cards Grid -->
+            <TextBlock Text="Быстрые действия и инструменты оптимизации" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
-            <Grid>
+            <Grid Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <Button Click="BtnDnsFlush_Click" Grid.Column="0" Margin="0,0,10,0" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="6" Padding="8" Margin="0,0,10,0">
-                                            <TextBlock Text="🌐" FontSize="16"/>
-                                        </Border>
-                                        <TextBlock Text="Сброс кэша DNS" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                    <TextBlock Text="Устраняет задержки сети и сетевые ошибки при открытии веб-ресурсов." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
+                <!-- Action 1: Deep Scan -->
+                <Button Click="BtnQuickScan_Click" Grid.Column="0" Margin="0,0,8,0" Style="{StaticResource StormSecondaryButton}" Padding="16">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🔍" FontSize="26" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock Text="Глубокое сканирование" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center"/>
+                        <TextBlock Text="Очистка мусора и кэша" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    </StackPanel>
                 </Button>
 
-                <Button Click="BtnTrimSsd_Click" Grid.Column="1" Margin="5,0,5,0" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="6" Padding="8" Margin="0,0,10,0">
-                                            <TextBlock Text="🖴" FontSize="16"/>
-                                        </Border>
-                                        <TextBlock Text="Оптимизация SSD (TRIM)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                    <TextBlock Text="Очищает неиспользуемые блоки на SSD диске для поддержки максимальной скорости записи." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
+                <!-- Action 2: Flush DNS -->
+                <Button Click="BtnFlushDns_Click" Grid.Column="1" Margin="4,0,4,0" Style="{StaticResource StormSecondaryButton}" Padding="16">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🌐" FontSize="26" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock Text="Сброс кэша DNS" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center"/>
+                        <TextBlock Text="Устранение сетевых задержек" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    </StackPanel>
                 </Button>
 
-                <Button Click="BtnPowerPlan_Click" Grid.Column="2" Margin="10,0,0,0" Cursor="Hand" Background="{DynamicResource CardBackgroundBrush}">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
-                                <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                                        <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="6" Padding="8" Margin="0,0,10,0">
-                                            <TextBlock Text="⚡" FontSize="16"/>
-                                        </Border>
-                                        <TextBlock Text="Макс. Производительность" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                    <TextBlock Text="Включает режим Ultimate Performance питания для максимального FPS и скорости." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
+                <!-- Action 3: Power Plan -->
+                <Button Click="BtnMaxPerformance_Click" Grid.Column="2" Margin="4,0,4,0" Style="{StaticResource StormSecondaryButton}" Padding="16">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="⚡" FontSize="26" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock Text="Макс. производительность" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center"/>
+                        <TextBlock Text="Схема электропитания" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Action 4: TRIM SSD -->
+                <Button Click="BtnTrimSsd_Click" Grid.Column="3" Margin="8,0,0,0" Style="{StaticResource StormSecondaryButton}" Padding="16">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="💾" FontSize="26" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock Text="Оптимизация SSD" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" TextAlignment="Center"/>
+                        <TextBlock Text="Команда TRIM на все диски" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                    </StackPanel>
                 </Button>
             </Grid>
 
+            <!-- Hardware Specification Box -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Спецификация аппаратного обеспечения" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,10">
+                            <TextBlock Text="Процессор (ЦП)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding SystemInfo.CpuName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="10,0,0,10">
+                            <TextBlock Text="Графический ускоритель (GPU)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding SystemInfo.GpuName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,10,10,0">
+                            <TextBlock Text="Материнская плата / BIOS" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding SystemInfo.MotherboardName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="10,10,0,0">
+                            <TextBlock Text="Имя компьютера / Пользователь" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding SystemInfo.ComputerName}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </Page>

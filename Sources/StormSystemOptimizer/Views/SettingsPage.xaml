@@ -17,7 +17,7 @@
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,20">
                 <StackPanel>
                     <TextBlock Text="Настройки и Обновления" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                    <TextBlock Text="Выбор темы визуального оформления, параметры интеграции с Windows и проверка обновлений с GitHub." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBlock Text="Выбор темы визуального оформления, параметры интеграции с Windows и проверка обновлений." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
 
@@ -29,7 +29,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                             <TextBlock Text="🔄 Обновления программы" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2" Margin="10,0,0,0">
@@ -46,42 +46,18 @@
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding CheckForUpdatesCommand}"
                                 Content="↺ Проверить"
-                                Padding="16,10"
-                                Cursor="Hand"
-                                Background="{DynamicResource CardBackgroundBrush}"
-                                Foreground="{DynamicResource TextPrimaryBrush}"
-                                BorderBrush="{DynamicResource CardBorderBrush}"
-                                Margin="0,0,8,0">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                                Style="{StaticResource StormSecondaryButton}"
+                                Margin="0,0,8,0"/>
 
                         <Button Command="{Binding InstallUpdateCommand}"
                                 Content="⚡ Обновить сейчас"
-                                FontWeight="Bold"
-                                Padding="18,10"
-                                Cursor="Hand"
-                                Background="{DynamicResource StormHeroGradient}"
-                                Foreground="#FFFFFF">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
+                                Style="{StaticResource StormHeroButton}"/>
                     </StackPanel>
                 </Grid>
             </Border>
 
             <!-- Theme Picker Cards -->
-            <TextBlock Text="Визуальные темы (4 стиля оформления)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+            <TextBlock Text="Визуальные темы оформления" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
             <Grid Margin="0,0,0,24">
                 <Grid.ColumnDefinitions>
@@ -92,63 +68,39 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Storm Dark -->
-                <Button Click="BtnThemeDark_Click" Grid.Column="0" Margin="0,0,8,0" Cursor="Hand" Background="#181F2C">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="#00D2FF" BorderThickness="2" CornerRadius="10" Padding="14">
-                                <StackPanel HorizontalAlignment="Center">
-                                    <Ellipse Width="24" Height="24" Fill="#00D2FF" Margin="0,0,0,8"/>
-                                    <TextBlock Text="STORM DARK" FontSize="12" FontWeight="Bold" Foreground="#F1F5F9" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Cyber Blue" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
+                <Button Click="BtnThemeDark_Click" Grid.Column="0" Margin="0,0,8,0" Style="{StaticResource StormSecondaryButton}" Background="#181F2C" Padding="14">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Ellipse Width="24" Height="24" Fill="#00D2FF" Margin="0,0,0,8"/>
+                        <TextBlock Text="STORM DARK" FontSize="12" FontWeight="Bold" Foreground="#F1F5F9" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Тёмный кибер" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Center"/>
+                    </StackPanel>
                 </Button>
 
                 <!-- Storm Night -->
-                <Button Click="BtnThemeNight_Click" Grid.Column="1" Margin="4,0,4,0" Cursor="Hand" Background="#0A0B10">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="#39FF14" BorderThickness="1" CornerRadius="10" Padding="14">
-                                <StackPanel HorizontalAlignment="Center">
-                                    <Ellipse Width="24" Height="24" Fill="#00F0FF" Margin="0,0,0,8"/>
-                                    <TextBlock Text="STORM NIGHT" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="OLED Black" FontSize="10" Foreground="#A1A1AA" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
+                <Button Click="BtnThemeNight_Click" Grid.Column="1" Margin="4,0,4,0" Style="{StaticResource StormSecondaryButton}" Background="#0A0B10" Padding="14">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Ellipse Width="24" Height="24" Fill="#00F0FF" Margin="0,0,0,8"/>
+                        <TextBlock Text="STORM NIGHT" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Чёрный OLED" FontSize="10" Foreground="#A1A1AA" HorizontalAlignment="Center"/>
+                    </StackPanel>
                 </Button>
 
                 <!-- Storm Day -->
-                <Button Click="BtnThemeDay_Click" Grid.Column="2" Margin="4,0,4,0" Cursor="Hand" Background="#FFFFFF">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="#0284C7" BorderThickness="1" CornerRadius="10" Padding="14">
-                                <StackPanel HorizontalAlignment="Center">
-                                    <Ellipse Width="24" Height="24" Fill="#0284C7" Margin="0,0,0,8"/>
-                                    <TextBlock Text="STORM DAY" FontSize="12" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Light Crisp" FontSize="10" Foreground="#64748B" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
+                <Button Click="BtnThemeDay_Click" Grid.Column="2" Margin="4,0,4,0" Style="{StaticResource StormSecondaryButton}" Background="#FFFFFF" Padding="14">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Ellipse Width="24" Height="24" Fill="#0284C7" Margin="0,0,0,8"/>
+                        <TextBlock Text="STORM DAY" FontSize="12" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Светлая" FontSize="10" Foreground="#64748B" HorizontalAlignment="Center"/>
+                    </StackPanel>
                 </Button>
 
                 <!-- Storm Midnight -->
-                <Button Click="BtnThemeMidnight_Click" Grid.Column="3" Margin="8,0,0,0" Cursor="Hand" Background="#15112B">
-                    <Button.Template>
-                        <ControlTemplate TargetType="Button">
-                            <Border Background="{TemplateBinding Background}" BorderBrush="#A855F7" BorderThickness="1" CornerRadius="10" Padding="14">
-                                <StackPanel HorizontalAlignment="Center">
-                                    <Ellipse Width="24" Height="24" Fill="#A855F7" Margin="0,0,0,8"/>
-                                    <TextBlock Text="STORM MIDNIGHT" FontSize="12" FontWeight="Bold" Foreground="#FAF5FF" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="Cosmic Purple" FontSize="10" Foreground="#C084FC" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Border>
-                        </ControlTemplate>
-                    </Button.Template>
+                <Button Click="BtnThemeMidnight_Click" Grid.Column="3" Margin="8,0,0,0" Style="{StaticResource StormSecondaryButton}" Background="#15112B" Padding="14">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Ellipse Width="24" Height="24" Fill="#A855F7" Margin="0,0,0,8"/>
+                        <TextBlock Text="STORM MIDNIGHT" FontSize="12" FontWeight="Bold" Foreground="#FAF5FF" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Аметистовая" FontSize="10" Foreground="#C084FC" HorizontalAlignment="Center"/>
+                    </StackPanel>
                 </Button>
             </Grid>
 
@@ -156,7 +108,7 @@
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
                 <StackPanel>
                     <TextBlock Text="О программе" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                    <TextBlock Text="STORM SYSTEM OPTIMIZER — Профессиональное решение для сканирования, управления процессами и тонкой настройки Windows." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,6"/>
+                    <TextBlock Text="STORM SYSTEM OPTIMIZER — Профессиональное решение для глубокого сканирования, управления процессами, тестирования и тонкой настройки Windows." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,6"/>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                         <TextBlock Text="Версия: " FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
                         <TextBlock Text="{Binding AppVersion}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>

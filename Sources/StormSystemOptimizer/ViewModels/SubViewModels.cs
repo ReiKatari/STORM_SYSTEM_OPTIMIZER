@@ -43,12 +43,16 @@ namespace StormSystemOptimizer.ViewModels
     public partial class ServicesViewModel : ObservableObject
     {
         public ObservableCollection<ServiceEntry> ServicesList { get; } = new();
+        public ObservableCollection<ServiceEntry> Services => ServicesList;
 
         [ObservableProperty]
-        private string _selectedProfile = "Рекомендуемый (Balanced)";
+        private string _selectedProfile = "Рекомендуемый";
 
         [ObservableProperty]
         private string _statusMessage = "Готово к настройке служб";
+
+        [ObservableProperty]
+        private string _statusText = "Готово к настройке служб";
 
         public ServicesViewModel()
         {
@@ -61,19 +65,25 @@ namespace StormSystemOptimizer.ViewModels
             var list = WindowsServicesService.Instance.GetUnnecessaryServices();
             foreach (var item in list) ServicesList.Add(item);
             StatusMessage = $"Обнаружено служб для оптимизации: {ServicesList.Count}";
+            StatusText = StatusMessage;
         }
 
         [RelayCommand]
         public async Task ApplyProfileAsync(string profileName)
         {
             StatusMessage = $"Применение профиля «{profileName}»...";
+            StatusText = StatusMessage;
             await Task.Run(() =>
             {
                 WindowsServicesService.Instance.ApplyProfile(profileName);
             });
             RefreshServices();
             StatusMessage = $"Профиль «{profileName}» успешно применен!";
+            StatusText = StatusMessage;
         }
+
+        [RelayCommand]
+        public Task ApplyPresetAsync(string preset) => ApplyProfileAsync(preset);
 
         [RelayCommand]
         public void ToggleService(ServiceEntry entry)
