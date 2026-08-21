@@ -1,19 +1,50 @@
 using System;
 using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace StormSystemOptimizer.Models
 {
-    public class SoftwareUpdateItem
+    public partial class SoftwareUpdateItem : ObservableObject
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public string PackageId { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        public string InstalledVersion { get; set; } = string.Empty;
-        public string AvailableVersion { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(StatusText))]
+        [NotifyPropertyChangedFor(nameof(StatusColor))]
+        [NotifyPropertyChangedFor(nameof(StatusBgColor))]
+        private string _installedVersion = string.Empty;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(StatusText))]
+        [NotifyPropertyChangedFor(nameof(StatusColor))]
+        [NotifyPropertyChangedFor(nameof(StatusBgColor))]
+        private string _availableVersion = string.Empty;
+
         public string Publisher { get; set; } = string.Empty;
         public string AppType { get; set; } = "Программа";
-        public bool IsUpdateAvailable { get; set; } = false;
-        public bool IsBlacklisted { get; set; } = false;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(StatusText))]
+        [NotifyPropertyChangedFor(nameof(StatusColor))]
+        [NotifyPropertyChangedFor(nameof(StatusBgColor))]
+        private bool _isUpdateAvailable = false;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(StatusText))]
+        [NotifyPropertyChangedFor(nameof(StatusColor))]
+        [NotifyPropertyChangedFor(nameof(StatusBgColor))]
+        private bool _isBlacklisted = false;
+
+        [ObservableProperty]
+        private bool _isUpdating = false;
+
+        [ObservableProperty]
+        private int _updateProgress = 0;
+
+        [ObservableProperty]
+        private string _updateProgressText = "Обновление...";
 
         public string TypeBadgeColor => AppType == "Игра" ? "#FB7185" : (AppType == "Windows Store" ? "#38BDF8" : "#00D2FF");
         public string TypeBadgeBg => AppType == "Игра" ? "#26FB7185" : (AppType == "Windows Store" ? "#2638BDF8" : "#2600D2FF");
@@ -23,7 +54,7 @@ namespace StormSystemOptimizer.Models
 
         public string StatusText => IsBlacklisted 
             ? "🔒 В черном списке (Игнорируется)" 
-            : (IsUpdateAvailable ? $"⚡ Доступна v{AvailableVersion}" : "✅ Установлена последняя версия");
+            : (IsUpdateAvailable ? $"⚡ Доступна v{AvailableVersion}" : "✅ Актуальна (v" + InstalledVersion + ")");
 
         public string StatusColor => IsBlacklisted ? "#64748B" : (IsUpdateAvailable ? "#F59E0B" : "#10B981");
         public string StatusBgColor => IsBlacklisted ? "#1E293B" : (IsUpdateAvailable ? "#26F59E0B" : "#2610B981");

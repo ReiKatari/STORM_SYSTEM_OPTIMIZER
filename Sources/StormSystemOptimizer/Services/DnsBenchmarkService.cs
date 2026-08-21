@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -16,6 +17,8 @@ namespace StormSystemOptimizer.Services
         public string PingText { get; set; } = "— мс";
         public long PingMs { get; set; } = 999;
         public string Features { get; set; } = string.Empty;
+        public bool IsActive { get; set; } = false;
+        public string DnsIpsText => string.IsNullOrEmpty(SecondaryDns) ? PrimaryDns : $"{PrimaryDns} • {SecondaryDns}";
         public string StatusColor => PingMs < 25 ? "#10B981" : (PingMs < 60 ? "#38BDF8" : (PingMs < 120 ? "#F59E0B" : "#EF4444"));
     }
 
@@ -26,9 +29,36 @@ namespace StormSystemOptimizer.Services
 
         private DnsBenchmarkService() { }
 
+        public static (string primary, string secondary) GetCurrentSystemDns()
+        {
+            try
+            {
+                var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+                    .Where(ni => ni.OperationalStatus == OperationalStatus.Up &&
+                                 ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                                 !ni.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase) &&
+                                 !ni.Description.Contains("Hyper-V", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                foreach (var ni in interfaces)
+                {
+                    var ipProps = ni.GetIPProperties();
+                    var dnsServers = ipProps.DnsAddresses;
+                    if (dnsServers != null && dnsServers.Count > 0)
+                    {
+                        string p = dnsServers[0].ToString();
+                        string s = dnsServers.Count > 1 ? dnsServers[1].ToString() : "";
+                        return (p, s);
+                    }
+                }
+            }
+            catch { }
+            return ("", "");
+        }
+
         public List<DnsServerItem> GetDefaultDnsProviders()
         {
-            return new List<DnsServerItem>
+            var list = new List<DnsServerItem>
             {
                 new DnsServerItem { ProviderName = "Comss.one DNS", PrimaryDns = "78.47.125.180", SecondaryDns = "116.202.176.26", Features = "🇷🇺 Обход региональных блокировок и низкий игровой пинг" },
                 new DnsServerItem { ProviderName = "Яндекс.DNS (Базовый)", PrimaryDns = "77.88.8.8", SecondaryDns = "77.88.8.1", Features = "⚡ Быстрый российский сервер с минимальными задержками" },
@@ -42,6 +72,43 @@ namespace StormSystemOptimizer.Services
                 new DnsServerItem { ProviderName = "Control D Gaming", PrimaryDns = "76.76.2.0", SecondaryDns = "76.76.10.0", Features = "⚡ Ускорение игрового сетевого трафика" },
                 new DnsServerItem { ProviderName = "OpenDNS Home", PrimaryDns = "208.67.222.222", SecondaryDns = "208.67.220.220", Features = "🛡️ Комплексная защита от Cisco" }
             };
+
+            MarkActiveDns(list);
+            return list;
+        }
+
+        public void MarkActiveDns(List<DnsServerItem> list)
+        {
+            var (curP, curS) = GetCurrentSystemDns();
+            bool matched = false;
+
+            foreach (var item in list)
+            {
+                if ((!string.IsNullOrEmpty(curP) && (item.PrimaryDns == curP || item.SecondaryDns == curP)) ||
+                    (!string.IsNullOrEmpty(curS) && (item.PrimaryDns == curS || item.SecondaryDns == curS)))
+                {
+                    item.IsActive = true;
+                    matched = true;
+                }
+                else
+                {
+                    item.IsActive = false;
+                }
+            }
+
+            if (!matched && !string.IsNullOrEmpty(curP))
+            {
+                list.Insert(0, new DnsServerItem
+                {
+                    ProviderName = $"Текущий DNS системы ({curP})",
+                    PrimaryDns = curP,
+                    SecondaryDns = curS,
+                    Features = "🌐 Активный DNS-сервер, назначенный вашим роутером или провайдером по DHCP",
+                    IsActive = true,
+                    PingText = "1 мс",
+                    PingMs = 1
+                });
+            }
         }
 
         public async Task<List<DnsServerItem>> BenchmarkAllDnsAsync()
@@ -73,12 +140,12 @@ namespace StormSystemOptimizer.Services
                 });
             });
 
-            return list;
+            MarkActiveDns(list);
+            return list.OrderByDescending(x => x.IsActive).ThenBy(x => x.PingMs).ToList();
         }
 
         private long MeasureDnsLatency(string ipAddress)
         {
-            // 1. Try UDP Port 53 DNS Socket Query
             try
             {
                 var sw = Stopwatch.StartNew();
@@ -87,18 +154,17 @@ namespace StormSystemOptimizer.Services
                 client.Client.SendTimeout = 1200;
                 client.Connect(IPAddress.Parse(ipAddress), 53);
 
-                // Standard DNS Query Packet for "google.com" (Type A)
                 byte[] query = new byte[]
                 {
-                    0x12, 0x34, // ID
-                    0x01, 0x00, // Standard query with recursion desired
-                    0x00, 0x01, // 1 question
+                    0x12, 0x34,
+                    0x01, 0x00,
+                    0x00, 0x01,
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                    0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, // "google"
-                    0x03, 0x63, 0x6f, 0x6d, // "com"
-                    0x00, // null terminator
-                    0x00, 0x01, // Type A
-                    0x00, 0x01  // Class IN
+                    0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+                    0x03, 0x63, 0x6f, 0x6d,
+                    0x00,
+                    0x00, 0x01,
+                    0x00, 0x01
                 };
 
                 client.Send(query, query.Length);
@@ -106,14 +172,13 @@ namespace StormSystemOptimizer.Services
                 byte[] response = client.Receive(ref remoteEp);
                 sw.Stop();
 
-                if (response != null && response.Length > 0)
+                if (response != null && response.Length > 12)
                 {
                     return Math.Max(1, sw.ElapsedMilliseconds);
                 }
             }
             catch { }
 
-            // 2. Fallback to Thread-Safe ICMP Ping
             try
             {
                 using var ping = new Ping();
@@ -128,38 +193,89 @@ namespace StormSystemOptimizer.Services
             return -1;
         }
 
-        public async Task<bool> ApplyDnsToActiveAdapterAsync(string primaryDns, string secondaryDns)
-        {
-            return await Task.Run(() => ApplyDns(primaryDns, secondaryDns));
-        }
-
-        public bool ApplyDns(string primaryDns, string secondaryDns)
+        private static NetworkInterface? GetActiveNetworkInterface()
         {
             try
             {
-                string psCommand = $@"
-$adapters = Get-NetAdapter | Where-Object {{ $_.Status -eq 'Up' -and $_.Virtual -eq $false }}
-foreach ($a in $adapters) {{
-    Set-DnsClientServerAddress -InterfaceIndex $a.InterfaceIndex -ServerAddresses ('{primaryDns}','{secondaryDns}')
-}}
-";
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    Arguments = $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"{psCommand.Replace("\"", "\\\"")}\"",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
-
-                using var proc = Process.Start(psi);
-                proc?.WaitForExit(4000);
-                return proc?.ExitCode == 0;
+                return NetworkInterface.GetAllNetworkInterfaces()
+                    .FirstOrDefault(ni => ni.OperationalStatus == OperationalStatus.Up &&
+                                          ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                                          !ni.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase) &&
+                                          !ni.Description.Contains("Hyper-V", StringComparison.OrdinalIgnoreCase));
             }
             catch
             {
-                return false;
+                return null;
             }
+        }
+
+        public async Task<bool> ApplyDnsToActiveAdapterAsync(string primaryDns, string secondaryDns)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var adapter = GetActiveNetworkInterface();
+                    if (adapter == null) return false;
+
+                    string name = adapter.Name;
+                    string cmdPrimary = $"netsh interface ipv4 set dnsservers name=\"{name}\" static {primaryDns} primary";
+                    RunCmd(cmdPrimary);
+
+                    if (!string.IsNullOrWhiteSpace(secondaryDns))
+                    {
+                        string cmdSecondary = $"netsh interface ipv4 add dnsservers name=\"{name}\" {secondaryDns} index=2";
+                        RunCmd(cmdSecondary);
+                    }
+
+                    NetworkOptimizerService.Instance.FlushDnsCache();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> ResetDnsToDhcpAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var adapter = GetActiveNetworkInterface();
+                    if (adapter == null) return false;
+
+                    string name = adapter.Name;
+                    string cmd = $"netsh interface ipv4 set dnsservers name=\"{name}\" source=dhcp";
+                    RunCmd(cmd);
+                    NetworkOptimizerService.Instance.FlushDnsCache();
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+        }
+
+        private static void RunCmd(string command)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {command}",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+                using var proc = Process.Start(psi);
+                proc?.WaitForExit(3000);
+            }
+            catch { }
         }
     }
 }

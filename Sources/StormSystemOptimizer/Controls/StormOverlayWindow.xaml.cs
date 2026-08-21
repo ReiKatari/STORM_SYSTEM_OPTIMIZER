@@ -176,8 +176,22 @@ namespace StormSystemOptimizer.Controls
         {
             _isPinned = !_isPinned;
             this.Topmost = _isPinned;
-            PinBadge.Visibility = _isPinned ? Visibility.Visible : Visibility.Collapsed;
-            TxtPinState.Text = "📌 Закреплено";
+            if (_isPinned)
+            {
+                PinBadge.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1AFBBF24"));
+                PinBadge.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#33FBBF24"));
+                TxtPinState.Text = "📌 Закреплено";
+                TxtPinState.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FBBF24"));
+                BtnPinToggle.ToolTip = "Закреплено поверх всех окон (нажмите для открепления)";
+            }
+            else
+            {
+                PinBadge.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#141B2D"));
+                PinBadge.BorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1F293D"));
+                TxtPinState.Text = "📌";
+                TxtPinState.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#64748B"));
+                BtnPinToggle.ToolTip = "Нажмите для закрепления поверх всех окон";
+            }
             TrayService.Instance.ShowNotification("STORM HUD", _isPinned ? "Оверлей закреплен поверх всех окон 📌" : "Закрепление оверлея снято");
         }
 

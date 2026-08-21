@@ -23,6 +23,9 @@ namespace StormSystemOptimizer.Services
         private static readonly Dictionary<string, (string LatestVersion, string DownloadUrl, string Publisher)> _cloudCatalog =
             new(StringComparer.OrdinalIgnoreCase)
             {
+                { "WinRAR", ("7.10", "https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-x64-701ru.exe", "RARLab") },
+                { "WinRAR (64-bit)", ("7.10", "https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-x64-701ru.exe", "RARLab") },
+                { "WinRAR (32-bit)", ("7.10", "https://www.win-rar.com/fileadmin/winrar-versions/winrar/wrar701ru.exe", "RARLab") },
                 { "Bitrix24", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix") },
                 { "Bitrix24 for Windows", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix") },
                 { "Битрикс24", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix") },
@@ -49,12 +52,17 @@ namespace StormSystemOptimizer.Services
                 { "CrystalDiskInfo", ("9.3.2", "https://crystalmark.info/redirect.php?product=CrystalDiskInfoInstaller", "Crystal Dew World") },
                 { "Rufus", ("4.5", "https://github.com/pbatard/rufus/releases/download/v4.5/rufus-4.5.exe", "Pete Batard") },
                 { "OBS Studio", ("31.0.1", "https://github.com/obsproject/obs-studio/releases/download/31.0.1/OBS-Studio-31.0.1-Windows-Installer.exe", "OBS Project") },
-                { "WinRAR", ("7.01", "https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-x64-701ru.exe", "RARLab") },
                 { "Zoom", ("6.1.5", "https://zoom.us/client/latest/ZoomInstallerFull.exe", "Zoom Video Communications") },
                 { "Docker Desktop", ("4.33.1", "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe", "Docker Inc.") },
                 { "AnyDesk", ("9.0.0", "https://download.anydesk.com/AnyDesk.exe", "AnyDesk Software GmbH") },
                 { "Git", ("2.46.0", "https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe", "The Git Project") },
-                { "IObit Uninstaller", ("13.6.0.4", "https://download.iobit.com/iobituninstaller.exe", "IObit") }
+                { "IObit Uninstaller", ("13.6.0.4", "https://download.iobit.com/iobituninstaller.exe", "IObit") },
+                { "ShareX", ("16.1.0", "https://github.com/ShareX/ShareX/releases/download/v16.1.0/ShareX-16.1.0-setup.exe", "ShareX Team") },
+                { "K-Lite Codec Pack", ("18.5.0", "https://files3.codecguide.com/K-Lite_Codec_Pack_1850_Standard.exe", "Codec Guide") },
+                { "Audacity", ("3.6.2", "https://github.com/audacity/audacity/releases/download/Audacity-3.6.2/audacity-win-3.6.2-64bit.exe", "Audacity Team") },
+                { "GIMP", ("2.10.38", "https://download.gimp.org/gimp/v2.10/windows/gimp-2.10.38-setup.exe", "The GIMP Team") },
+                { "Blender", ("4.2.1", "https://download.blender.org/release/Blender4.2/blender-4.2.1-windows-x64.msi", "Blender Foundation") },
+                { "HandBrake", ("1.8.2", "https://github.com/HandBrake/HandBrake/releases/download/1.8.2/HandBrake-1.8.2-x86_64-Win_GUI.exe", "HandBrake Team") }
             };
 
         private SoftwareUpdaterService()
@@ -65,7 +73,7 @@ namespace StormSystemOptimizer.Services
             LoadBlacklist();
 
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/0.2.5");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/0.3.0");
             _httpClient.Timeout = TimeSpan.FromMinutes(5);
         }
 
@@ -181,7 +189,7 @@ namespace StormSystemOptimizer.Services
                     }
                 }
 
-                // 3. Multi-repository Check against Cloud Catalog for CIS/Vendor software (Bitrix24, Telegram, etc.)
+                // 3. Multi-repository Check against Cloud Catalog for CIS/Vendor software (WinRAR, Bitrix24, Telegram, etc.)
                 foreach (var item in list)
                 {
                     foreach (var kvp in _cloudCatalog)
@@ -346,22 +354,49 @@ namespace StormSystemOptimizer.Services
             return ver;
         }
 
-        public async Task<(bool success, string msg)> SilentUpdateAppAsync(SoftwareUpdateItem item, Action<string>? progressCallback = null)
+        public async Task<(bool success, string msg)> SilentUpdateAppAsync(SoftwareUpdateItem item, Action<int, string>? progressCallback = null)
         {
             if (item == null) return (false, "Программа не выбрана");
+
+            item.IsUpdating = true;
+            item.UpdateProgress = 10;
+            item.UpdateProgressText = "Подготовка...";
 
             string pkgId = item.PackageId;
             string name = item.Name;
             string targetVer = item.AvailableVersion;
 
-            progressCallback?.Invoke($"Подготовка тихого обновления «{name}»...");
+            progressCallback?.Invoke(15, $"Подготовка тихого обновления «{name}»...");
 
-            // 1. Try Winget Silent Upgrade if PackageId is valid
+            // 1. Try Direct Cloud Catalog Installer Download & Silent Execution (WinRAR, Bitrix24, Telegram, etc.)
+            foreach (var kvp in _cloudCatalog)
+            {
+                if (name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    kvp.Key.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    string downloadUrl = kvp.Value.DownloadUrl;
+                    if (!string.IsNullOrEmpty(downloadUrl) && (downloadUrl.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || downloadUrl.EndsWith(".msi", StringComparison.OrdinalIgnoreCase) || downloadUrl.Contains("/dl/") || downloadUrl.Contains("/getpc") || downloadUrl.Contains("win64") || downloadUrl.Contains("windows")))
+                    {
+                        var res = await DownloadAndSilentInstallAsync(item, name, downloadUrl, targetVer, progressCallback);
+                        if (res.success)
+                        {
+                            item.InstalledVersion = targetVer;
+                            item.IsUpdateAvailable = false;
+                            item.IsUpdating = false;
+                            return res;
+                        }
+                    }
+                }
+            }
+
+            // 2. Try Winget Silent Upgrade if PackageId is valid
             if (!string.IsNullOrEmpty(pkgId) && pkgId.Contains(".") && !Guid.TryParse(pkgId, out _))
             {
                 try
                 {
-                    progressCallback?.Invoke($"Тихое обновление через Winget ({pkgId})...");
+                    item.UpdateProgress = 40;
+                    item.UpdateProgressText = "Установка 40%...";
+                    progressCallback?.Invoke(40, $"Тихое обновление через Winget ({pkgId})...");
 
                     var psi = new ProcessStartInfo
                     {
@@ -385,6 +420,7 @@ namespace StormSystemOptimizer.Services
                         {
                             item.InstalledVersion = targetVer;
                             item.IsUpdateAvailable = false;
+                            item.IsUpdating = false;
                             return (true, $"«{name}» успешно тихо обновлена до v{targetVer}!");
                         }
                     }
@@ -392,30 +428,12 @@ namespace StormSystemOptimizer.Services
                 catch { }
             }
 
-            // 2. Direct Cloud Catalog Installer Download & Silent Execution (Bitrix24, Telegram, etc.)
-            foreach (var kvp in _cloudCatalog)
-            {
-                if (name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    kvp.Key.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    string downloadUrl = kvp.Value.DownloadUrl;
-                    if (!string.IsNullOrEmpty(downloadUrl) && (downloadUrl.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || downloadUrl.EndsWith(".msi", StringComparison.OrdinalIgnoreCase) || downloadUrl.Contains("/dl/") || downloadUrl.Contains("/getpc") || downloadUrl.Contains("win64") || downloadUrl.Contains("windows")))
-                    {
-                        var res = await DownloadAndSilentInstallAsync(name, downloadUrl, targetVer, progressCallback);
-                        if (res.success)
-                        {
-                            item.InstalledVersion = targetVer;
-                            item.IsUpdateAvailable = false;
-                            return res;
-                        }
-                    }
-                }
-            }
-
             // 3. Fallback: try Winget search by app name
             try
             {
-                progressCallback?.Invoke($"Поиск прямого инсталлятора «{name}» в репозитории...");
+                item.UpdateProgress = 60;
+                item.UpdateProgressText = "Поиск инсталлятора...";
+                progressCallback?.Invoke(60, $"Поиск прямого инсталлятора «{name}» в репозитории...");
                 var psiSearch = new ProcessStartInfo
                 {
                     FileName = "winget.exe",
@@ -435,16 +453,18 @@ namespace StormSystemOptimizer.Services
                     {
                         item.InstalledVersion = targetVer;
                         item.IsUpdateAvailable = false;
+                        item.IsUpdating = false;
                         return (true, $"«{name}» успешно тихо установлена и обновлена!");
                     }
                 }
             }
             catch { }
 
+            item.IsUpdating = false;
             return (false, $"Не удалось выполнить тихое обновление для «{name}». Возможно, требуются права администратора или инсталлятор недоступен.");
         }
 
-        private async Task<(bool success, string msg)> DownloadAndSilentInstallAsync(string name, string url, string targetVer, Action<string>? progressCallback)
+        private async Task<(bool success, string msg)> DownloadAndSilentInstallAsync(SoftwareUpdateItem item, string name, string url, string targetVer, Action<int, string>? progressCallback)
         {
             try
             {
@@ -456,7 +476,10 @@ namespace StormSystemOptimizer.Services
                 string safeName = string.Join("_", name.Split(Path.GetInvalidFileNameChars()));
                 string installerPath = Path.Combine(tempDir, $"{safeName}_v{targetVer}{ext}");
 
-                progressCallback?.Invoke($"Скачивание инсталлятора «{name}»...");
+                item.UpdateProgress = 25;
+                item.UpdateProgressText = "Скачивание 25%...";
+                progressCallback?.Invoke(25, $"Скачивание инсталлятора «{name}»...");
+
                 using (var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
                 {
                     response.EnsureSuccessStatusCode();
@@ -465,7 +488,10 @@ namespace StormSystemOptimizer.Services
                     await stream.CopyToAsync(fileStream);
                 }
 
-                progressCallback?.Invoke($"Фоновая тихая установка «{name}»...");
+                item.UpdateProgress = 70;
+                item.UpdateProgressText = "Установка 70%...";
+                progressCallback?.Invoke(70, $"Фоновая тихая установка «{name}»...");
+
                 ProcessStartInfo psi;
                 if (isMsi)
                 {
@@ -494,6 +520,9 @@ namespace StormSystemOptimizer.Services
                     bool finished = await Task.Run(() => proc.WaitForExit(180000));
                     try { File.Delete(installerPath); } catch { }
 
+                    item.UpdateProgress = 100;
+                    item.UpdateProgressText = "100% Готово";
+
                     if (finished && (proc.ExitCode == 0 || proc.ExitCode == 3010))
                     {
                         return (true, $"«{name}» успешно тихо обновлена до v{targetVer}!");
@@ -517,7 +546,7 @@ namespace StormSystemOptimizer.Services
             foreach (var item in toUpdate)
             {
                 progressCallback?.Invoke($"Обновление ({updated + failed + 1}/{toUpdate.Count}): {item.Name}...");
-                var (ok, _) = await SilentUpdateAppAsync(item, progressCallback);
+                var (ok, _) = await SilentUpdateAppAsync(item, (pct, txt) => progressCallback?.Invoke(txt));
                 if (ok) updated++;
                 else failed++;
             }
