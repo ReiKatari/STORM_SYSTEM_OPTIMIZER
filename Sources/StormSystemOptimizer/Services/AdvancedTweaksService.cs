@@ -251,12 +251,23 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                using var fsKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem", false);
+                using var fsKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64)
+                    .OpenSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem", false);
                 if (fsKey != null)
                 {
                     var ioRing = fsKey.GetValue("Win32IoRingFlags");
                     var memUsage = fsKey.GetValue("NtfsMemoryUsage");
-                    if ((ioRing is int io && io == 1) || (memUsage is int m && m == 2)) return true;
+                    var bypass = fsKey.GetValue("NtfsDisable8dot3NameCreation");
+                    if (ioRing != null || (memUsage != null && Convert.ToInt32(memUsage) >= 2) || (bypass != null && Convert.ToInt32(bypass) == 1))
+                        return true;
+                }
+
+                using var storageKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64)
+                    .OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Storage", false);
+                if (storageKey != null)
+                {
+                    var bypassIo = storageKey.GetValue("BypassIoAllowed");
+                    if (bypassIo != null && Convert.ToInt32(bypassIo) == 1) return true;
                 }
             }
             catch { }

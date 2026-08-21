@@ -117,23 +117,71 @@
                                         <TextBlock Text="Официальный репозиторий" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                                     </StackPanel>
 
-                                    <!-- Action Buttons -->
+                                    <!-- Action Buttons / Live Progress Indicator -->
                                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                        <!-- Update Button if update available -->
-                                        <Button Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolToVisConverter}}"
-                                                Command="{Binding DataContext.SilentUpdateAppCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        
+                                        <!-- 1. LIVE PROGRESS INDICATOR (When IsUpdating == true) -->
+                                        <Border Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVisConverter}}"
+                                                Background="#1E293B" BorderBrush="#00D2FF" BorderThickness="1" CornerRadius="8"
+                                                Width="140" Height="32" Padding="2" Margin="0,0,6,0">
+                                            <Grid>
+                                                <ProgressBar Value="{Binding UpdateProgress}" Maximum="100" Minimum="0"
+                                                             Height="26" BorderThickness="0" Background="Transparent" Foreground="#00D2FF">
+                                                    <ProgressBar.Template>
+                                                        <ControlTemplate TargetType="ProgressBar">
+                                                            <Grid>
+                                                                <Border Background="#101827" CornerRadius="6"/>
+                                                                <Border x:Name="PART_Track"/>
+                                                                <Border x:Name="PART_Indicator" HorizontalAlignment="Left" CornerRadius="6">
+                                                                    <Border.Background>
+                                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                                            <GradientStop Color="#00D2FF" Offset="0"/>
+                                                                            <GradientStop Color="#3B82F6" Offset="1"/>
+                                                                        </LinearGradientBrush>
+                                                                    </Border.Background>
+                                                                </Border>
+                                                            </Grid>
+                                                        </ControlTemplate>
+                                                    </ProgressBar.Template>
+                                                </ProgressBar>
+                                                <TextBlock Text="{Binding UpdateProgressText}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFF"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                    <TextBlock.Effect>
+                                                        <DropShadowEffect Color="#000000" BlurRadius="3" ShadowDepth="1" Opacity="0.9"/>
+                                                    </TextBlock.Effect>
+                                                </TextBlock>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- 2. UPDATE BUTTON (When IsUpdateAvailable == true && IsUpdating == false) -->
+                                        <Button Command="{Binding DataContext.SilentUpdateAppCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding}"
-                                                Style="{StaticResource StormHeroButton}"
-                                                Padding="12,8"
+                                                Width="140" Height="32"
+                                                Padding="0"
                                                 Margin="0,0,6,0">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Path Data="{StaticResource GeoLog}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform" Margin="0,0,4,0"/>
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource StormHeroButton}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <MultiDataTrigger>
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition Binding="{Binding IsUpdateAvailable}" Value="True"/>
+                                                                <Condition Binding="{Binding IsUpdating}" Value="False"/>
+                                                            </MultiDataTrigger.Conditions>
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </MultiDataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource GeoLog}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform" Margin="0,0,5,0"/>
                                                 <TextBlock Text="⚡ Обновить тихо" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
                                             </StackPanel>
                                         </Button>
 
-                                        <!-- Actual Badge if up to date and not blacklisted -->
-                                        <Border Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,6,0">
+                                        <!-- 3. ACTUAL BADGE (When IsUpdateAvailable == false && IsBlacklisted == false && IsUpdating == false) -->
+                                        <Border Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="8"
+                                                Width="140" Height="32" Margin="0,0,6,0">
                                             <Border.Style>
                                                 <Style TargetType="Border">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -142,25 +190,27 @@
                                                             <MultiDataTrigger.Conditions>
                                                                 <Condition Binding="{Binding IsUpdateAvailable}" Value="False"/>
                                                                 <Condition Binding="{Binding IsBlacklisted}" Value="False"/>
+                                                                <Condition Binding="{Binding IsUpdating}" Value="False"/>
                                                             </MultiDataTrigger.Conditions>
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                         </MultiDataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Border.Style>
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Path Data="{StaticResource GeoCheck}" Fill="#10B981" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="Актуальна" FontSize="11" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Border>
 
-                                        <!-- Blacklist Toggle Button -->
+                                        <!-- 4. BLACKLIST TOGGLE BUTTON -->
                                         <Button Command="{Binding DataContext.ToggleBlacklistCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding}"
                                                 Style="{StaticResource StormSecondaryButton}"
-                                                Padding="10,8"
+                                                Height="32" Width="36"
+                                                Padding="0"
                                                 ToolTip="Добавить/удалить из черного списка (игнорировать обновления)">
-                                            <Path Data="{StaticResource GeoLock}" Fill="{DynamicResource TextSecondaryBrush}" Width="11" Height="11" Stretch="Uniform"/>
+                                            <Path Data="{StaticResource GeoLock}" Fill="{DynamicResource TextSecondaryBrush}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Button>
                                     </StackPanel>
                                 </Grid>
