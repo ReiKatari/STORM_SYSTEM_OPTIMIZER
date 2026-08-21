@@ -5,7 +5,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StormSystemOptimizer"
         Title="STORM SYSTEM OPTIMIZER v0.0.8"
-        Icon="pack://application:,,,/Assets/AppIcon.ico"
         Height="820" Width="1240"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource AppBackgroundBrush}">
@@ -34,10 +33,10 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Storm App Icon & Title -->
+            <!-- Storm Logo Badge & Title -->
             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
-                <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="8" Padding="4" Margin="0,0,10,0" VerticalAlignment="Center">
-                    <Image Source="pack://application:,,,/Assets/AppIcon.ico" Width="20" Height="20" RenderOptions.BitmapScalingMode="HighQuality"/>
+                <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradCyan}" Width="15" Height="15" Stretch="Uniform"/>
                 </Border>
                 <TextBlock Text="STORM" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center"/>
                 <TextBlock Text=" SYSTEM OPTIMIZER" FontWeight="SemiBold" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
