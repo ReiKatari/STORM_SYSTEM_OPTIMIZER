@@ -15,6 +15,13 @@ namespace StormSystemOptimizer
         {
             InitializeComponent();
 
+            try
+            {
+                var iconUri = new Uri("pack://application:,,,/Assets/AppIcon.ico", UriKind.RelativeOrAbsolute);
+                this.Icon = System.Windows.Media.Imaging.BitmapFrame.Create(iconUri);
+            }
+            catch { }
+
             Loaded += async (s, e) =>
             {
                 MainContentFrame.Navigate(new DashboardPage());

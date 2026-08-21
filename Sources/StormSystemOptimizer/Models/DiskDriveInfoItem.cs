@@ -54,7 +54,7 @@ namespace StormSystemOptimizer.Models
         private bool _isSsd = true;
 
         [ObservableProperty]
-        private string _fragmentationStatus = "Готов к анализу";
+        private string _fragmentationStatus = "0% (Оптимально)";
 
         public string DriveType => MediaType;
         public string FreeSpaceText => $"{FreeSizeGb:F1} ГБ";
@@ -64,7 +64,7 @@ namespace StormSystemOptimizer.Models
         public string SpaceUsageSummary => $"{UsedSizeGb:F1} ГБ / {TotalSizeGb:F1} ГБ ({UsedPercentage:F0}%)";
         public string FreePercentSummary => $"Свободно {FreeSizeGb:F1} ГБ ({Math.Max(0, 100 - UsedPercentage):F0}%)";
         public string FragmentationSummary => FragmentationStatus;
-        public string OptimizationActionName => IsSsd ? "⚡ TRIM Оптимизация" : "⚡ Дефрагментация";
+        public string OptimizationActionName => IsSsd ? "TRIM Оптимизация" : "Дефрагментация";
         public string FormattedTotal => $"{TotalSizeGb:F1} ГБ";
         public string FormattedFree => $"{FreeSizeGb:F1} ГБ свободно";
     }
