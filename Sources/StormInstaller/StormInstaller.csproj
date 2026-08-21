@@ -13,6 +13,7 @@
     <Product>STORM SYSTEM OPTIMIZER Setup</Product>
     <Company>STORM Software</Company>
     <Description>Установщик официального релиза STORM SYSTEM OPTIMIZER</Description>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
