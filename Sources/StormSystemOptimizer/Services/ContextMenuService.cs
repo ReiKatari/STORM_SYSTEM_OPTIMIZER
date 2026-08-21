@@ -23,6 +23,12 @@ namespace StormSystemOptimizer.Services
 
         [ObservableProperty]
         private bool _isEnabled = true;
+
+        [ObservableProperty]
+        private string _statusText = "Включен";
+
+        [ObservableProperty]
+        private string _statusColor = "#10B981";
     }
 
     public class ContextMenuService
@@ -54,7 +60,7 @@ namespace StormSystemOptimizer.Services
                     if (enableClassic)
                     {
                         using var key = Registry.CurrentUser.CreateSubKey(Win11ClassicMenuKey);
-                        key?.SetValue("", ""); // Empty default value
+                        key?.SetValue("", "");
                     }
                     else
                     {
@@ -70,19 +76,26 @@ namespace StormSystemOptimizer.Services
 
         public List<ContextMenuItem> GetPopularContextMenuItems()
         {
-            var list = new List<ContextMenuItem>
+            var items = new List<ContextMenuItem>
             {
                 new() { Title = "Открыть в Блокноте", Description = "Быстрый просмотр любого файла в блокноте", KeyPath = @"*\shell\OpenWithNotepad", Location = "Все файлы", IsEnabled = CheckRegistryKeyExists(@"*\shell\OpenWithNotepad") },
                 new() { Title = "Копировать путь к файлу", Description = "Копирование полного пути в буфер обмена без кавычек", KeyPath = @"*\shell\CopyPath", Location = "Все файлы", IsEnabled = CheckRegistryKeyExists(@"*\shell\CopyPath") },
                 new() { Title = "Панель управления God Mode", Description = "Доступ ко всем системным настройкам Windows в один клик", KeyPath = @"DesktopBackground\Shell\GodMode", Location = "Рабочий стол", IsEnabled = CheckRegistryKeyExists(@"DesktopBackground\Shell\GodMode") },
                 new() { Title = "Открыть Командную строку здесь", Description = "Запуск классической консоли cmd в текущей папке", KeyPath = @"Directory\Background\shell\cmdprompt", Location = "Папки и Рабочий стол", IsEnabled = CheckRegistryKeyExists(@"Directory\Background\shell\cmdprompt") },
-                new() { Title = "Передать на устройство воспроизведения", Description = "Потоковая трансляция медиафайлов по сети DLNA", KeyPath = @"*\shellex\ContextMenuHandlers\PlayTo", Location = "Медиафайлы", IsEnabled = !CheckRegistryKeyExists(@"*\shellex\ContextMenuHandlers\PlayTo\Blocked") },
+                new() { Title = "Передать на устройство воспроизведения", Description = "Потоковая трансляция медиафайлов по сети DLNA", KeyPath = @"*\shellex\ContextMenuHandlers\PlayTo", Location = "Медиафайлы", IsEnabled = true },
                 new() { Title = "Предоставить общий доступ", Description = "Мастер публикации файлов в локальной сети", KeyPath = @"*\shellex\ContextMenuHandlers\Sharing", Location = "Файлы и папки", IsEnabled = true },
                 new() { Title = "Восстановить прежнюю версию", Description = "История файлов и теневые копии тома", KeyPath = @"AllFilesystemObjects\shellex\ContextMenuHandlers\{596ab062-b4d2-4215-9f74-e9109b0a8153}", Location = "Файлы", IsEnabled = true },
                 new() { Title = "Отправить в сторонние приложения", Description = "Меню быстрой отправки в адресаты", KeyPath = @"AllFilesystemObjects\shellex\ContextMenuHandlers\SendTo", Location = "Файлы и папки", IsEnabled = true },
                 new() { Title = "Закрепить на панели быстрого доступа", Description = "Закрепление в левой панели Проводника", KeyPath = @"Folder\ShellEx\ContextMenuHandlers\PintoHome", Location = "Папки", IsEnabled = true }
             };
-            return list;
+
+            foreach (var item in items)
+            {
+                item.StatusText = item.IsEnabled ? "Включен" : "Отключен";
+                item.StatusColor = item.IsEnabled ? "#10B981" : "#94A3B8";
+            }
+
+            return items;
         }
 
         public async Task<bool> ToggleItemStateAsync(ContextMenuItem item)
@@ -152,6 +165,9 @@ namespace StormSystemOptimizer.Services
                             Registry.ClassesRoot.DeleteSubKeyTree(@"Directory\Background\shell\cmdprompt", false);
                         }
                     }
+
+                    item.StatusText = item.IsEnabled ? "Включен" : "Отключен";
+                    item.StatusColor = item.IsEnabled ? "#10B981" : "#94A3B8";
 
                     RestartExplorer();
                     return true;

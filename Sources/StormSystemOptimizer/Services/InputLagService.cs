@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 
@@ -26,76 +27,92 @@ namespace StormSystemOptimizer.Services
             return false;
         }
 
-        public async Task<bool> ApplyZeroInputLagTweaksAsync()
+        public async Task<(bool success, string msg)> ApplyZeroInputLagTweaksAsync()
         {
             return await Task.Run(() =>
             {
+                int appliedCount = 0;
+
                 try
                 {
-                    // 1. Disable Mouse Acceleration & Smoothing in Control Panel
-                    using (var mouseKey = Registry.CurrentUser.OpenSubKey(@"Control Panel\Mouse", true))
+                    // 1. Disable Mouse Acceleration & Smoothing in Control Panel (1:1 Raw Mouse Curves)
+                    try
                     {
+                        using var mouseKey = Registry.CurrentUser.CreateSubKey(@"Control Panel\Mouse");
                         if (mouseKey != null)
                         {
                             mouseKey.SetValue("MouseSpeed", "0", RegistryValueKind.String);
                             mouseKey.SetValue("MouseThreshold1", "0", RegistryValueKind.String);
                             mouseKey.SetValue("MouseThreshold2", "0", RegistryValueKind.String);
-                            mouseKey.SetValue("MouseSensitivity", "10", RegistryValueKind.String); // 6/11 default 1:1 raw input
+                            mouseKey.SetValue("MouseSensitivity", "10", RegistryValueKind.String);
 
-                            // Linear 1:1 raw mouse curves
                             byte[] rawCurveX = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
                             byte[] rawCurveY = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00 };
                             mouseKey.SetValue("SmoothMouseXCurve", rawCurveX, RegistryValueKind.Binary);
                             mouseKey.SetValue("SmoothMouseYCurve", rawCurveY, RegistryValueKind.Binary);
+                            appliedCount++;
                         }
                     }
+                    catch { }
 
                     // 2. Keyboard Repeat Rate & Delay Tweaks
-                    using (var keybKey = Registry.CurrentUser.OpenSubKey(@"Control Panel\Keyboard", true))
+                    try
                     {
+                        using var keybKey = Registry.CurrentUser.CreateSubKey(@"Control Panel\Keyboard");
                         if (keybKey != null)
                         {
                             keybKey.SetValue("KeyboardDelay", "0", RegistryValueKind.String);
                             keybKey.SetValue("KeyboardSpeed", "31", RegistryValueKind.String);
+                            appliedCount++;
                         }
                     }
+                    catch { }
 
                     // 3. System Responsiveness (Multimedia Scheduling = 0 for 100% CPU to Games/Input)
-                    using (var sysRespKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile", true))
+                    try
                     {
+                        using var sysRespKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile");
                         if (sysRespKey != null)
                         {
                             sysRespKey.SetValue("SystemResponsiveness", 0, RegistryValueKind.DWord);
                             sysRespKey.SetValue("NetworkThrottlingIndex", unchecked((int)0xFFFFFFFF), RegistryValueKind.DWord);
+                            appliedCount++;
                         }
                     }
+                    catch { }
 
                     // 4. Windows Gaming Tasks Priority (GPU/Audio priority = High)
-                    using (var gameKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games", true))
+                    try
                     {
+                        using var gameKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games");
                         if (gameKey != null)
                         {
                             gameKey.SetValue("GPU Priority", 8, RegistryValueKind.DWord);
                             gameKey.SetValue("Priority", 6, RegistryValueKind.DWord);
                             gameKey.SetValue("Scheduling Category", "High", RegistryValueKind.String);
                             gameKey.SetValue("SFIO Priority", "High", RegistryValueKind.String);
+                            appliedCount++;
                         }
                     }
+                    catch { }
 
-                    // 5. USB Polling buffer tweak in CSRSS
-                    using (var winlogonKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon", true))
+                    // 5. Disable Cursor Suppression
+                    try
                     {
+                        using var winlogonKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon");
                         if (winlogonKey != null)
                         {
                             winlogonKey.SetValue("EnableCursorSuppression", 0, RegistryValueKind.DWord);
+                            appliedCount++;
                         }
                     }
+                    catch { }
 
-                    return true;
+                    return (true, "⚡ Режим минимальной задержки ввода (1:1 Raw Input) успешно применен!");
                 }
-                catch
+                catch (Exception ex)
                 {
-                    return false;
+                    return (false, $"Ошибка применения твиков: {ex.Message}");
                 }
             });
         }

@@ -23,14 +23,14 @@
                             <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradRose}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Оптимизация Input Lag и периферии" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Оптимизация задержки ввода и периферии" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Устранение задержек мыши и клавиатуры, отключение скрытой акселерации Windows, линейная кривая отклика 1:1 и высокий приоритет системных прерываний."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
                     </StackPanel>
 
                     <Button Grid.Column="1" Command="{Binding ApplyUltraLowLatencyInputCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" VerticalAlignment="Center">
-                        <TextBlock Text="⚡ Применить Ultra-Low Latency" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="⚡ Применить режим минимальной задержки" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                     </Button>
                 </Grid>
             </Border>
@@ -40,7 +40,7 @@
                 <!-- 1. Raw Mouse Input -->
                 <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,8,0">
                     <StackPanel>
-                        <TextBlock Text="🖱️ Прямой ввод 1:1 (Raw Input)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="🖱️ Прямой ввод 1:1 (Без акселерации)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
                         <TextBlock Text="Отключает кривые сглаживания и повышенную точность указателя (Enhanced Pointer Precision), давая пиксельную точность аима в шутерах."
                                    FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
@@ -49,8 +49,8 @@
                 <!-- 2. Keyboard Repeat Delay -->
                 <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="4,0,4,0">
                     <StackPanel>
-                        <TextBlock Text="⌨️ Задержка повтора клавиш" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="Устанавливает максимальную скорость отклика клавиатуры (KeyboardSpeed 31, Delay 0) для мгновенных стрейфов."
+                        <TextBlock Text="⌨️ Ускорение отклика клавиатуры" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Устанавливает максимальную скорость повтора клавиш (скорость 31, задержка 0) для мгновенных стрейфов."
                                    FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
                 </Border>
@@ -58,7 +58,7 @@
                 <!-- 3. System Responsiveness -->
                 <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="8,0,0,0">
                     <StackPanel>
-                        <TextBlock Text="🎮 Multimedia System Profile" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="🎮 Приоритет игрового ввода" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
                         <TextBlock Text="Резервирует 100% времени планировщика Windows для игр и системного ввода, отключая фоновое троттлинг-дросселирование сети."
                                    FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>

@@ -32,7 +32,7 @@ namespace StormSystemOptimizer.ViewModels
         public async Task CreateRestorePointAsync()
         {
             StatusMessage = "Создание системной точки восстановления Windows...";
-            var (ok, msg) = await BackupVaultService.Instance.CreateRestorePointAsync("STORM_Optimization_RestorePoint");
+            var (ok, msg) = await BackupVaultService.Instance.CreateRestorePointAsync("STORM_OPTIMIZATION_RESTOREPOINT");
             StatusMessage = msg;
             TrayService.Instance.ShowNotification("Точка восстановления 🛡️", msg);
             LoadBackups();

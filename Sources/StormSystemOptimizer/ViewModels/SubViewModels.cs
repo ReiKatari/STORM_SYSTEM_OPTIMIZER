@@ -257,22 +257,30 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (item == null) return;
             DnsStatus = $"Применение {item.ProviderName}...";
+            DnsBenchmarkService.SetAppliedDns(item.PrimaryDns, item.SecondaryDns);
+
+            // Instantly update active states in UI collection
+            foreach (var d in DnsServers)
+            {
+                d.IsActive = (d == item || d.PrimaryDns == item.PrimaryDns);
+            }
+            var custom = DnsServers.FirstOrDefault(x => x.ProviderName.StartsWith("Текущий DNS системы", StringComparison.OrdinalIgnoreCase));
+            if (custom != null && item != custom)
+            {
+                DnsServers.Remove(custom);
+            }
+
+            ActiveDnsProvider = item.ProviderName;
+            if (NetworkInfo != null)
+            {
+                NetworkInfo.DnsServers = item.DnsIpsText;
+            }
+
             bool ok = await DnsBenchmarkService.Instance.ApplyDnsToActiveAdapterAsync(item.PrimaryDns, item.SecondaryDns);
             if (ok)
             {
-                ActiveDnsProvider = item.ProviderName;
                 DnsStatus = $"DNS сервер {item.ProviderName} успешно установлен!";
                 TrayService.Instance.ShowNotification("DNS изменен", DnsStatus);
-
-                // Instantly re-mark active items
-                var list = DnsBenchmarkService.Instance.GetDefaultDnsProviders();
-                DnsServers.Clear();
-                foreach (var d in list)
-                {
-                    DnsServers.Add(d);
-                }
-
-                await LoadNetworkDataAsync();
             }
         }
 
