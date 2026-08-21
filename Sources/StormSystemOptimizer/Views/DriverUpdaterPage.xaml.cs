@@ -21,6 +21,16 @@ namespace StormSystemOptimizer.Views
             if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Видеокарта");
         }
 
+        private void CatCpu_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Процессор");
+        }
+
+        private void CatMobo_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Материнская плата");
+        }
+
         private void CatNet_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Сеть");
@@ -38,7 +48,7 @@ namespace StormSystemOptimizer.Views
 
         private void CatChipset_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Чипсет");
+            if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Чипсет & USB");
         }
     }
 }

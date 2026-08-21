@@ -62,14 +62,16 @@
 
         <!-- Categories Filter Bar -->
         <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="20,0,20,12">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <RadioButton Content="Все устройства" IsChecked="True" Style="{StaticResource NavRadioButtonStyle}" Click="CatAll_Click" Margin="0,0,8,0" Padding="12,6"/>
-                <RadioButton Content="🎮 Видеокарта" Style="{StaticResource NavRadioButtonStyle}" Click="CatGpu_Click" Margin="0,0,8,0" Padding="12,6"/>
-                <RadioButton Content="🌐 Сеть и Wi-Fi" Style="{StaticResource NavRadioButtonStyle}" Click="CatNet_Click" Margin="0,0,8,0" Padding="12,6"/>
-                <RadioButton Content="🔊 Звук" Style="{StaticResource NavRadioButtonStyle}" Click="CatAudio_Click" Margin="0,0,8,0" Padding="12,6"/>
-                <RadioButton Content="💾 Накопители" Style="{StaticResource NavRadioButtonStyle}" Click="CatDisk_Click" Margin="0,0,8,0" Padding="12,6"/>
-                <RadioButton Content="⚡ Чипсет &amp; USB" Style="{StaticResource NavRadioButtonStyle}" Click="CatChipset_Click" Margin="0,0,8,0" Padding="12,6"/>
-            </StackPanel>
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <RadioButton Content="Все устройства" IsChecked="True" Style="{StaticResource NavRadioButtonStyle}" Click="CatAll_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="🎮 Видеокарта" Style="{StaticResource NavRadioButtonStyle}" Click="CatGpu_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="⚡ Процессор" Style="{StaticResource NavRadioButtonStyle}" Click="CatCpu_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="🖥️ Мат. плата" Style="{StaticResource NavRadioButtonStyle}" Click="CatMobo_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="🌐 Сеть и Wi-Fi" Style="{StaticResource NavRadioButtonStyle}" Click="CatNet_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="🔊 Звук" Style="{StaticResource NavRadioButtonStyle}" Click="CatAudio_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="💾 Накопители" Style="{StaticResource NavRadioButtonStyle}" Click="CatDisk_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="🔌 Чипсет &amp; USB" Style="{StaticResource NavRadioButtonStyle}" Click="CatChipset_Click" Margin="0,0,6,4" Padding="10,5"/>
+            </WrapPanel>
         </Border>
 
         <!-- Drivers List -->

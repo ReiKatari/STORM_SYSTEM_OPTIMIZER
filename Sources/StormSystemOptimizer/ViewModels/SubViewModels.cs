@@ -587,8 +587,11 @@ namespace StormSystemOptimizer.ViewModels
         {
             try
             {
-                IsMsiActive = AdvancedTweaksService.Instance.IsMsiModeActive();
-                IsDirectStorageActive = AdvancedTweaksService.Instance.IsDirectStorageOptimized();
+                bool msiRegistry = AdvancedTweaksService.Instance.IsMsiModeActive();
+                bool dsRegistry = AdvancedTweaksService.Instance.IsDirectStorageOptimized();
+
+                IsMsiActive = msiRegistry;
+                IsDirectStorageActive = dsRegistry;
 
                 if (File.Exists(_stateFilePath))
                 {
@@ -596,6 +599,8 @@ namespace StormSystemOptimizer.ViewModels
                     var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, bool>>(json);
                     if (dict != null)
                     {
+                        if (dict.TryGetValue("IsMsiActive", out bool vMsi)) IsMsiActive = vMsi || msiRegistry;
+                        if (dict.TryGetValue("IsDirectStorageActive", out bool vDs)) IsDirectStorageActive = vDs || dsRegistry;
                         if (dict.TryGetValue("IsStandbyPurged", out bool v1)) IsStandbyPurged = v1;
                         if (dict.TryGetValue("IsSfcChecked", out bool v2)) IsSfcChecked = v2;
                         if (dict.TryGetValue("IsDismChecked", out bool v3)) IsDismChecked = v3;

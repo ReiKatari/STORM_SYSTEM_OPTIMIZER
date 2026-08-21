@@ -114,10 +114,9 @@ namespace StormSystemOptimizer.ViewModels
         public async Task SilentUpdateAppAsync(SoftwareUpdateItem? item)
         {
             if (item == null) return;
-            IsBusy = true;
             StatusText = $"Скачивание и обновление «{item.Name}»...";
 
-            var (success, msg) = await SoftwareUpdaterService.Instance.SilentUpdateAppAsync(item, progress =>
+            var (success, msg) = await SoftwareUpdaterService.Instance.SilentUpdateAppAsync(item, (pct, progress) =>
             {
                 App.Current?.Dispatcher?.Invoke(() => StatusText = progress);
             });
@@ -126,7 +125,6 @@ namespace StormSystemOptimizer.ViewModels
             TrayService.Instance.ShowNotification("Обновление программ ⚡", msg);
 
             ApplyFilter();
-            IsBusy = false;
         }
 
         [RelayCommand]
