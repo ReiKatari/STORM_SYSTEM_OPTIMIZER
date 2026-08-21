@@ -32,20 +32,31 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="Глубокое сканирование и оптимизация" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Глубокое сканирование и оптимизация" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
                         <TextBlock Text="Интеллектуальный анализ кэша, системного мусора, реестра, сетевых логов и настроек конфиденциальности."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
 
                         <!-- Stats badges -->
                         <StackPanel Orientation="Horizontal">
                             <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,10,0">
-                                <StackPanel Orientation="Horizontal">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1A00D2FF" CornerRadius="3" Padding="3" Margin="0,0,6,0">
+                                        <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                                    </Border>
                                     <TextBlock Text="Найдено проблем: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <TextBlock Text="{Binding IssuesCount}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                                 </StackPanel>
                             </Border>
                             <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6">
-                                <StackPanel Orientation="Horizontal">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1AC084FC" CornerRadius="3" Padding="3" Margin="0,0,6,0">
+                                        <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
+                                    </Border>
                                     <TextBlock Text="Освобождаемый объем: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                     <TextBlock Text="{Binding TotalReclaimableText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}"/>
                                 </StackPanel>
@@ -57,14 +68,28 @@
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding StartScanCommand}"
                                 IsEnabled="{Binding IsNotBusy}"
-                                Content="🔍 Начать сканирование"
                                 Style="{StaticResource StormSecondaryButton}"
-                                Margin="0,0,10,0"/>
+                                Margin="0,0,10,0"
+                                Padding="14,10">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A00D2FF" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="11" Height="11" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Начать сканирование" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
                         <Button Command="{Binding FixSelectedCommand}"
                                 IsEnabled="{Binding CanFix}"
-                                Content="⚡ Оптимизировать выбранное"
-                                Style="{StaticResource StormHeroButton}"/>
+                                Style="{StaticResource StormHeroButton}"
+                                Padding="16,10">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#33FFFFFF" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDashboard}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Оптимизировать выбранное" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -74,7 +99,12 @@
                     Visibility="{Binding IsScanning, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel>
                     <Grid Margin="0,0,0,8">
-                        <TextBlock Text="{Binding CurrentScanCategory}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1A00D2FF" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="{Binding CurrentScanCategory}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </StackPanel>
                         <TextBlock Text="{Binding ScanProgress, StringFormat='{}{0}%'}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
                     </Grid>
                     <ProgressBar Value="{Binding ScanProgress}" Maximum="100" Height="8" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderThickness="0" Margin="0,0,0,8"/>

@@ -16,7 +16,12 @@
             <!-- Header -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,20">
                 <StackPanel>
-                    <TextBlock Text="Настройки и Обновления" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradPurple}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Настройки и Обновления" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
                     <TextBlock Text="Выбор темы визуального оформления, параметры интеграции с Windows и проверка обновлений." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Border>
@@ -30,9 +35,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Margin="0,0,16,0">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                            <TextBlock Text="🔄 Обновления программы" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2" Margin="10,0,0,0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6" VerticalAlignment="Center">
+                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Обновления программы" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding AppVersion}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                             </Border>
                         </StackPanel>
@@ -45,19 +53,38 @@
                     <!-- Update Action Buttons -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding CheckForUpdatesCommand}"
-                                Content="↺ Проверить"
                                 Style="{StaticResource StormSecondaryButton}"
-                                Margin="0,0,8,0"/>
+                                Margin="0,0,8,0"
+                                Padding="12,8">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Проверить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
                         <Button Command="{Binding InstallUpdateCommand}"
-                                Content="⚡ Обновить сейчас"
-                                Style="{StaticResource StormHeroButton}"/>
+                                Style="{StaticResource StormHeroButton}"
+                                Padding="16,8">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#33FFFFFF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDashboard}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Обновить сейчас" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
 
             <!-- Theme Picker Cards -->
-            <TextBlock Text="Визуальные темы оформления" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradPurple}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Визуальные темы оформления" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
 
             <Grid Margin="0,0,0,24">
                 <Grid.ColumnDefinitions>
@@ -70,7 +97,9 @@
                 <!-- Storm Dark -->
                 <Button Click="BtnThemeDark_Click" Grid.Column="0" Margin="0,0,8,0" Style="{StaticResource StormSecondaryButton}" Background="#181F2C" Padding="14">
                     <StackPanel HorizontalAlignment="Center">
-                        <Ellipse Width="24" Height="24" Fill="#00D2FF" Margin="0,0,0,8"/>
+                        <Border Background="#1A00D2FF" BorderBrush="#00D2FF" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,8">
+                            <Ellipse Width="10" Height="10" Fill="#00D2FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                         <TextBlock Text="STORM DARK" FontSize="12" FontWeight="Bold" Foreground="#F1F5F9" HorizontalAlignment="Center"/>
                         <TextBlock Text="Тёмный кибер" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Center"/>
                     </StackPanel>
@@ -79,7 +108,9 @@
                 <!-- Storm Night -->
                 <Button Click="BtnThemeNight_Click" Grid.Column="1" Margin="4,0,4,0" Style="{StaticResource StormSecondaryButton}" Background="#0A0B10" Padding="14">
                     <StackPanel HorizontalAlignment="Center">
-                        <Ellipse Width="24" Height="24" Fill="#00F0FF" Margin="0,0,0,8"/>
+                        <Border Background="#1A00F0FF" BorderBrush="#00F0FF" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,8">
+                            <Ellipse Width="10" Height="10" Fill="#00F0FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                         <TextBlock Text="STORM NIGHT" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
                         <TextBlock Text="Чёрный OLED" FontSize="10" Foreground="#A1A1AA" HorizontalAlignment="Center"/>
                     </StackPanel>
@@ -88,7 +119,9 @@
                 <!-- Storm Day -->
                 <Button Click="BtnThemeDay_Click" Grid.Column="2" Margin="4,0,4,0" Style="{StaticResource StormSecondaryButton}" Background="#FFFFFF" Padding="14">
                     <StackPanel HorizontalAlignment="Center">
-                        <Ellipse Width="24" Height="24" Fill="#0284C7" Margin="0,0,0,8"/>
+                        <Border Background="#1A0284C7" BorderBrush="#0284C7" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,8">
+                            <Ellipse Width="10" Height="10" Fill="#0284C7" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                         <TextBlock Text="STORM DAY" FontSize="12" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
                         <TextBlock Text="Светлая" FontSize="10" Foreground="#64748B" HorizontalAlignment="Center"/>
                     </StackPanel>
@@ -97,7 +130,9 @@
                 <!-- Storm Midnight -->
                 <Button Click="BtnThemeMidnight_Click" Grid.Column="3" Margin="8,0,0,0" Style="{StaticResource StormSecondaryButton}" Background="#15112B" Padding="14">
                     <StackPanel HorizontalAlignment="Center">
-                        <Ellipse Width="24" Height="24" Fill="#A855F7" Margin="0,0,0,8"/>
+                        <Border Background="#1AA855F7" BorderBrush="#A855F7" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,8">
+                            <Ellipse Width="10" Height="10" Fill="#A855F7" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                         <TextBlock Text="STORM MIDNIGHT" FontSize="12" FontWeight="Bold" Foreground="#FAF5FF" HorizontalAlignment="Center"/>
                         <TextBlock Text="Аметистовая" FontSize="10" Foreground="#C084FC" HorizontalAlignment="Center"/>
                     </StackPanel>
@@ -107,8 +142,13 @@
             <!-- App Info Card -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
                 <StackPanel>
-                    <TextBlock Text="О программе" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
-                    <TextBlock Text="STORM SYSTEM OPTIMIZER — Профессиональное решение для глубокого сканирования, управления процессами, тестирования и тонкой настройки Windows." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+                        <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="О программе" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="STORM SYSTEM OPTIMIZER — Профессиональное решение для глубокого сканирования, управления процессами, тестирования и тонкой настройки Windows." FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                         <TextBlock Text="Версия: " FontSize="12" Foreground="{DynamicResource TextMutedBrush}"/>
                         <TextBlock Text="{Binding AppVersion}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>

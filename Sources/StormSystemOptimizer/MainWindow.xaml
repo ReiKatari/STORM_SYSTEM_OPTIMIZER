@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StormSystemOptimizer"
         Title="STORM SYSTEM OPTIMIZER v0.0.6"
-        Height="800" Width="1220"
+        Height="820" Width="1240"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource AppBackgroundBrush}">
 
@@ -35,8 +35,8 @@
 
             <!-- Storm Logo & Title -->
             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,0">
-                <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="6" Padding="4" Margin="0,0,10,0">
-                    <TextBlock Text="⚡" FontSize="16" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,10,0">
+                    <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform"/>
                 </Border>
                 <TextBlock Text="STORM" FontWeight="Bold" FontSize="15" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center"/>
                 <TextBlock Text=" SYSTEM OPTIMIZER" FontWeight="SemiBold" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -50,10 +50,12 @@
                 <!-- Check Updates Button -->
                 <Button Click="BtnCheckUpdates_Click"
                         Style="{StaticResource StormSecondaryButton}"
-                        Padding="12,5">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="↺ " FontSize="12" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                        <TextBlock x:Name="TxtHeaderUpdate" Text="Обновления" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        Padding="12,6">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="#1A00D2FF" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                            <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                        </Border>
+                        <TextBlock x:Name="TxtHeaderUpdate" Text="Проверить обновления" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
@@ -109,7 +111,7 @@
         <!-- Main Layout (Sidebar + Content Frame) -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="240"/>
+                <ColumnDefinition Width="260"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -118,44 +120,142 @@
                 <DockPanel LastChildFill="True">
                     <!-- Footer Item: Settings -->
                     <Border DockPanel.Dock="Bottom" Padding="12,12,12,12">
-                        <RadioButton x:Name="NavSettings" Content="⚙  Настройки и Темы" Tag="Settings"
+                        <RadioButton x:Name="NavSettings" Tag="Settings"
                                      Click="NavButton_Click" GroupName="NavGroup"
-                                     Style="{DynamicResource NavRadioButtonStyle}"/>
+                                     Style="{DynamicResource NavRadioButtonStyle}">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradPurple}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Настройки и Темы" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </RadioButton>
                     </Border>
 
-                    <!-- Navigation Items List with High-Quality Colorful Icons -->
+                    <!-- Navigation Items List with High-Quality Vector Icons & Glowing Badges -->
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="12,16,12,16">
-                            <RadioButton x:Name="NavDashboard" Content="⚡  Панель состояния" Tag="Dashboard"
+                        <StackPanel Margin="12,14,12,14">
+
+                            <!-- Dashboard -->
+                            <RadioButton x:Name="NavDashboard" Tag="Dashboard"
                                          IsChecked="True" Click="NavButton_Click" GroupName="NavGroup"
-                                         Style="{DynamicResource NavRadioButtonStyle}"/>
-                            <RadioButton Content="📊  Менеджер процессов" Tag="Processes"
+                                         Style="{DynamicResource NavRadioButtonStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Панель состояния" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Processes -->
+                            <RadioButton Tag="Processes"
                                          Click="NavButton_Click" GroupName="NavGroup"
-                                         Style="{DynamicResource NavRadioButtonStyle}"/>
-                            <RadioButton Content="💾  Диски и Оптимизация" Tag="Disks"
+                                         Style="{DynamicResource NavRadioButtonStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource GeoProcesses}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Менеджер процессов" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Disks -->
+                            <RadioButton Tag="Disks"
                                          Click="NavButton_Click" GroupName="NavGroup"
-                                         Style="{DynamicResource NavRadioButtonStyle}"/>
-                            <RadioButton Content="🔬  Тесты и Стресс-тест" Tag="Benchmarks"
+                                         Style="{DynamicResource NavRadioButtonStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Диски и Оптимизация" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Benchmarks -->
+                            <RadioButton Tag="Benchmarks"
                                          Click="NavButton_Click" GroupName="NavGroup"
-                                         Style="{DynamicResource NavRadioButtonStyle}"/>
-                            <RadioButton Content="🔍  Глубокое сканирование" Tag="Scanner"
+                                         Style="{DynamicResource NavRadioButtonStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource GeoBenchmarks}" Fill="{StaticResource IconGradPurple}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Тесты и Стресс-тест" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Scanner -->
+                            <RadioButton Tag="Scanner"
                                          Click="NavButton_Click" GroupName="NavGroup"
-                                         Style="{DynamicResource NavRadioButtonStyle}"/>
-                            <RadioButton Content="🚀  Автозагрузка" Tag="Startup"
+                                         Style="{DynamicResource NavRadioButtonStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Глубокое сканирование" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Startup -->
+                            <RadioButton Tag="Startup"
                                          Click="NavButton_Click" GroupName="NavGroup"
-                                         Style="{DynamicResource NavRadioButtonStyle}"/>
-                            <RadioButton Content="⚙  Службы Windows" Tag="Services"
+                                         Style="{DynamicResource NavRadioButtonStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Автозагрузка" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Services -->
+                            <RadioButton Tag="Services"
                                          Click="NavButton_Click" GroupName="NavGroup"
-                                         Style="{DynamicResource NavRadioButtonStyle}"/>
-                            <RadioButton Content="🌐  Ускорение интернета" Tag="Network"
+                                         Style="{DynamicResource NavRadioButtonStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource GeoServices}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Службы Windows" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Network -->
+                            <RadioButton Tag="Network"
                                          Click="NavButton_Click" GroupName="NavGroup"
-                                         Style="{DynamicResource NavRadioButtonStyle}"/>
-                            <RadioButton Content="🛡  Приватность" Tag="Privacy"
+                                         Style="{DynamicResource NavRadioButtonStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Ускорение интернета" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- Privacy -->
+                            <RadioButton Tag="Privacy"
                                          Click="NavButton_Click" GroupName="NavGroup"
-                                         Style="{DynamicResource NavRadioButtonStyle}"/>
-                            <RadioButton Content="🎛  Инструменты ОС" Tag="SystemTools"
+                                         Style="{DynamicResource NavRadioButtonStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource GeoPrivacy}" Fill="{StaticResource IconGradRose}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Приватность" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
+                            <!-- System Tools -->
+                            <RadioButton Tag="SystemTools"
                                          Click="NavButton_Click" GroupName="NavGroup"
-                                         Style="{DynamicResource NavRadioButtonStyle}"/>
+                                         Style="{DynamicResource NavRadioButtonStyle}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                        <Path Data="{StaticResource GeoSystemTools}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <TextBlock Text="Инструменты ОС" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </RadioButton>
+
                         </StackPanel>
                     </ScrollViewer>
                 </DockPanel>
@@ -173,7 +273,9 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Ellipse Width="8" Height="8" Fill="#10B981" Margin="0,0,8,0"/>
+                    <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="10" Width="12" Height="12" Margin="0,0,8,0" VerticalAlignment="Center">
+                        <Ellipse Width="6" Height="6" Fill="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
                     <TextBlock Text="STORM Engine v0.0.6 готов • Система стабильна" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
                 <TextBlock Grid.Column="1" Text="100% Safe Optimization • WPF .NET 8" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
@@ -184,7 +286,7 @@
     <Window.Resources>
         <!-- NavRadioButtonStyle -->
         <Style x:Key="NavRadioButtonStyle" TargetType="RadioButton">
-            <Setter Property="Height" Value="40"/>
+            <Setter Property="Height" Value="42"/>
             <Setter Property="Margin" Value="0,2,0,2"/>
             <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
             <Setter Property="FontSize" Value="13"/>
@@ -193,7 +295,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="bd" Background="Transparent" CornerRadius="8" Padding="14,0">
+                        <Border x:Name="bd" Background="Transparent" CornerRadius="8" Padding="10,0">
                             <ContentPresenter VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
