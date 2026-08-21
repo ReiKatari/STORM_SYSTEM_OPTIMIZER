@@ -66,19 +66,6 @@
             </StackPanel>
         </Border>
 
-        <!-- Apps List -->
-        <!-- Online Checking Progress Banner -->
-        <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="20,0,20,8"
-                Visibility="{Binding IsCheckingOnline, Converter={StaticResource BoolToVisConverter}}">
-            <StackPanel>
-                <Grid Margin="0,0,0,4">
-                    <TextBlock Text="⚡ Фоновый опрос репозиториев Winget и облачных каталогов..." FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                    <TextBlock Text="Идет опрос версий..." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
-                </Grid>
-                <ProgressBar IsIndeterminate="True" Height="4" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderThickness="0"/>
-            </StackPanel>
-        </Border>
-
         <!-- Main Apps List -->
         <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="20,0,20,12">
             <ScrollViewer VerticalScrollBarVisibility="Auto">

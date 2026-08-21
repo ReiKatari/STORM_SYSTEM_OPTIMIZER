@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using StormSystemOptimizer.Models;
@@ -57,6 +56,7 @@ namespace StormSystemOptimizer.Services
                 { "Zoom", ("6.1.5", "https://zoom.us/client/latest/ZoomInstallerFull.exe", "Zoom Video Communications") },
                 { "Docker Desktop", ("4.33.1", "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe", "Docker Inc.") },
                 { "AnyDesk", ("9.0.0", "https://download.anydesk.com/AnyDesk.exe", "AnyDesk Software GmbH") },
+                { "AnyDesk 6.1", ("9.0.0", "https://download.anydesk.com/AnyDesk.exe", "AnyDesk Software GmbH") },
                 { "Git", ("2.46.0", "https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe", "The Git Project") },
                 { "IObit Uninstaller", ("13.6.0.4", "https://download.iobit.com/iobituninstaller.exe", "IObit") },
                 { "ShareX", ("16.1.0", "https://github.com/ShareX/ShareX/releases/download/v16.1.0/ShareX-16.1.0-setup.exe", "ShareX Team") },
@@ -131,7 +131,7 @@ namespace StormSystemOptimizer.Services
                 var installedList = new List<SoftwareUpdateItem>();
                 var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. Scan Installed software from Registry (64-bit, 32-bit, CU) in ~5ms
+                // 1. Ultra-fast In-Memory scan from Registry (64-bit, 32-bit, CU) in ~5ms
                 void ScanRegistryHive(RegistryHive hive, RegistryView view, string subKey)
                 {
                     try
@@ -162,6 +162,8 @@ namespace StormSystemOptimizer.Services
                                 if (seenKeys.Contains(dedupeKey)) continue;
                                 seenKeys.Add(dedupeKey);
 
+                                string appType = name.Contains("Game", StringComparison.OrdinalIgnoreCase) || name.Contains("Launcher", StringComparison.OrdinalIgnoreCase) ? "Игра" : "Программа";
+
                                 installedList.Add(new SoftwareUpdateItem
                                 {
                                     Name = name,
@@ -169,6 +171,7 @@ namespace StormSystemOptimizer.Services
                                     Publisher = pub,
                                     InstalledVersion = ver,
                                     AvailableVersion = ver,
+                                    AppType = appType,
                                     IsUpdateAvailable = false,
                                     IsBlacklisted = IsBlacklisted(subName) || IsBlacklisted(name)
                                 });
@@ -183,40 +186,7 @@ namespace StormSystemOptimizer.Services
                 ScanRegistryHive(RegistryHive.LocalMachine, RegistryView.Registry32, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
                 ScanRegistryHive(RegistryHive.CurrentUser, RegistryView.Registry64, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
 
-                // 2. Fast Non-blocking Winget check with 3s hard timeout
-                var wingetUpdates = GetWingetUpdatesFast();
-                foreach (var wu in wingetUpdates)
-                {
-                    var match = installedList.FirstOrDefault(a => 
-                        a.PackageId.Equals(wu.Id, StringComparison.OrdinalIgnoreCase) ||
-                        a.Name.IndexOf(wu.Name, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        wu.Name.IndexOf(a.Name, StringComparison.OrdinalIgnoreCase) >= 0);
-
-                    if (match != null)
-                    {
-                        match.PackageId = wu.Id;
-                        if (!string.IsNullOrEmpty(wu.AvailableVersion) && IsNewerVersion(wu.AvailableVersion, match.InstalledVersion))
-                        {
-                            match.AvailableVersion = wu.AvailableVersion;
-                            match.IsUpdateAvailable = !match.IsBlacklisted;
-                        }
-                    }
-                    else
-                    {
-                        installedList.Add(new SoftwareUpdateItem
-                        {
-                            Name = wu.Name,
-                            PackageId = wu.Id,
-                            Publisher = "Winget Repository",
-                            InstalledVersion = wu.InstalledVersion,
-                            AvailableVersion = wu.AvailableVersion,
-                            IsUpdateAvailable = !IsBlacklisted(wu.Id) && !IsBlacklisted(wu.Name) && IsNewerVersion(wu.AvailableVersion, wu.InstalledVersion),
-                            IsBlacklisted = IsBlacklisted(wu.Id) || IsBlacklisted(wu.Name)
-                        });
-                    }
-                }
-
-                // 3. Match against Cloud Catalog (Instant, 0ms)
+                // 2. Instant In-Memory matching against Cloud Catalog (0ms)
                 foreach (var app in installedList)
                 {
                     foreach (var kvp in _cloudCatalog)
@@ -241,83 +211,6 @@ namespace StormSystemOptimizer.Services
                 return installedList.OrderByDescending(a => a.IsUpdateAvailable && !a.IsBlacklisted)
                                    .ThenBy(a => a.Name).ToList();
             });
-        }
-
-        private List<(string Name, string Id, string InstalledVersion, string AvailableVersion)> GetWingetUpdatesFast()
-        {
-            var results = new List<(string Name, string Id, string InstalledVersion, string AvailableVersion)>();
-
-            try
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "winget.exe",
-                    Arguments = "upgrade --include-unknown --accept-source-agreements",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    StandardOutputEncoding = System.Text.Encoding.UTF8,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
-
-                using var proc = Process.Start(psi);
-                if (proc != null)
-                {
-                    // Strict 3.5s timeout: if winget hangs on source query, kill and proceed immediately
-                    if (proc.WaitForExit(3500))
-                    {
-                        string output = proc.StandardOutput.ReadToEnd();
-                        var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                        bool headerPassed = false;
-                        int idCol = -1, verCol = -1, availCol = -1, sourceCol = -1;
-
-                        foreach (var rawLine in lines)
-                        {
-                            string line = rawLine.TrimEnd();
-                            if (!headerPassed)
-                            {
-                                if (line.Contains("---") || line.Contains("==="))
-                                {
-                                    headerPassed = true;
-                                }
-                                else if (line.Contains("Id") && line.Contains("Version") && line.Contains("Available"))
-                                {
-                                    idCol = line.IndexOf("Id", StringComparison.OrdinalIgnoreCase);
-                                    verCol = line.IndexOf("Version", StringComparison.OrdinalIgnoreCase);
-                                    availCol = line.IndexOf("Available", StringComparison.OrdinalIgnoreCase);
-                                    sourceCol = line.IndexOf("Source", StringComparison.OrdinalIgnoreCase);
-                                }
-                                continue;
-                            }
-
-                            if (line.StartsWith("---") || line.Contains("upgrades available") || line.Contains("обновлений доступно"))
-                                continue;
-
-                            if (idCol > 0 && verCol > idCol && availCol > verCol && line.Length >= availCol)
-                            {
-                                string name = line.Substring(0, idCol).Trim();
-                                string id = line.Substring(idCol, verCol - idCol).Trim();
-                                string ver = line.Substring(verCol, availCol - verCol).Trim();
-                                string avail = sourceCol > availCol && line.Length >= sourceCol ? line.Substring(availCol, sourceCol - availCol).Trim() : line.Substring(availCol).Trim();
-
-                                if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(avail) && !id.Equals("Id", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    results.Add((name, id, ver, avail));
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        try { proc.Kill(); } catch { }
-                    }
-                }
-            }
-            catch { }
-
-            return results;
         }
 
         public static bool IsNewerVersion(string available, string installed)
@@ -383,13 +276,12 @@ namespace StormSystemOptimizer.Services
 
             return await Task.Run(async () =>
             {
-                string pkgId = item.PackageId;
                 string name = item.Name;
                 string targetVer = item.AvailableVersion;
 
                 progressCallback?.Invoke($"Подготовка к установке обновления «{name}» (v{targetVer})...");
 
-                // 1. Check Cloud Catalog for Direct Installer Download
+                // 1. Direct Cloud Catalog Installer Download & Fast Execution
                 foreach (var kvp in _cloudCatalog)
                 {
                     if (name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
@@ -406,7 +298,7 @@ namespace StormSystemOptimizer.Services
                                 string safeFileName = $"{string.Join("_", name.Split(Path.GetInvalidFileNameChars()))}_v{targetVer}{ext}";
                                 string targetFile = Path.Combine(tempDir, safeFileName);
 
-                                progressCallback?.Invoke($"Скачивание официального инсталлятора «{name}»...");
+                                progressCallback?.Invoke($"Скачивание инсталлятора «{name}»...");
 
                                 using (var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
                                 {
@@ -426,7 +318,7 @@ namespace StormSystemOptimizer.Services
                                         FileName = targetFile,
                                         UseShellExecute = true
                                     };
-                                    using var proc = Process.Start(psi);
+                                    Process.Start(psi);
                                     
                                     item.InstalledVersion = targetVer;
                                     item.IsUpdateAvailable = false;
@@ -448,32 +340,7 @@ namespace StormSystemOptimizer.Services
                     }
                 }
 
-                // 2. Try Winget if PackageId is available and valid
-                if (!string.IsNullOrEmpty(pkgId) && pkgId.Contains(".") && !Guid.TryParse(pkgId, out _))
-                {
-                    try
-                    {
-                        progressCallback?.Invoke($"Запуск обновления через Winget ({pkgId})...");
-
-                        var psi = new ProcessStartInfo
-                        {
-                            FileName = "winget.exe",
-                            Arguments = $"upgrade --exact --id \"{pkgId}\" --include-unknown --accept-package-agreements --accept-source-agreements",
-                            UseShellExecute = true
-                        };
-
-                        using var proc = Process.Start(psi);
-                        if (proc != null)
-                        {
-                            item.InstalledVersion = targetVer;
-                            item.IsUpdateAvailable = false;
-                            return (true, $"Запущен процесс обновления «{name}» через Winget!");
-                        }
-                    }
-                    catch { }
-                }
-
-                // 3. Fallback search
+                // 2. Fallback search
                 try
                 {
                     string searchUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} update download official");
