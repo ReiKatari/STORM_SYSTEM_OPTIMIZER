@@ -13,6 +13,8 @@
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
             <conv:InverseBoolToVisConverter x:Key="InverseBoolToVisConverter"/>
+            <conv:BoolNegationConverter x:Key="InverseBoolConverter"/>
+            <conv:BoolNegationConverter x:Key="BoolNegationConverter"/>
             <conv:StringEmptyToVisibilityConverter x:Key="StringEmptyToVisibilityConverter"/>
 
             <!-- Global Neon Solid Square CheckBox Style (No checkmarks, pure filled neon square) -->

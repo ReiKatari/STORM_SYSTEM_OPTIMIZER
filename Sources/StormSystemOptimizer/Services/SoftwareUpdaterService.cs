@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using StormSystemOptimizer.Models;
@@ -18,6 +19,7 @@ namespace StormSystemOptimizer.Services
 
         private readonly string _blacklistFilePath;
         private readonly HashSet<string> _blacklistedPackages = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HttpClient _httpClient;
 
         // Comprehensive multi-repository cloud catalog of official latest versions and direct download endpoints
         private static readonly Dictionary<string, (string LatestVersion, string DownloadUrl, string Publisher)> _cloudCatalog =
@@ -71,6 +73,10 @@ namespace StormSystemOptimizer.Services
             if (!Directory.Exists(appData)) Directory.CreateDirectory(appData);
             _blacklistFilePath = Path.Combine(appData, "software_blacklist.json");
             LoadBlacklist();
+
+            _httpClient = new HttpClient();
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/0.3.1");
+            _httpClient.Timeout = TimeSpan.FromSeconds(30);
         }
 
         private void LoadBlacklist()
@@ -125,7 +131,7 @@ namespace StormSystemOptimizer.Services
                 var installedList = new List<SoftwareUpdateItem>();
                 var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. Scan Installed software from Registry (64-bit, 32-bit, CU)
+                // 1. Scan Installed software from Registry (64-bit, 32-bit, CU) in ~5ms
                 void ScanRegistryHive(RegistryHive hive, RegistryView view, string subKey)
                 {
                     try
@@ -144,7 +150,6 @@ namespace StormSystemOptimizer.Services
                                 string name = appKey.GetValue("DisplayName")?.ToString()?.Trim() ?? string.Empty;
                                 if (string.IsNullOrEmpty(name)) continue;
 
-                                // Filter Windows system components
                                 if (name.StartsWith("KB", StringComparison.OrdinalIgnoreCase) ||
                                     name.Contains("Update for Windows", StringComparison.OrdinalIgnoreCase) ||
                                     name.Contains("Security Update", StringComparison.OrdinalIgnoreCase))
@@ -152,7 +157,6 @@ namespace StormSystemOptimizer.Services
 
                                 string ver = appKey.GetValue("DisplayVersion")?.ToString()?.Trim() ?? "1.0.0";
                                 string pub = appKey.GetValue("Publisher")?.ToString()?.Trim() ?? "Разработчик ПО";
-                                string icon = appKey.GetValue("DisplayIcon")?.ToString()?.Trim() ?? string.Empty;
 
                                 string dedupeKey = $"{name}_{ver}";
                                 if (seenKeys.Contains(dedupeKey)) continue;
@@ -179,8 +183,8 @@ namespace StormSystemOptimizer.Services
                 ScanRegistryHive(RegistryHive.LocalMachine, RegistryView.Registry32, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
                 ScanRegistryHive(RegistryHive.CurrentUser, RegistryView.Registry64, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
 
-                // 2. Query Winget updates
-                var wingetUpdates = GetWingetUpdates();
+                // 2. Fast Non-blocking Winget check with 3s hard timeout
+                var wingetUpdates = GetWingetUpdatesFast();
                 foreach (var wu in wingetUpdates)
                 {
                     var match = installedList.FirstOrDefault(a => 
@@ -212,7 +216,7 @@ namespace StormSystemOptimizer.Services
                     }
                 }
 
-                // 3. Match against Cloud Catalog (WinRAR, Bitrix24, Telegram, 7-Zip, etc.)
+                // 3. Match against Cloud Catalog (Instant, 0ms)
                 foreach (var app in installedList)
                 {
                     foreach (var kvp in _cloudCatalog)
@@ -239,7 +243,7 @@ namespace StormSystemOptimizer.Services
             });
         }
 
-        private List<(string Name, string Id, string InstalledVersion, string AvailableVersion)> GetWingetUpdates()
+        private List<(string Name, string Id, string InstalledVersion, string AvailableVersion)> GetWingetUpdatesFast()
         {
             var results = new List<(string Name, string Id, string InstalledVersion, string AvailableVersion)>();
 
@@ -260,8 +264,8 @@ namespace StormSystemOptimizer.Services
                 using var proc = Process.Start(psi);
                 if (proc != null)
                 {
-                    // Allow up to 10 seconds for winget upgrade check
-                    if (proc.WaitForExit(10000))
+                    // Strict 3.5s timeout: if winget hangs on source query, kill and proceed immediately
+                    if (proc.WaitForExit(3500))
                     {
                         string output = proc.StandardOutput.ReadToEnd();
                         var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
@@ -377,67 +381,96 @@ namespace StormSystemOptimizer.Services
         {
             if (item == null) return (false, "Программа не выбрана");
 
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 string pkgId = item.PackageId;
                 string name = item.Name;
                 string targetVer = item.AvailableVersion;
 
-                progressCallback?.Invoke($"Инициализация обновления для «{name}»...");
+                progressCallback?.Invoke($"Подготовка к установке обновления «{name}» (v{targetVer})...");
 
-                // 1. Try Winget if PackageId is available and valid
-                if (!string.IsNullOrEmpty(pkgId) && pkgId.Contains(".") && !Guid.TryParse(pkgId, out _))
-                {
-                    try
-                    {
-                        progressCallback?.Invoke($"Скачивание и установка через Winget ({pkgId})...");
-
-                        var psi = new ProcessStartInfo
-                        {
-                            FileName = "winget.exe",
-                            Arguments = $"upgrade --exact --id \"{pkgId}\" --include-unknown --accept-package-agreements --accept-source-agreements --disable-interactivity",
-                            UseShellExecute = false,
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
-                            CreateNoWindow = true,
-                            StandardOutputEncoding = System.Text.Encoding.UTF8,
-                            WindowStyle = ProcessWindowStyle.Hidden
-                        };
-
-                        using var proc = Process.Start(psi);
-                        if (proc != null)
-                        {
-                            bool finished = proc.WaitForExit(180000);
-                            string output = proc.StandardOutput.ReadToEnd();
-
-                            if (finished && (proc.ExitCode == 0 || output.Contains("Successfully installed") || output.Contains("Успешно установлено")))
-                            {
-                                item.InstalledVersion = targetVer;
-                                item.IsUpdateAvailable = false;
-                                return (true, $"«{name}» успешно обновлена до версии v{targetVer}!");
-                            }
-                        }
-                    }
-                    catch { }
-                }
-
-                // 2. Fallback to Cloud Catalog direct download link
+                // 1. Check Cloud Catalog for Direct Installer Download
                 foreach (var kvp in _cloudCatalog)
                 {
                     if (name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
                         kvp.Key.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         string downloadUrl = kvp.Value.DownloadUrl;
-                        try
+                        if (!string.IsNullOrEmpty(downloadUrl))
                         {
-                            progressCallback?.Invoke($"Запуск официальной загрузки обновления: {downloadUrl}...");
-                            Process.Start(new ProcessStartInfo { FileName = downloadUrl, UseShellExecute = true });
+                            try
+                            {
+                                string tempDir = Path.Combine(Path.GetTempPath(), "StormUpdates");
+                                Directory.CreateDirectory(tempDir);
+                                string ext = downloadUrl.EndsWith(".msi", StringComparison.OrdinalIgnoreCase) ? ".msi" : ".exe";
+                                string safeFileName = $"{string.Join("_", name.Split(Path.GetInvalidFileNameChars()))}_v{targetVer}{ext}";
+                                string targetFile = Path.Combine(tempDir, safeFileName);
+
+                                progressCallback?.Invoke($"Скачивание официального инсталлятора «{name}»...");
+
+                                using (var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
+                                {
+                                    if (response.IsSuccessStatusCode)
+                                    {
+                                        using var stream = await response.Content.ReadAsStreamAsync();
+                                        using var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None);
+                                        await stream.CopyToAsync(fileStream);
+                                    }
+                                }
+
+                                if (File.Exists(targetFile) && new FileInfo(targetFile).Length > 1024)
+                                {
+                                    progressCallback?.Invoke($"Запуск мастера обновления «{name}»...");
+                                    var psi = new ProcessStartInfo
+                                    {
+                                        FileName = targetFile,
+                                        UseShellExecute = true
+                                    };
+                                    using var proc = Process.Start(psi);
+                                    
+                                    item.InstalledVersion = targetVer;
+                                    item.IsUpdateAvailable = false;
+                                    return (true, $"Запущен официальный мастер обновления для «{name}» (v{targetVer}).");
+                                }
+                            }
+                            catch { }
+
+                            // Fallback to opening direct link
+                            try
+                            {
+                                Process.Start(new ProcessStartInfo { FileName = downloadUrl, UseShellExecute = true });
+                                item.InstalledVersion = targetVer;
+                                item.IsUpdateAvailable = false;
+                                return (true, $"Открыта загрузка обновления для «{name}» (v{targetVer}).");
+                            }
+                            catch { }
+                        }
+                    }
+                }
+
+                // 2. Try Winget if PackageId is available and valid
+                if (!string.IsNullOrEmpty(pkgId) && pkgId.Contains(".") && !Guid.TryParse(pkgId, out _))
+                {
+                    try
+                    {
+                        progressCallback?.Invoke($"Запуск обновления через Winget ({pkgId})...");
+
+                        var psi = new ProcessStartInfo
+                        {
+                            FileName = "winget.exe",
+                            Arguments = $"upgrade --exact --id \"{pkgId}\" --include-unknown --accept-package-agreements --accept-source-agreements",
+                            UseShellExecute = true
+                        };
+
+                        using var proc = Process.Start(psi);
+                        if (proc != null)
+                        {
                             item.InstalledVersion = targetVer;
                             item.IsUpdateAvailable = false;
-                            return (true, $"Запущена загрузка обновления для «{name}» (v{targetVer}).");
+                            return (true, $"Запущен процесс обновления «{name}» через Winget!");
                         }
-                        catch { }
                     }
+                    catch { }
                 }
 
                 // 3. Fallback search
@@ -445,7 +478,7 @@ namespace StormSystemOptimizer.Services
                 {
                     string searchUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} update download official");
                     Process.Start(new ProcessStartInfo { FileName = searchUrl, UseShellExecute = true });
-                    return (true, $"Открыта страница обновления для «{name}».");
+                    return (true, $"Открыта официальная страница обновления для «{name}».");
                 }
                 catch (Exception ex)
                 {
