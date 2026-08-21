@@ -33,33 +33,71 @@
                         <Button Command="{Binding CreateRestorePointCommand}" Style="{StaticResource StormHeroButton}" Padding="16,10" Margin="0,0,10,0">
                             <TextBlock Text="🛡️ Создать точку восстановления" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
-                        <Button Command="{Binding CreateRegistryBackupCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,10">
+                        <Button Command="{Binding CreateRegistryBackupCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,10" Margin="0,0,10,0">
                             <TextBlock Text="💾 Бэкап реестра" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
+                        <Button Command="{Binding OpenBackupsFolderCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,10">
+                            <TextBlock Text="📂 Папка бэкапов" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
                     </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Quick Action Launcher Banner -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Системный мастер отката Windows (System Restore GUI)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Запуск встроенного системного мастера rstrui.exe для пошагового отката всех драйверов, реестра и системных файлов." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Command="{Binding LaunchWindowsRestoreGuiCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" VerticalAlignment="Center">
+                        <TextBlock Text="🚀 Запустить мастер Windows" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </Button>
                 </Grid>
             </Border>
 
             <!-- Backups List -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Сохраненные снимки и копии реестра" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                    <TextBlock Text="Сохраненные точки восстановления и снимки реестра" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
                     <ItemsControl ItemsSource="{Binding Backups}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,8">
+                                <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,0,8">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
-                                            <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            <TextBlock Text="{Binding DateString, StringFormat='Создан: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding DateString, StringFormat='Дата создания: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                                         </StackPanel>
-                                        <Border Grid.Column="1" Background="{DynamicResource AccentGlowBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
+
+                                        <Border Grid.Column="1" Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="10,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding BackupType}" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                        </Border>
+
+                                        <Border Grid.Column="2" Background="{DynamicResource AccentGlowBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="0,0,14,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding SizeText}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                                         </Border>
+
+                                        <Button Grid.Column="3"
+                                                Command="{Binding DataContext.RestoreItemCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource StormSecondaryButton}"
+                                                Padding="14,6"
+                                                VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="🔄 Восстановить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </StackPanel>
+                                        </Button>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
