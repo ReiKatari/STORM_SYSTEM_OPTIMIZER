@@ -2,59 +2,233 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="STORM HUD"
-        Width="220" Height="100"
+        Width="350" Height="175"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
         Topmost="True"
         ShowInTaskbar="False"
         WindowStartupLocation="Manual"
-        Left="20" Top="20">
-    <Border Background="#D90A0E1A" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="10" Padding="10,8" MouseDown="Border_MouseDown">
+        Left="30" Top="30">
+
+    <Window.Resources>
+        <!-- Sleek Cyber Neon Slider Style for HUD Opacity -->
+        <Style x:Key="StormHudSliderThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Ellipse Width="14" Height="14" Fill="#00D2FF" Stroke="#FFFFFF" StrokeThickness="2">
+                            <Ellipse.Effect>
+                                <DropShadowEffect Color="#00D2FF" BlurRadius="8" ShadowDepth="0" Opacity="0.8"/>
+                            </Ellipse.Effect>
+                        </Ellipse>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="StormHudSliderStyle" TargetType="{x:Type Slider}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Slider}">
+                        <Grid VerticalAlignment="Center">
+                            <Border Height="6" CornerRadius="3" Background="#1E293B" BorderBrush="#334155" BorderThickness="1"/>
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseLarge" Style="{x:Null}">
+                                        <RepeatButton.Template>
+                                            <ControlTemplate>
+                                                <Border Height="6" CornerRadius="3" Background="#00D2FF"/>
+                                            </ControlTemplate>
+                                        </RepeatButton.Template>
+                                    </RepeatButton>
+                                </Track.DecreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource StormHudSliderThumbStyle}"/>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Border x:Name="RootOverlayBorder" Background="#F20A0E1A" BorderBrush="#00D2FF" BorderThickness="1.5" CornerRadius="12" Padding="14,10" MouseDown="Border_MouseDown">
+        <Border.Effect>
+            <DropShadowEffect Color="#00D2FF" BlurRadius="16" ShadowDepth="0" Opacity="0.35"/>
+        </Border.Effect>
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <Grid Grid.Row="0" Margin="0,0,0,6">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Ellipse Width="6" Height="6" Fill="#00D2FF" Margin="0,0,6,0"/>
-                    <TextBlock Text="STORM HUD" FontSize="11" FontWeight="Bold" Foreground="#00D2FF"/>
+            <!-- Header: Logo, Screen Hz, Pin state, Controls -->
+            <Grid Grid.Row="0" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Width="16" Height="16" Margin="0,0,6,0" VerticalAlignment="Center">
+                        <Ellipse Width="6" Height="6" Fill="#00D2FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="STORM HUD" FontSize="12" FontWeight="Bold" Foreground="#00D2FF" VerticalAlignment="Center"/>
+                    <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="4" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtScreenHzBadge" Text="60 Hz" FontSize="9.5" FontWeight="Bold" Foreground="#10B981"/>
+                    </Border>
+
+                    <!-- Russian Single Pin Badge: Clickable to toggle Pin state -->
+                    <Button Click="BtnTogglePin_Click" x:Name="BtnPinToggle" Background="Transparent" BorderThickness="0" Padding="0" Margin="6,0,0,0" Cursor="Hand" ToolTip="Нажмите для переключения закрепления поверх окон">
+                        <Border x:Name="PinBadge" Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="4" Padding="6,1" Visibility="Visible">
+                            <TextBlock x:Name="TxtPinState" Text="📌 Закреплено" FontSize="9.5" FontWeight="Bold" Foreground="#FBBF24"/>
+                        </Border>
+                    </Button>
                 </StackPanel>
-                <TextBlock Text="[Ctrl+Shift+O]" FontSize="9" Foreground="#64748B" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+
+                <!-- Right Action Buttons (No Ctrl+Shift+O) -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Compact Mode Toggle -->
+                    <Button Click="BtnToggleCompact_Click" Background="Transparent" BorderThickness="0" Padding="4,2" Margin="0,0,2,0" Cursor="Hand" ToolTip="Свернуть в мини-панель">
+                        <TextBlock x:Name="TxtCompactIcon" Text="➖" FontSize="11" FontWeight="Bold" Foreground="#94A3B8"/>
+                    </Button>
+                    <!-- Toggle Settings -->
+                    <Button Click="BtnToggleSettings_Click" Background="Transparent" BorderThickness="0" Padding="4,2" Margin="0,0,4,0" Cursor="Hand" ToolTip="Панель настроек">
+                        <TextBlock Text="⚙️" FontSize="11" Foreground="#94A3B8"/>
+                    </Button>
+                    <!-- Close Button -->
+                    <Button Click="BtnCloseOverlay_Click" Background="Transparent" BorderThickness="0" Padding="4,2" Cursor="Hand" ToolTip="Закрыть HUD">
+                        <TextBlock Text="✕" FontSize="11" FontWeight="Bold" Foreground="#94A3B8"/>
+                    </Button>
+                </StackPanel>
             </Grid>
 
-            <!-- Live Metrics Grid -->
-            <Grid Grid.Row="1">
+            <!-- Structured Metrics Table (2 Columns x 3 Rows) -->
+            <Grid Grid.Row="1" x:Name="MetricsPanel" Margin="0,0,0,2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="CPU: " FontSize="11" Foreground="#94A3B8"/>
-                        <TextBlock x:Name="TxtCpu" Text="0% • 35°C" FontSize="11" FontWeight="Bold" Foreground="#38BDF8"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                        <TextBlock Text="RAM: " FontSize="11" Foreground="#94A3B8"/>
-                        <TextBlock x:Name="TxtRam" Text="45%" FontSize="11" FontWeight="Bold" Foreground="#C084FC"/>
-                    </StackPanel>
-                </StackPanel>
+                <!-- 1. FPS & Hz Card -->
+                <Border Grid.Row="0" Grid.Column="0" x:Name="BlockFps" Background="#141B2D" BorderBrush="#1F293D" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,3,4">
+                    <Grid>
+                        <TextBlock Text="⚡ FPS:" FontSize="10.5" Foreground="#94A3B8" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtFps" Text="60 FPS (60Hz)" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
 
-                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="GPU: " FontSize="11" Foreground="#94A3B8"/>
-                        <TextBlock x:Name="TxtGpu" Text="38°C" FontSize="11" FontWeight="Bold" Foreground="#FB7185"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                        <TextBlock Text="FPS: " FontSize="11" Foreground="#94A3B8"/>
-                        <TextBlock x:Name="TxtFps" Text="144" FontSize="11" FontWeight="Bold" Foreground="#34D399"/>
-                    </StackPanel>
-                </StackPanel>
+                <!-- 2. Latency Frametime Card -->
+                <Border Grid.Row="0" Grid.Column="1" x:Name="BlockLatency" Background="#141B2D" BorderBrush="#1F293D" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="3,0,0,4">
+                    <Grid>
+                        <TextBlock Text="⏱️ Задержка:" FontSize="10.5" Foreground="#94A3B8" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtLatency" Text="16.6 ms" FontSize="11.5" FontWeight="Bold" Foreground="#FBBF24" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 3. CPU Card -->
+                <Border Grid.Row="1" Grid.Column="0" x:Name="BlockCpu" Background="#141B2D" BorderBrush="#1F293D" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,3,4">
+                    <Grid>
+                        <TextBlock Text="🧠 CPU:" FontSize="10.5" Foreground="#94A3B8" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtCpu" Text="0% • 35°C" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 4. GPU Card -->
+                <Border Grid.Row="1" Grid.Column="1" x:Name="BlockGpu" Background="#141B2D" BorderBrush="#1F293D" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="3,0,0,4">
+                    <Grid>
+                        <TextBlock Text="🎮 GPU:" FontSize="10.5" Foreground="#94A3B8" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtGpu" Text="38°C" FontSize="11.5" FontWeight="Bold" Foreground="#FB7185" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 5. RAM Card -->
+                <Border Grid.Row="2" Grid.Column="0" x:Name="BlockRam" Background="#141B2D" BorderBrush="#1F293D" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,3,0">
+                    <Grid>
+                        <TextBlock Text="💾 RAM:" FontSize="10.5" Foreground="#94A3B8" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtRam" Text="45% (14.4G)" FontSize="11.5" FontWeight="Bold" Foreground="#C084FC" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 6. NET Card -->
+                <Border Grid.Row="2" Grid.Column="1" x:Name="BlockNet" Background="#141B2D" BorderBrush="#1F293D" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="3,0,0,0">
+                    <Grid>
+                        <TextBlock Text="🌐 Сеть:" FontSize="10.5" Foreground="#94A3B8" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="TxtNet" Text="↓ 0.8 MB/s" FontSize="11.5" FontWeight="Bold" Foreground="#34D399" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
             </Grid>
+
+            <!-- Compact Mini-Pill Bar (Visible only in Compact Mode) -->
+            <StackPanel Grid.Row="1" x:Name="CompactPanel" Visibility="Collapsed" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock x:Name="TxtCompactMetrics" Text="FPS: 60 • CPU: 12% • GPU: 38°C • RAM: 45%" FontSize="11" FontWeight="Bold" Foreground="#00D2FF"/>
+            </StackPanel>
+
+            <!-- Quick In-HUD Settings Drawer (Collapsible) -->
+            <Border Grid.Row="2" x:Name="SettingsDrawer" Visibility="Collapsed" Background="#F0111827" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,8,0,0">
+                <StackPanel>
+                    <!-- Opacity Header & Readout -->
+                    <Grid Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Прозрачность:" FontSize="10" FontWeight="SemiBold" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="2" x:Name="TxtOpacityValue" Text="95%" FontSize="10.5" FontWeight="Bold" Foreground="#00D2FF" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <!-- Beautiful Themed Slider with Neon Glow -->
+                    <Slider x:Name="OpacitySlider"
+                            Style="{StaticResource StormHudSliderStyle}"
+                            Minimum="0.3" Maximum="1.0" Value="0.95"
+                            ValueChanged="SliderOpacity_ValueChanged"
+                            SmallChange="0.05" LargeChange="0.1"
+                            Margin="0,0,0,6"/>
+
+                    <!-- Quick Preset Badges -->
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Button Click="BtnOpacityPreset_Click" Tag="0.30" Grid.Column="0" Content="30%" Style="{StaticResource StormSecondaryButton}" Padding="4,2" Margin="0,0,2,0" FontSize="9"/>
+                        <Button Click="BtnOpacityPreset_Click" Tag="0.50" Grid.Column="1" Content="50%" Style="{StaticResource StormSecondaryButton}" Padding="4,2" Margin="1,0,1,0" FontSize="9"/>
+                        <Button Click="BtnOpacityPreset_Click" Tag="0.75" Grid.Column="2" Content="75%" Style="{StaticResource StormSecondaryButton}" Padding="4,2" Margin="1,0,1,0" FontSize="9"/>
+                        <Button Click="BtnOpacityPreset_Click" Tag="1.00" Grid.Column="3" Content="100%" Style="{StaticResource StormSecondaryButton}" Padding="4,2" Margin="2,0,0,0" FontSize="9"/>
+                    </Grid>
+
+                    <!-- Toggle Blocks -->
+                    <TextBlock Text="Видимость блоков:" FontSize="9.5" FontWeight="SemiBold" Foreground="#94A3B8" Margin="0,0,0,4"/>
+                    <UniformGrid Columns="5" Margin="0,0,0,6">
+                        <Button x:Name="BtnToggleCpu" Click="BtnToggleCpuBlock_Click" Content="CPU" Style="{StaticResource StormSecondaryButton}" Padding="4,3" Margin="0,0,2,0" FontSize="9" FontWeight="Bold"/>
+                        <Button x:Name="BtnToggleGpu" Click="BtnToggleGpuBlock_Click" Content="GPU" Style="{StaticResource StormSecondaryButton}" Padding="4,3" Margin="1,0,1,0" FontSize="9" FontWeight="Bold"/>
+                        <Button x:Name="BtnToggleRam" Click="BtnToggleRamBlock_Click" Content="RAM" Style="{StaticResource StormSecondaryButton}" Padding="4,3" Margin="1,0,1,0" FontSize="9" FontWeight="Bold"/>
+                        <Button x:Name="BtnToggleNet" Click="BtnToggleNetBlock_Click" Content="NET" Style="{StaticResource StormSecondaryButton}" Padding="4,3" Margin="1,0,1,0" FontSize="9" FontWeight="Bold"/>
+                        <Button x:Name="BtnToggleFps" Click="BtnToggleFpsBlock_Click" Content="FPS" Style="{StaticResource StormSecondaryButton}" Padding="4,3" Margin="2,0,0,0" FontSize="9" FontWeight="Bold"/>
+                    </UniformGrid>
+
+                    <!-- Lock Dragging Toggle -->
+                    <Button x:Name="BtnLockDrag" Click="BtnToggleLockDrag_Click" Style="{StaticResource StormSecondaryButton}" Padding="6,4">
+                        <TextBlock x:Name="TxtLockDrag" Text="🔓 Перетаскивание: Разрешено" FontSize="9.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                    </Button>
+                </StackPanel>
+            </Border>
         </Grid>
     </Border>
 </Window>

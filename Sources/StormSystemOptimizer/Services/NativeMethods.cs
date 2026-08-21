@@ -91,6 +91,12 @@ namespace StormSystemOptimizer.Services
         [DllImport("ntdll.dll")]
         public static extern int NtSetSystemInformation(int SystemInformationClass, ref int SystemInformation, int SystemInformationLength);
 
+        [DllImport("ntdll.dll", SetLastError = true)]
+        public static extern int NtSuspendProcess(IntPtr processHandle);
+
+        [DllImport("ntdll.dll", SetLastError = true)]
+        public static extern int NtResumeProcess(IntPtr processHandle);
+
         // --- HotKey Registration ---
         [DllImport("user32.dll")]
         public static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);

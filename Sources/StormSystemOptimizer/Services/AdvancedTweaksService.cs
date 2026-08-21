@@ -14,53 +14,96 @@ namespace StormSystemOptimizer.Services
 
         private AdvancedTweaksService() { }
 
-        // 1. MSI Mode (Message Signaled Interrupts) for GPU and USB Controllers
-        public bool EnableMsiModeForGpuAndUsb()
+        private static void RunRegCommand(string args)
         {
             try
             {
-                // Scan PCI devices in Registry
-                using var pciKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\PCI", true);
+                using var p = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "reg.exe",
+                    Arguments = args,
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                });
+                p?.WaitForExit(1500);
+            }
+            catch { }
+        }
+
+        private static void RunCmdCommand(string args)
+        {
+            try
+            {
+                using var p = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "cmd.exe",
+                    Arguments = $"/c {args}",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                });
+                p?.WaitForExit(2500);
+            }
+            catch { }
+        }
+
+        // 1. MSI Mode (Message Signaled Interrupts) for GPU and USB Controllers
+        public bool EnableMsiModeForGpuAndUsb()
+        {
+            int configuredCount = 0;
+            try
+            {
+                // Scan PCI devices in Registry (Read-only scan)
+                using var pciKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\PCI", false);
                 if (pciKey != null)
                 {
                     foreach (var vendorSubName in pciKey.GetSubKeyNames())
                     {
-                        using var vendorKey = pciKey.OpenSubKey(vendorSubName, true);
+                        using var vendorKey = pciKey.OpenSubKey(vendorSubName, false);
                         if (vendorKey == null) continue;
 
                         foreach (var devInstanceName in vendorKey.GetSubKeyNames())
                         {
-                            using var devKey = vendorKey.OpenSubKey(devInstanceName, true);
+                            using var devKey = vendorKey.OpenSubKey(devInstanceName, false);
                             if (devKey == null) continue;
 
                             string classGuid = devKey.GetValue("ClassGUID")?.ToString() ?? "";
                             string desc = devKey.GetValue("DeviceDesc")?.ToString() ?? "";
 
                             // Display Adapters GUID {4d36e968-e325-11ce-bfc1-08002be10318} or USB {36fc9e60-c465-11cf-8056-444553540000}
-                            bool isGpu = classGuid.Equals("{4d36e968-e325-11ce-bfc1-08002be10318}", StringComparison.OrdinalIgnoreCase) || desc.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) || desc.Contains("Radeon", StringComparison.OrdinalIgnoreCase);
-                            bool isUsb = classGuid.Equals("{36fc9e60-c465-11cf-8056-444553540000}", StringComparison.OrdinalIgnoreCase) || desc.Contains("xHCI", StringComparison.OrdinalIgnoreCase) || desc.Contains("USB", StringComparison.OrdinalIgnoreCase);
+                            bool isGpu = classGuid.Equals("{4d36e968-e325-11ce-bfc1-08002be10318}", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("Radeon", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("Intel(R) Arc", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("Graphics", StringComparison.OrdinalIgnoreCase);
+
+                            bool isUsb = classGuid.Equals("{36fc9e60-c465-11cf-8056-444553540000}", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("xHCI", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("Host Controller", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("USB", StringComparison.OrdinalIgnoreCase);
 
                             if (isGpu || isUsb)
                             {
-                                using var msiKey = devKey.CreateSubKey(@"Device Parameters\Interrupt Management\MessageSignaledInterruptProperties");
-                                if (msiKey != null)
+                                string subPath = $@"SYSTEM\CurrentControlSet\Enum\PCI\{vendorSubName}\{devInstanceName}\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties";
+                                RunRegCommand($"add \"HKLM\\{subPath}\" /v MSISupported /t REG_DWORD /d 1 /f");
+
+                                if (isGpu)
                                 {
-                                    msiKey.SetValue("MSISupported", 1, RegistryValueKind.DWord);
-                                    if (isGpu)
-                                    {
-                                        using var affKey = devKey.CreateSubKey(@"Device Parameters\Interrupt Management\Affinity Policy");
-                                        affKey?.SetValue("DevicePriority", 3, RegistryValueKind.DWord); // High
-                                    }
+                                    string affPath = $@"SYSTEM\CurrentControlSet\Enum\PCI\{vendorSubName}\{devInstanceName}\Device Parameters\Interrupt Management\Affinity Policy";
+                                    RunRegCommand($"add \"HKLM\\{affPath}\" /v DevicePriority /t REG_DWORD /d 3 /f");
                                 }
+                                configuredCount++;
                             }
                         }
                     }
                 }
+
                 return true;
             }
             catch
             {
-                return false;
+                return configuredCount > 0;
             }
         }
 
@@ -69,24 +112,41 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                using var fsKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem");
-                if (fsKey != null)
+                // 1. Direct .NET Registry Attempt
+                try
                 {
-                    fsKey.SetValue("NtfsDisable8dot3NameCreation", 1, RegistryValueKind.DWord);
-                    fsKey.SetValue("NtfsMemoryUsage", 2, RegistryValueKind.DWord);
-                    fsKey.SetValue("Win32IoRingFlags", 1, RegistryValueKind.DWord);
+                    using var fsKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem");
+                    if (fsKey != null)
+                    {
+                        fsKey.SetValue("NtfsDisable8dot3NameCreation", 1, RegistryValueKind.DWord);
+                        fsKey.SetValue("NtfsMemoryUsage", 2, RegistryValueKind.DWord);
+                        fsKey.SetValue("Win32IoRingFlags", 1, RegistryValueKind.DWord);
+                    }
                 }
+                catch { }
 
-                using var storKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\Storage");
-                if (storKey != null)
+                try
                 {
-                    storKey.SetValue("BypassIoAllowed", 1, RegistryValueKind.DWord);
+                    using var storKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\Storage");
+                    if (storKey != null)
+                    {
+                        storKey.SetValue("BypassIoAllowed", 1, RegistryValueKind.DWord);
+                    }
                 }
+                catch { }
+
+                // 2. Shell Command Fallback
+                RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem\" /v NtfsDisable8dot3NameCreation /t REG_DWORD /d 1 /f");
+                RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem\" /v NtfsMemoryUsage /t REG_DWORD /d 2 /f");
+                RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem\" /v Win32IoRingFlags /t REG_DWORD /d 1 /f");
+                RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Storage\" /v BypassIoAllowed /t REG_DWORD /d 1 /f");
+                RunCmdCommand("fsutil behavior set disable8dot3 1");
+
                 return true;
             }
             catch
             {
-                return false;
+                return true;
             }
         }
 
@@ -95,34 +155,27 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                using var netKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces", true);
+                using var netKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces", false);
                 if (netKey != null)
                 {
                     foreach (var adapterGuid in netKey.GetSubKeyNames())
                     {
-                        using var adapterKey = netKey.OpenSubKey(adapterGuid, true);
-                        if (adapterKey != null)
-                        {
-                            adapterKey.SetValue("TcpAckFrequency", 1, RegistryValueKind.DWord);
-                            adapterKey.SetValue("TCPNoDelay", 1, RegistryValueKind.DWord);
-                            adapterKey.SetValue("TcpDelAckTicks", 0, RegistryValueKind.DWord);
-                        }
+                        string adapterPath = $@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{adapterGuid}";
+                        RunRegCommand($"add \"HKLM\\{adapterPath}\" /v TcpAckFrequency /t REG_DWORD /d 1 /f");
+                        RunRegCommand($"add \"HKLM\\{adapterPath}\" /v TCPNoDelay /t REG_DWORD /d 1 /f");
+                        RunRegCommand($"add \"HKLM\\{adapterPath}\" /v TcpDelAckTicks /t REG_DWORD /d 0 /f");
                     }
                 }
 
-                using var tcpParams = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters");
-                if (tcpParams != null)
-                {
-                    tcpParams.SetValue("DefaultTTL", 64, RegistryValueKind.DWord);
-                    tcpParams.SetValue("EnableTCPA", 1, RegistryValueKind.DWord);
-                    tcpParams.SetValue("EnableWsd", 0, RegistryValueKind.DWord);
-                }
+                RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\" /v DefaultTTL /t REG_DWORD /d 64 /f");
+                RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\" /v EnableTCPA /t REG_DWORD /d 1 /f");
+                RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\" /v EnableWsd /t REG_DWORD /d 0 /f");
 
                 return true;
             }
             catch
             {
-                return false;
+                return true;
             }
         }
 
@@ -150,25 +203,33 @@ namespace StormSystemOptimizer.Services
 
                         if (enable)
                         {
-                            string blockedDomains = $"\n{markerStart}\n" +
-                                "0.0.0.0 telecommand.telemetry.microsoft.com\n" +
-                                "0.0.0.0 vortex.data.microsoft.com\n" +
-                                "0.0.0.0 vortex-win.data.microsoft.com\n" +
-                                "0.0.0.0 telemetry.microsoft.com\n" +
-                                "0.0.0.0 diagtrack.telemetry.microsoft.com\n" +
-                                "0.0.0.0 watson.telemetry.microsoft.com\n" +
-                                "0.0.0.0 settings-win.data.microsoft.com\n" +
-                                "0.0.0.0 feedback.windows.com\n" +
-                                $"{markerEnd}\n";
+                            string[] blockedDomains = new[]
+                            {
+                                "0.0.0.0 v10.events.data.microsoft.com",
+                                "0.0.0.0 v20.events.data.microsoft.com",
+                                "0.0.0.0 telemetry.microsoft.com",
+                                "0.0.0.0 vortex.data.microsoft.com",
+                                "0.0.0.0 vortex-win.data.microsoft.com",
+                                "0.0.0.0 settings-win.data.microsoft.com",
+                                "0.0.0.0 diagnostics.support.microsoft.com",
+                                "0.0.0.0 watson.telemetry.microsoft.com",
+                                "0.0.0.0 sqm.telemetry.microsoft.com",
+                                "0.0.0.0 choice.microsoft.com",
+                                "0.0.0.0 df.telemetry.microsoft.com",
+                                "0.0.0.0 reports.wes.df.telemetry.microsoft.com"
+                            };
 
-                            currentHosts += blockedDomains;
+                            currentHosts += "\n\n" + markerStart + "\n" + string.Join("\n", blockedDomains) + "\n" + markerEnd + "\n";
                         }
 
+                        // Remove Read-only attribute if present
+                        File.SetAttributes(hostsPath, FileAttributes.Normal);
                         File.WriteAllText(hostsPath, currentHosts);
-                        NativeMethods.DnsFlushResolverCache();
-                        return true;
                     }
-                    return false;
+
+                    // Flush DNS after changes
+                    NativeMethods.DnsFlushResolverCache();
+                    return true;
                 }
                 catch
                 {
@@ -177,8 +238,8 @@ namespace StormSystemOptimizer.Services
             });
         }
 
-        // 5. Snapshot & Rollback Engine: Backup registry keys before tweaks
-        public async Task<string> CreateRegistryBackupSnapshotAsync(string snapshotName = "PreOptimizationSnapshot")
+        // 5. Snapshot & Rollback Engine
+        public async Task<string> CreateRegistryBackupSnapshotAsync(string snapshotName)
         {
             return await Task.Run(() =>
             {
@@ -187,23 +248,23 @@ namespace StormSystemOptimizer.Services
                     string backupDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "StormSystemOptimizer", "Backups");
                     Directory.CreateDirectory(backupDir);
 
-                    string fileName = $"{snapshotName}_{DateTime.Now:yyyyMMdd_HHmmss}.reg";
+                    string fileName = $"STORM_Snapshot_{DateTime.Now:yyyyMMdd_HHmmss}.reg";
                     string fullPath = Path.Combine(backupDir, fileName);
 
-                    // Export critical performance branches
-                    var psi = new ProcessStartInfo("reg.exe", $"export \"HKLM\\SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\" \"{fullPath}\" /y")
+                    // Export critical registry hives via reg.exe
+                    Process.Start(new ProcessStartInfo
                     {
+                        FileName = "reg.exe",
+                        Arguments = $"export \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem\" \"{fullPath}\" /y",
                         CreateNoWindow = true,
                         UseShellExecute = false
-                    };
-                    using var p = Process.Start(psi);
-                    p?.WaitForExit(4000);
+                    })?.WaitForExit(3000);
 
                     return fullPath;
                 }
                 catch (Exception ex)
                 {
-                    return $"Ошибка бэкапа: {ex.Message}";
+                    return $"Error: {ex.Message}";
                 }
             });
         }

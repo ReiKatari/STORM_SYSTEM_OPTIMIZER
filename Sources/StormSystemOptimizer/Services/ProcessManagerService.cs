@@ -193,6 +193,63 @@ namespace StormSystemOptimizer.Services
             }
         }
 
+        public bool SetProcessPriority(int processId, ProcessPriorityClass priority)
+        {
+            try
+            {
+                using var p = Process.GetProcessById(processId);
+                p.PriorityClass = priority;
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool SuspendProcess(int processId)
+        {
+            try
+            {
+                IntPtr hProcess = NativeMethods.OpenProcess(NativeMethods.PROCESS_ALL_ACCESS, false, processId);
+                if (hProcess != IntPtr.Zero)
+                {
+                    NativeMethods.NtSuspendProcess(hProcess);
+                    NativeMethods.CloseHandle(hProcess);
+                    return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        public bool ResumeProcess(int processId)
+        {
+            try
+            {
+                IntPtr hProcess = NativeMethods.OpenProcess(NativeMethods.PROCESS_ALL_ACCESS, false, processId);
+                if (hProcess != IntPtr.Zero)
+                {
+                    NativeMethods.NtResumeProcess(hProcess);
+                    NativeMethods.CloseHandle(hProcess);
+                    return true;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        public bool SearchOnline(string processName)
+        {
+            try
+            {
+                string url = $"https://www.google.com/search?q={Uri.EscapeDataString(processName + " процесс windows что это")}";
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+                return true;
+            }
+            catch { return false; }
+        }
+
         public bool OpenProcessLocation(string executablePath)
         {
             try

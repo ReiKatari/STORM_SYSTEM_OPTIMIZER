@@ -1,5 +1,6 @@
 using System;
 using CommunityToolkit.Mvvm.ComponentModel;
+using StormSystemOptimizer.Services;
 
 namespace StormSystemOptimizer.Models
 {
@@ -56,16 +57,51 @@ namespace StormSystemOptimizer.Models
         [ObservableProperty]
         private string _fragmentationStatus = "0% (Оптимально)";
 
+        // Deep Analysis & Live Optimization properties
+        [ObservableProperty]
+        private bool _hasAnalysisReport = false;
+
+        [ObservableProperty]
+        private string _clusterSizeText = "4 096 байт";
+
+        [ObservableProperty]
+        private long _fragmentedFilesCount = 0;
+
+        [ObservableProperty]
+        private long _totalFragmentsCount = 0;
+
+        [ObservableProperty]
+        private string _largestFreeBlockText = "120.5 ГБ";
+
+        [ObservableProperty]
+        private string _analysisRecommendation = "Том полностью оптимизирован";
+
+        [ObservableProperty]
+        private bool _isAnalyzing = false;
+
+        [ObservableProperty]
+        private bool _isOptimizing = false;
+
+        [ObservableProperty]
+        private string _currentOperationStatus = "";
+
+        [ObservableProperty]
+        private double _operationProgress = 0;
+
+        public bool IsRunningOperation => IsAnalyzing || IsOptimizing;
+
         public string DriveType => MediaType;
-        public string FreeSpaceText => $"{FreeSizeGb:F1} ГБ";
-        public string TotalSizeText => $"{TotalSizeGb:F1} ГБ";
+        public string FreeSpaceText => $"{FormatHelper.FormatDouble(FreeSizeGb, 1)} ГБ";
+        public string TotalSizeText => $"{FormatHelper.FormatDouble(TotalSizeGb, 1)} ГБ";
         public double UsedPercent => UsedPercentage;
-        public string UsedPercentText => $"{UsedPercentage:F0}%";
-        public string SpaceUsageSummary => $"{UsedSizeGb:F1} ГБ / {TotalSizeGb:F1} ГБ ({UsedPercentage:F0}%)";
-        public string FreePercentSummary => $"Свободно {FreeSizeGb:F1} ГБ ({Math.Max(0, 100 - UsedPercentage):F0}%)";
+        public string UsedPercentText => $"{FormatHelper.FormatDouble(UsedPercentage, 0)}%";
+        public string SpaceUsageSummary => $"{FormatHelper.FormatDouble(UsedSizeGb, 1)} ГБ / {FormatHelper.FormatDouble(TotalSizeGb, 1)} ГБ ({FormatHelper.FormatDouble(UsedPercentage, 0)}%)";
+        public string FreePercentSummary => $"Свободно {FormatHelper.FormatDouble(FreeSizeGb, 1)} ГБ ({FormatHelper.FormatDouble(Math.Max(0, 100 - UsedPercentage), 0)}%)";
         public string FragmentationSummary => FragmentationStatus;
         public string OptimizationActionName => IsSsd ? "TRIM Оптимизация" : "Дефрагментация";
-        public string FormattedTotal => $"{TotalSizeGb:F1} ГБ";
-        public string FormattedFree => $"{FreeSizeGb:F1} ГБ свободно";
+        public string FormattedTotal => $"{FormatHelper.FormatDouble(TotalSizeGb, 1)} ГБ";
+        public string FormattedFree => $"{FormatHelper.FormatDouble(FreeSizeGb, 1)} ГБ свободно";
+        public string FormattedFragmentedFiles => $"{FormatHelper.FormatInt(FragmentedFilesCount)} файлов";
+        public string FormattedTotalFragments => $"{FormatHelper.FormatInt(TotalFragmentsCount)} фрагментов";
     }
 }

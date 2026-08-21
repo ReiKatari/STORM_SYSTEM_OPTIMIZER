@@ -33,5 +33,6 @@ Assembling/
 !README.md
 !Sources/**
 !Files/**
+Sources/StormInstaller/Resources/*.exe
 Files/*.exe
 Files/*.zip
