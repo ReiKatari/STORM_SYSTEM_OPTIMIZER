@@ -10,6 +10,10 @@
         <vm:ScannerViewModel/>
     </Page.DataContext>
 
+    <Page.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </Page.Resources>
+
     <Border Padding="20">
         <Grid>
             <Grid.RowDefinitions>

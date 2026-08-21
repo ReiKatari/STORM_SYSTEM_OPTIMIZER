@@ -229,27 +229,114 @@ namespace StormSystemOptimizer.ViewModels
         private bool _isActivityFeedDisabled = true;
 
         [ObservableProperty]
-        private string _statusMessage = "Защита приватности активна";
+        private bool _isInputTelemetryDisabled = true;
+
+        [ObservableProperty]
+        private bool _isBingSearchDisabled = true;
+
+        [ObservableProperty]
+        private bool _isEdgeTelemetryDisabled = true;
+
+        [ObservableProperty]
+        private bool _isLocationSensorsDisabled = true;
+
+        [ObservableProperty]
+        private bool _isFeedbackFrequencyDisabled = true;
+
+        [ObservableProperty]
+        private bool _isCortanaCopilotDisabled = true;
+
+        [ObservableProperty]
+        private bool _isErrorReportingDisabled = true;
+
+        [ObservableProperty]
+        private bool _isWifiSenseDisabled = true;
+
+        [ObservableProperty]
+        private bool _isAppInventoryDisabled = true;
+
+        [ObservableProperty]
+        private bool _isCameraMicBackgroundDisabled = true;
+
+        [ObservableProperty]
+        private bool _isRemoteAccessDisabled = true;
+
+        [ObservableProperty]
+        private string _statusMessage = "Защита приватности активна • 14 уровней безопасности";
 
         public PrivacyViewModel()
         {
-            IsTelemetryDisabled = true;
-            IsAdIdDisabled = true;
-            IsActivityFeedDisabled = true;
+            SetAllToggles(true);
+        }
+
+        private void SetAllToggles(bool state)
+        {
+            IsTelemetryDisabled = state;
+            IsAdIdDisabled = state;
+            IsActivityFeedDisabled = state;
+            IsInputTelemetryDisabled = state;
+            IsBingSearchDisabled = state;
+            IsEdgeTelemetryDisabled = state;
+            IsLocationSensorsDisabled = state;
+            IsFeedbackFrequencyDisabled = state;
+            IsCortanaCopilotDisabled = state;
+            IsErrorReportingDisabled = state;
+            IsWifiSenseDisabled = state;
+            IsAppInventoryDisabled = state;
+            IsCameraMicBackgroundDisabled = state;
+            IsRemoteAccessDisabled = state;
+        }
+
+        [RelayCommand]
+        public void ApplyPreset(string preset)
+        {
+            if (preset == "Max")
+            {
+                SetAllToggles(true);
+                PrivacyOptimizerService.Instance.ApplyPreset("Max");
+                StatusMessage = "Максимальный профиль приватности успешно применен!";
+            }
+            else if (preset == "Balanced")
+            {
+                SetAllToggles(false);
+                IsTelemetryDisabled = true;
+                IsAdIdDisabled = true;
+                IsActivityFeedDisabled = true;
+                IsInputTelemetryDisabled = true;
+                IsBingSearchDisabled = true;
+                IsEdgeTelemetryDisabled = true;
+                IsFeedbackFrequencyDisabled = true;
+                PrivacyOptimizerService.Instance.ApplyPreset("Balanced");
+                StatusMessage = "Сбалансированный профиль приватности успешно применен!";
+            }
+            else if (preset == "Default")
+            {
+                SetAllToggles(false);
+                PrivacyOptimizerService.Instance.ApplyPreset("Default");
+                StatusMessage = "Стандартные параметры Windows восстановлены.";
+            }
+            TrayService.Instance.ShowNotification("Приватность", StatusMessage);
         }
 
         [RelayCommand]
         public void ApplyPrivacySettings()
         {
-            if (IsTelemetryDisabled)
-            {
-                PrivacyOptimizerService.Instance.DisableTelemetry();
-            }
-            else
-            {
-                PrivacyOptimizerService.Instance.EnableTelemetry();
-            }
-            StatusMessage = "Настройки защиты телеметрии сохранены!";
+            PrivacyOptimizerService.Instance.SetTelemetry(IsTelemetryDisabled);
+            PrivacyOptimizerService.Instance.SetAdvertisingId(IsAdIdDisabled);
+            PrivacyOptimizerService.Instance.SetActivityFeed(IsActivityFeedDisabled);
+            PrivacyOptimizerService.Instance.SetInputTelemetry(IsInputTelemetryDisabled);
+            PrivacyOptimizerService.Instance.SetBingStartSearch(IsBingSearchDisabled);
+            PrivacyOptimizerService.Instance.SetEdgeTelemetry(IsEdgeTelemetryDisabled);
+            PrivacyOptimizerService.Instance.SetLocationSensors(IsLocationSensorsDisabled);
+            PrivacyOptimizerService.Instance.SetFeedbackFrequency(IsFeedbackFrequencyDisabled);
+            PrivacyOptimizerService.Instance.SetCortanaCopilot(IsCortanaCopilotDisabled);
+            PrivacyOptimizerService.Instance.SetErrorReporting(IsErrorReportingDisabled);
+            PrivacyOptimizerService.Instance.SetWifiSense(IsWifiSenseDisabled);
+            PrivacyOptimizerService.Instance.SetAppInventory(IsAppInventoryDisabled);
+            PrivacyOptimizerService.Instance.SetCameraMicBackgroundAccess(IsCameraMicBackgroundDisabled);
+            PrivacyOptimizerService.Instance.SetRemoteAccess(IsRemoteAccessDisabled);
+
+            StatusMessage = "Все выбранные правила приватности и блокировки успешно применены!";
             TrayService.Instance.ShowNotification("Приватность", StatusMessage);
         }
     }
