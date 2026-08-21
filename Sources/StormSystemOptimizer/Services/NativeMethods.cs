@@ -59,8 +59,58 @@ namespace StormSystemOptimizer.Services
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool CloseHandle(IntPtr hObject);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetProcessAffinityMask(IntPtr hProcess, UIntPtr dwProcessAffinityMask);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool SetPriorityClass(IntPtr handle, uint priorityClass);
+
         public const uint PROCESS_QUERY_INFORMATION = 0x0400;
         public const uint PROCESS_SET_QUOTA = 0x0100;
+        public const uint PROCESS_SET_INFORMATION = 0x0200;
+        public const uint PROCESS_ALL_ACCESS = 0x1F0FFF;
+
+        public const uint HIGH_PRIORITY_CLASS = 0x00000080;
+        public const uint ABOVE_NORMAL_PRIORITY_CLASS = 0x00008000;
+        public const uint NORMAL_PRIORITY_CLASS = 0x00000020;
+        public const uint BELOW_NORMAL_PRIORITY_CLASS = 0x00004000;
+        public const uint IDLE_PRIORITY_CLASS = 0x00000040;
+
+        // --- Low-level Timer Resolution (ntdll.dll) ---
+        [DllImport("ntdll.dll", SetLastError = true)]
+        public static extern int NtSetTimerResolution(uint DesiredResolution, bool SetResolution, out uint CurrentResolution);
+
+        [DllImport("ntdll.dll", SetLastError = true)]
+        public static extern int NtQueryTimerResolution(out uint MinimumResolution, out uint MaximumResolution, out uint CurrentResolution);
+
+        // --- Standby Memory Purge (ntdll.dll) ---
+        public const int SystemMemoryListInformation = 80;
+        public const int MemoryPurgeStandbyList = 4;
+        public const int MemoryEmptyWorkingSets = 2;
+
+        [DllImport("ntdll.dll")]
+        public static extern int NtSetSystemInformation(int SystemInformationClass, ref int SystemInformation, int SystemInformationLength);
+
+        // --- HotKey Registration ---
+        [DllImport("user32.dll")]
+        public static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+        [DllImport("user32.dll")]
+        public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+        public const uint MOD_ALT = 0x0001;
+        public const uint MOD_CONTROL = 0x0002;
+        public const uint MOD_SHIFT = 0x0004;
+        public const uint MOD_WIN = 0x0008;
+        public const uint MOD_NOREPEAT = 0x4000;
+        public const int WM_HOTKEY = 0x0312;
+
+        // --- Active Window and Game Detection ---
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
         // --- System Tray ---
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]

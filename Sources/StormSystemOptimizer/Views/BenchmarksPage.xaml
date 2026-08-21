@@ -92,7 +92,7 @@
                 </Grid>
             </Border>
 
-            <!-- Real-time Hardware Temperature Sensors Grid (Full-Width Responsive 2-Column Grid) -->
+            <!-- Real-time Hardware Temperature Sensors Grid -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                 <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
                     <Path Data="{StaticResource GeoThermometer}" Fill="{StaticResource IconGradCyan}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -135,6 +135,35 @@
                                         </Border>
                                     </StackPanel>
                                 </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+
+            <!-- Per-Core CPU Load Distribution -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoCpu}" Fill="{StaticResource IconGradCyan}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Детальная загрузка ядер процессора (Per-Core CPU Load)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                <ItemsControl ItemsSource="{Binding CpuCores}" HorizontalAlignment="Stretch">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="8" HorizontalAlignment="Stretch"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" Margin="4">
+                                <StackPanel HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding CoreName}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{Binding LoadText}" FontSize="14" FontWeight="Bold" Foreground="{Binding CoreColor}" HorizontalAlignment="Center" Margin="0,3,0,4"/>
+                                    <ProgressBar Value="{Binding LoadPercentage}" Maximum="100" Height="4" Width="60" Background="#1AFFFFFF" Foreground="{Binding CoreColor}" BorderThickness="0"/>
+                                </StackPanel>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

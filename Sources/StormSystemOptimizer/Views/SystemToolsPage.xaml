@@ -20,9 +20,9 @@
                         <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
                             <Path Data="{StaticResource GeoSystemTools}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <TextBlock Text="Инструменты восстановления и оснастки Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="Инструменты восстановления, глубокой оптимизации и оснастки" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBlock Text="Глубокая проверка целостности системных файлов, восстановление образа ОС, сброс сетевых каталогов, очистка журналов и быстрый доступ к системным оснасткам."
+                    <TextBlock Text="Глубокая проверка целостности системных файлов, восстановление образа ОС, режим MSI для шины PCIe, тюнинг DirectStorage 1.2, очистка Standby памяти и быстрый доступ к системным оснасткам."
                                FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
                     <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
                         <StackPanel Orientation="Horizontal">
@@ -33,8 +33,107 @@
                 </StackPanel>
             </Border>
 
-            <!-- Deep Repair Utilities Grid -->
+            <!-- Advanced Hardware & Memory Tweaks (MSI Mode, DirectStorage, Standby Purge, Snapshot) -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradCyan}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Аппаратный тюнинг PCIe, DirectStorage и память ядра" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- MSI Mode -->
+                <Border Grid.Row="0" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,6,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoGpu}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Режим MSI (Message Signaled Interrupts)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Перевод GPU и контроллеров USB в режим прерываний MSI для минимизации Input Lag." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding EnableMsiModeCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Включить" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                    </Grid>
+                </Border>
+
+                <!-- DirectStorage 1.2 & NVMe BypassIO -->
+                <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="6,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A34D399" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Тюнинг DirectStorage 1.2 &amp; BypassIO" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Оптимизация очередей Win32 IoRing и разгрузка шины ввода-вывода для игр." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding EnableDirectStorageCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Тюнинг" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                    </Grid>
+                </Border>
+
+                <!-- Standby Memory Purge -->
+                <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,6,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoRam}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Очистка кэша Standby List ОЗУ" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Мгновенное освобождение кэшированной памяти ожидания через NtSetSystemInformation." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding PurgeStandbyMemoryCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                    </Grid>
+                </Border>
+
+                <!-- Snapshot & Rollback -->
+                <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="6,0,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A38BDF8" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradSky}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Снимок параметров (Snapshot &amp; Rollback)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Резервный снимок критических параметров реестра перед тюнингом для быстрого отката." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding CreateSnapshotCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Создать снимок" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Deep Repair Utilities Grid -->
+            <StackPanel Orientation="Horizontal" Margin="0,16,0,10">
                 <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
                     <Path Data="{StaticResource GeoSystemTools}" Fill="{StaticResource IconGradAmber}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>

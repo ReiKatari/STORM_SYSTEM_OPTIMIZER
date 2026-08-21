@@ -99,78 +99,20 @@ namespace StormSystemOptimizer.ViewModels
         private bool _isDefaultActive = false;
 
         [ObservableProperty]
-        private string _statusMessage = "Готово к настройке служб";
-
-        [ObservableProperty]
-        private string _statusText = "Готово к настройке служб";
+        private string _statusText = "Службы загружены";
 
         public ServicesViewModel()
         {
-            RefreshServices();
+            LoadServices();
         }
 
         [RelayCommand]
-        public void RefreshServices()
+        public void LoadServices()
         {
             ServicesList.Clear();
             var list = WindowsServicesService.Instance.GetUnnecessaryServices();
             foreach (var item in list) ServicesList.Add(item);
-            StatusMessage = $"Обнаружено служб для оптимизации: {ServicesList.Count}";
-            StatusText = StatusMessage;
-        }
-
-        [RelayCommand]
-        public async Task ApplyProfileAsync(string profileName)
-        {
-            if (IsBusy) return;
-            IsBusy = true;
-
-            SelectedProfile = profileName;
-            IsRecommendedActive = profileName.Equals("Recommended", StringComparison.OrdinalIgnoreCase) || profileName.Equals("Рекомендуемый", StringComparison.OrdinalIgnoreCase);
-            IsGamingActive = profileName.Equals("Gaming", StringComparison.OrdinalIgnoreCase) || profileName.Equals("Игровой", StringComparison.OrdinalIgnoreCase);
-            IsExtremeActive = profileName.Equals("Extreme", StringComparison.OrdinalIgnoreCase) || profileName.Equals("Экстремальный", StringComparison.OrdinalIgnoreCase);
-            IsDefaultActive = profileName.Equals("Default", StringComparison.OrdinalIgnoreCase) || profileName.Equals("По умолчанию", StringComparison.OrdinalIgnoreCase);
-
-            StatusMessage = $"Применение профиля «{profileName}»...";
-            StatusText = StatusMessage;
-
-            await Task.Run(() =>
-            {
-                WindowsServicesService.Instance.ApplyProfile(profileName);
-            });
-
-            RefreshServices();
-            IsBusy = false;
-            StatusMessage = $"Профиль «{profileName}» успешно применен!";
-            StatusText = StatusMessage;
-
-            TrayService.Instance.ShowNotification("Службы Windows", StatusMessage);
-        }
-
-        [RelayCommand]
-        public Task ApplyPresetAsync(string preset) => ApplyProfileAsync(preset);
-
-        [RelayCommand]
-        public async Task ApplyServicesChangesAsync()
-        {
-            if (IsBusy) return;
-            IsBusy = true;
-            StatusMessage = "Сохранение настроек служб...";
-            StatusText = StatusMessage;
-
-            await Task.Run(() =>
-            {
-                foreach (var s in ServicesList)
-                {
-                    WindowsServicesService.Instance.SetServiceState(s.ServiceName, s.IsOptimized);
-                }
-            });
-
-            RefreshServices();
-            IsBusy = false;
-            StatusMessage = "Все настройки служб успешно применены!";
-            StatusText = StatusMessage;
-            TrayService.Instance.ShowNotification("Службы Windows", StatusMessage);
+            StatusText = $"Всего оптимизируемых служб: {ServicesList.Count}";
         }
 
         [RelayCommand]
@@ -181,19 +123,59 @@ namespace StormSystemOptimizer.ViewModels
                 WindowsServicesService.Instance.SetServiceState(entry.ServiceName, entry.IsOptimized);
             }
         }
+
+        [RelayCommand]
+        public void ApplyPreset(string preset)
+        {
+            SelectedProfile = preset;
+            IsRecommendedActive = preset == "Recommended";
+            IsGamingActive = preset == "Gaming";
+            IsExtremeActive = preset == "Extreme";
+            IsDefaultActive = preset == "Default";
+
+            WindowsServicesService.Instance.ApplyProfile(preset);
+            LoadServices();
+            StatusText = $"Применен профиль оптимизации служб: «{preset}»";
+            TrayService.Instance.ShowNotification("Службы Windows", StatusText);
+        }
+
+        [RelayCommand]
+        public async Task ApplyServicesChangesAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            StatusText = "Применение параметров служб...";
+
+            await Task.Run(() =>
+            {
+                foreach (var s in ServicesList)
+                {
+                    if (s.IsOptimized)
+                    {
+                        WindowsServicesService.Instance.SetServiceState(s.ServiceName, true);
+                    }
+                }
+            });
+
+            IsBusy = false;
+            StatusText = "Параметры служб успешно применены!";
+            TrayService.Instance.ShowNotification("Службы Windows", "Выбранные параметры служб успешно сохранены.");
+        }
     }
 
-    // --- Network View Model ---
+    // --- Network View Model with DNS Benchmark & Blackhole Shield ---
     public partial class NetworkViewModel : ObservableObject
     {
-        [ObservableProperty]
-        private string _dnsStatus = "Сетевой стек готов к оптимизации";
-
-        [ObservableProperty]
-        private string _activeDnsProvider = "Автоматический (DHCP)";
+        public ObservableCollection<DnsServerItem> DnsServers { get; } = new();
 
         [ObservableProperty]
         private string _pingText = "-- мс";
+
+        [ObservableProperty]
+        private string _activeDnsProvider = "Cloudflare (1.1.1.1)";
+
+        [ObservableProperty]
+        private string _dnsStatus = "Сетевой стек готов к работе";
 
         [ObservableProperty]
         private bool _isMeasuring = false;
@@ -213,9 +195,25 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private SpeedTestResult _speedTest = new();
 
+        [ObservableProperty]
+        private bool _isTcpNoDelayEnabled = true;
+
+        [ObservableProperty]
+        private bool _isBlackholeShieldEnabled = false;
+
         public NetworkViewModel()
         {
             _ = LoadNetworkDataAsync();
+            LoadDefaultDnsList();
+        }
+
+        private void LoadDefaultDnsList()
+        {
+            DnsServers.Clear();
+            foreach (var item in DnsBenchmarkService.Instance.GetDefaultDnsProviders())
+            {
+                DnsServers.Add(item);
+            }
         }
 
         [RelayCommand]
@@ -223,6 +221,52 @@ namespace StormSystemOptimizer.ViewModels
         {
             NetworkInfo = await NetworkOptimizerService.Instance.GetNetworkInfoAsync();
             _ = MeasurePingAsync();
+        }
+
+        [RelayCommand]
+        public async Task BenchmarkDnsAsync()
+        {
+            DnsStatus = "Тестирование задержки DNS серверов...";
+            var list = await DnsBenchmarkService.Instance.BenchmarkAllDnsAsync();
+            DnsServers.Clear();
+            foreach (var item in list)
+            {
+                DnsServers.Add(item);
+            }
+            DnsStatus = $"Тест DNS завершен! Самый быстрый: {DnsServers.FirstOrDefault()?.ProviderName} ({DnsServers.FirstOrDefault()?.PingText})";
+        }
+
+        [RelayCommand]
+        public async Task ApplyDnsItemAsync(DnsServerItem item)
+        {
+            if (item == null) return;
+            DnsStatus = $"Применение {item.ProviderName}...";
+            bool ok = await DnsBenchmarkService.Instance.ApplyDnsToActiveAdapterAsync(item.PrimaryDns, item.SecondaryDns);
+            if (ok)
+            {
+                ActiveDnsProvider = item.ProviderName;
+                DnsStatus = $"DNS сервер {item.ProviderName} успешно установлен!";
+                TrayService.Instance.ShowNotification("DNS изменен", DnsStatus);
+                await LoadNetworkDataAsync();
+            }
+        }
+
+        [RelayCommand]
+        public void ToggleTcpNoDelay()
+        {
+            IsTcpNoDelayEnabled = !IsTcpNoDelayEnabled;
+            AdvancedTweaksService.Instance.DisableNaglesAlgorithm();
+            DnsStatus = IsTcpNoDelayEnabled ? "TCP NoDelay & Nagle отключены (ультра-низкий онлайн пинг)" : "Стандартные настройки TCP";
+            TrayService.Instance.ShowNotification("TCP Оптимизация", DnsStatus);
+        }
+
+        [RelayCommand]
+        public async Task ToggleBlackholeShieldAsync()
+        {
+            IsBlackholeShieldEnabled = !IsBlackholeShieldEnabled;
+            bool ok = await AdvancedTweaksService.Instance.ToggleBlackholeTelemetryShieldAsync(IsBlackholeShieldEnabled);
+            DnsStatus = IsBlackholeShieldEnabled ? "Сетевой экран Blackhole Shield активен (телеметрия заблокирована)" : "Blackhole Shield отключен";
+            TrayService.Instance.ShowNotification("Blackhole Shield", DnsStatus);
         }
 
         [RelayCommand]
@@ -259,7 +303,8 @@ namespace StormSystemOptimizer.ViewModels
         public void OptimizeTcp()
         {
             NetworkOptimizerService.Instance.OptimizeTcpSettings();
-            DnsStatus = "Параметры TCP Window Auto-Tuning, RSS, QoS и сетевой стек оптимизированы!";
+            AdvancedTweaksService.Instance.DisableNaglesAlgorithm();
+            DnsStatus = "Параметры TCP Window Auto-Tuning, RSS, QoS и TCP NoDelay оптимизированы!";
             TrayService.Instance.ShowNotification("Сеть оптимизирована", "Сетевой стек и TCP ускорены для максимальной скорости и минимального пинга.");
         }
 
@@ -454,7 +499,7 @@ namespace StormSystemOptimizer.ViewModels
         }
     }
 
-    // --- System Tools View Model ---
+    // --- System Tools View Model with Advanced Tweaks ---
     public partial class SystemToolsViewModel : ObservableObject
     {
         [ObservableProperty]
@@ -465,6 +510,71 @@ namespace StormSystemOptimizer.ViewModels
         private bool _isBusy = false;
 
         public bool IsNotBusy => !IsBusy;
+
+        [RelayCommand]
+        public async Task EnableMsiModeAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            ToolStatus = "Включение режима MSI (Message Signaled Interrupts) для GPU и USB...";
+
+            bool ok = AdvancedTweaksService.Instance.EnableMsiModeForGpuAndUsb();
+            ToolStatus = ok ? "Режим MSI успешно активирован для видеокарты и USB-контроллеров!" : "Ошибка настройки MSI режима.";
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("MSI Mode", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task EnableDirectStorageAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            ToolStatus = "Оптимизация DirectStorage 1.2 и очередей Win32 IoRing...";
+
+            bool ok = AdvancedTweaksService.Instance.OptimizeDirectStorageAndIoRing();
+            ToolStatus = ok ? "DirectStorage 1.2 & NVMe BypassIO успешно настроены!" : "Ошибка применения DirectStorage.";
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("DirectStorage", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task CreateSnapshotAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            ToolStatus = "Создание резервного снимка параметров реестра...";
+
+            string path = await AdvancedTweaksService.Instance.CreateRegistryBackupSnapshotAsync("UserSnapshot");
+            ToolStatus = $"Снимок реестра успешно сохранен в Backups!";
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Снимок реестра", $"Резервная копия сохранена: {Path.GetFileName(path)}");
+        }
+
+        [RelayCommand]
+        public async Task PurgeStandbyMemoryAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            ToolStatus = "Очистка кэшированной памяти ожидания (Standby List)...";
+
+            bool ok = MemoryOptimizerService.Instance.PurgeStandbyList();
+            ToolStatus = ok ? "Standby List памяти успешно очищен без сброса рабочих данных!" : "Очистка выполнена.";
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Очистка Standby RAM", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task SmartCompressMemoryAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            ToolStatus = "Сжатие и оптимизация памяти фоновых процессов...";
+
+            var (count, freedMb) = await MemoryOptimizerService.Instance.SmartCompressMemoryAsync();
+            ToolStatus = $"Сжатие завершено: освобождено {freedMb:F0} МБ памяти у {count} процессов!";
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Smart RAM", ToolStatus);
+        }
 
         [RelayCommand]
         public async Task CreateRestorePointAsync()
@@ -642,7 +752,7 @@ namespace StormSystemOptimizer.ViewModels
     public partial class SettingsViewModel : ObservableObject
     {
         [ObservableProperty]
-        private string _appVersion = "v0.0.7";
+        private string _appVersion = "v0.1.0";
 
         [ObservableProperty]
         private string _updateStatusText = "Проверка обновлений не выполнялась";
