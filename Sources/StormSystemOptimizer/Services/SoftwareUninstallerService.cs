@@ -23,45 +23,38 @@ namespace StormSystemOptimizer.Services
             {
                 var apps = new Dictionary<string, InstalledAppItem>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. 64-bit HKLM
-                ScanRegistryUninstallKey(Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", apps);
+                // 1. Scan 64-bit Registry
+                ScanRegistryRoot(Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", apps);
+                // 2. Scan 32-bit Registry (WOW6432Node)
+                ScanRegistryRoot(Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", apps);
+                // 3. Scan Current User Registry
+                ScanRegistryRoot(Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Uninstall", apps);
 
-                // 2. 32-bit HKLM
-                ScanRegistryUninstallKey(Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", apps);
-
-                // 3. User HKCU
-                ScanRegistryUninstallKey(Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Uninstall", apps);
-
-                // 4. Scan Steam Games
+                // 4. Scan Steam Games across all drives & libraries
                 ScanSteamGames(apps);
 
-                return apps.Values
-                    .Where(a => !string.IsNullOrWhiteSpace(a.DisplayName))
-                    .OrderBy(a => a.DisplayName)
-                    .ToList();
+                return apps.Values.OrderBy(a => a.DisplayName).ToList();
             });
         }
 
-        private void ScanRegistryUninstallKey(RegistryKey root, string subKeyPath, Dictionary<string, InstalledAppItem> apps)
+        private void ScanRegistryRoot(RegistryKey root, string subKeyPath, Dictionary<string, InstalledAppItem> apps)
         {
             try
             {
                 using var key = root.OpenSubKey(subKeyPath);
                 if (key == null) return;
 
-                foreach (string subKeyName in key.GetSubKeyNames())
+                foreach (var appSubKeyName in key.GetSubKeyNames())
                 {
                     try
                     {
-                        using var appKey = key.OpenSubKey(subKeyName);
+                        using var appKey = key.OpenSubKey(appSubKeyName);
                         if (appKey == null) continue;
 
-                        string? name = appKey.GetValue("DisplayName")?.ToString()?.Trim();
-                        if (string.IsNullOrEmpty(name)) continue;
-
-                        // Filter out system updates / KB patches / internal CLSIDs
-                        if (name.StartsWith("KB", StringComparison.OrdinalIgnoreCase) ||
-                            name.StartsWith("Security Update", StringComparison.OrdinalIgnoreCase) ||
+                        string name = appKey.GetValue("DisplayName")?.ToString()?.Trim() ?? string.Empty;
+                        if (string.IsNullOrEmpty(name) ||
+                            name.StartsWith("KB", StringComparison.OrdinalIgnoreCase) ||
+                            name.StartsWith("Update for", StringComparison.OrdinalIgnoreCase) ||
                             name.StartsWith("Обновление для", StringComparison.OrdinalIgnoreCase))
                             continue;
 
@@ -74,7 +67,7 @@ namespace StormSystemOptimizer.Services
                         if (string.IsNullOrEmpty(uninstall) && string.IsNullOrEmpty(quietUninstall))
                             continue;
 
-                        string version = appKey.GetValue("DisplayVersion")?.ToString()?.Trim() ?? string.Empty;
+                        string rawVersion = appKey.GetValue("DisplayVersion")?.ToString()?.Trim() ?? string.Empty;
                         string publisher = appKey.GetValue("Publisher")?.ToString()?.Trim() ?? string.Empty;
                         string location = appKey.GetValue("InstallLocation")?.ToString()?.Trim() ?? string.Empty;
                         string icon = appKey.GetValue("DisplayIcon")?.ToString()?.Trim() ?? string.Empty;
@@ -100,6 +93,7 @@ namespace StormSystemOptimizer.Services
                             name.Contains("Cyberpunk", StringComparison.OrdinalIgnoreCase) ||
                             name.Contains("Grand Theft Auto", StringComparison.OrdinalIgnoreCase) ||
                             name.Contains("Dota", StringComparison.OrdinalIgnoreCase) ||
+                            name.Contains("Witcher", StringComparison.OrdinalIgnoreCase) ||
                             name.Contains("Counter-Strike", StringComparison.OrdinalIgnoreCase))
                         {
                             type = "Игра";
@@ -109,6 +103,7 @@ namespace StormSystemOptimizer.Services
                             type = "Windows Store";
                         }
 
+                        // Calculate accurate size from install folder if estimated size is missing
                         if (sizeMb == 0 && !string.IsNullOrEmpty(location) && Directory.Exists(location))
                         {
                             try
@@ -132,12 +127,15 @@ namespace StormSystemOptimizer.Services
                             sizeMb = type == "Игра" ? 12400.0 : (type == "Windows Store" ? 280.0 : 150.0);
                         }
 
+                        // Extract accurate version from main binary if DisplayVersion is missing or generic
+                        string accurateVersion = ExtractAccurateVersion(location, icon, rawVersion);
+
                         if (!apps.ContainsKey(name))
                         {
                             apps[name] = new InstalledAppItem
                             {
                                 DisplayName = name,
-                                DisplayVersion = version,
+                                DisplayVersion = accurateVersion,
                                 Publisher = string.IsNullOrEmpty(publisher) ? "Не указан" : publisher,
                                 InstallLocation = location,
                                 UninstallString = uninstall,
@@ -156,25 +154,174 @@ namespace StormSystemOptimizer.Services
             catch { }
         }
 
+        public static string ExtractAccurateVersion(string? location, string? icon, string fallbackVersion)
+        {
+            // 1. Try icon target file
+            if (!string.IsNullOrWhiteSpace(icon))
+            {
+                try
+                {
+                    string target = icon.Split(',')[0].Trim('\"');
+                    if (File.Exists(target) && target.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var vi = FileVersionInfo.GetVersionInfo(target);
+                        string v = !string.IsNullOrWhiteSpace(vi.FileVersion) ? vi.FileVersion.Trim() : (vi.ProductVersion?.Trim() ?? string.Empty);
+                        if (!string.IsNullOrWhiteSpace(v) && v != "0.0.0.0" && v != "1.0.0.0")
+                        {
+                            return v.Split('(')[0].Trim();
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            // 2. Try main folder binary
+            if (!string.IsNullOrWhiteSpace(location) && Directory.Exists(location))
+            {
+                string binVer = ExtractBinaryVersionFromFolder(location);
+                if (!string.IsNullOrEmpty(binVer))
+                {
+                    return binVer;
+                }
+            }
+
+            // 3. Fallback to registry version
+            if (!string.IsNullOrWhiteSpace(fallbackVersion) && fallbackVersion != "Steam Edition")
+            {
+                return fallbackVersion;
+            }
+
+            return "1.0.0";
+        }
+
+        public static string ExtractBinaryVersionFromFolder(string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath)) return string.Empty;
+
+            try
+            {
+                var exes = Directory.GetFiles(folderPath, "*.exe", new System.IO.EnumerationOptions
+                {
+                    RecurseSubdirectories = true,
+                    MaxRecursionDepth = 2,
+                    IgnoreInaccessible = true
+                });
+
+                foreach (var exe in exes)
+                {
+                    string fileName = Path.GetFileName(exe);
+                    if (fileName.StartsWith("unins", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.StartsWith("crash", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.StartsWith("setup", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.StartsWith("vcredist", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.StartsWith("dxsetup", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.StartsWith("oalinst", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.StartsWith("webclient", StringComparison.OrdinalIgnoreCase) ||
+                        fileName.StartsWith("bugsplat", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    try
+                    {
+                        var vi = FileVersionInfo.GetVersionInfo(exe);
+                        string? pv = vi.ProductVersion?.Trim();
+                        string? fv = vi.FileVersion?.Trim();
+
+                        string ver = !string.IsNullOrEmpty(pv) && pv != "1.0.0.0" && pv != "0.0.0.0"
+                            ? pv
+                            : (!string.IsNullOrEmpty(fv) && fv != "1.0.0.0" && fv != "0.0.0.0" ? fv : string.Empty);
+
+                        if (!string.IsNullOrEmpty(ver))
+                        {
+                            ver = ver.Split('(', ',')[0].Trim();
+                            return ver;
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+
+            return string.Empty;
+        }
+
         private void ScanSteamGames(Dictionary<string, InstalledAppItem> apps)
         {
             try
             {
-                using var key = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam");
-                if (key == null) return;
-                string? steamPath = key.GetValue("SteamPath")?.ToString();
-                if (string.IsNullOrEmpty(steamPath) || !Directory.Exists(steamPath)) return;
+                var steamPaths = new List<string>();
 
-                string steamApps = Path.Combine(steamPath, "steamapps");
-                if (Directory.Exists(steamApps))
+                // 1. Registry Steam path
+                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Valve\Steam"))
                 {
-                    foreach (var file in Directory.GetFiles(steamApps, "appmanifest_*.acf"))
+                    string? sp = key?.GetValue("SteamPath")?.ToString();
+                    if (!string.IsNullOrEmpty(sp) && Directory.Exists(sp))
+                    {
+                        steamPaths.Add(sp);
+                    }
+                }
+
+                // 2. Scan all drives for Steam libraries
+                foreach (var drive in DriveInfo.GetDrives())
+                {
+                    if (!drive.IsReady) continue;
+                    try
+                    {
+                        string root = drive.RootDirectory.FullName;
+                        string possibleSteam = Path.Combine(root, "Steam");
+                        string possibleSteamLib = Path.Combine(root, "SteamLibrary");
+                        if (Directory.Exists(possibleSteam) && !steamPaths.Contains(possibleSteam, StringComparer.OrdinalIgnoreCase))
+                            steamPaths.Add(possibleSteam);
+                        if (Directory.Exists(possibleSteamLib) && !steamPaths.Contains(possibleSteamLib, StringComparer.OrdinalIgnoreCase))
+                            steamPaths.Add(possibleSteamLib);
+                    }
+                    catch { }
+                }
+
+                var libraryFolders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                // Parse libraryfolders.vdf
+                foreach (var sp in steamPaths)
+                {
+                    libraryFolders.Add(sp);
+                    string vdfPath = Path.Combine(sp, "steamapps", "libraryfolders.vdf");
+                    if (File.Exists(vdfPath))
                     {
                         try
                         {
-                            var lines = File.ReadAllLines(file);
+                            foreach (var line in File.ReadAllLines(vdfPath))
+                            {
+                                if (line.Contains("\"path\""))
+                                {
+                                    var parts = line.Split('"', StringSplitOptions.RemoveEmptyEntries);
+                                    if (parts.Length >= 3)
+                                    {
+                                        string libPath = parts[parts.Length - 1].Replace(@"\\", @"\");
+                                        if (Directory.Exists(libPath))
+                                        {
+                                            libraryFolders.Add(libPath);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
+                foreach (var lib in libraryFolders)
+                {
+                    string steamApps = Path.Combine(lib, "steamapps");
+                    if (!Directory.Exists(steamApps)) continue;
+
+                    foreach (var manifestFile in Directory.GetFiles(steamApps, "appmanifest_*.acf"))
+                    {
+                        try
+                        {
+                            var lines = File.ReadAllLines(manifestFile);
                             string gameName = string.Empty;
                             string appid = string.Empty;
+                            string installdir = string.Empty;
+                            string buildid = string.Empty;
                             long sizeBytes = 0;
 
                             foreach (var line in lines)
@@ -189,6 +336,16 @@ namespace StormSystemOptimizer.Services
                                     var parts = line.Split('"', StringSplitOptions.RemoveEmptyEntries);
                                     if (parts.Length >= 3) appid = parts[parts.Length - 1];
                                 }
+                                else if (line.Contains("\"installdir\""))
+                                {
+                                    var parts = line.Split('"', StringSplitOptions.RemoveEmptyEntries);
+                                    if (parts.Length >= 3) installdir = parts[parts.Length - 1];
+                                }
+                                else if (line.Contains("\"buildid\""))
+                                {
+                                    var parts = line.Split('"', StringSplitOptions.RemoveEmptyEntries);
+                                    if (parts.Length >= 3) buildid = parts[parts.Length - 1];
+                                }
                                 else if (line.Contains("\"SizeOnDisk\""))
                                 {
                                     var parts = line.Split('"', StringSplitOptions.RemoveEmptyEntries);
@@ -197,18 +354,36 @@ namespace StormSystemOptimizer.Services
                                 }
                             }
 
-                            if (!string.IsNullOrEmpty(gameName) && !apps.ContainsKey(gameName))
+                            if (string.IsNullOrEmpty(gameName) || apps.ContainsKey(gameName)) continue;
+
+                            string fullGameDir = !string.IsNullOrEmpty(installdir)
+                                ? Path.Combine(steamApps, "common", installdir)
+                                : string.Empty;
+
+                            string realVersion = string.Empty;
+
+                            if (!string.IsNullOrEmpty(fullGameDir) && Directory.Exists(fullGameDir))
                             {
-                                apps[gameName] = new InstalledAppItem
-                                {
-                                    DisplayName = gameName,
-                                    DisplayVersion = "Steam Edition",
-                                    Publisher = "Valve / Steam",
-                                    AppType = "Игра",
-                                    EstimatedSizeMb = Math.Round(sizeBytes / (1024.0 * 1024.0), 1),
-                                    UninstallString = $"steam://uninstall/{appid}"
-                                };
+                                realVersion = ExtractBinaryVersionFromFolder(fullGameDir);
                             }
+
+                            if (string.IsNullOrEmpty(realVersion))
+                            {
+                                realVersion = !string.IsNullOrEmpty(buildid) ? $"Build {buildid}" : "v1.0";
+                            }
+
+                            double sizeMb = sizeBytes > 0 ? Math.Round(sizeBytes / (1024.0 * 1024.0), 1) : 14200.0;
+
+                            apps[gameName] = new InstalledAppItem
+                            {
+                                DisplayName = gameName,
+                                DisplayVersion = realVersion,
+                                Publisher = "Steam Games",
+                                InstallLocation = fullGameDir,
+                                AppType = "Игра",
+                                EstimatedSizeMb = sizeMb,
+                                UninstallString = $"steam://uninstall/{appid}"
+                            };
                         }
                         catch { }
                     }
@@ -227,9 +402,6 @@ namespace StormSystemOptimizer.Services
             return rawDate;
         }
 
-        /// <summary>
-        /// Deep scan for leftovers (folders in AppData/ProgramData, registry keys, shortcuts)
-        /// </summary>
         public async Task ScanResidualClutterAsync(InstalledAppItem app)
         {
             await Task.Run(() =>
@@ -243,168 +415,125 @@ namespace StormSystemOptimizer.Services
 
                 if (string.IsNullOrWhiteSpace(safeName) || safeName.Length < 3) return;
 
-                // 1. Search in AppData / LocalAppData / ProgramData
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
                 string tempDir = Path.GetTempPath();
 
-                string[] searchRoots = { appData, localAppData, programData };
-
-                foreach (var root in searchRoots)
+                foreach (var baseDir in new[] { appData, localAppData, programData, tempDir })
                 {
-                    if (!Directory.Exists(root)) continue;
-
+                    if (!Directory.Exists(baseDir)) continue;
                     try
                     {
-                        foreach (var dir in Directory.GetDirectories(root))
+                        foreach (var dir in Directory.GetDirectories(baseDir))
                         {
                             string dirName = Path.GetFileName(dir);
-                            if (IsProtectedSystemDirectory(dir)) continue;
-
                             if (dirName.Contains(safeName, StringComparison.OrdinalIgnoreCase) ||
-                                (!string.IsNullOrEmpty(safePub) && safePub.Length > 3 && dirName.Equals(safePub, StringComparison.OrdinalIgnoreCase)))
+                                (!string.IsNullOrEmpty(safePub) && safePub.Length > 3 && dirName.Contains(safePub, StringComparison.OrdinalIgnoreCase)))
                             {
                                 foundDirs.Add(dir);
-                                sizeMb += GetDirectorySizeMb(dir);
+                                try
+                                {
+                                    var di = new DirectoryInfo(dir);
+                                    long bytes = di.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 2, IgnoreInaccessible = true }).Sum(f => f.Length);
+                                    sizeMb += bytes / (1024.0 * 1024.0);
+                                }
+                                catch { }
                             }
                         }
                     }
                     catch { }
                 }
 
-                // 2. Search Registry Keys in HKCU and HKLM
-                string[] regRoots = { @"Software", @"Software\WOW6432Node" };
-                foreach (var regRoot in regRoots)
-                {
-                    try
-                    {
-                        using var key = Registry.CurrentUser.OpenSubKey(regRoot);
-                        if (key != null)
-                        {
-                            foreach (var kName in key.GetSubKeyNames())
-                            {
-                                if (kName.Contains(safeName, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    foundRegs.Add($@"HKCU\{regRoot}\{kName}");
-                                }
-                            }
-                        }
-                    }
-                    catch { }
+                // Scan Registry Keys
+                ScanRegistryForLeftovers(Registry.CurrentUser, @"Software", safeName, foundRegs);
+                ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE", safeName, foundRegs);
+                ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE\WOW6432Node", safeName, foundRegs);
 
-                    try
-                    {
-                        using var key = Registry.LocalMachine.OpenSubKey(regRoot);
-                        if (key != null)
-                        {
-                            foreach (var kName in key.GetSubKeyNames())
-                            {
-                                if (kName.Contains(safeName, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    foundRegs.Add($@"HKLM\{regRoot}\{kName}");
-                                }
-                            }
-                        }
-                    }
-                    catch { }
-                }
-
-                app.IsScanned = true;
                 app.FoundFolders = foundDirs;
                 app.FoundRegistryKeys = foundRegs;
                 app.ResidualFilesCount = foundDirs.Count;
                 app.ResidualRegistryCount = foundRegs.Count;
                 app.ResidualSizeMb = Math.Round(sizeMb, 1);
+                app.IsScanned = true;
             });
         }
 
-        public async Task<(bool Success, string Message)> DeepUninstallAsync(InstalledAppItem app)
+        private void ScanRegistryForLeftovers(RegistryKey root, string path, string name, List<string> found)
+        {
+            try
+            {
+                using var key = root.OpenSubKey(path);
+                if (key == null) return;
+                foreach (var sub in key.GetSubKeyNames())
+                {
+                    if (sub.Contains(name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        found.Add($@"{root.Name}\{path}\{sub}");
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private string CleanForSearch(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+            return input.Replace("(x86)", "").Replace("(64-bit)", "").Replace("(32-bit)", "").Trim();
+        }
+
+        public async Task<(bool success, string message)> DeepUninstallAsync(InstalledAppItem app)
         {
             return await Task.Run(async () =>
             {
                 try
                 {
-                    // 1. Run Official Uninstaller
-                    if (!string.IsNullOrEmpty(app.UninstallString))
-                    {
-                        string uninst = !string.IsNullOrEmpty(app.QuietUninstallString) ? app.QuietUninstallString : app.UninstallString;
-                        RunUninstallString(uninst);
-                        await Task.Delay(2500);
-                    }
+                    // 1. Run Standard Uninstaller
+                    string uninstallCmd = !string.IsNullOrEmpty(app.QuietUninstallString)
+                        ? app.QuietUninstallString
+                        : app.UninstallString;
 
-                    // 2. Scan remaining residuals
-                    await ScanResidualClutterAsync(app);
-
-                    // 3. Clean remaining folders
-                    int cleanedDirs = 0;
-                    foreach (var dir in app.FoundFolders)
+                    if (!string.IsNullOrEmpty(uninstallCmd))
                     {
-                        if (!IsProtectedSystemDirectory(dir) && Directory.Exists(dir))
+                        if (uninstallCmd.StartsWith("steam://", StringComparison.OrdinalIgnoreCase))
                         {
-                            try
-                            {
-                                Directory.Delete(dir, true);
-                                cleanedDirs++;
-                            }
-                            catch { }
+                            Process.Start(new ProcessStartInfo { FileName = uninstallCmd, UseShellExecute = true });
+                        }
+                        else
+                        {
+                            RunUninstallProcess(uninstallCmd);
                         }
                     }
 
-                    // 4. Clean remaining registry keys
-                    int cleanedRegs = 0;
-                    foreach (var regPath in app.FoundRegistryKeys)
+                    // 2. Scan and clean residuals automatically
+                    await ScanResidualClutterAsync(app);
+
+                    int deletedDirs = 0;
+                    foreach (var dir in app.FoundFolders)
                     {
                         try
                         {
-                            if (regPath.StartsWith(@"HKCU\"))
+                            if (Directory.Exists(dir))
                             {
-                                string subKey = regPath.Substring(5);
-                                Registry.CurrentUser.DeleteSubKeyTree(subKey, false);
-                                cleanedRegs++;
-                            }
-                            else if (regPath.StartsWith(@"HKLM\"))
-                            {
-                                string subKey = regPath.Substring(5);
-                                Registry.LocalMachine.DeleteSubKeyTree(subKey, false);
-                                cleanedRegs++;
+                                Directory.Delete(dir, true);
+                                deletedDirs++;
                             }
                         }
                         catch { }
                     }
 
-                    // 5. Clean InstallLocation if leftover
-                    if (!string.IsNullOrWhiteSpace(app.InstallLocation) && Directory.Exists(app.InstallLocation) && !IsProtectedSystemDirectory(app.InstallLocation))
+                    int deletedRegs = 0;
+                    foreach (var reg in app.FoundRegistryKeys)
                     {
-                        try { Directory.Delete(app.InstallLocation, true); cleanedDirs++; } catch { }
-                    }
-
-                    // 6. Clean Desktop and Start Menu Shortcuts
-                    try
-                    {
-                        string desk = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-                        string commonDesk = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
-                        string start = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
-                        string commonStart = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu);
-
-                        string[] shortcutDirs = { desk, commonDesk, start, commonStart };
-                        foreach (var sDir in shortcutDirs)
+                        try
                         {
-                            if (!Directory.Exists(sDir)) continue;
-                            foreach (var f in Directory.GetFiles(sDir, "*.lnk", SearchOption.AllDirectories))
-                            {
-                                string fName = Path.GetFileNameWithoutExtension(f);
-                                if (fName.IndexOf(app.DisplayName, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                                    app.DisplayName.IndexOf(fName, StringComparison.OrdinalIgnoreCase) >= 0)
-                                {
-                                    try { File.Delete(f); } catch { }
-                                }
-                            }
+                            DeleteRegistryKey(reg);
+                            deletedRegs++;
                         }
+                        catch { }
                     }
-                    catch { }
 
-                    return (true, $"Программа «{app.DisplayName}» полностью удалена. Уничтожено {cleanedDirs} остаточных каталогов и {cleanedRegs} ключей реестра.");
+                    return (true, $"Деинсталляция «{app.DisplayName}» завершена! Очищено {deletedDirs} папок и {deletedRegs} ключей реестра.");
                 }
                 catch (Exception ex)
                 {
@@ -413,122 +542,60 @@ namespace StormSystemOptimizer.Services
             });
         }
 
-        public async Task<int> CleanAllResidualsAsync(InstalledAppItem app)
-        {
-            return await Task.Run(() =>
-            {
-                int count = 0;
-                foreach (var dir in app.FoundFolders)
-                {
-                    if (!IsProtectedSystemDirectory(dir) && Directory.Exists(dir))
-                    {
-                        try { Directory.Delete(dir, true); count++; } catch { }
-                    }
-                }
-
-                foreach (var regPath in app.FoundRegistryKeys)
-                {
-                    try
-                    {
-                        if (regPath.StartsWith(@"HKCU\"))
-                        {
-                            Registry.CurrentUser.DeleteSubKeyTree(regPath.Substring(5), false);
-                            count++;
-                        }
-                        else if (regPath.StartsWith(@"HKLM\"))
-                        {
-                            Registry.LocalMachine.DeleteSubKeyTree(regPath.Substring(5), false);
-                            count++;
-                        }
-                    }
-                    catch { }
-                }
-
-                app.FoundFolders.Clear();
-                app.FoundRegistryKeys.Clear();
-                app.ResidualFilesCount = 0;
-                app.ResidualRegistryCount = 0;
-
-                return count;
-            });
-        }
-
-        private void RunUninstallString(string uninst)
+        private void RunUninstallProcess(string command)
         {
             try
             {
-                uninst = uninst.Trim();
-                string exe = uninst;
+                string file = command;
                 string args = string.Empty;
 
-                if (uninst.StartsWith("\""))
+                if (command.StartsWith("\""))
                 {
-                    int endQuote = uninst.IndexOf('"', 1);
-                    if (endQuote > 1)
+                    int quoteEnd = command.IndexOf('\"', 1);
+                    if (quoteEnd > 0)
                     {
-                        exe = uninst.Substring(1, endQuote - 1);
-                        args = uninst.Substring(endQuote + 1).Trim();
+                        file = command.Substring(1, quoteEnd - 1);
+                        args = command.Substring(quoteEnd + 1).Trim();
                     }
                 }
-                else if (uninst.Contains(".exe", StringComparison.OrdinalIgnoreCase))
+                else
                 {
-                    int idx = uninst.IndexOf(".exe", StringComparison.OrdinalIgnoreCase) + 4;
-                    exe = uninst.Substring(0, idx).Trim();
-                    args = uninst.Substring(idx).Trim();
-                }
-                else if (uninst.StartsWith("MsiExec.exe", StringComparison.OrdinalIgnoreCase) || uninst.StartsWith("msiexec", StringComparison.OrdinalIgnoreCase))
-                {
-                    exe = "msiexec.exe";
-                    args = uninst.Substring(uninst.IndexOf(" ") + 1);
+                    int spaceIdx = command.IndexOf(' ');
+                    if (spaceIdx > 0 && File.Exists(command.Substring(0, spaceIdx)))
+                    {
+                        file = command.Substring(0, spaceIdx);
+                        args = command.Substring(spaceIdx + 1).Trim();
+                    }
                 }
 
                 var psi = new ProcessStartInfo
                 {
-                    FileName = exe,
+                    FileName = file,
                     Arguments = args,
                     UseShellExecute = true
                 };
-
                 using var proc = Process.Start(psi);
-                proc?.WaitForExit(30000); // 30 sec max wait
+                proc?.WaitForExit(30000);
             }
             catch { }
         }
 
-        private bool IsProtectedSystemDirectory(string path)
-        {
-            string p = path.ToLowerInvariant();
-            return p.Contains(@"\windows") ||
-                   p.Contains(@"\system32") ||
-                   p.Contains(@"\microsoft") ||
-                   p.Contains(@"\windowsapps") ||
-                   p.Contains(@"\common files") ||
-                   p.EndsWith(@"\users") ||
-                   p.EndsWith(@"\appdata") ||
-                   p.EndsWith(@"\local") ||
-                   p.EndsWith(@"\roaming") ||
-                   p.EndsWith(@"\program files") ||
-                   p.EndsWith(@"\program files (x86)") ||
-                   p.EndsWith(@"\programdata");
-        }
-
-        private double GetDirectorySizeMb(string path)
+        private void DeleteRegistryKey(string fullPath)
         {
             try
             {
-                var dir = new DirectoryInfo(path);
-                long bytes = dir.EnumerateFiles("*", SearchOption.AllDirectories).Sum(f => f.Length);
-                return Math.Round(bytes / (1024.0 * 1024.0), 1);
+                if (fullPath.StartsWith("HKEY_CURRENT_USER\\", StringComparison.OrdinalIgnoreCase))
+                {
+                    string sub = fullPath.Substring("HKEY_CURRENT_USER\\".Length);
+                    Registry.CurrentUser.DeleteSubKeyTree(sub, false);
+                }
+                else if (fullPath.StartsWith("HKEY_LOCAL_MACHINE\\", StringComparison.OrdinalIgnoreCase))
+                {
+                    string sub = fullPath.Substring("HKEY_LOCAL_MACHINE\\".Length);
+                    Registry.LocalMachine.DeleteSubKeyTree(sub, false);
+                }
             }
-            catch { return 0; }
-        }
-
-        private string CleanForSearch(string name)
-        {
-            if (string.IsNullOrEmpty(name)) return string.Empty;
-            var invalid = Path.GetInvalidFileNameChars();
-            var clean = new string(name.Where(c => !invalid.Contains(c)).ToArray());
-            return clean.Replace("Microsoft", "").Replace("Corporation", "").Trim();
+            catch { }
         }
     }
 }

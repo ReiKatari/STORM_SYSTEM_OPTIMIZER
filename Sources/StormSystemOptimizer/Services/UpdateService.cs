@@ -24,7 +24,7 @@ namespace StormSystemOptimizer.Services
         private static UpdateService? _instance;
         public static UpdateService Instance => _instance ??= new UpdateService();
 
-        public const string CurrentVersion = "0.2.1";
+        public const string CurrentVersion = "0.2.2";
         private const string GitHubApiUrl = "https://api.github.com/repos/ReiKatari/STORM_SYSTEM_OPTIMIZER/releases/latest";
         private const string GitHubReleasesUrl = "https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER/releases";
 
