@@ -23,7 +23,7 @@ namespace StormSystemOptimizer.Services
                 var list = new List<DriverItem>();
                 var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. Fast Video Controllers
+                // 1. Video Controllers with exact Game Ready driver formatting
                 try
                 {
                     using var searcher = new ManagementObjectSearcher("SELECT Name, DriverVersion, DriverDate, AdapterCompatibility FROM Win32_VideoController");
@@ -33,32 +33,39 @@ namespace StormSystemOptimizer.Services
                         if (string.IsNullOrEmpty(name) || seenNames.Contains(name)) continue;
                         seenNames.Add(name);
 
-                        string provider = obj["AdapterCompatibility"]?.ToString()?.Trim() ?? "NVIDIA / AMD / Intel";
-                        string version = obj["DriverVersion"]?.ToString()?.Trim() ?? "32.0.15.6094";
+                        string provider = obj["AdapterCompatibility"]?.ToString()?.Trim() ?? "NVIDIA";
+                        string rawVersion = obj["DriverVersion"]?.ToString()?.Trim() ?? "32.0.15.8266";
                         string rawDate = obj["DriverDate"]?.ToString()?.Trim() ?? string.Empty;
 
-                        string latestVer = version;
+                        string formattedVersion = FormatGpuDriverVersion(provider, name, rawVersion);
+                        string latestVer = formattedVersion;
                         string downloadUrl = "https://www.nvidia.com/Download/index.aspx";
                         bool updateAvailable = false;
 
                         if (name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) || name.Contains("GeForce", StringComparison.OrdinalIgnoreCase))
                         {
-                            latestVer = "560.94 WHQL";
+                            latestVer = "582.66 WHQL";
                             downloadUrl = "https://www.nvidia.com/Download/index.aspx";
-                            updateAvailable = !version.Contains("560.94");
+                            updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
                         }
                         else if (name.Contains("AMD", StringComparison.OrdinalIgnoreCase) || name.Contains("Radeon", StringComparison.OrdinalIgnoreCase))
                         {
                             latestVer = "24.8.1 Adrenalin";
                             downloadUrl = "https://www.amd.com/en/support";
-                            updateAvailable = !version.Contains("24.8");
+                            updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
+                        }
+                        else if (name.Contains("Intel", StringComparison.OrdinalIgnoreCase))
+                        {
+                            latestVer = "32.0.101.5972 WHQL";
+                            downloadUrl = "https://www.intel.com/content/www/us/en/download-center/home.html";
+                            updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
                         }
 
                         list.Add(new DriverItem
                         {
                             DeviceName = name,
-                            ProviderName = provider,
-                            CurrentVersion = version,
+                            ProviderName = provider.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ? "NVIDIA Corporation" : provider,
+                            CurrentVersion = formattedVersion,
                             LatestVersion = latestVer,
                             DriverDate = FormatWmiDate(rawDate),
                             Category = "Видеокарта",
@@ -69,89 +76,91 @@ namespace StormSystemOptimizer.Services
                 }
                 catch { }
 
-                // 2. Fast Network Adapters
+                // 2. Real Network, Sound, and Storage Controllers from Win32_PnPSignedDriver
                 try
                 {
-                    using var searcher = new ManagementObjectSearcher("SELECT Name, Manufacturer, ServiceName FROM Win32_NetworkAdapter WHERE PhysicalAdapter = True");
+                    using var searcher = new ManagementObjectSearcher(
+                        "SELECT DeviceName, DriverVersion, DriverDate, DriverProviderName, DeviceClass FROM Win32_PnPSignedDriver " +
+                        "WHERE DeviceClass = 'NET' OR DeviceClass = 'MEDIA' OR DeviceClass = 'SCSIADAPTER' OR DeviceClass = 'HDC' OR DeviceClass = 'USB'");
+
                     foreach (ManagementObject obj in searcher.Get())
                     {
-                        string name = obj["Name"]?.ToString()?.Trim() ?? string.Empty;
-                        if (string.IsNullOrEmpty(name) || name.Contains("WAN", StringComparison.OrdinalIgnoreCase) || seenNames.Contains(name)) continue;
-                        seenNames.Add(name);
-
-                        string provider = obj["Manufacturer"]?.ToString()?.Trim() ?? "Realtek / Intel";
-
-                        list.Add(new DriverItem
-                        {
-                            DeviceName = name,
-                            ProviderName = provider,
-                            CurrentVersion = "10.071.0507",
-                            LatestVersion = "10.071 WHQL",
-                            DriverDate = "15.05.2024",
-                            Category = "Сеть",
-                            IsUpdateAvailable = false,
-                            DownloadUrl = "https://www.realtek.com"
-                        });
-                    }
-                }
-                catch { }
-
-                // 3. Fast Sound Devices
-                try
-                {
-                    using var searcher = new ManagementObjectSearcher("SELECT Name, Manufacturer FROM Win32_SoundDevice");
-                    foreach (ManagementObject obj in searcher.Get())
-                    {
-                        string name = obj["Name"]?.ToString()?.Trim() ?? string.Empty;
+                        string name = obj["DeviceName"]?.ToString()?.Trim() ?? string.Empty;
+                        string devClass = obj["DeviceClass"]?.ToString()?.Trim() ?? string.Empty;
                         if (string.IsNullOrEmpty(name) || seenNames.Contains(name)) continue;
+
+                        // Filter virtual miniports
+                        if (name.StartsWith("WAN Miniport", StringComparison.OrdinalIgnoreCase) ||
+                            name.StartsWith("Microsoft Kernel", StringComparison.OrdinalIgnoreCase) ||
+                            name.StartsWith("NDIS", StringComparison.OrdinalIgnoreCase) ||
+                            name.Contains("Remote Desktop", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
                         seenNames.Add(name);
 
-                        string provider = obj["Manufacturer"]?.ToString()?.Trim() ?? "Realtek High Definition";
+                        string provider = obj["DriverProviderName"]?.ToString()?.Trim() ?? "Microsoft";
+                        string version = obj["DriverVersion"]?.ToString()?.Trim() ?? "10.0.22621.1";
+                        string rawDate = obj["DriverDate"]?.ToString()?.Trim() ?? string.Empty;
+
+                        string category = devClass switch
+                        {
+                            "NET" => "Сеть",
+                            "MEDIA" => "Звук",
+                            "SCSIADAPTER" or "HDC" => "Накопители",
+                            _ => "Чипсет & USB"
+                        };
+
+                        string downloadUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} driver download official");
 
                         list.Add(new DriverItem
                         {
                             DeviceName = name,
                             ProviderName = provider,
-                            CurrentVersion = "6.0.9239.1",
-                            LatestVersion = "6.0.9239.1 WHQL",
-                            DriverDate = "20.03.2024",
-                            Category = "Звук",
+                            CurrentVersion = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}",
+                            LatestVersion = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? $"{version} WHQL" : $"v{version} WHQL",
+                            DriverDate = FormatWmiDate(rawDate),
+                            Category = category,
                             IsUpdateAvailable = false,
-                            DownloadUrl = "https://www.realtek.com"
+                            DownloadUrl = downloadUrl
                         });
                     }
                 }
                 catch { }
 
-                // 4. Fast Storage Controllers
-                try
-                {
-                    using var searcher = new ManagementObjectSearcher("SELECT Name, Manufacturer FROM Win32_SCSIController");
-                    foreach (ManagementObject obj in searcher.Get())
-                    {
-                        string name = obj["Name"]?.ToString()?.Trim() ?? string.Empty;
-                        if (string.IsNullOrEmpty(name) || seenNames.Contains(name)) continue;
-                        seenNames.Add(name);
-
-                        string provider = obj["Manufacturer"]?.ToString()?.Trim() ?? "Microsoft / Standard NVMe";
-
-                        list.Add(new DriverItem
-                        {
-                            DeviceName = name,
-                            ProviderName = provider,
-                            CurrentVersion = "10.0.22621.3672",
-                            LatestVersion = "10.0.22621.3672 WHQL",
-                            DriverDate = "10.06.2024",
-                            Category = "Накопители",
-                            IsUpdateAvailable = false,
-                            DownloadUrl = "https://www.microsoft.com"
-                        });
-                    }
-                }
-                catch { }
-
-                return list;
+                return list.OrderBy(d => d.Category != "Видеокарта").ThenBy(d => d.DeviceName).ToList();
             });
+        }
+
+        public static string FormatGpuDriverVersion(string provider, string deviceName, string rawVersion)
+        {
+            if (string.IsNullOrWhiteSpace(rawVersion)) return "Актуален";
+
+            if (provider.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ||
+                deviceName.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ||
+                deviceName.Contains("GeForce", StringComparison.OrdinalIgnoreCase))
+            {
+                // Convert Microsoft driver format (e.g. 32.0.15.8266 -> 582.66)
+                var parts = rawVersion.Split('.');
+                if (parts.Length == 4)
+                {
+                    string p3 = parts[2];
+                    string p4 = parts[3];
+                    if (p3.Length >= 2 && p4.Length >= 4)
+                    {
+                        char majorLast = p3[p3.Length - 1]; // e.g. '5'
+                        string firstTwo = p4.Substring(0, 2); // e.g. "82"
+                        string lastTwo = p4.Substring(2); // e.g. "66"
+                        return $"{majorLast}{firstTwo}.{lastTwo} WHQL";
+                    }
+                }
+            }
+            else if (provider.Contains("AMD", StringComparison.OrdinalIgnoreCase) ||
+                     deviceName.Contains("Radeon", StringComparison.OrdinalIgnoreCase))
+            {
+                return rawVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? $"{rawVersion} Adrenalin" : $"v{rawVersion} Adrenalin";
+            }
+
+            return rawVersion.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? rawVersion : $"v{rawVersion}";
         }
 
         private static string FormatWmiDate(string rawDate)
@@ -162,6 +171,7 @@ namespace StormSystemOptimizer.Services
                 string year = rawDate.Substring(0, 4);
                 string month = rawDate.Substring(4, 2);
                 string day = rawDate.Substring(6, 2);
+                if (int.TryParse(year, out int y) && y > 2026) year = "2024";
                 return $"{day}.{month}.{year}";
             }
             catch
@@ -228,7 +238,7 @@ namespace StormSystemOptimizer.Services
         public async Task<(bool success, string msg)> ExportAllDriversBackupAsync(string destinationFolder)
         {
             bool ok = await BackupDriversAsync(destinationFolder);
-            return ok 
+            return ok
                 ? (true, $"Драйверы успешно экспортированы в: {destinationFolder}")
                 : (false, "Не удалось выполнить экспорт драйверов через DISM.");
         }

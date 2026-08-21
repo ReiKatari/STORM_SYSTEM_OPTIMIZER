@@ -537,6 +537,8 @@ namespace StormSystemOptimizer.ViewModels
     // --- System Tools View Model with Advanced Tweaks ---
     public partial class SystemToolsViewModel : ObservableObject
     {
+        private readonly string _stateFilePath;
+
         [ObservableProperty]
         private string _toolStatus = "Инструменты готовы к работе";
 
@@ -573,6 +575,62 @@ namespace StormSystemOptimizer.ViewModels
 
         public bool IsNotBusy => !IsBusy;
 
+        public SystemToolsViewModel()
+        {
+            string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "STORM_OPTIMIZER");
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+            _stateFilePath = Path.Combine(dir, "system_tools_state.json");
+            LoadPersistentState();
+        }
+
+        private void LoadPersistentState()
+        {
+            try
+            {
+                IsMsiActive = AdvancedTweaksService.Instance.IsMsiModeActive();
+                IsDirectStorageActive = AdvancedTweaksService.Instance.IsDirectStorageOptimized();
+
+                if (File.Exists(_stateFilePath))
+                {
+                    string json = File.ReadAllText(_stateFilePath);
+                    var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, bool>>(json);
+                    if (dict != null)
+                    {
+                        if (dict.TryGetValue("IsStandbyPurged", out bool v1)) IsStandbyPurged = v1;
+                        if (dict.TryGetValue("IsSfcChecked", out bool v2)) IsSfcChecked = v2;
+                        if (dict.TryGetValue("IsDismChecked", out bool v3)) IsDismChecked = v3;
+                        if (dict.TryGetValue("IsWinSxSCleaned", out bool v4)) IsWinSxSCleaned = v4;
+                        if (dict.TryGetValue("IsWinsockReset", out bool v5)) IsWinsockReset = v5;
+                        if (dict.TryGetValue("IsLogsCleared", out bool v6)) IsLogsCleared = v6;
+                        if (dict.TryGetValue("IsTempCleaned", out bool v7)) IsTempCleaned = v7;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void SavePersistentState()
+        {
+            try
+            {
+                var dict = new Dictionary<string, bool>
+                {
+                    { "IsMsiActive", IsMsiActive },
+                    { "IsDirectStorageActive", IsDirectStorageActive },
+                    { "IsStandbyPurged", IsStandbyPurged },
+                    { "IsSfcChecked", IsSfcChecked },
+                    { "IsDismChecked", IsDismChecked },
+                    { "IsWinSxSCleaned", IsWinSxSCleaned },
+                    { "IsWinsockReset", IsWinsockReset },
+                    { "IsLogsCleared", IsLogsCleared },
+                    { "IsTempCleaned", IsTempCleaned }
+                };
+                string json = System.Text.Json.JsonSerializer.Serialize(dict, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(_stateFilePath, json);
+            }
+            catch { }
+        }
+
         [RelayCommand]
         public async Task EnableMsiModeAsync()
         {
@@ -582,6 +640,7 @@ namespace StormSystemOptimizer.ViewModels
 
             bool ok = AdvancedTweaksService.Instance.EnableMsiModeForGpuAndUsb();
             IsMsiActive = ok;
+            SavePersistentState();
             ToolStatus = ok ? "Режим MSI успешно активирован для видеокарты и USB-контроллеров!" : "Ошибка настройки MSI режима.";
             IsBusy = false;
             TrayService.Instance.ShowNotification("MSI Mode", ToolStatus);
@@ -596,6 +655,7 @@ namespace StormSystemOptimizer.ViewModels
 
             bool ok = AdvancedTweaksService.Instance.OptimizeDirectStorageAndIoRing();
             IsDirectStorageActive = ok;
+            SavePersistentState();
             ToolStatus = ok ? "DirectStorage 1.2 & NVMe BypassIO успешно настроены!" : "Ошибка применения DirectStorage.";
             IsBusy = false;
             TrayService.Instance.ShowNotification("DirectStorage", ToolStatus);
@@ -623,6 +683,7 @@ namespace StormSystemOptimizer.ViewModels
 
             bool ok = MemoryOptimizerService.Instance.PurgeStandbyList();
             IsStandbyPurged = ok;
+            SavePersistentState();
             ToolStatus = ok ? "Standby List памяти успешно очищен без сброса рабочих данных!" : "Очистка выполнена.";
             IsBusy = false;
             TrayService.Instance.ShowNotification("Очистка Standby RAM", ToolStatus);
@@ -665,6 +726,8 @@ namespace StormSystemOptimizer.ViewModels
                 App.Current.Dispatcher.Invoke(() => ToolStatus = line);
             });
 
+            IsSfcChecked = true;
+            SavePersistentState();
             ToolStatus = ok ? "Проверка SFC завершена: системные файлы в норме!" : "Проверка SFC завершена.";
             IsBusy = false;
             TrayService.Instance.ShowNotification("SFC Scannow", ToolStatus);
@@ -682,6 +745,8 @@ namespace StormSystemOptimizer.ViewModels
                 App.Current.Dispatcher.Invoke(() => ToolStatus = line);
             });
 
+            IsDismChecked = true;
+            SavePersistentState();
             ToolStatus = ok ? "Образ Windows успешно восстановлен через DISM!" : "Выполнение DISM завершено.";
             IsBusy = false;
             TrayService.Instance.ShowNotification("DISM RestoreHealth", ToolStatus);
@@ -695,6 +760,8 @@ namespace StormSystemOptimizer.ViewModels
             ToolStatus = "Очистка устаревших компонентов хранилища WinSxS...";
 
             bool ok = await SystemToolsService.Instance.CleanComponentStoreAsync();
+            IsWinSxSCleaned = ok;
+            SavePersistentState();
             ToolStatus = ok ? "Хранилище компонентов WinSxS успешно очищено!" : "Очистка завершена.";
             IsBusy = false;
             TrayService.Instance.ShowNotification("Очистка WinSxS", ToolStatus);
@@ -721,6 +788,8 @@ namespace StormSystemOptimizer.ViewModels
                     }
                 }
 
+                IsTempCleaned = true;
+                SavePersistentState();
                 ToolStatus = $"Очищено {cleaned} временных файлов!";
                 TrayService.Instance.ShowNotification("Очистка Temp", ToolStatus);
             }
@@ -759,6 +828,8 @@ namespace StormSystemOptimizer.ViewModels
                 catch { }
             });
 
+            IsLogsCleared = true;
+            SavePersistentState();
             IsBusy = false;
             ToolStatus = "Журналы событий Windows (Application, System, Security) успешно очищены!";
             TrayService.Instance.ShowNotification("Журналы Windows", ToolStatus);
@@ -776,6 +847,8 @@ namespace StormSystemOptimizer.ViewModels
         public void ResetWinsock()
         {
             bool ok = SystemToolsService.Instance.ResetWinsock();
+            IsWinsockReset = ok;
+            SavePersistentState();
             ToolStatus = ok ? "Сетевой каталог Winsock сброшен! Рекомендуется перезагрузка." : "Ошибка сброса Winsock.";
             TrayService.Instance.ShowNotification("Winsock Reset", ToolStatus);
         }
