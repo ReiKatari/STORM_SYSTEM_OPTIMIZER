@@ -22,7 +22,12 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="Конфиденциальность и безопасность данных" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoPrivacy}" Fill="{StaticResource IconGradRose}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Конфиденциальность и безопасность данных" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
                         <TextBlock Text="Глубокое отключение диагностической телеметрии Microsoft, слежки, рекламных трекеров, фонового сбора ввода и фоновых датчиков."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
                         <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
@@ -36,22 +41,56 @@
                     <!-- Presets & Apply Button -->
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8" HorizontalAlignment="Right">
-                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Max" Content="🛡️ Максимальная" Style="{StaticResource StormHeroButton}" Padding="12,6" Margin="0,0,6,0"/>
-                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Balanced" Content="⚖️ Базовая" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0"/>
-                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Default" Content="↺ Сброс" Style="{StaticResource StormSecondaryButton}" Padding="12,6"/>
+                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Max" Style="{StaticResource StormHeroButton}" Padding="12,7" Margin="0,0,6,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#33FFFFFF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                        <Path Data="{StaticResource GeoShield}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
+                                    </Border>
+                                    <TextBlock Text="Максимальная" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Balanced" Style="{StaticResource StormSecondaryButton}" Padding="12,7" Margin="0,0,6,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1A34D399" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                        <Path Data="{StaticResource GeoCheck}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform"/>
+                                    </Border>
+                                    <TextBlock Text="Базовая" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Default" Style="{StaticResource StormSecondaryButton}" Padding="12,7">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                        <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                                    </Border>
+                                    <TextBlock Text="Сброс" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
 
                         <Button Command="{Binding ApplyPrivacySettingsCommand}"
-                                Content="💾 Применить выбранные настройки"
                                 Style="{StaticResource StormHeroButton}"
                                 HorizontalAlignment="Right"
-                                Padding="16,8"/>
+                                Padding="16,8">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#33FFFFFF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDisks}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Применить выбранные настройки" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
 
             <!-- Group 1: Диагностика и Телеметрия -->
-            <TextBlock Text="📡 Диагностика и системная телеметрия" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,4,0,8"/>
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
+                <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="5" Width="20" Height="20" Margin="0,0,6,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Диагностика и системная телеметрия" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
 
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,14">
                 <StackPanel>
@@ -103,7 +142,12 @@
             </Border>
 
             <!-- Group 2: Трекинг, реклама и облако -->
-            <TextBlock Text="🎯 Рекламные трекеры и облачный сбор активности" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,4,0,8"/>
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
+                <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="5" Width="20" Height="20" Margin="0,0,6,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Рекламные трекеры и облачный сбор активности" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
 
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,14">
                 <StackPanel>
@@ -155,7 +199,12 @@
             </Border>
 
             <!-- Group 3: Ввод, Поиск и Ассистенты -->
-            <TextBlock Text="⌨️ Ввод данных, Поиск и Голосовые помощники" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,4,0,8"/>
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
+                <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="5" Width="20" Height="20" Margin="0,0,6,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoProcesses}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Ввод данных, Поиск и Голосовые помощники" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
 
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,14">
                 <StackPanel>
@@ -207,7 +256,12 @@
             </Border>
 
             <!-- Group 4: Датчики, Сеть и Доступ -->
-            <TextBlock Text="🛡️ Геолокация, Датчики и Фоновый доступ" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,4,0,8"/>
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
+                <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="5" Width="20" Height="20" Margin="0,0,6,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Геолокация, Датчики и Фоновый доступ" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
 
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,14">
                 <StackPanel>

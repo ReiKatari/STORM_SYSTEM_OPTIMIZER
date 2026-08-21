@@ -21,7 +21,12 @@
             <!-- Top Header -->
             <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Оптимизация служб Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoServices}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Оптимизация служб Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
                     <TextBlock Text="Настройка фоновых системных служб. Отключение неиспользуемых сервисов снижает фоновую нагрузку на процессор и память."
                                FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
                     <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
@@ -44,26 +49,54 @@
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <!-- Recommended -->
                         <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Recommended"
-                                Content="⚖ Рекомендуемый"
                                 Style="{StaticResource StormHeroButton}"
-                                Margin="0,0,8,0"/>
+                                Margin="0,0,8,0"
+                                Padding="12,7">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#33FFFFFF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoShield}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Рекомендуемый" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
                         <!-- Gaming -->
                         <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Gaming"
-                                Content="🎮 Игровой"
                                 Style="{StaticResource StormSecondaryButton}"
-                                Margin="0,0,8,0"/>
+                                Margin="0,0,8,0"
+                                Padding="12,7">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Игровой" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
                         <!-- Extreme -->
                         <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Extreme"
-                                Content="⚡ Экстремальный"
                                 Style="{StaticResource StormSecondaryButton}"
-                                Margin="0,0,8,0"/>
+                                Margin="0,0,8,0"
+                                Padding="12,7">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Экстремальный" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
 
                         <!-- Default / Reset -->
                         <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Default"
-                                Content="↺ По умолчанию"
-                                Style="{StaticResource StormSecondaryButton}"/>
+                                Style="{StaticResource StormSecondaryButton}"
+                                Padding="12,7">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="По умолчанию" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>
