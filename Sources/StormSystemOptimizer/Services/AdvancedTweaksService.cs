@@ -107,6 +107,48 @@ namespace StormSystemOptimizer.Services
             }
         }
 
+        public bool IsMsiModeActive()
+        {
+            try
+            {
+                using var pciKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\PCI", false);
+                if (pciKey != null)
+                {
+                    foreach (var vendorSubName in pciKey.GetSubKeyNames())
+                    {
+                        using var vendorKey = pciKey.OpenSubKey(vendorSubName, false);
+                        if (vendorKey == null) continue;
+
+                        foreach (var devInstanceName in vendorKey.GetSubKeyNames())
+                        {
+                            using var devKey = vendorKey.OpenSubKey(devInstanceName, false);
+                            if (devKey == null) continue;
+
+                            string classGuid = devKey.GetValue("ClassGUID")?.ToString() ?? "";
+                            string desc = devKey.GetValue("DeviceDesc")?.ToString() ?? "";
+
+                            bool isGpu = classGuid.Equals("{4d36e968-e325-11ce-bfc1-08002be10318}", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("GeForce", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("Radeon", StringComparison.OrdinalIgnoreCase);
+
+                            if (isGpu)
+                            {
+                                using var msiKey = devKey.OpenSubKey(@"Device Parameters\Interrupt Management\MessageSignaledInterruptProperties", false);
+                                if (msiKey != null)
+                                {
+                                    var val = msiKey.GetValue("MSISupported");
+                                    if (val is int msiVal && msiVal == 1) return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return false;
+        }
+
         // 2. DirectStorage 1.2 & NVMe Bypass Tuning
         public bool OptimizeDirectStorageAndIoRing()
         {
@@ -148,6 +190,22 @@ namespace StormSystemOptimizer.Services
             {
                 return true;
             }
+        }
+
+        public bool IsDirectStorageOptimized()
+        {
+            try
+            {
+                using var fsKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\FileSystem", false);
+                if (fsKey != null)
+                {
+                    var ioRing = fsKey.GetValue("Win32IoRingFlags");
+                    var memUsage = fsKey.GetValue("NtfsMemoryUsage");
+                    if ((ioRing is int io && io == 1) || (memUsage is int m && m == 2)) return true;
+                }
+            }
+            catch { }
+            return false;
         }
 
         // 3. TCP NoDelay & Nagle's Algorithm Disabling (Reduce Online Ping)

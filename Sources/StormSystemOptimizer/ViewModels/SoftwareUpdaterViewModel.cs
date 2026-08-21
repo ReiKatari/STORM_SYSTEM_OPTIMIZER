@@ -91,14 +91,17 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (item == null) return;
             IsBusy = true;
-            StatusText = $"Тихое скачивание и обновление «{item.Name}»...";
+            StatusText = $"Скачивание и обновление «{item.Name}»...";
 
-            var (success, msg) = await SoftwareUpdaterService.Instance.SilentUpdateAppAsync(item);
+            var (success, msg) = await SoftwareUpdaterService.Instance.SilentUpdateAppAsync(item, progress =>
+            {
+                App.Current?.Dispatcher?.Invoke(() => StatusText = progress);
+            });
 
             StatusText = msg;
             TrayService.Instance.ShowNotification("Обновление программ ⚡", msg);
 
-            await LoadUpdatesAsync();
+            ApplyFilter();
             IsBusy = false;
         }
 
@@ -109,7 +112,10 @@ namespace StormSystemOptimizer.ViewModels
             IsBusy = true;
             StatusText = "Массовое фоновое обновление всех доступных программ...";
 
-            var (updated, failed) = await SoftwareUpdaterService.Instance.SilentUpdateAllAppsAsync(_allApps);
+            var (updated, failed) = await SoftwareUpdaterService.Instance.SilentUpdateAllAppsAsync(_allApps, progress =>
+            {
+                App.Current?.Dispatcher?.Invoke(() => StatusText = progress);
+            });
 
             string msg = $"Обновлено: {updated} программ. Ошибок: {failed}.";
             StatusText = msg;
