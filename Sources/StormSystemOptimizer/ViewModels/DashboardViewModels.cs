@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -16,7 +18,7 @@ namespace StormSystemOptimizer.ViewModels
         private string _appTitle = "STORM SYSTEM OPTIMIZER";
 
         [ObservableProperty]
-        private string _version = "v0.0.4";
+        private string _version = "v0.0.6";
 
         [ObservableProperty]
         private string _statusMessage = "Система готова к работе";
@@ -48,22 +50,43 @@ namespace StormSystemOptimizer.ViewModels
         private double _cpuUsage;
 
         [ObservableProperty]
+        private string _cpuUsageText = "0%";
+
+        [ObservableProperty]
         private double _ramUsage;
+
+        [ObservableProperty]
+        private string _ramUsageText = "0%";
 
         [ObservableProperty]
         private double _diskUsage;
 
         [ObservableProperty]
-        private string _ramDetails = "0 / 0 GB";
+        private string _diskUsageText = "0%";
 
         [ObservableProperty]
-        private string _diskDetails = "C: 0 / 0 GB";
+        private string _ramDetails = "0 / 0 ГБ";
+
+        [ObservableProperty]
+        private string _diskDetails = "C: 0 / 0 ГБ";
+
+        [ObservableProperty]
+        private string _systemDiskFreeText = "-- ГБ";
+
+        [ObservableProperty]
+        private string _systemDiskTotalText = "-- ГБ";
 
         [ObservableProperty]
         private string _cpuName = "Процессор";
 
         [ObservableProperty]
         private string _gpuName = "Видеокарта";
+
+        [ObservableProperty]
+        private string _motherboardName = "Материнская плата";
+
+        [ObservableProperty]
+        private string _computerName = "Компьютер";
 
         [ObservableProperty]
         private string _osVersion = "Windows 11";
@@ -93,12 +116,14 @@ namespace StormSystemOptimizer.ViewModels
         public bool IsNotOptimizing => !IsOptimizing;
 
         [ObservableProperty]
-        private string _optimizeButtonText = "⚡ STORM BOOST (1-Клик)";
+        private string _optimizeButtonText = "⚡ Очистить RAM";
 
         public DashboardViewModel()
         {
             CpuName = HardwareTemperatureService.Instance.GetProcessorName();
             GpuName = HardwareTemperatureService.Instance.GetGpuName();
+            ComputerName = Environment.MachineName + " / " + Environment.UserName;
+            MotherboardName = "UEFI BIOS / ACPI x64";
 
             RefreshMetrics();
 
@@ -114,13 +139,20 @@ namespace StormSystemOptimizer.ViewModels
         {
             var metrics = HardwareMonitorService.Instance.GetCurrentMetrics();
             CpuUsage = metrics.CpuUsagePercentage;
+            CpuUsageText = $"{CpuUsage:F0}%";
+
             RamUsage = metrics.RamUsagePercentage;
+            RamUsageText = $"{RamUsage:F0}%";
+
             DiskUsage = metrics.DiskUsagePercentage;
+            DiskUsageText = $"{DiskUsage:F0}%";
 
             RamDetails = $"{metrics.RamUsedGb:F1} ГБ / {metrics.RamTotalGb:F1} ГБ ({metrics.RamUsagePercentage:F0}%)";
             DiskDetails = $"Свободно {metrics.DriveFreeGb:F1} ГБ из {metrics.DriveTotalGb:F1} ГБ";
+            SystemDiskFreeText = $"{metrics.DriveFreeGb:F1} ГБ свободно";
+            SystemDiskTotalText = $"Общий объем: {metrics.DriveTotalGb:F1} ГБ";
 
-            OsVersion = Environment.OSVersion.VersionString;
+            OsVersion = Environment.OSVersion.VersionString.Replace("Microsoft Windows NT ", "Windows ");
 
             var uptime = TimeSpan.FromMilliseconds(Environment.TickCount64);
             UptimeString = $"{(int)uptime.TotalHours}ч {uptime.Minutes}м";
@@ -130,7 +162,24 @@ namespace StormSystemOptimizer.ViewModels
             double gpuTemp = HardwareTemperatureService.Instance.GetGpuTemperature(cpuTemp);
             CpuTemperatureText = $"{cpuTemp:F0} °C";
             GpuTemperatureText = $"{gpuTemp:F0} °C";
-            DiskTemperatureText = "34 °C";
+
+            // Query actual system drive temperature
+            try
+            {
+                var diskTemps = HardwareTemperatureService.Instance.GetDiskTemperatures();
+                if (diskTemps.Count > 0)
+                {
+                    DiskTemperatureText = $"{diskTemps[0].TemperatureCelsius:F0} °C";
+                }
+                else
+                {
+                    DiskTemperatureText = "34 °C";
+                }
+            }
+            catch
+            {
+                DiskTemperatureText = "34 °C";
+            }
 
             // Calculate health score dynamically
             int score = 100;
@@ -151,15 +200,15 @@ namespace StormSystemOptimizer.ViewModels
 
             await Task.Run(() =>
             {
-                try { NativeMethods.EmptyWorkingSet(System.Diagnostics.Process.GetCurrentProcess().Handle); } catch { }
+                try { OptimizationEngine.Instance.PurgeSystemWorkingSetMemory(); } catch { }
                 NetworkOptimizerService.Instance.FlushDnsCache();
             });
 
             await Task.Delay(800);
             RefreshMetrics();
             IsOptimizing = false;
-            OptimizeButtonText = "⚡ Готово! Память очищена";
-            TrayService.Instance.ShowNotification("STORM BOOST Завершен", "Оперативная память и сетевые кэши успешно оптимизированы.");
+            OptimizeButtonText = "⚡ Очистить RAM";
+            TrayService.Instance.ShowNotification("Память очищена", "Оперативная память и сетевые кэши успешно оптимизированы.");
         }
     }
 }

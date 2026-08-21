@@ -28,7 +28,7 @@ namespace StormOptimizerInstaller
 
         private void InitializeComponent()
         {
-            this.Text = "Установка STORM SYSTEM OPTIMIZER v0.0.5";
+            this.Text = "Установка STORM SYSTEM OPTIMIZER v0.0.6";
             this.Size = new Size(580, 420);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -47,7 +47,7 @@ namespace StormOptimizerInstaller
 
             lblTitle = new Label
             {
-                Text = "⚡ STORM SYSTEM OPTIMIZER v0.0.5",
+                Text = "⚡ STORM SYSTEM OPTIMIZER v0.0.6",
                 Font = new Font("Segoe UI", 14f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(14, 165, 233),
                 AutoSize = true,
@@ -58,60 +58,86 @@ namespace StormOptimizerInstaller
             {
                 Text = "Мастер быстрой и безопасной установки официального релиза",
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
-                ForeColor = Color.FromArgb(241, 245, 249),
+                ForeColor = Color.FromArgb(156, 163, 175),
                 AutoSize = true,
                 Location = new Point(22, 48)
             };
 
             headerPanel.Controls.Add(lblTitle);
             headerPanel.Controls.Add(lblSubtitle);
+            this.Controls.Add(headerPanel);
 
-            lblStatus = new Label
+            var bodyPanel = new Panel
             {
-                Text = "Готово к установке программы в систему.",
-                Font = new Font("Segoe UI", 10f, FontStyle.Regular),
-                ForeColor = Color.FromArgb(248, 250, 252),
-                Location = new Point(24, 110),
-                Size = new Size(520, 30)
+                Location = new Point(24, 105),
+                Size = new Size(516, 210)
             };
+
+            var lblDesc = new Label
+            {
+                Text = "Программа будет установлена в вашу персональную директорию:\n%LOCALAPPDATA%\\STORM SYSTEM OPTIMIZER\n\nВсе сертификаты доверия и компоненты оптимизации вшиты в установщик.",
+                ForeColor = Color.FromArgb(226, 232, 240),
+                Location = new Point(0, 0),
+                Size = new Size(516, 65)
+            };
+            bodyPanel.Controls.Add(lblDesc);
 
             chkDesktop = new CheckBox
             {
                 Text = "Создать ярлык на Рабочем столе",
                 Checked = true,
-                Location = new Point(28, 150),
-                AutoSize = true,
-                ForeColor = Color.White
+                ForeColor = Color.White,
+                Location = new Point(4, 75),
+                AutoSize = true
             };
+            bodyPanel.Controls.Add(chkDesktop);
 
             chkRunAfter = new CheckBox
             {
-                Text = "Запустить STORM SYSTEM OPTIMIZER после установки",
+                Text = "Запустить STORM SYSTEM OPTIMIZER после завершения установки",
                 Checked = true,
-                Location = new Point(28, 185),
-                AutoSize = true,
-                ForeColor = Color.White
+                ForeColor = Color.White,
+                Location = new Point(4, 105),
+                AutoSize = true
             };
+            bodyPanel.Controls.Add(chkRunAfter);
+
+            lblStatus = new Label
+            {
+                Text = "Нажмите «Установить» для начала распаковки и настройки...",
+                ForeColor = Color.FromArgb(148, 163, 184),
+                Location = new Point(4, 145),
+                Size = new Size(508, 20)
+            };
+            bodyPanel.Controls.Add(lblStatus);
 
             progressBar = new ProgressBar
             {
-                Location = new Point(24, 240),
-                Size = new Size(516, 24),
-                Minimum = 0,
-                Maximum = 100,
-                Value = 0,
-                Visible = false
+                Location = new Point(4, 172),
+                Size = new Size(508, 22),
+                Style = ProgressBarStyle.Continuous,
+                Value = 0
+            };
+            bodyPanel.Controls.Add(progressBar);
+
+            this.Controls.Add(bodyPanel);
+
+            var bottomPanel = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 60,
+                BackColor = Color.FromArgb(15, 23, 42)
             };
 
             btnInstall = new Button
             {
-                Text = "Установить v0.0.4",
-                Location = new Point(260, 310),
-                Size = new Size(160, 42),
+                Text = "⚡ Установить",
+                Size = new Size(130, 36),
+                Location = new Point(285, 12),
                 BackColor = Color.FromArgb(14, 165, 233),
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 10f, FontStyle.Bold),
                 FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
             btnInstall.FlatAppearance.BorderSize = 0;
@@ -120,23 +146,19 @@ namespace StormOptimizerInstaller
             btnCancel = new Button
             {
                 Text = "Отмена",
-                Location = new Point(430, 310),
-                Size = new Size(110, 42),
+                Size = new Size(100, 36),
+                Location = new Point(425, 12),
                 BackColor = Color.FromArgb(30, 41, 59),
-                ForeColor = Color.FromArgb(241, 245, 249),
+                ForeColor = Color.FromArgb(203, 213, 225),
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
             };
             btnCancel.FlatAppearance.BorderSize = 0;
             btnCancel.Click += (s, e) => this.Close();
 
-            this.Controls.Add(headerPanel);
-            this.Controls.Add(lblStatus);
-            this.Controls.Add(chkDesktop);
-            this.Controls.Add(chkRunAfter);
-            this.Controls.Add(progressBar);
-            this.Controls.Add(btnInstall);
-            this.Controls.Add(btnCancel);
+            bottomPanel.Controls.Add(btnInstall);
+            bottomPanel.Controls.Add(btnCancel);
+            this.Controls.Add(bottomPanel);
         }
 
         private async Task StartInstallationAsync()
@@ -145,100 +167,86 @@ namespace StormOptimizerInstaller
             btnCancel.Enabled = false;
             chkDesktop.Enabled = false;
             chkRunAfter.Enabled = false;
-            progressBar.Visible = true;
 
-            await Task.Run(() =>
+            string targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "STORM SYSTEM OPTIMIZER");
+            string targetExe = Path.Combine(targetDir, "StormSystemOptimizer.exe");
+            string targetIco = Path.Combine(targetDir, "AppIcon.ico");
+            string targetCer = Path.Combine(targetDir, "STORM_Certificate.cer");
+
+            try
             {
-                try
+                lblStatus.Text = "Подготовка целевой директории...";
+                progressBar.Value = 15;
+                await Task.Delay(200);
+
+                if (!Directory.Exists(targetDir))
                 {
-                    UpdateProgress(15, "Импорт доверенного сертификата безопасности...");
-                    InstallRootCertificate();
-
-                    UpdateProgress(35, "Подготовка директории приложения...");
-                    string targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "STORM System Optimizer");
-                    if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
-
-                    UpdateProgress(60, "Распаковка исполняемых модулей и ресурсов...");
-                    string targetExe = Path.Combine(targetDir, "StormSystemOptimizer.exe");
-                    string targetIco = Path.Combine(targetDir, "AppIcon.ico");
-
-                    ExtractResource("StormSystemOptimizer.exe", targetExe);
-                    ExtractResource("AppIcon.ico", targetIco);
-
-                    UpdateProgress(85, "Создание ярлыков и регистрация в системе...");
-                    CreateShortcuts(targetDir, targetExe, targetIco, chkDesktop.Checked);
-                    RegisterUninstall(targetDir, targetExe, targetIco);
-
-                    UpdateProgress(100, "Установка успешно завершена!");
-
-                    this.Invoke((Action)(() =>
-                    {
-                        lblStatus.Text = "STORM SYSTEM OPTIMIZER v0.0.4 успешно установлен!";
-                        btnCancel.Text = "Готово";
-                        btnCancel.Enabled = true;
-
-                        if (chkRunAfter.Checked)
-                        {
-                            try
-                            {
-                                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(targetExe) { UseShellExecute = true });
-                            }
-                            catch { }
-                            this.Close();
-                        }
-                    }));
+                    Directory.CreateDirectory(targetDir);
                 }
-                catch (Exception ex)
+
+                lblStatus.Text = "Установка корневого доверенного сертификата STORM Software...";
+                progressBar.Value = 35;
+                await Task.Delay(200);
+
+                ExtractResource("STORM_Certificate.cer", targetCer);
+                if (File.Exists(targetCer))
                 {
-                    this.Invoke((Action)(() =>
-                    {
-                        lblStatus.Text = "Ошибка установки: " + ex.Message;
-                        lblStatus.ForeColor = Color.FromArgb(239, 68, 68);
-                        btnCancel.Text = "Закрыть";
-                        btnCancel.Enabled = true;
-                    }));
+                    InstallCertificate(targetCer);
                 }
-            });
+
+                lblStatus.Text = "Распаковка исполняемых файлов программы (v0.0.6)...";
+                progressBar.Value = 65;
+                await Task.Delay(300);
+
+                ExtractResource("StormSystemOptimizer.exe", targetExe);
+                ExtractResource("AppIcon.ico", targetIco);
+
+                lblStatus.Text = "Создание системных ярлыков и регистрация в Windows...";
+                progressBar.Value = 85;
+                await Task.Delay(200);
+
+                CreateShortcuts(targetDir, targetExe, targetIco, chkDesktop.Checked);
+                RegisterUninstall(targetDir, targetExe, targetIco);
+
+                progressBar.Value = 100;
+                lblStatus.Text = "Установка успешно завершена!";
+                lblStatus.ForeColor = Color.FromArgb(16, 185, 129);
+                await Task.Delay(500);
+
+                if (chkRunAfter.Checked && File.Exists(targetExe))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = targetExe,
+                        WorkingDirectory = targetDir,
+                        UseShellExecute = true
+                    });
+                }
+
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка во время установки:\n{ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                btnInstall.Enabled = true;
+                btnCancel.Enabled = true;
+            }
         }
 
-        private void UpdateProgress(int percent, string status)
-        {
-            this.Invoke((Action)(() =>
-            {
-                progressBar.Value = percent;
-                lblStatus.Text = status;
-            }));
-        }
-
-        private void InstallRootCertificate()
+        private void InstallCertificate(string cerPath)
         {
             try
             {
-                var asm = Assembly.GetExecutingAssembly();
-                foreach (var name in asm.GetManifestResourceNames())
+                var cert = new X509Certificate2(cerPath);
+                using (var store = new X509Store(StoreName.Root, StoreLocation.CurrentUser))
                 {
-                    if (name.EndsWith("STORM_Certificate.cer", StringComparison.OrdinalIgnoreCase))
-                    {
-                        using var stream = asm.GetManifestResourceStream(name);
-                        if (stream != null)
-                        {
-                            byte[] buffer = new byte[stream.Length];
-                            stream.Read(buffer, 0, buffer.Length);
-                            var cert = new X509Certificate2(buffer);
-
-                            using (var store = new X509Store(StoreName.Root, StoreLocation.CurrentUser))
-                            {
-                                store.Open(OpenFlags.ReadWrite);
-                                store.Add(cert);
-                            }
-                            using (var store = new X509Store(StoreName.TrustedPublisher, StoreLocation.CurrentUser))
-                            {
-                                store.Open(OpenFlags.ReadWrite);
-                                store.Add(cert);
-                            }
-                        }
-                        break;
-                    }
+                    store.Open(OpenFlags.ReadWrite);
+                    store.Add(cert);
+                }
+                using (var store = new X509Store(StoreName.TrustedPublisher, StoreLocation.CurrentUser))
+                {
+                    store.Open(OpenFlags.ReadWrite);
+                    store.Add(cert);
                 }
             }
             catch { }
@@ -277,7 +285,7 @@ namespace StormOptimizerInstaller
                 shortcut.TargetPath = targetExe;
                 shortcut.WorkingDirectory = targetDir;
                 shortcut.IconLocation = targetIco + ",0";
-                shortcut.Description = "STORM SYSTEM OPTIMIZER v0.0.4";
+                shortcut.Description = "STORM SYSTEM OPTIMIZER v0.0.6";
                 shortcut.Save();
 
                 // Desktop shortcut
@@ -288,7 +296,7 @@ namespace StormOptimizerInstaller
                     deskShortcut.TargetPath = targetExe;
                     deskShortcut.WorkingDirectory = targetDir;
                     deskShortcut.IconLocation = targetIco + ",0";
-                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v0.0.4";
+                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v0.0.6";
                     deskShortcut.Save();
                 }
             }
@@ -302,8 +310,8 @@ namespace StormOptimizerInstaller
                 using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer");
                 if (key != null)
                 {
-                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v0.0.5");
-                    key.SetValue("DisplayVersion", "0.0.5");
+                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v0.0.6");
+                    key.SetValue("DisplayVersion", "0.0.6");
                     key.SetValue("Publisher", "STORM Software");
                     key.SetValue("DisplayIcon", targetIco);
                     key.SetValue("InstallLocation", targetDir);

@@ -24,7 +24,7 @@
 
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="Диагностика накопителей и служба дефрагментации" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock Text="Детальная информация о накопителях (HDD, SSD, NVMe), проверка состояния, анализ фрагментации, TRIM-оптимизация и глубокая дефрагментация."
+                        <TextBlock Text="Детальная информация о каждом накопителе (HDD, SSD, NVMe), проверка состояния, анализ фрагментации, TRIM-оптимизация и глубокая дефрагментация."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
                         <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
@@ -74,20 +74,20 @@
                                     <StackPanel Grid.Column="0">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                             <!-- Volume Letter Badge -->
-                                            <Border Background="{DynamicResource AccentGlowBrush}" CornerRadius="6" Padding="10,4" Margin="0,0,10,0">
+                                            <Border Background="{DynamicResource AccentGlowBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1" CornerRadius="6" Padding="10,4" Margin="0,0,10,0">
                                                 <TextBlock Text="{Binding VolumeLetter}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                                             </Border>
 
                                             <!-- Volume Label or Model -->
-                                            <TextBlock Text="{Binding Model}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding Model}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                                         </StackPanel>
 
                                         <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                             <TextBlock Text="Тип: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                            <TextBlock Text="{Binding DriveType}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding DriveType}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                                             <TextBlock Text=" • Файловая система: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0"/>
                                             <TextBlock Text="{Binding FileSystem}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            <TextBlock Text=" • Шина: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0"/>
+                                            <TextBlock Text=" • Интерфейс: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0"/>
                                             <TextBlock Text="{Binding InterfaceType}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             <TextBlock Text=" • Температура: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0"/>
                                             <TextBlock Text="{Binding Temperature}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}"/>
@@ -105,7 +105,7 @@
                                         </Border>
 
                                         <!-- Fragmentation Badge -->
-                                        <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5">
+                                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="Фрагментация: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                 <TextBlock Text="{Binding FragmentationSummary}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -126,7 +126,7 @@
                                         <TextBlock Text="{Binding UsedPercentText, StringFormat='Занято: {0}'}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
                                     </Grid>
 
-                                    <ProgressBar Value="{Binding UsedPercent}" Maximum="100" Height="8" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderThickness="0"/>
+                                    <ProgressBar Value="{Binding UsedPercentage}" Maximum="100" Height="8" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource AccentPrimaryBrush}" BorderThickness="0"/>
                                 </StackPanel>
 
                                 <!-- Bottom Row: Action Buttons for this drive -->
