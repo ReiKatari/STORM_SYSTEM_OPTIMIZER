@@ -465,7 +465,7 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine v0.3.4 • 100% Safe Optimization        ");
+            sb.AppendLine("         Сформировано через STORM Engine v0.3.5 • 100% Safe Optimization        ");
             sb.AppendLine("================================================================================");
             return sb.ToString();
         }

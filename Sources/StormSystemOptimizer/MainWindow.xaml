@@ -4,8 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StormSystemOptimizer"
-        Title="STORM SYSTEM OPTIMIZER v0.3.4"
-        Height="900" Width="1420"
+        Title="STORM SYSTEM OPTIMIZER v0.3.5"
+        Height="900" Width="1460"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource AppBackgroundBrush}">
 
@@ -42,7 +42,14 @@
                 <TextBlock Text=" SYSTEM OPTIMIZER" FontWeight="SemiBold" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                 <!-- Version Badge -->
                 <Border Background="{DynamicResource AccentGlowBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1" CornerRadius="8" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="v0.3.4" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    <TextBlock Text="v0.3.5" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                </Border>
+            </StackPanel>
+
+            <!-- Center Fast Status Indicator -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="0,0,8,0">
+                    <TextBlock Text="⚡ STORM ENGINE PRO" FontSize="11" FontWeight="Bold" Foreground="#10B981"/>
                 </Border>
             </StackPanel>
 
@@ -95,7 +102,7 @@
         <!-- Main Body: Navigation Sidebar + Content Frame -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="270"/>
+                <ColumnDefinition Width="290"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -338,7 +345,7 @@
                     <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="10" Width="12" Height="12" Margin="0,0,8,0" VerticalAlignment="Center">
                         <Ellipse Width="6" Height="6" Fill="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <TextBlock Text="STORM Engine v0.3.4 готов • Система оптимизирована и стабильна" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBlock Text="STORM Engine v0.3.5 готов • Система оптимизирована и стабильна" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
                 <TextBlock Grid.Column="1" Text="100% Безопасная Оптимизация • WPF .NET 8" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
             </Grid>
