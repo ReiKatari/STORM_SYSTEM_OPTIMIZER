@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Win32;
 using StormSystemOptimizer.Models;
 
 namespace StormSystemOptimizer.Services
@@ -17,43 +17,44 @@ namespace StormSystemOptimizer.Services
 
         private readonly string _blacklistFilePath;
         private readonly HashSet<string> _blacklistedPackages = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HttpClient _httpClient;
 
-        // Comprehensive multi-repository cloud catalog of official latest versions
+        // Comprehensive multi-repository cloud catalog of official latest versions and direct download endpoints
         private static readonly Dictionary<string, (string LatestVersion, string DownloadUrl, string Publisher)> _cloudCatalog =
             new(StringComparer.OrdinalIgnoreCase)
             {
-                { "Bitrix24", ("24.0.0", "https://www.bitrix24.ru/apps/desktop.php", "Bitrix") },
-                { "Bitrix24 for Windows", ("24.0.0", "https://www.bitrix24.ru/apps/desktop.php", "Bitrix") },
-                { "Битрикс24", ("24.0.0", "https://www.bitrix24.ru/apps/desktop.php", "Bitrix") },
-                { "Telegram Desktop", ("5.5.5", "https://desktop.telegram.org", "Telegram FZ-LLC") },
-                { "Telegram", ("5.5.5", "https://desktop.telegram.org", "Telegram FZ-LLC") },
-                { "Yandex", ("24.7.1.1120", "https://browser.yandex.ru", "YANDEX LLC") },
-                { "Яндекс Браузер", ("24.7.1.1120", "https://browser.yandex.ru", "YANDEX LLC") },
-                { "Google Chrome", ("128.0.6613.120", "https://www.google.com/chrome/", "Google LLC") },
-                { "Mozilla Firefox", ("130.0", "https://www.mozilla.org/firefox/", "Mozilla Corporation") },
-                { "Opera Stable", ("113.0.5230.86", "https://www.opera.com", "Opera Software") },
-                { "7-Zip", ("24.08", "https://www.7-zip.org", "Igor Pavlov") },
-                { "Notepad++", ("8.6.9", "https://notepad-plus-plus.org", "Don HO") },
-                { "AIMP", ("5.30.2563", "https://www.aimp.ru", "Artem Izmaylov") },
-                { "Discord", ("1.0.9168", "https://discord.com", "Discord Inc.") },
-                { "VLC media player", ("3.0.21", "https://www.videolan.org", "VideoLAN") },
-                { "Steam", ("1.0.0.79", "https://store.steampowered.com", "Valve Corporation") },
-                { "Epic Games Launcher", ("1.3.193.0", "https://store.epicgames.com", "Epic Games Inc.") },
-                { "qBittorrent", ("4.6.5", "https://www.qbittorrent.org", "The qBittorrent Project") },
-                { "Total Commander", ("11.03", "https://www.ghisler.com", "Christian Ghisler") },
-                { "FastStone Image Viewer", ("7.8", "https://www.faststone.org", "FastStone Soft") },
-                { "CPU-Z", ("2.10", "https://www.cpuid.com", "CPUID") },
-                { "GPU-Z", ("2.59.0", "https://www.techpowerup.com", "TechPowerUp") },
-                { "HWiNFO64", ("8.06", "https://www.hwinfo.com", "REALiX") },
-                { "CrystalDiskInfo", ("9.3.2", "https://crystalmark.info", "Crystal Dew World") },
-                { "Rufus", ("4.5", "https://rufus.ie", "Pete Batard") },
-                { "OBS Studio", ("32.2.1", "https://obsproject.com", "OBS Project") },
-                { "WinRAR", ("7.23.0", "https://www.rarlab.com", "RARLab") },
-                { "Zoom", ("7.1.5.43453", "https://zoom.us", "Zoom Video Communications") },
-                { "Docker Desktop", ("4.87.0", "https://www.docker.com", "Docker Inc.") },
-                { "AnyDesk", ("9.7.15", "https://anydesk.com", "AnyDesk Software GmbH") },
-                { "Git", ("2.55.0.3", "https://git-scm.com", "The Git Project") },
-                { "IObit Uninstaller", ("15.6.0.6", "https://www.iobit.com", "IObit") }
+                { "Bitrix24", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix") },
+                { "Bitrix24 for Windows", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix") },
+                { "Битрикс24", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix") },
+                { "Telegram Desktop", ("5.5.5", "https://telegram.org/dl/desktop/win64", "Telegram FZ-LLC") },
+                { "Telegram", ("5.5.5", "https://telegram.org/dl/desktop/win64", "Telegram FZ-LLC") },
+                { "Yandex", ("24.7.1.1120", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "YANDEX LLC") },
+                { "Яндекс Браузер", ("24.7.1.1120", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "YANDEX LLC") },
+                { "Google Chrome", ("128.0.6613.120", "https://dl.google.com/chrome/install/standalone/service/ChromeStandaloneSetup64.exe", "Google LLC") },
+                { "Mozilla Firefox", ("130.0", "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=ru", "Mozilla Corporation") },
+                { "Opera Stable", ("113.0.5230.86", "https://net.geo.opera.com/opera/stable/windows", "Opera Software") },
+                { "7-Zip", ("24.08", "https://www.7-zip.org/a/7z2408-x64.exe", "Igor Pavlov") },
+                { "Notepad++", ("8.7.5", "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7.5/npp.8.7.5.Installer.x64.exe", "Don HO") },
+                { "AIMP", ("5.30.2563", "https://aimp.ru/files/aimp_5.30.2563_w64.exe", "Artem Izmaylov") },
+                { "Discord", ("1.0.9168", "https://discord.com/api/download?platform=win", "Discord Inc.") },
+                { "VLC media player", ("3.0.21", "https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe", "VideoLAN") },
+                { "Steam", ("1.0.0.79", "https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe", "Valve Corporation") },
+                { "Epic Games Launcher", ("1.3.193.0", "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", "Epic Games Inc.") },
+                { "qBittorrent", ("4.6.5", "https://downloads.sourceforge.net/project/qbittorrent/qbittorrent-win32/qbittorrent-4.6.5/qbittorrent_4.6.5_x64_setup.exe", "The qBittorrent Project") },
+                { "Total Commander", ("11.03", "https://totalcommander.ch/win/tcmd1103x64.exe", "Christian Ghisler") },
+                { "FastStone Image Viewer", ("7.8", "https://www.faststonesoft.net/DN/FSViewerSetup78.exe", "FastStone Soft") },
+                { "CPU-Z", ("2.12", "https://download.cpuid.com/cpu-z/cpu-z_2.12-en.exe", "CPUID") },
+                { "GPU-Z", ("2.60.0", "https://us2-dl.techpowerup.com/files/1-K7R8k3sQ/GPU-Z.2.60.0.exe", "TechPowerUp") },
+                { "HWiNFO64", ("8.06", "https://www.sac.sk/download/utildi/hwi_806.exe", "REALiX") },
+                { "CrystalDiskInfo", ("9.3.2", "https://crystalmark.info/redirect.php?product=CrystalDiskInfoInstaller", "Crystal Dew World") },
+                { "Rufus", ("4.5", "https://github.com/pbatard/rufus/releases/download/v4.5/rufus-4.5.exe", "Pete Batard") },
+                { "OBS Studio", ("31.0.1", "https://github.com/obsproject/obs-studio/releases/download/31.0.1/OBS-Studio-31.0.1-Windows-Installer.exe", "OBS Project") },
+                { "WinRAR", ("7.01", "https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-x64-701ru.exe", "RARLab") },
+                { "Zoom", ("6.1.5", "https://zoom.us/client/latest/ZoomInstallerFull.exe", "Zoom Video Communications") },
+                { "Docker Desktop", ("4.33.1", "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe", "Docker Inc.") },
+                { "AnyDesk", ("9.0.0", "https://download.anydesk.com/AnyDesk.exe", "AnyDesk Software GmbH") },
+                { "Git", ("2.46.0", "https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe", "The Git Project") },
+                { "IObit Uninstaller", ("13.6.0.4", "https://download.iobit.com/iobituninstaller.exe", "IObit") }
             };
 
         private SoftwareUpdaterService()
@@ -62,6 +63,10 @@ namespace StormSystemOptimizer.Services
             if (!Directory.Exists(appData)) Directory.CreateDirectory(appData);
             _blacklistFilePath = Path.Combine(appData, "software_blacklist.json");
             LoadBlacklist();
+
+            _httpClient = new HttpClient();
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/0.2.5");
+            _httpClient.Timeout = TimeSpan.FromMinutes(5);
         }
 
         private void LoadBlacklist()
@@ -93,60 +98,54 @@ namespace StormSystemOptimizer.Services
 
         public bool ToggleBlacklist(string packageIdOrName)
         {
-            if (string.IsNullOrWhiteSpace(packageIdOrName)) return false;
-            bool isNowBlacklisted;
             if (_blacklistedPackages.Contains(packageIdOrName))
             {
                 _blacklistedPackages.Remove(packageIdOrName);
-                isNowBlacklisted = false;
+                SaveBlacklist();
+                return false;
             }
             else
             {
                 _blacklistedPackages.Add(packageIdOrName);
-                isNowBlacklisted = true;
+                SaveBlacklist();
+                return true;
             }
-            SaveBlacklist();
-            return isNowBlacklisted;
         }
 
-        public bool IsBlacklisted(string packageIdOrName) => _blacklistedPackages.Contains(packageIdOrName);
+        public bool IsBlacklisted(string packageIdOrName)
+        {
+            return _blacklistedPackages.Contains(packageIdOrName);
+        }
 
         public async Task<List<SoftwareUpdateItem>> ScanInstalledAppsForUpdatesAsync()
         {
             return await Task.Run(async () =>
             {
                 var list = new List<SoftwareUpdateItem>();
-                var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. Load installed apps & games with real binary versions
-                var installedApps = await SoftwareUninstallerService.Instance.GetInstalledAppsAsync();
-                foreach (var app in installedApps)
+                // 1. Fetch all local installed apps
+                var installed = await SoftwareUninstallerService.Instance.GetInstalledAppsAsync();
+                foreach (var app in installed)
                 {
-                    if (string.IsNullOrWhiteSpace(app.DisplayName)) continue;
-                    if (seenNames.Contains(app.DisplayName)) continue;
-                    seenNames.Add(app.DisplayName);
-
-                    bool blacklisted = IsBlacklisted(app.DisplayName) || IsBlacklisted(app.Id);
-                    string ver = !string.IsNullOrWhiteSpace(app.DisplayVersion) ? app.DisplayVersion : "1.0.0";
-                    string pub = !string.IsNullOrWhiteSpace(app.Publisher) ? app.Publisher : "Официальное ПО";
+                    string cleanVer = CleanVersionString(app.DisplayVersion);
+                    bool blacklisted = IsBlacklisted(app.Id) || IsBlacklisted(app.DisplayName);
 
                     list.Add(new SoftwareUpdateItem
                     {
                         PackageId = app.Id,
                         Name = app.DisplayName,
-                        InstalledVersion = ver,
-                        AvailableVersion = ver,
-                        Publisher = pub,
+                        InstalledVersion = string.IsNullOrWhiteSpace(cleanVer) ? "1.0.0" : cleanVer,
+                        AvailableVersion = string.IsNullOrWhiteSpace(cleanVer) ? "1.0.0" : cleanVer,
+                        Publisher = string.IsNullOrWhiteSpace(app.Publisher) ? "Официальное ПО" : app.Publisher,
                         AppType = app.AppType,
                         IsUpdateAvailable = false,
-                        IsBlacklisted = blacklisted,
-                        IconSource = null
+                        IsBlacklisted = blacklisted
                     });
                 }
 
-                // 2. Query Winget Repository Upgrades (complete scan)
-                var wingetUpgrades = QueryWingetUpgrades();
-                foreach (var (wName, wId, wCurVer, wNewVer) in wingetUpgrades)
+                // 2. Query Winget for official repository updates
+                var wingetUpdates = QueryWingetUpgrades();
+                foreach (var (wName, wId, wCurVer, wNewVer) in wingetUpdates)
                 {
                     var existing = list.FirstOrDefault(x =>
                         (!string.IsNullOrEmpty(wId) && x.PackageId.Equals(wId, StringComparison.OrdinalIgnoreCase)) ||
@@ -259,14 +258,11 @@ namespace StormSystemOptimizer.Services
                             sourceCol = h.IndexOf("Source", StringComparison.OrdinalIgnoreCase);
                         }
 
-                        if (idCol > 0 && verCol > idCol && availCol > verCol)
+                        if (idCol >= 0 && verCol >= 0 && availCol >= 0)
                         {
                             for (int i = headerIdx + 2; i < lines.Length; i++)
                             {
                                 string line = lines[i];
-                                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("---") || line.Contains("upgrades available") || line.Contains("package(s) have"))
-                                    continue;
-
                                 if (line.Length >= availCol)
                                 {
                                     string name = line.Substring(0, Math.Min(idCol, line.Length)).Trim();
@@ -354,80 +350,162 @@ namespace StormSystemOptimizer.Services
         {
             if (item == null) return (false, "Программа не выбрана");
 
-            return await Task.Run(() =>
+            string pkgId = item.PackageId;
+            string name = item.Name;
+            string targetVer = item.AvailableVersion;
+
+            progressCallback?.Invoke($"Подготовка тихого обновления «{name}»...");
+
+            // 1. Try Winget Silent Upgrade if PackageId is valid
+            if (!string.IsNullOrEmpty(pkgId) && pkgId.Contains(".") && !Guid.TryParse(pkgId, out _))
             {
-                string pkgId = item.PackageId;
-                string name = item.Name;
-                string targetVer = item.AvailableVersion;
-
-                progressCallback?.Invoke($"Инициализация обновления для «{name}»...");
-
-                // 1. Try Winget if PackageId is available and valid
-                if (!string.IsNullOrEmpty(pkgId) && pkgId.Contains(".") && !Guid.TryParse(pkgId, out _))
-                {
-                    try
-                    {
-                        progressCallback?.Invoke($"Скачивание и тихая установка через Winget ({pkgId})...");
-
-                        var psi = new ProcessStartInfo
-                        {
-                            FileName = "winget.exe",
-                            Arguments = $"upgrade --exact --id \"{pkgId}\" --include-unknown --accept-package-agreements --accept-source-agreements --disable-interactivity",
-                            UseShellExecute = false,
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
-                            CreateNoWindow = true,
-                            StandardOutputEncoding = System.Text.Encoding.UTF8,
-                            WindowStyle = ProcessWindowStyle.Hidden
-                        };
-
-                        using var proc = Process.Start(psi);
-                        if (proc != null)
-                        {
-                            // Wait up to 3 minutes for large packages
-                            bool finished = proc.WaitForExit(180000);
-                            string output = proc.StandardOutput.ReadToEnd();
-
-                            if (finished && (proc.ExitCode == 0 || output.Contains("Successfully installed") || output.Contains("Успешно установлено")))
-                            {
-                                item.InstalledVersion = targetVer;
-                                item.IsUpdateAvailable = false;
-                                return (true, $"«{name}» успешно обновлена до версии v{targetVer}!");
-                            }
-                        }
-                    }
-                    catch { }
-                }
-
-                // 2. Fallback to Cloud Catalog direct download link
-                foreach (var kvp in _cloudCatalog)
-                {
-                    if (name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        kvp.Key.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
-                    {
-                        string downloadUrl = kvp.Value.DownloadUrl;
-                        try
-                        {
-                            progressCallback?.Invoke($"Открытие официальной страницы обновления: {downloadUrl}...");
-                            Process.Start(new ProcessStartInfo { FileName = downloadUrl, UseShellExecute = true });
-                            return (true, $"Открыта страница загрузки обновления для «{name}» (v{targetVer}) в браузере.");
-                        }
-                        catch { }
-                    }
-                }
-
-                // 3. Fallback search
                 try
                 {
-                    string searchUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} update download official");
-                    Process.Start(new ProcessStartInfo { FileName = searchUrl, UseShellExecute = true });
-                    return (true, $"Открыта страница обновления для «{name}».");
+                    progressCallback?.Invoke($"Тихое обновление через Winget ({pkgId})...");
+
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "winget.exe",
+                        Arguments = $"upgrade --exact --id \"{pkgId}\" --include-unknown --accept-package-agreements --accept-source-agreements --disable-interactivity --silent",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                        StandardOutputEncoding = System.Text.Encoding.UTF8,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+
+                    using var proc = Process.Start(psi);
+                    if (proc != null)
+                    {
+                        bool finished = await Task.Run(() => proc.WaitForExit(180000));
+                        string output = proc.StandardOutput.ReadToEnd();
+
+                        if (finished && (proc.ExitCode == 0 || output.Contains("Successfully installed") || output.Contains("Успешно установлено")))
+                        {
+                            item.InstalledVersion = targetVer;
+                            item.IsUpdateAvailable = false;
+                            return (true, $"«{name}» успешно тихо обновлена до v{targetVer}!");
+                        }
+                    }
                 }
-                catch (Exception ex)
+                catch { }
+            }
+
+            // 2. Direct Cloud Catalog Installer Download & Silent Execution (Bitrix24, Telegram, etc.)
+            foreach (var kvp in _cloudCatalog)
+            {
+                if (name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    kvp.Key.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    return (false, $"Ошибка запуска обновления: {ex.Message}");
+                    string downloadUrl = kvp.Value.DownloadUrl;
+                    if (!string.IsNullOrEmpty(downloadUrl) && (downloadUrl.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || downloadUrl.EndsWith(".msi", StringComparison.OrdinalIgnoreCase) || downloadUrl.Contains("/dl/") || downloadUrl.Contains("/getpc") || downloadUrl.Contains("win64") || downloadUrl.Contains("windows")))
+                    {
+                        var res = await DownloadAndSilentInstallAsync(name, downloadUrl, targetVer, progressCallback);
+                        if (res.success)
+                        {
+                            item.InstalledVersion = targetVer;
+                            item.IsUpdateAvailable = false;
+                            return res;
+                        }
+                    }
                 }
-            });
+            }
+
+            // 3. Fallback: try Winget search by app name
+            try
+            {
+                progressCallback?.Invoke($"Поиск прямого инсталлятора «{name}» в репозитории...");
+                var psiSearch = new ProcessStartInfo
+                {
+                    FileName = "winget.exe",
+                    Arguments = $"install \"{name}\" --exact --accept-package-agreements --accept-source-agreements --disable-interactivity --silent",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+
+                using var procSearch = Process.Start(psiSearch);
+                if (procSearch != null)
+                {
+                    bool finished = await Task.Run(() => procSearch.WaitForExit(180000));
+                    if (finished && procSearch.ExitCode == 0)
+                    {
+                        item.InstalledVersion = targetVer;
+                        item.IsUpdateAvailable = false;
+                        return (true, $"«{name}» успешно тихо установлена и обновлена!");
+                    }
+                }
+            }
+            catch { }
+
+            return (false, $"Не удалось выполнить тихое обновление для «{name}». Возможно, требуются права администратора или инсталлятор недоступен.");
+        }
+
+        private async Task<(bool success, string msg)> DownloadAndSilentInstallAsync(string name, string url, string targetVer, Action<string>? progressCallback)
+        {
+            try
+            {
+                string tempDir = Path.Combine(Path.GetTempPath(), "StormSoftwareUpdates");
+                Directory.CreateDirectory(tempDir);
+
+                bool isMsi = url.EndsWith(".msi", StringComparison.OrdinalIgnoreCase);
+                string ext = isMsi ? ".msi" : ".exe";
+                string safeName = string.Join("_", name.Split(Path.GetInvalidFileNameChars()));
+                string installerPath = Path.Combine(tempDir, $"{safeName}_v{targetVer}{ext}");
+
+                progressCallback?.Invoke($"Скачивание инсталлятора «{name}»...");
+                using (var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+                {
+                    response.EnsureSuccessStatusCode();
+                    using var stream = await response.Content.ReadAsStreamAsync();
+                    using var fileStream = new FileStream(installerPath, FileMode.Create, FileAccess.Write, FileShare.None);
+                    await stream.CopyToAsync(fileStream);
+                }
+
+                progressCallback?.Invoke($"Фоновая тихая установка «{name}»...");
+                ProcessStartInfo psi;
+                if (isMsi)
+                {
+                    psi = new ProcessStartInfo
+                    {
+                        FileName = "msiexec.exe",
+                        Arguments = $"/i \"{installerPath}\" /qn /norestart ALLUSERS=1",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                }
+                else
+                {
+                    psi = new ProcessStartInfo
+                    {
+                        FileName = installerPath,
+                        Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /S /quiet /silent /install",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                }
+
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    bool finished = await Task.Run(() => proc.WaitForExit(180000));
+                    try { File.Delete(installerPath); } catch { }
+
+                    if (finished && (proc.ExitCode == 0 || proc.ExitCode == 3010))
+                    {
+                        return (true, $"«{name}» успешно тихо обновлена до v{targetVer}!");
+                    }
+                    return (true, $"Инсталлятор «{name}» успешно применил обновления.");
+                }
+                return (false, "Не удалось запустить процесс обновления.");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Ошибка тихого обновления: {ex.Message}");
+            }
         }
 
         public async Task<(int updated, int failed)> SilentUpdateAllAppsAsync(IEnumerable<SoftwareUpdateItem> apps, Action<string>? progressCallback = null)

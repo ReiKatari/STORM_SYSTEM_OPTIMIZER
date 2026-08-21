@@ -59,12 +59,12 @@ namespace StormSystemOptimizer.ViewModels
                     string? prevSelectedLetter = SelectedDrive?.VolumeLetter;
 
                     Drives.Clear();
-                    FilteredDrives.Clear();
                     foreach (var item in list)
                     {
                         Drives.Add(item);
-                        FilteredDrives.Add(item);
                     }
+
+                    FilterDrives(SelectedFilter);
 
                     if (!string.IsNullOrEmpty(prevSelectedLetter))
                     {
@@ -85,7 +85,7 @@ namespace StormSystemOptimizer.ViewModels
                     updateAction();
                 }
 
-                StatusText = $"Обнаружено физических накопителей и томов: {Drives.Count}";
+                StatusText = $"Обнаружено накопителей и томов: {Drives.Count}";
                 StatusMessage = StatusText;
             }
             catch
