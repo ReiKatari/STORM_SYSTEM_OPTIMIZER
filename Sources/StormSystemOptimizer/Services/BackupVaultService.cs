@@ -299,7 +299,7 @@ namespace StormSystemOptimizer.Services
                     foreach (var f in files)
                     {
                         string title = f.Name.StartsWith("Storm_", StringComparison.OrdinalIgnoreCase) || f.Name.StartsWith("STORM_", StringComparison.OrdinalIgnoreCase)
-                            ? $"STORM_REGISTRY_BACKUP ({f.CreationTime:dd.MM.yyyy HH:mm})"
+                            ? "STORM_REGISTRY_BACKUP"
                             : f.Name;
 
                         list.Add(new SystemBackupItem

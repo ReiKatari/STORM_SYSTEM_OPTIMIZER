@@ -73,7 +73,7 @@ namespace StormSystemOptimizer.Services
             LoadBlacklist();
 
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/0.3.4");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/0.3.5");
             _httpClient.Timeout = TimeSpan.FromSeconds(20);
         }
 
@@ -517,6 +517,35 @@ namespace StormSystemOptimizer.Services
             return ver.TrimEnd('.', ' ');
         }
 
+        private static void TryCloseAppProcesses(string appName)
+        {
+            string nLower = appName.ToLowerInvariant();
+            string[] procNames = nLower switch
+            {
+                var n when n.Contains("winrar") => new[] { "winrar" },
+                var n when n.Contains("7-zip") || n.Contains("7zip") => new[] { "7zFM", "7zG", "7z" },
+                var n when n.Contains("bitrix") || n.Contains("битрикс") => new[] { "bitrix24", "Bitrix24" },
+                var n when n.Contains("telegram") => new[] { "Telegram" },
+                var n when n.Contains("zoom") => new[] { "Zoom" },
+                var n when n.Contains("anydesk") => new[] { "AnyDesk" },
+                var n when n.Contains("vlc") => new[] { "vlc" },
+                _ => Array.Empty<string>()
+            };
+
+            foreach (var pName in procNames)
+            {
+                try
+                {
+                    foreach (var p in Process.GetProcessesByName(pName))
+                    {
+                        try { p.CloseMainWindow(); } catch { }
+                        try { if (!p.WaitForExit(1000)) p.Kill(); } catch { }
+                    }
+                }
+                catch { }
+            }
+        }
+
         public async Task<(bool success, string msg)> SilentUpdateAppAsync(SoftwareUpdateItem item, Action<string>? progressCallback = null)
         {
             if (item == null) return (false, "Программа не выбрана");
@@ -527,6 +556,32 @@ namespace StormSystemOptimizer.Services
                 string targetVer = item.AvailableVersion;
 
                 progressCallback?.Invoke($"Подготовка к фоновой установке обновления «{name}» (v{targetVer})...");
+
+                // Try Winget upgrade first if package id is available
+                if (!string.IsNullOrEmpty(item.PackageId) && item.PackageId.Contains("."))
+                {
+                    try
+                    {
+                        TryCloseAppProcesses(name);
+                        progressCallback?.Invoke($"Тихое обновление через Winget: «{item.PackageId}»...");
+                        var wpsi = new ProcessStartInfo
+                        {
+                            FileName = "winget.exe",
+                            Arguments = $"upgrade --id \"{item.PackageId}\" --silent --accept-package-agreements --accept-source-agreements --force",
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        };
+                        using var wproc = Process.Start(wpsi);
+                        wproc?.WaitForExit(60000);
+                        if (wproc?.ExitCode == 0)
+                        {
+                            item.InstalledVersion = targetVer;
+                            item.IsUpdateAvailable = false;
+                            return (true, $"«{name}» успешно обновлена до версии {targetVer} через официальный репозиторий!");
+                        }
+                    }
+                    catch { }
+                }
 
                 foreach (var kvp in _cloudCatalog)
                 {
@@ -560,6 +615,7 @@ namespace StormSystemOptimizer.Services
                                 if (File.Exists(targetFile) && new FileInfo(targetFile).Length > 1024)
                                 {
                                     progressCallback?.Invoke($"Тихая фоновая установка «{name}»...");
+                                    TryCloseAppProcesses(name);
 
                                     var psi = new ProcessStartInfo
                                     {
@@ -576,7 +632,7 @@ namespace StormSystemOptimizer.Services
                                     }
 
                                     using var proc = Process.Start(psi);
-                                    proc?.WaitForExit(45000);
+                                    proc?.WaitForExit(60000);
 
                                     item.InstalledVersion = targetVer;
                                     item.IsUpdateAvailable = false;
