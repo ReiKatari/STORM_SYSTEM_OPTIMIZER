@@ -263,6 +263,15 @@ namespace StormSystemOptimizer.ViewModels
                 ActiveDnsProvider = item.ProviderName;
                 DnsStatus = $"DNS сервер {item.ProviderName} успешно установлен!";
                 TrayService.Instance.ShowNotification("DNS изменен", DnsStatus);
+
+                // Instantly re-mark active items
+                var list = DnsBenchmarkService.Instance.GetDefaultDnsProviders();
+                DnsServers.Clear();
+                foreach (var d in list)
+                {
+                    DnsServers.Add(d);
+                }
+
                 await LoadNetworkDataAsync();
             }
         }

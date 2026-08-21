@@ -20,7 +20,7 @@ namespace StormSystemOptimizer.ViewModels
         private string _appTitle = "STORM SYSTEM OPTIMIZER";
 
         [ObservableProperty]
-        private string _version = "v0.3.2";
+        private string _version = "v0.3.3";
 
         [ObservableProperty]
         private string _statusMessage = "Система готова к работе";

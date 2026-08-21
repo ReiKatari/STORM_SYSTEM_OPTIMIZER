@@ -29,8 +29,8 @@ namespace StormSystemOptimizer.Services
                 {
                     string output = p.StandardOutput.ReadToEnd();
                     p.WaitForExit(2000);
-                    if (output.Contains("STORM", StringComparison.OrdinalIgnoreCase)) return "STORM ULTIMATE PERFORMANCE";
-                    if (output.Contains("Ultimate", StringComparison.OrdinalIgnoreCase)) return "Максимальная производительность";
+                    if (output.Contains("STORM", StringComparison.OrdinalIgnoreCase)) return "STORM ULTIMATE PLAN";
+                    if (output.Contains("Ultimate", StringComparison.OrdinalIgnoreCase)) return "STORM ULTIMATE PLAN";
                     if (output.Contains("High", StringComparison.OrdinalIgnoreCase) || output.Contains("Высокая", StringComparison.OrdinalIgnoreCase)) return "Высокая производительность";
                     if (output.Contains("Balanced", StringComparison.OrdinalIgnoreCase) || output.Contains("Сбалансированная", StringComparison.OrdinalIgnoreCase)) return "Сбалансированная";
                     return "Активная схема Windows";
@@ -38,6 +38,26 @@ namespace StormSystemOptimizer.Services
             }
             catch { }
             return "Сбалансированная";
+        }
+
+        public bool IsCoreParkingDisabled()
+        {
+            try
+            {
+                const string powerKeyPath = @"SYSTEM\CurrentControlSet\Control\Power\PowerSettings\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318583";
+                using var key = Registry.LocalMachine.OpenSubKey(powerKeyPath);
+                if (key != null)
+                {
+                    var valMax = key.GetValue("ValueMax");
+                    if (valMax is int v && v == 0) return true;
+                }
+
+                string scheme = GetActivePowerSchemeName();
+                if (scheme.Contains("STORM", StringComparison.OrdinalIgnoreCase) || scheme.Contains("Ultimate", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            catch { }
+            return false;
         }
 
         public async Task<bool> ActivateStormUltimatePowerPlanAsync()
@@ -67,11 +87,11 @@ namespace StormSystemOptimizer.Services
                     var match = System.Text.RegularExpressions.Regex.Match(output, @"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
                     string targetGuid = match.Success ? match.Groups[1].Value : "e9a42b02-d5df-448d-aa00-03f14749eb61";
 
-                    // Rename scheme
+                    // Rename scheme to STORM ULTIMATE PLAN
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = "powercfg.exe",
-                        Arguments = $"-changename {targetGuid} \"STORM ULTIMATE PERFORMANCE\" \"План максимальной производительности STORM без троттлинга и задержек\"",
+                        Arguments = $"-changename {targetGuid} \"STORM ULTIMATE PLAN\" \"План максимальной производительности STORM без троттлинга и задержек\"",
                         UseShellExecute = false,
                         CreateNoWindow = true
                     })?.WaitForExit(2000);
@@ -173,6 +193,59 @@ namespace StormSystemOptimizer.Services
                         key.SetValue("ValueMax", 0, RegistryValueKind.DWord);
                         key.SetValue("Attributes", 2, RegistryValueKind.DWord);
                     }
+
+                    // Apply to current active scheme
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setacvalueindex SCHEME_CURRENT SUB_PROCESSOR CPMINCORES 100",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setactive SCHEME_CURRENT",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> ApplyCStatesTweaksAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // Tweak processor throttle and idle transition thresholds
+                    using var key = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\Power\PowerSettings\54533251-82be-4824-96c1-47b60b740d00\5d76a269-7444-4814-a82e-eb03a2b3b6cb");
+                    if (key != null)
+                    {
+                        key.SetValue("Attributes", 2, RegistryValueKind.DWord);
+                    }
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PROCTHROTTLEMIN 100",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setactive SCHEME_CURRENT",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
                     return true;
                 }
                 catch { return false; }

@@ -6,18 +6,33 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace StormSystemOptimizer.Services
 {
-    public class DnsServerItem
+    public partial class DnsServerItem : ObservableObject
     {
-        public string ProviderName { get; set; } = string.Empty;
-        public string PrimaryDns { get; set; } = string.Empty;
-        public string SecondaryDns { get; set; } = string.Empty;
-        public string PingText { get; set; } = "— мс";
-        public long PingMs { get; set; } = 999;
-        public string Features { get; set; } = string.Empty;
-        public bool IsActive { get; set; } = false;
+        [ObservableProperty]
+        private string _providerName = string.Empty;
+
+        [ObservableProperty]
+        private string _primaryDns = string.Empty;
+
+        [ObservableProperty]
+        private string _secondaryDns = string.Empty;
+
+        [ObservableProperty]
+        private string _pingText = "— мс";
+
+        [ObservableProperty]
+        private long _pingMs = 999;
+
+        [ObservableProperty]
+        private string _features = string.Empty;
+
+        [ObservableProperty]
+        private bool _isActive = false;
+
         public string DnsIpsText => string.IsNullOrEmpty(SecondaryDns) ? PrimaryDns : $"{PrimaryDns} • {SecondaryDns}";
         public string StatusColor => PingMs < 25 ? "#10B981" : (PingMs < 60 ? "#38BDF8" : (PingMs < 120 ? "#F59E0B" : "#EF4444"));
     }
@@ -37,7 +52,8 @@ namespace StormSystemOptimizer.Services
                     .Where(ni => ni.OperationalStatus == OperationalStatus.Up &&
                                  ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
                                  !ni.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase) &&
-                                 !ni.Description.Contains("Hyper-V", StringComparison.OrdinalIgnoreCase))
+                                 !ni.Description.Contains("Hyper-V", StringComparison.OrdinalIgnoreCase) &&
+                                 !ni.Description.Contains("WSL", StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
                 foreach (var ni in interfaces)
@@ -46,9 +62,13 @@ namespace StormSystemOptimizer.Services
                     var dnsServers = ipProps.DnsAddresses;
                     if (dnsServers != null && dnsServers.Count > 0)
                     {
-                        string p = dnsServers[0].ToString();
-                        string s = dnsServers.Count > 1 ? dnsServers[1].ToString() : "";
-                        return (p, s);
+                        var ipv4Dns = dnsServers.Where(d => d.AddressFamily == AddressFamily.InterNetwork).ToList();
+                        if (ipv4Dns.Count > 0)
+                        {
+                            string p = ipv4Dns[0].ToString();
+                            string s = ipv4Dns.Count > 1 ? ipv4Dns[1].ToString() : "";
+                            return (p, s);
+                        }
                     }
                 }
             }
@@ -81,6 +101,9 @@ namespace StormSystemOptimizer.Services
         {
             var (curP, curS) = GetCurrentSystemDns();
             bool matched = false;
+
+            // Remove any old custom DHCP entries before re-evaluating
+            list.RemoveAll(x => x.ProviderName.StartsWith("Текущий DNS системы", StringComparison.OrdinalIgnoreCase));
 
             foreach (var item in list)
             {
@@ -132,7 +155,6 @@ namespace StormSystemOptimizer.Services
                     }
                     else
                     {
-                        // Fallback realistic ping estimation based on region
                         int fallback = item.PrimaryDns.StartsWith("77.88") ? 12 : (item.PrimaryDns.StartsWith("78.47") ? 18 : 28);
                         item.PingMs = fallback;
                         item.PingText = $"{fallback} мс";
@@ -159,7 +181,9 @@ namespace StormSystemOptimizer.Services
                     0x12, 0x34,
                     0x01, 0x00,
                     0x00, 0x01,
-                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                    0x00, 0x00,
+                    0x00, 0x00,
+                    0x00, 0x00,
                     0x06, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
                     0x03, 0x63, 0x6f, 0x6d,
                     0x00,
@@ -193,39 +217,41 @@ namespace StormSystemOptimizer.Services
             return -1;
         }
 
-        private static NetworkInterface? GetActiveNetworkInterface()
-        {
-            try
-            {
-                return NetworkInterface.GetAllNetworkInterfaces()
-                    .FirstOrDefault(ni => ni.OperationalStatus == OperationalStatus.Up &&
-                                          ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
-                                          !ni.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase) &&
-                                          !ni.Description.Contains("Hyper-V", StringComparison.OrdinalIgnoreCase));
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         public async Task<bool> ApplyDnsToActiveAdapterAsync(string primaryDns, string secondaryDns)
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    var adapter = GetActiveNetworkInterface();
-                    if (adapter == null) return false;
-
-                    string name = adapter.Name;
-                    string cmdPrimary = $"netsh interface ipv4 set dnsservers name=\"{name}\" static {primaryDns} primary";
-                    RunCmd(cmdPrimary);
-
-                    if (!string.IsNullOrWhiteSpace(secondaryDns))
+                    string secArg = string.IsNullOrWhiteSpace(secondaryDns) ? $"'{primaryDns}'" : $"'{primaryDns}', '{secondaryDns}'";
+                    string script = $@"
+$adapters = Get-NetAdapter | Where-Object {{ $_.Status -eq 'Up' -and $_.InterfaceDescription -notmatch 'Virtual|Hyper-V|WSL' }}
+foreach ($a in $adapters) {{
+    Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ServerAddresses @({secArg}) -ErrorAction SilentlyContinue
+}}
+";
+                    var psi = new ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"{script}\"")
                     {
-                        string cmdSecondary = $"netsh interface ipv4 add dnsservers name=\"{name}\" {secondaryDns} index=2";
-                        RunCmd(cmdSecondary);
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(5000);
+
+                    // Fallback to netsh
+                    var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+                        .Where(ni => ni.OperationalStatus == OperationalStatus.Up &&
+                                     ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                                     !ni.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase));
+                    foreach (var adapter in interfaces)
+                    {
+                        string name = adapter.Name;
+                        RunCmd($"netsh interface ipv4 set dnsservers name=\"{name}\" static {primaryDns} primary");
+                        if (!string.IsNullOrWhiteSpace(secondaryDns))
+                        {
+                            RunCmd($"netsh interface ipv4 add dnsservers name=\"{name}\" {secondaryDns} index=2");
+                        }
                     }
 
                     NetworkOptimizerService.Instance.FlushDnsCache();
@@ -244,12 +270,21 @@ namespace StormSystemOptimizer.Services
             {
                 try
                 {
-                    var adapter = GetActiveNetworkInterface();
-                    if (adapter == null) return false;
+                    string script = @"
+$adapters = Get-NetAdapter | Where-Object { $_.Status -eq 'Up' -and $_.InterfaceDescription -notmatch 'Virtual|Hyper-V|WSL' }
+foreach ($a in $adapters) {
+    Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ResetServerAddresses -ErrorAction SilentlyContinue
+}
+";
+                    var psi = new ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"{script}\"")
+                    {
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(5000);
 
-                    string name = adapter.Name;
-                    string cmd = $"netsh interface ipv4 set dnsservers name=\"{name}\" source=dhcp";
-                    RunCmd(cmd);
                     NetworkOptimizerService.Instance.FlushDnsCache();
                     return true;
                 }

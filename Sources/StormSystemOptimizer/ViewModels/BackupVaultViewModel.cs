@@ -50,5 +50,48 @@ namespace StormSystemOptimizer.ViewModels
                 LoadBackups();
             }
         }
+
+        [RelayCommand]
+        public async Task RestoreItemAsync(SystemBackupItem item)
+        {
+            if (item == null) return;
+
+            if (item.IsRestorePoint)
+            {
+                StatusMessage = "Запуск мастера восстановления системы Windows...";
+                bool ok = await BackupVaultService.Instance.RestoreSystemRestorePointAsync(item.SequenceNumber);
+                if (ok)
+                {
+                    StatusMessage = "Открыт мастер восстановления Windows (rstrui.exe). Следуйте инструкциям на экране.";
+                    TrayService.Instance.ShowNotification("Восстановление системы", "Запущен системный мастер отката Windows.");
+                }
+            }
+            else
+            {
+                StatusMessage = $"Восстановление реестра из «{item.Title}»...";
+                bool ok = await BackupVaultService.Instance.RestoreRegistryBackupAsync(item.FilePath);
+                if (ok)
+                {
+                    StatusMessage = "Ветви реестра успешно восстановлены из резервной копии!";
+                    TrayService.Instance.ShowNotification("Реестр восстановлен 🔄", "Настройки реестра успешно импортированы!");
+                }
+                else
+                {
+                    StatusMessage = "Ошибка импорта резервной копии реестра.";
+                }
+            }
+        }
+
+        [RelayCommand]
+        public void OpenBackupsFolder()
+        {
+            BackupVaultService.Instance.OpenBackupsFolder();
+        }
+
+        [RelayCommand]
+        public void LaunchWindowsRestoreGui()
+        {
+            BackupVaultService.Instance.LaunchWindowsSystemRestoreGui();
+        }
     }
 }

@@ -15,10 +15,13 @@ namespace StormSystemOptimizer.ViewModels
         private bool _isUltimateActive = false;
 
         [ObservableProperty]
-        private bool _isCoreParkingDisabled = true;
+        private string _coreParkingStatus = "Парковка ядер: ОТКЛЮЧЕНА (100% ядер активны)";
 
         [ObservableProperty]
-        private bool _isThrottlingDisabled = true;
+        private string _coreParkingBadgeColor = "#10B981";
+
+        [ObservableProperty]
+        private string _cStatesStatus = "Оптимизированы (Ультра-низкая латентность CPU)";
 
         [ObservableProperty]
         private string _statusMessage = "Готов к тюнингу схемы электропитания и ядер CPU";
@@ -33,19 +36,33 @@ namespace StormSystemOptimizer.ViewModels
             ActiveSchemeName = PowerTunerService.Instance.GetActivePowerSchemeName();
             IsUltimateActive = ActiveSchemeName.Contains("STORM", StringComparison.OrdinalIgnoreCase) ||
                                ActiveSchemeName.Contains("Ultimate", StringComparison.OrdinalIgnoreCase);
+
+            bool isUnparked = PowerTunerService.Instance.IsCoreParkingDisabled();
+            if (isUnparked)
+            {
+                CoreParkingStatus = "Парковка ядер: ОТКЛЮЧЕНА (100% ядер активны)";
+                CoreParkingBadgeColor = "#10B981";
+            }
+            else
+            {
+                CoreParkingStatus = "Парковка ядер: ВКЛЮЧЕНА (Windows усыпляет ядра)";
+                CoreParkingBadgeColor = "#F59E0B";
+            }
+
+            CStatesStatus = IsUltimateActive ? "C-States отключены (STORM ULTIMATE PLAN)" : "Стандартное энергосбережение";
         }
 
         [RelayCommand]
         public async Task ActivateStormUltimatePlanAsync()
         {
-            StatusMessage = "Применение фирменного плана STORM ULTIMATE PERFORMANCE...";
+            StatusMessage = "Применение фирменного плана STORM ULTIMATE PLAN...";
             bool ok = await PowerTunerService.Instance.ActivateStormUltimatePowerPlanAsync();
             if (ok)
             {
                 await PowerTunerService.Instance.ApplyCoreParkingDisableTweaksAsync();
                 RefreshStatus();
-                StatusMessage = "⚡ Активирован профиль STORM ULTIMATE PERFORMANCE! Парковка ядер отключена.";
-                TrayService.Instance.ShowNotification("Электропитание ⚡", "Схема STORM ULTIMATE PERFORMANCE успешно активирована!");
+                StatusMessage = "⚡ Активирован профиль STORM ULTIMATE PLAN! Парковка ядер отключена.";
+                TrayService.Instance.ShowNotification("Электропитание ⚡", "Схема STORM ULTIMATE PLAN успешно активирована!");
             }
             else
             {
@@ -72,8 +89,22 @@ namespace StormSystemOptimizer.ViewModels
             bool ok = await PowerTunerService.Instance.ApplyCoreParkingDisableTweaksAsync();
             if (ok)
             {
+                RefreshStatus();
                 StatusMessage = "100% ядер процессора активны постоянно (Core Parking отключен).";
                 TrayService.Instance.ShowNotification("Процессор 🚀", "Парковка ядер отключена, все ядра работают на полной мощности!");
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplyCStatesTweaksAsync()
+        {
+            StatusMessage = "Отключение задержек переходов C-States...";
+            bool ok = await PowerTunerService.Instance.ApplyCStatesTweaksAsync();
+            if (ok)
+            {
+                RefreshStatus();
+                StatusMessage = "Задержки C-States устранены! Микро-фризы при пробуждении CPU ликвидированы.";
+                TrayService.Instance.ShowNotification("C-States Тюнинг", "Задержки энергосбережения процессора отключены!");
             }
         }
     }

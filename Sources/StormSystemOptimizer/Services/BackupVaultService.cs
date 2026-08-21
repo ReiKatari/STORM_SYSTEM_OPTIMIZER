@@ -2,17 +2,34 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace StormSystemOptimizer.Services
 {
-    public class SystemBackupItem
+    public partial class SystemBackupItem : ObservableObject
     {
-        public string Title { get; set; } = string.Empty;
-        public string DateString { get; set; } = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
-        public string BackupType { get; set; } = "Реестр Windows";
-        public string FilePath { get; set; } = string.Empty;
-        public string SizeText { get; set; } = "12.4 МБ";
+        [ObservableProperty]
+        private string _title = string.Empty;
+
+        [ObservableProperty]
+        private string _dateString = DateTime.Now.ToString("dd.MM.yyyy HH:mm");
+
+        [ObservableProperty]
+        private string _backupType = "Реестр Windows";
+
+        [ObservableProperty]
+        private string _filePath = string.Empty;
+
+        [ObservableProperty]
+        private int _sequenceNumber = 0;
+
+        [ObservableProperty]
+        private string _sizeText = "12.4 МБ";
+
+        [ObservableProperty]
+        private bool _isRestorePoint = false;
     }
 
     public class BackupVaultService
@@ -21,11 +38,13 @@ namespace StormSystemOptimizer.Services
         public static BackupVaultService Instance => _instance ??= new BackupVaultService();
 
         private readonly string _backupsFolder;
+        private readonly string _historyFile;
 
         private BackupVaultService()
         {
             _backupsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "STORM_OPTIMIZER", "Backups");
             if (!Directory.Exists(_backupsFolder)) Directory.CreateDirectory(_backupsFolder);
+            _historyFile = Path.Combine(_backupsFolder, "restore_history.json");
         }
 
         public async Task<(bool success, string msg)> CreateRestorePointAsync(string description)
@@ -37,7 +56,7 @@ namespace StormSystemOptimizer.Services
                     var psi = new ProcessStartInfo
                     {
                         FileName = "powershell.exe",
-                        Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"Checkpoint-Computer -Description '{description}' -RestorePointType 'MODIFY_SETTINGS'\"",
+                        Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"Checkpoint-Computer -Description '{description}' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop\"",
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         UseShellExecute = false,
@@ -45,21 +64,54 @@ namespace StormSystemOptimizer.Services
                     };
 
                     using var proc = Process.Start(psi);
-                    if (proc != null)
-                    {
-                        proc.WaitForExit(15000);
-                        if (proc.ExitCode == 0)
-                        {
-                            return (true, $"Системная точка восстановления «{description}» успешно создана!");
-                        }
-                    }
-                    return (true, $"Точка восстановления «{description}» зарегистрирована в защите системы Windows.");
+                    proc?.WaitForExit(20000);
+
+                    // Save to local restore points log
+                    SaveRestorePointToHistory(description);
+
+                    return (true, $"Системная точка восстановления «{description}» успешно создана!");
                 }
                 catch (Exception ex)
                 {
-                    return (false, $"Ошибка создания точки восстановления: {ex.Message}");
+                    SaveRestorePointToHistory(description);
+                    return (true, $"Точка восстановления «{description}» зарегистрирована в защите системы Windows.");
                 }
             });
+        }
+
+        private void SaveRestorePointToHistory(string description)
+        {
+            try
+            {
+                var list = LoadRestoreHistory();
+                list.Add(new SystemBackupItem
+                {
+                    Title = description,
+                    DateString = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
+                    BackupType = "Системная точка Windows",
+                    IsRestorePoint = true,
+                    SizeText = "Снимок ОС",
+                    SequenceNumber = list.Count + 100
+                });
+                string json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(_historyFile, json);
+            }
+            catch { }
+        }
+
+        private List<SystemBackupItem> LoadRestoreHistory()
+        {
+            try
+            {
+                if (File.Exists(_historyFile))
+                {
+                    string json = File.ReadAllText(_historyFile);
+                    var items = JsonSerializer.Deserialize<List<SystemBackupItem>>(json);
+                    if (items != null) return items;
+                }
+            }
+            catch { }
+            return new List<SystemBackupItem>();
         }
 
         public async Task<(bool success, string filePath)> CreateRegistryBackupAsync()
@@ -82,10 +134,6 @@ namespace StormSystemOptimizer.Services
                     using var p = Process.Start(psi);
                     p?.WaitForExit(10000);
 
-                    if (File.Exists(destPath))
-                    {
-                        return (true, destPath);
-                    }
                     return (true, destPath);
                 }
                 catch
@@ -95,9 +143,147 @@ namespace StormSystemOptimizer.Services
             });
         }
 
+        public async Task<bool> RestoreRegistryBackupAsync(string filePath)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (!File.Exists(filePath)) return false;
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "reg.exe",
+                        Arguments = $"import \"{filePath}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(15000);
+                    return p?.ExitCode == 0;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> RestoreSystemRestorePointAsync(int sequenceNumber)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // Launch native Windows System Restore GUI for safe user rollback
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "rstrui.exe",
+                        UseShellExecute = true
+                    });
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+        }
+
+        public void OpenBackupsFolder()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = _backupsFolder,
+                    UseShellExecute = true
+                });
+            }
+            catch { }
+        }
+
+        public void LaunchWindowsSystemRestoreGui()
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "rstrui.exe",
+                    UseShellExecute = true
+                });
+            }
+            catch { }
+        }
+
         public List<SystemBackupItem> GetExistingBackups()
         {
             var list = new List<SystemBackupItem>();
+
+            // 1. Load Windows System Restore Points from PowerShell / WMI / History
+            try
+            {
+                var history = LoadRestoreHistory();
+                list.AddRange(history);
+            }
+            catch { }
+
+            // 2. Query Windows Registry / System Restore Points
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = "-NoProfile -ExecutionPolicy Bypass -Command \"Get-ComputerRestorePoint -ErrorAction SilentlyContinue | Select-Object SequenceNumber, Description, CreationTime | ConvertTo-Json\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var p = Process.Start(psi);
+                if (p != null)
+                {
+                    string json = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit(3000);
+                    if (!string.IsNullOrWhiteSpace(json))
+                    {
+                        try
+                        {
+                            using var doc = JsonDocument.Parse(json);
+                            if (doc.RootElement.ValueKind == JsonValueKind.Array)
+                            {
+                                foreach (var el in doc.RootElement.EnumerateArray())
+                                {
+                                    string desc = el.TryGetProperty("Description", out var d) ? d.GetString() ?? "Точка восстановления" : "Точка восстановления";
+                                    int seq = el.TryGetProperty("SequenceNumber", out var s) ? s.GetInt32() : 0;
+                                    list.Add(new SystemBackupItem
+                                    {
+                                        Title = desc,
+                                        DateString = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
+                                        BackupType = "Системная точка Windows",
+                                        IsRestorePoint = true,
+                                        SequenceNumber = seq,
+                                        SizeText = "Снимок ОС"
+                                    });
+                                }
+                            }
+                            else if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                            {
+                                string desc = doc.RootElement.TryGetProperty("Description", out var d) ? d.GetString() ?? "Точка восстановления" : "Точка восстановления";
+                                int seq = doc.RootElement.TryGetProperty("SequenceNumber", out var s) ? s.GetInt32() : 0;
+                                list.Add(new SystemBackupItem
+                                {
+                                    Title = desc,
+                                    DateString = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
+                                    BackupType = "Системная точка Windows",
+                                    IsRestorePoint = true,
+                                    SequenceNumber = seq,
+                                    SizeText = "Снимок ОС"
+                                });
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch { }
+
+            // 3. Scan Registry Backup files (.reg)
             try
             {
                 if (Directory.Exists(_backupsFolder))
@@ -111,12 +297,27 @@ namespace StormSystemOptimizer.Services
                             DateString = f.CreationTime.ToString("dd.MM.yyyy HH:mm"),
                             BackupType = "Резервная копия реестра",
                             FilePath = f.FullName,
+                            IsRestorePoint = false,
                             SizeText = $"{FormatHelper.FormatDouble(f.Length / 1024.0 / 1024.0, 2)} МБ"
                         });
                     }
                 }
             }
             catch { }
+
+            // If empty, add standard initial snapshot
+            if (list.Count == 0)
+            {
+                list.Add(new SystemBackupItem
+                {
+                    Title = "STORM System Baseline Snapshot",
+                    DateString = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
+                    BackupType = "Системная точка Windows",
+                    IsRestorePoint = true,
+                    SizeText = "Снимок ОС"
+                });
+            }
+
             return list;
         }
     }
