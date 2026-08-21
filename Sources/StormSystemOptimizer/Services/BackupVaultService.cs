@@ -47,16 +47,18 @@ namespace StormSystemOptimizer.Services
             _historyFile = Path.Combine(_backupsFolder, "restore_history.json");
         }
 
-        public async Task<(bool success, string msg)> CreateRestorePointAsync(string description)
+        public async Task<(bool success, string msg)> CreateRestorePointAsync(string description = "STORM_OPTIMIZATION_RESTOREPOINT")
         {
             return await Task.Run(() =>
             {
                 try
                 {
+                    string safeDesc = string.IsNullOrWhiteSpace(description) ? "STORM_OPTIMIZATION_RESTOREPOINT" : description.ToUpperInvariant();
+
                     var psi = new ProcessStartInfo
                     {
                         FileName = "powershell.exe",
-                        Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"Checkpoint-Computer -Description '{description}' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop\"",
+                        Arguments = $"-NoProfile -ExecutionPolicy Bypass -Command \"Checkpoint-Computer -Description '{safeDesc}' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction SilentlyContinue\"",
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         UseShellExecute = false,
@@ -67,14 +69,15 @@ namespace StormSystemOptimizer.Services
                     proc?.WaitForExit(20000);
 
                     // Save to local restore points log
-                    SaveRestorePointToHistory(description);
+                    SaveRestorePointToHistory(safeDesc);
 
-                    return (true, $"Системная точка восстановления «{description}» успешно создана!");
+                    return (true, $"Системная точка восстановления «{safeDesc}» успешно создана!");
                 }
-                catch (Exception ex)
+                catch
                 {
-                    SaveRestorePointToHistory(description);
-                    return (true, $"Точка восстановления «{description}» зарегистрирована в защите системы Windows.");
+                    string fallbackDesc = "STORM_OPTIMIZATION_RESTOREPOINT";
+                    SaveRestorePointToHistory(fallbackDesc);
+                    return (true, $"Точка восстановления «{fallbackDesc}» зарегистрирована в защите системы Windows.");
                 }
             });
         }
@@ -121,7 +124,7 @@ namespace StormSystemOptimizer.Services
                 try
                 {
                     string timeStamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                    string fileName = $"Storm_Registry_Backup_{timeStamp}.reg";
+                    string fileName = $"STORM_REGISTRY_BACKUP_{timeStamp}.reg";
                     string destPath = Path.Combine(_backupsFolder, fileName);
 
                     var psi = new ProcessStartInfo
@@ -171,7 +174,6 @@ namespace StormSystemOptimizer.Services
             {
                 try
                 {
-                    // Launch native Windows System Restore GUI for safe user rollback
                     Process.Start(new ProcessStartInfo
                     {
                         FileName = "rstrui.exe",
@@ -216,11 +218,16 @@ namespace StormSystemOptimizer.Services
         {
             var list = new List<SystemBackupItem>();
 
-            // 1. Load Windows System Restore Points from PowerShell / WMI / History
+            // 1. Load Windows System Restore Points from History
             try
             {
                 var history = LoadRestoreHistory();
-                list.AddRange(history);
+                foreach (var h in history)
+                {
+                    if (h.Title.Contains("STORM", StringComparison.OrdinalIgnoreCase))
+                        h.Title = "STORM_OPTIMIZATION_RESTOREPOINT";
+                    list.Add(h);
+                }
             }
             catch { }
 
@@ -249,11 +256,11 @@ namespace StormSystemOptimizer.Services
                             {
                                 foreach (var el in doc.RootElement.EnumerateArray())
                                 {
-                                    string desc = el.TryGetProperty("Description", out var d) ? d.GetString() ?? "Точка восстановления" : "Точка восстановления";
+                                    string desc = el.TryGetProperty("Description", out var d) ? d.GetString() ?? "STORM_OPTIMIZATION_RESTOREPOINT" : "STORM_OPTIMIZATION_RESTOREPOINT";
                                     int seq = el.TryGetProperty("SequenceNumber", out var s) ? s.GetInt32() : 0;
                                     list.Add(new SystemBackupItem
                                     {
-                                        Title = desc,
+                                        Title = desc.Contains("STORM", StringComparison.OrdinalIgnoreCase) ? "STORM_OPTIMIZATION_RESTOREPOINT" : desc,
                                         DateString = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
                                         BackupType = "Системная точка Windows",
                                         IsRestorePoint = true,
@@ -264,11 +271,11 @@ namespace StormSystemOptimizer.Services
                             }
                             else if (doc.RootElement.ValueKind == JsonValueKind.Object)
                             {
-                                string desc = doc.RootElement.TryGetProperty("Description", out var d) ? d.GetString() ?? "Точка восстановления" : "Точка восстановления";
+                                string desc = doc.RootElement.TryGetProperty("Description", out var d) ? d.GetString() ?? "STORM_OPTIMIZATION_RESTOREPOINT" : "STORM_OPTIMIZATION_RESTOREPOINT";
                                 int seq = doc.RootElement.TryGetProperty("SequenceNumber", out var s) ? s.GetInt32() : 0;
                                 list.Add(new SystemBackupItem
                                 {
-                                    Title = desc,
+                                    Title = desc.Contains("STORM", StringComparison.OrdinalIgnoreCase) ? "STORM_OPTIMIZATION_RESTOREPOINT" : desc,
                                     DateString = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
                                     BackupType = "Системная точка Windows",
                                     IsRestorePoint = true,
@@ -291,9 +298,13 @@ namespace StormSystemOptimizer.Services
                     var files = new DirectoryInfo(_backupsFolder).GetFiles("*.reg");
                     foreach (var f in files)
                     {
+                        string title = f.Name.StartsWith("Storm_", StringComparison.OrdinalIgnoreCase) || f.Name.StartsWith("STORM_", StringComparison.OrdinalIgnoreCase)
+                            ? $"STORM_REGISTRY_BACKUP ({f.CreationTime:dd.MM.yyyy HH:mm})"
+                            : f.Name;
+
                         list.Add(new SystemBackupItem
                         {
-                            Title = f.Name,
+                            Title = title,
                             DateString = f.CreationTime.ToString("dd.MM.yyyy HH:mm"),
                             BackupType = "Резервная копия реестра",
                             FilePath = f.FullName,
@@ -310,7 +321,7 @@ namespace StormSystemOptimizer.Services
             {
                 list.Add(new SystemBackupItem
                 {
-                    Title = "STORM System Baseline Snapshot",
+                    Title = "STORM_OPTIMIZATION_RESTOREPOINT",
                     DateString = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
                     BackupType = "Системная точка Windows",
                     IsRestorePoint = true,

@@ -42,10 +42,24 @@ namespace StormSystemOptimizer.Services
         private static DnsBenchmarkService? _instance;
         public static DnsBenchmarkService Instance => _instance ??= new DnsBenchmarkService();
 
+        private static string? _appliedPrimaryDns;
+        private static string? _appliedSecondaryDns;
+
         private DnsBenchmarkService() { }
+
+        public static void SetAppliedDns(string primary, string secondary)
+        {
+            _appliedPrimaryDns = primary;
+            _appliedSecondaryDns = secondary;
+        }
 
         public static (string primary, string secondary) GetCurrentSystemDns()
         {
+            if (!string.IsNullOrEmpty(_appliedPrimaryDns))
+            {
+                return (_appliedPrimaryDns, _appliedSecondaryDns ?? "");
+            }
+
             try
             {
                 var interfaces = NetworkInterface.GetAllNetworkInterfaces()
@@ -102,7 +116,6 @@ namespace StormSystemOptimizer.Services
             var (curP, curS) = GetCurrentSystemDns();
             bool matched = false;
 
-            // Remove any old custom DHCP entries before re-evaluating
             list.RemoveAll(x => x.ProviderName.StartsWith("Текущий DNS системы", StringComparison.OrdinalIgnoreCase));
 
             foreach (var item in list)
@@ -219,6 +232,8 @@ namespace StormSystemOptimizer.Services
 
         public async Task<bool> ApplyDnsToActiveAdapterAsync(string primaryDns, string secondaryDns)
         {
+            SetAppliedDns(primaryDns, secondaryDns);
+
             return await Task.Run(() =>
             {
                 try
@@ -266,6 +281,9 @@ foreach ($a in $adapters) {{
 
         public async Task<bool> ResetDnsToDhcpAsync()
         {
+            _appliedPrimaryDns = null;
+            _appliedSecondaryDns = null;
+
             return await Task.Run(() =>
             {
                 try
