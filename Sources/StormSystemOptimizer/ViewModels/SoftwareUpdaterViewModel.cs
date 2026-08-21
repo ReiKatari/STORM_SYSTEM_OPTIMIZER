@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StormSystemOptimizer.Models;
@@ -16,9 +17,6 @@ namespace StormSystemOptimizer.ViewModels
 
         [ObservableProperty]
         private bool _isBusy = false;
-
-        [ObservableProperty]
-        private bool _isCheckingOnline = false;
 
         [ObservableProperty]
         private string _statusText = "Готов к поиску обновлений программного обеспечения";
@@ -41,28 +39,8 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-            IsCheckingOnline = true;
-            StatusText = "Мгновенное сканирование установленных программ...";
+            StatusText = "Проверка наличия обновлений в фоновых репозиториях и Winget...";
 
-            // 1. Instant local load (0 ms)
-            var localApps = await SoftwareUninstallerService.Instance.GetInstalledAppsAsync();
-            _allApps = localApps.Select(a => new SoftwareUpdateItem
-            {
-                PackageId = a.Id,
-                Name = a.DisplayName,
-                InstalledVersion = !string.IsNullOrWhiteSpace(a.DisplayVersion) ? a.DisplayVersion : "1.0.0",
-                AvailableVersion = !string.IsNullOrWhiteSpace(a.DisplayVersion) ? a.DisplayVersion : "1.0.0",
-                Publisher = !string.IsNullOrWhiteSpace(a.Publisher) ? a.Publisher : "Официальное ПО",
-                AppType = a.AppType,
-                IsUpdateAvailable = false,
-                IsBlacklisted = SoftwareUpdaterService.Instance.IsBlacklisted(a.DisplayName) || SoftwareUpdaterService.Instance.IsBlacklisted(a.Id)
-            }).ToList();
-
-            ApplyFilter();
-            StatsSummary = $"{FormatHelper.FormatInt(_allApps.Count)} программ • Проверка обновлений в репозиториях...";
-            StatusText = $"Найдено {FormatHelper.FormatInt(_allApps.Count)} приложений. Опрос Winget и облачных репозиториев...";
-
-            // 2. Background multi-repository check
             _allApps = await SoftwareUpdaterService.Instance.ScanInstalledAppsForUpdatesAsync();
             ApplyFilter();
 
@@ -71,8 +49,7 @@ namespace StormSystemOptimizer.ViewModels
 
             StatsSummary = $"{FormatHelper.FormatInt(_allApps.Count)} программ • {(updatesCount > 0 ? $"{FormatHelper.FormatInt(updatesCount)} требуют обновления ⚡" : "Все программы обновлены ✅")}" +
                            (blacklistedCount > 0 ? $" • {FormatHelper.FormatInt(blacklistedCount)} в черном списке 🔒" : "");
-            StatusText = $"Проверка завершена: найдено {FormatHelper.FormatInt(updatesCount)} доступных обновлений.";
-            IsCheckingOnline = false;
+            StatusText = $"Найдено {FormatHelper.FormatInt(_allApps.Count)} установленных программ и игр.";
             IsBusy = false;
         }
 
@@ -100,7 +77,7 @@ namespace StormSystemOptimizer.ViewModels
             }
 
             var list = query.ToList();
-            App.Current?.Dispatcher?.Invoke(() =>
+            Application.Current?.Dispatcher?.Invoke(() =>
             {
                 DisplayApps.Clear();
                 foreach (var item in list)
@@ -114,17 +91,19 @@ namespace StormSystemOptimizer.ViewModels
         public async Task SilentUpdateAppAsync(SoftwareUpdateItem? item)
         {
             if (item == null) return;
+            IsBusy = true;
             StatusText = $"Скачивание и обновление «{item.Name}»...";
 
-            var (success, msg) = await SoftwareUpdaterService.Instance.SilentUpdateAppAsync(item, (pct, progress) =>
+            var (success, msg) = await SoftwareUpdaterService.Instance.SilentUpdateAppAsync(item, progress =>
             {
-                App.Current?.Dispatcher?.Invoke(() => StatusText = progress);
+                Application.Current?.Dispatcher?.Invoke(() => StatusText = progress);
             });
 
             StatusText = msg;
             TrayService.Instance.ShowNotification("Обновление программ ⚡", msg);
 
             ApplyFilter();
+            IsBusy = false;
         }
 
         [RelayCommand]
@@ -136,7 +115,7 @@ namespace StormSystemOptimizer.ViewModels
 
             var (updated, failed) = await SoftwareUpdaterService.Instance.SilentUpdateAllAppsAsync(_allApps, progress =>
             {
-                App.Current?.Dispatcher?.Invoke(() => StatusText = progress);
+                Application.Current?.Dispatcher?.Invoke(() => StatusText = progress);
             });
 
             string msg = $"Обновлено: {updated} программ. Ошибок: {failed}.";

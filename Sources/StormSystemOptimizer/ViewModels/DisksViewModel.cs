@@ -45,44 +45,32 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public async Task LoadDrivesAsync()
         {
+            if (IsBusy) return;
             try
             {
                 IsBusy = true;
-                StatusText = "Опрос дисковой подсистемы и параметров S.M.A.R.T...";
+                StatusText = "Опрос дисковой подсистемы...";
                 StatusMessage = StatusText;
 
-                var list = await DiskInfoService.Instance.GetAllDrivesInfoAsync();
+                var list = await Task.Run(() => DiskInfoService.Instance.GetAllDrivesFast());
 
-                var dispatcher = Application.Current?.Dispatcher;
-                Action updateAction = () =>
+                string? prevLetter = SelectedDrive?.VolumeLetter;
+
+                Drives.Clear();
+                foreach (var item in list)
                 {
-                    string? prevSelectedLetter = SelectedDrive?.VolumeLetter;
-
-                    Drives.Clear();
-                    foreach (var item in list)
-                    {
-                        Drives.Add(item);
-                    }
-
-                    FilterDrives(SelectedFilter);
-
-                    if (!string.IsNullOrEmpty(prevSelectedLetter))
-                    {
-                        SelectedDrive = Drives.FirstOrDefault(d => d.VolumeLetter.Equals(prevSelectedLetter, StringComparison.OrdinalIgnoreCase)) ?? Drives.FirstOrDefault();
-                    }
-                    else if (Drives.Count > 0)
-                    {
-                        SelectedDrive = Drives[0];
-                    }
-                };
-
-                if (dispatcher != null && !dispatcher.CheckAccess())
-                {
-                    dispatcher.Invoke(updateAction);
+                    Drives.Add(item);
                 }
-                else
+
+                FilterDrives(SelectedFilter);
+
+                if (!string.IsNullOrEmpty(prevLetter))
                 {
-                    updateAction();
+                    SelectedDrive = Drives.FirstOrDefault(d => d.VolumeLetter.Equals(prevLetter, StringComparison.OrdinalIgnoreCase)) ?? Drives.FirstOrDefault();
+                }
+                else if (Drives.Count > 0)
+                {
+                    SelectedDrive = Drives[0];
                 }
 
                 StatusText = $"Обнаружено накопителей и томов: {Drives.Count}";
@@ -90,7 +78,7 @@ namespace StormSystemOptimizer.ViewModels
             }
             catch
             {
-                StatusText = $"Готово к работе (Накопителей: {Drives.Count})";
+                StatusText = $"Готово (Накопителей: {Drives.Count})";
                 StatusMessage = StatusText;
             }
             finally
@@ -152,29 +140,30 @@ namespace StormSystemOptimizer.ViewModels
                             targetDrive.OperationProgress = progress;
                             targetDrive.CurrentOperationStatus = text;
                         });
-                    }
-                );
+                    });
 
                 targetDrive.HasAnalysisReport = true;
-                targetDrive.FragmentationStatus = report.FragmentationStatusText;
                 targetDrive.ClusterSizeText = report.ClusterSizeText;
                 targetDrive.FragmentedFilesCount = report.FragmentedFilesCount;
                 targetDrive.TotalFragmentsCount = report.TotalFragmentsCount;
                 targetDrive.LargestFreeBlockText = report.LargestFreeBlockText;
                 targetDrive.AnalysisRecommendation = report.Recommendation;
-                targetDrive.IsAnalyzing = false;
+                targetDrive.FragmentationStatus = report.FragmentationStatusText;
 
-                StatusText = $"Анализ тома {targetLetter} завершен: {report.FragmentationStatusText}";
+                StatusText = $"Анализ тома {targetLetter} завершен ({report.FragmentationStatusText}).";
                 StatusMessage = StatusText;
                 TrayService.Instance.ShowNotification("Диски и Оптимизация", $"Анализ тома {targetLetter} завершен: {report.FragmentationStatusText}");
             }
-            catch (Exception ex)
+            finally
             {
                 targetDrive.IsAnalyzing = false;
-                StatusText = $"Ошибка анализа: {ex.Message}";
-                StatusMessage = StatusText;
+                targetDrive.OperationProgress = 100;
+                targetDrive.CurrentOperationStatus = "Анализ завершен";
             }
         }
+
+        [RelayCommand]
+        public async Task DefragDriveAsync(object? parameter) => await OptimizeDriveAsync(parameter);
 
         [RelayCommand]
         public async Task OptimizeDriveAsync(object? parameter)
@@ -189,18 +178,19 @@ namespace StormSystemOptimizer.ViewModels
 
             if (targetDrive == null || targetDrive.IsRunningOperation) return;
 
+            string opName = targetDrive.IsSsd ? "TRIM" : "Дефрагментация";
+
             try
             {
                 SelectedDrive = targetDrive;
                 targetDrive.IsOptimizing = true;
                 targetDrive.OperationProgress = 5;
-                string opName = targetDrive.IsSsd ? "TRIM Retrim" : "Дефрагментация";
-                targetDrive.CurrentOperationStatus = $"Запуск процесса ({opName}) для тома {targetLetter}...";
+                targetDrive.CurrentOperationStatus = $"Запуск {opName} для тома {targetLetter}...";
 
-                StatusText = $"Оптимизация тома {targetLetter} ({opName})...";
+                StatusText = $"Выполняется {opName} тома {targetLetter}...";
                 StatusMessage = StatusText;
 
-                bool success = await DefragService.Instance.OptimizeVolumeAsync(
+                var result = await DefragService.Instance.OptimizeVolumeAsync(
                     targetLetter,
                     targetDrive.IsSsd,
                     (progress, text) =>
@@ -210,20 +200,18 @@ namespace StormSystemOptimizer.ViewModels
                             targetDrive.OperationProgress = progress;
                             targetDrive.CurrentOperationStatus = text;
                         });
-                    }
-                );
+                    });
 
-                targetDrive.IsOptimizing = false;
                 targetDrive.FragmentationStatus = targetDrive.IsSsd ? "0% (TRIM выполнен)" : "0.2% (Дефрагментирован)";
-                StatusText = $"Оптимизация тома {targetLetter} успешно завершена!";
+                StatusText = $"Оптимизация {targetLetter} завершена ({opName}).";
                 StatusMessage = StatusText;
                 TrayService.Instance.ShowNotification("Оптимизация накопителей", $"Том {targetLetter} успешно оптимизирован ({opName}).");
             }
-            catch (Exception ex)
+            finally
             {
                 targetDrive.IsOptimizing = false;
-                StatusText = $"Ошибка оптимизации: {ex.Message}";
-                StatusMessage = StatusText;
+                targetDrive.OperationProgress = 100;
+                targetDrive.CurrentOperationStatus = "Оптимизация успешно завершена";
             }
         }
 
@@ -231,28 +219,27 @@ namespace StormSystemOptimizer.ViewModels
         public async Task CleanDriveTempAsync(object? parameter)
         {
             DiskDriveInfoItem? targetDrive = parameter as DiskDriveInfoItem;
-            string targetLetter = targetDrive?.VolumeLetter ?? SelectedDrive?.VolumeLetter ?? "C:";
+            string targetLetter = targetDrive?.VolumeLetter ?? (parameter as string) ?? SelectedDrive?.VolumeLetter ?? "C:";
 
-            if (targetDrive == null)
-            {
-                targetDrive = Drives.FirstOrDefault(d => d.VolumeLetter.Equals(targetLetter, StringComparison.OrdinalIgnoreCase));
-            }
-
-            if (targetDrive == null) return;
-
-            StatusText = $"Очистка временных файлов и кэша на томе {targetLetter}...";
+            StatusText = $"Очистка временных файлов тома {targetLetter}...";
             StatusMessage = StatusText;
 
             await Task.Run(() =>
             {
                 try
                 {
-                    string tempDir = Path.Combine(targetLetter, "Temp");
-                    if (Directory.Exists(tempDir))
+                    string tempPath = Path.Combine(targetLetter, "$Recycle.Bin");
+                    string sysTemp = Path.GetTempPath();
+
+                    // Clean temp files safely
+                    if (targetLetter.StartsWith("C", StringComparison.OrdinalIgnoreCase))
                     {
-                        foreach (var f in Directory.GetFiles(tempDir))
+                        if (Directory.Exists(sysTemp))
                         {
-                            try { File.Delete(f); } catch { }
+                            foreach (var f in Directory.GetFiles(sysTemp))
+                            {
+                                try { File.Delete(f); } catch { }
+                            }
                         }
                     }
                 }

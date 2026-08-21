@@ -9,6 +9,7 @@ using StormSystemOptimizer.Controls;
 using StormSystemOptimizer.Models;
 using StormSystemOptimizer.Services;
 using StormSystemOptimizer.Themes;
+using StormSystemOptimizer.ViewModels;
 using StormSystemOptimizer.Views;
 
 namespace StormSystemOptimizer
@@ -177,6 +178,11 @@ namespace StormSystemOptimizer
                 }
 
                 MainContentFrame.Navigate(page);
+
+                if (page is DisksPage dp && dp.DataContext is DisksViewModel dvm)
+                {
+                    _ = dvm.LoadDrivesAsync();
+                }
             }
         }
 

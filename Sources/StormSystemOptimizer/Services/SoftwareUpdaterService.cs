@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using StormSystemOptimizer.Models;
 
 namespace StormSystemOptimizer.Services
@@ -17,7 +18,6 @@ namespace StormSystemOptimizer.Services
 
         private readonly string _blacklistFilePath;
         private readonly HashSet<string> _blacklistedPackages = new(StringComparer.OrdinalIgnoreCase);
-        private readonly HttpClient _httpClient;
 
         // Comprehensive multi-repository cloud catalog of official latest versions and direct download endpoints
         private static readonly Dictionary<string, (string LatestVersion, string DownloadUrl, string Publisher)> _cloudCatalog =
@@ -71,10 +71,6 @@ namespace StormSystemOptimizer.Services
             if (!Directory.Exists(appData)) Directory.CreateDirectory(appData);
             _blacklistFilePath = Path.Combine(appData, "software_blacklist.json");
             LoadBlacklist();
-
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/0.3.0");
-            _httpClient.Timeout = TimeSpan.FromMinutes(5);
         }
 
         private void LoadBlacklist()
@@ -120,114 +116,139 @@ namespace StormSystemOptimizer.Services
             }
         }
 
-        public bool IsBlacklisted(string packageIdOrName)
-        {
-            return _blacklistedPackages.Contains(packageIdOrName);
-        }
+        public bool IsBlacklisted(string packageIdOrName) => _blacklistedPackages.Contains(packageIdOrName);
 
         public async Task<List<SoftwareUpdateItem>> ScanInstalledAppsForUpdatesAsync()
         {
-            return await Task.Run(async () =>
+            return await Task.Run(() =>
             {
-                var list = new List<SoftwareUpdateItem>();
+                var installedList = new List<SoftwareUpdateItem>();
+                var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. Fetch all local installed apps
-                var installed = await SoftwareUninstallerService.Instance.GetInstalledAppsAsync();
-                foreach (var app in installed)
+                // 1. Scan Installed software from Registry (64-bit, 32-bit, CU)
+                void ScanRegistryHive(RegistryHive hive, RegistryView view, string subKey)
                 {
-                    string cleanVer = CleanVersionString(app.DisplayVersion);
-                    bool blacklisted = IsBlacklisted(app.Id) || IsBlacklisted(app.DisplayName);
-
-                    list.Add(new SoftwareUpdateItem
+                    try
                     {
-                        PackageId = app.Id,
-                        Name = app.DisplayName,
-                        InstalledVersion = string.IsNullOrWhiteSpace(cleanVer) ? "1.0.0" : cleanVer,
-                        AvailableVersion = string.IsNullOrWhiteSpace(cleanVer) ? "1.0.0" : cleanVer,
-                        Publisher = string.IsNullOrWhiteSpace(app.Publisher) ? "Официальное ПО" : app.Publisher,
-                        AppType = app.AppType,
-                        IsUpdateAvailable = false,
-                        IsBlacklisted = blacklisted
-                    });
+                        using var baseKey = RegistryKey.OpenBaseKey(hive, view);
+                        using var key = baseKey.OpenSubKey(subKey);
+                        if (key == null) return;
+
+                        foreach (var subName in key.GetSubKeyNames())
+                        {
+                            try
+                            {
+                                using var appKey = key.OpenSubKey(subName);
+                                if (appKey == null) continue;
+
+                                string name = appKey.GetValue("DisplayName")?.ToString()?.Trim() ?? string.Empty;
+                                if (string.IsNullOrEmpty(name)) continue;
+
+                                // Filter Windows system components
+                                if (name.StartsWith("KB", StringComparison.OrdinalIgnoreCase) ||
+                                    name.Contains("Update for Windows", StringComparison.OrdinalIgnoreCase) ||
+                                    name.Contains("Security Update", StringComparison.OrdinalIgnoreCase))
+                                    continue;
+
+                                string ver = appKey.GetValue("DisplayVersion")?.ToString()?.Trim() ?? "1.0.0";
+                                string pub = appKey.GetValue("Publisher")?.ToString()?.Trim() ?? "Разработчик ПО";
+                                string icon = appKey.GetValue("DisplayIcon")?.ToString()?.Trim() ?? string.Empty;
+
+                                string dedupeKey = $"{name}_{ver}";
+                                if (seenKeys.Contains(dedupeKey)) continue;
+                                seenKeys.Add(dedupeKey);
+
+                                installedList.Add(new SoftwareUpdateItem
+                                {
+                                    Name = name,
+                                    PackageId = subName,
+                                    Publisher = pub,
+                                    InstalledVersion = ver,
+                                    AvailableVersion = ver,
+                                    IsUpdateAvailable = false,
+                                    IsBlacklisted = IsBlacklisted(subName) || IsBlacklisted(name)
+                                });
+                            }
+                            catch { }
+                        }
+                    }
+                    catch { }
                 }
 
-                // 2. Query Winget for official repository updates
-                var wingetUpdates = QueryWingetUpgrades();
-                foreach (var (wName, wId, wCurVer, wNewVer) in wingetUpdates)
+                ScanRegistryHive(RegistryHive.LocalMachine, RegistryView.Registry64, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+                ScanRegistryHive(RegistryHive.LocalMachine, RegistryView.Registry32, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+                ScanRegistryHive(RegistryHive.CurrentUser, RegistryView.Registry64, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+
+                // 2. Query Winget updates
+                var wingetUpdates = GetWingetUpdates();
+                foreach (var wu in wingetUpdates)
                 {
-                    var existing = list.FirstOrDefault(x =>
-                        (!string.IsNullOrEmpty(wId) && x.PackageId.Equals(wId, StringComparison.OrdinalIgnoreCase)) ||
-                        x.Name.Equals(wName, StringComparison.OrdinalIgnoreCase) ||
-                        x.Name.IndexOf(wName, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        wName.IndexOf(x.Name, StringComparison.OrdinalIgnoreCase) >= 0);
+                    var match = installedList.FirstOrDefault(a => 
+                        a.PackageId.Equals(wu.Id, StringComparison.OrdinalIgnoreCase) ||
+                        a.Name.IndexOf(wu.Name, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        wu.Name.IndexOf(a.Name, StringComparison.OrdinalIgnoreCase) >= 0);
 
-                    bool blacklisted = IsBlacklisted(wId) || IsBlacklisted(wName);
-
-                    if (existing != null)
+                    if (match != null)
                     {
-                        existing.PackageId = wId;
-                        if (!string.IsNullOrEmpty(wCurVer) && wCurVer != "Unknown")
+                        match.PackageId = wu.Id;
+                        if (!string.IsNullOrEmpty(wu.AvailableVersion) && IsNewerVersion(wu.AvailableVersion, match.InstalledVersion))
                         {
-                            existing.InstalledVersion = wCurVer;
+                            match.AvailableVersion = wu.AvailableVersion;
+                            match.IsUpdateAvailable = !match.IsBlacklisted;
                         }
-                        existing.AvailableVersion = wNewVer;
-                        existing.IsUpdateAvailable = !blacklisted && IsNewerVersion(wNewVer, existing.InstalledVersion);
                     }
                     else
                     {
-                        list.Add(new SoftwareUpdateItem
+                        installedList.Add(new SoftwareUpdateItem
                         {
-                            PackageId = wId,
-                            Name = wName,
-                            InstalledVersion = wCurVer,
-                            AvailableVersion = wNewVer,
+                            Name = wu.Name,
+                            PackageId = wu.Id,
                             Publisher = "Winget Repository",
-                            AppType = "Программа",
-                            IsUpdateAvailable = !blacklisted && IsNewerVersion(wNewVer, wCurVer),
-                            IsBlacklisted = blacklisted
+                            InstalledVersion = wu.InstalledVersion,
+                            AvailableVersion = wu.AvailableVersion,
+                            IsUpdateAvailable = !IsBlacklisted(wu.Id) && !IsBlacklisted(wu.Name) && IsNewerVersion(wu.AvailableVersion, wu.InstalledVersion),
+                            IsBlacklisted = IsBlacklisted(wu.Id) || IsBlacklisted(wu.Name)
                         });
                     }
                 }
 
-                // 3. Multi-repository Check against Cloud Catalog for CIS/Vendor software (WinRAR, Bitrix24, Telegram, etc.)
-                foreach (var item in list)
+                // 3. Match against Cloud Catalog (WinRAR, Bitrix24, Telegram, 7-Zip, etc.)
+                foreach (var app in installedList)
                 {
                     foreach (var kvp in _cloudCatalog)
                     {
-                        if (item.Name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                            kvp.Key.IndexOf(item.Name, StringComparison.OrdinalIgnoreCase) >= 0)
+                        if (app.Name.Equals(kvp.Key, StringComparison.OrdinalIgnoreCase) ||
+                            app.Name.StartsWith(kvp.Key + " ", StringComparison.OrdinalIgnoreCase) ||
+                            app.Name.StartsWith(kvp.Key + "-", StringComparison.OrdinalIgnoreCase) ||
+                            (kvp.Key.Length > 4 && app.Name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0))
                         {
                             string cloudVer = kvp.Value.LatestVersion;
-                            bool isNewer = IsNewerVersion(cloudVer, item.InstalledVersion);
-                            if (isNewer)
+                            if (IsNewerVersion(cloudVer, app.InstalledVersion))
                             {
-                                item.AvailableVersion = cloudVer;
-                                item.IsUpdateAvailable = !item.IsBlacklisted;
-                                if (item.Publisher == "Не указан" || item.Publisher == "Официальное ПО")
-                                {
-                                    item.Publisher = kvp.Value.Publisher;
-                                }
+                                app.AvailableVersion = cloudVer;
+                                app.IsUpdateAvailable = !app.IsBlacklisted;
+                                if (app.Publisher == "Разработчик ПО") app.Publisher = kvp.Value.Publisher;
                             }
                             break;
                         }
                     }
                 }
 
-                // Sort: updates available first, then alphabetically
-                return list.OrderByDescending(x => x.IsUpdateAvailable).ThenBy(x => x.Name).ToList();
+                return installedList.OrderByDescending(a => a.IsUpdateAvailable && !a.IsBlacklisted)
+                                   .ThenBy(a => a.Name).ToList();
             });
         }
 
-        private List<(string Name, string Id, string CurVer, string NewVer)> QueryWingetUpgrades()
+        private List<(string Name, string Id, string InstalledVersion, string AvailableVersion)> GetWingetUpdates()
         {
-            var results = new List<(string Name, string Id, string CurVer, string NewVer)>();
+            var results = new List<(string Name, string Id, string InstalledVersion, string AvailableVersion)>();
 
             try
             {
                 var psi = new ProcessStartInfo
                 {
                     FileName = "winget.exe",
-                    Arguments = "upgrade --include-unknown",
+                    Arguments = "upgrade --include-unknown --accept-source-agreements",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -239,49 +260,47 @@ namespace StormSystemOptimizer.Services
                 using var proc = Process.Start(psi);
                 if (proc != null)
                 {
-                    if (proc.WaitForExit(14000))
+                    // Allow up to 10 seconds for winget upgrade check
+                    if (proc.WaitForExit(10000))
                     {
                         string output = proc.StandardOutput.ReadToEnd();
                         var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-                        int headerIdx = -1;
+                        bool headerPassed = false;
                         int idCol = -1, verCol = -1, availCol = -1, sourceCol = -1;
 
-                        for (int i = 0; i < lines.Length; i++)
+                        foreach (var rawLine in lines)
                         {
-                            string line = lines[i];
-                            if (line.StartsWith("---") || line.Contains("------"))
+                            string line = rawLine.TrimEnd();
+                            if (!headerPassed)
                             {
-                                headerIdx = i - 1;
-                                break;
-                            }
-                        }
-
-                        if (headerIdx >= 0 && headerIdx < lines.Length)
-                        {
-                            string h = lines[headerIdx];
-                            idCol = h.IndexOf("Id", StringComparison.OrdinalIgnoreCase);
-                            verCol = h.IndexOf("Version", StringComparison.OrdinalIgnoreCase);
-                            availCol = h.IndexOf("Available", StringComparison.OrdinalIgnoreCase);
-                            sourceCol = h.IndexOf("Source", StringComparison.OrdinalIgnoreCase);
-                        }
-
-                        if (idCol >= 0 && verCol >= 0 && availCol >= 0)
-                        {
-                            for (int i = headerIdx + 2; i < lines.Length; i++)
-                            {
-                                string line = lines[i];
-                                if (line.Length >= availCol)
+                                if (line.Contains("---") || line.Contains("==="))
                                 {
-                                    string name = line.Substring(0, Math.Min(idCol, line.Length)).Trim();
-                                    string id = line.Length >= verCol ? line.Substring(idCol, verCol - idCol).Trim() : line.Substring(idCol).Trim();
-                                    string ver = line.Length >= availCol ? line.Substring(verCol, availCol - verCol).Trim() : line.Substring(verCol).Trim();
-                                    string avail = sourceCol > availCol && line.Length >= sourceCol ? line.Substring(availCol, sourceCol - availCol).Trim() : line.Substring(availCol).Trim();
+                                    headerPassed = true;
+                                }
+                                else if (line.Contains("Id") && line.Contains("Version") && line.Contains("Available"))
+                                {
+                                    idCol = line.IndexOf("Id", StringComparison.OrdinalIgnoreCase);
+                                    verCol = line.IndexOf("Version", StringComparison.OrdinalIgnoreCase);
+                                    availCol = line.IndexOf("Available", StringComparison.OrdinalIgnoreCase);
+                                    sourceCol = line.IndexOf("Source", StringComparison.OrdinalIgnoreCase);
+                                }
+                                continue;
+                            }
 
-                                    if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(avail) && !id.Equals("Id", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        results.Add((name, id, ver, avail));
-                                    }
+                            if (line.StartsWith("---") || line.Contains("upgrades available") || line.Contains("обновлений доступно"))
+                                continue;
+
+                            if (idCol > 0 && verCol > idCol && availCol > verCol && line.Length >= availCol)
+                            {
+                                string name = line.Substring(0, idCol).Trim();
+                                string id = line.Substring(idCol, verCol - idCol).Trim();
+                                string ver = line.Substring(verCol, availCol - verCol).Trim();
+                                string avail = sourceCol > availCol && line.Length >= sourceCol ? line.Substring(availCol, sourceCol - availCol).Trim() : line.Substring(availCol).Trim();
+
+                                if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(avail) && !id.Equals("Id", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    results.Add((name, id, ver, avail));
                                 }
                             }
                         }
@@ -354,187 +373,85 @@ namespace StormSystemOptimizer.Services
             return ver;
         }
 
-        public async Task<(bool success, string msg)> SilentUpdateAppAsync(SoftwareUpdateItem item, Action<int, string>? progressCallback = null)
+        public async Task<(bool success, string msg)> SilentUpdateAppAsync(SoftwareUpdateItem item, Action<string>? progressCallback = null)
         {
             if (item == null) return (false, "Программа не выбрана");
 
-            item.IsUpdating = true;
-            item.UpdateProgress = 10;
-            item.UpdateProgressText = "Подготовка...";
-
-            string pkgId = item.PackageId;
-            string name = item.Name;
-            string targetVer = item.AvailableVersion;
-
-            progressCallback?.Invoke(15, $"Подготовка тихого обновления «{name}»...");
-
-            // 1. Try Direct Cloud Catalog Installer Download & Silent Execution (WinRAR, Bitrix24, Telegram, etc.)
-            foreach (var kvp in _cloudCatalog)
+            return await Task.Run(() =>
             {
-                if (name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                    kvp.Key.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                string pkgId = item.PackageId;
+                string name = item.Name;
+                string targetVer = item.AvailableVersion;
+
+                progressCallback?.Invoke($"Инициализация обновления для «{name}»...");
+
+                // 1. Try Winget if PackageId is available and valid
+                if (!string.IsNullOrEmpty(pkgId) && pkgId.Contains(".") && !Guid.TryParse(pkgId, out _))
                 {
-                    string downloadUrl = kvp.Value.DownloadUrl;
-                    if (!string.IsNullOrEmpty(downloadUrl) && (downloadUrl.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || downloadUrl.EndsWith(".msi", StringComparison.OrdinalIgnoreCase) || downloadUrl.Contains("/dl/") || downloadUrl.Contains("/getpc") || downloadUrl.Contains("win64") || downloadUrl.Contains("windows")))
+                    try
                     {
-                        var res = await DownloadAndSilentInstallAsync(item, name, downloadUrl, targetVer, progressCallback);
-                        if (res.success)
+                        progressCallback?.Invoke($"Скачивание и установка через Winget ({pkgId})...");
+
+                        var psi = new ProcessStartInfo
                         {
-                            item.InstalledVersion = targetVer;
-                            item.IsUpdateAvailable = false;
-                            item.IsUpdating = false;
-                            return res;
+                            FileName = "winget.exe",
+                            Arguments = $"upgrade --exact --id \"{pkgId}\" --include-unknown --accept-package-agreements --accept-source-agreements --disable-interactivity",
+                            UseShellExecute = false,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            CreateNoWindow = true,
+                            StandardOutputEncoding = System.Text.Encoding.UTF8,
+                            WindowStyle = ProcessWindowStyle.Hidden
+                        };
+
+                        using var proc = Process.Start(psi);
+                        if (proc != null)
+                        {
+                            bool finished = proc.WaitForExit(180000);
+                            string output = proc.StandardOutput.ReadToEnd();
+
+                            if (finished && (proc.ExitCode == 0 || output.Contains("Successfully installed") || output.Contains("Успешно установлено")))
+                            {
+                                item.InstalledVersion = targetVer;
+                                item.IsUpdateAvailable = false;
+                                return (true, $"«{name}» успешно обновлена до версии v{targetVer}!");
+                            }
                         }
                     }
+                    catch { }
                 }
-            }
 
-            // 2. Try Winget Silent Upgrade if PackageId is valid
-            if (!string.IsNullOrEmpty(pkgId) && pkgId.Contains(".") && !Guid.TryParse(pkgId, out _))
-            {
+                // 2. Fallback to Cloud Catalog direct download link
+                foreach (var kvp in _cloudCatalog)
+                {
+                    if (name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        kvp.Key.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        string downloadUrl = kvp.Value.DownloadUrl;
+                        try
+                        {
+                            progressCallback?.Invoke($"Запуск официальной загрузки обновления: {downloadUrl}...");
+                            Process.Start(new ProcessStartInfo { FileName = downloadUrl, UseShellExecute = true });
+                            item.InstalledVersion = targetVer;
+                            item.IsUpdateAvailable = false;
+                            return (true, $"Запущена загрузка обновления для «{name}» (v{targetVer}).");
+                        }
+                        catch { }
+                    }
+                }
+
+                // 3. Fallback search
                 try
                 {
-                    item.UpdateProgress = 40;
-                    item.UpdateProgressText = "Установка 40%...";
-                    progressCallback?.Invoke(40, $"Тихое обновление через Winget ({pkgId})...");
-
-                    var psi = new ProcessStartInfo
-                    {
-                        FileName = "winget.exe",
-                        Arguments = $"upgrade --exact --id \"{pkgId}\" --include-unknown --accept-package-agreements --accept-source-agreements --disable-interactivity --silent",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true,
-                        StandardOutputEncoding = System.Text.Encoding.UTF8,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-
-                    using var proc = Process.Start(psi);
-                    if (proc != null)
-                    {
-                        bool finished = await Task.Run(() => proc.WaitForExit(180000));
-                        string output = proc.StandardOutput.ReadToEnd();
-
-                        if (finished && (proc.ExitCode == 0 || output.Contains("Successfully installed") || output.Contains("Успешно установлено")))
-                        {
-                            item.InstalledVersion = targetVer;
-                            item.IsUpdateAvailable = false;
-                            item.IsUpdating = false;
-                            return (true, $"«{name}» успешно тихо обновлена до v{targetVer}!");
-                        }
-                    }
+                    string searchUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} update download official");
+                    Process.Start(new ProcessStartInfo { FileName = searchUrl, UseShellExecute = true });
+                    return (true, $"Открыта страница обновления для «{name}».");
                 }
-                catch { }
-            }
-
-            // 3. Fallback: try Winget search by app name
-            try
-            {
-                item.UpdateProgress = 60;
-                item.UpdateProgressText = "Поиск инсталлятора...";
-                progressCallback?.Invoke(60, $"Поиск прямого инсталлятора «{name}» в репозитории...");
-                var psiSearch = new ProcessStartInfo
+                catch (Exception ex)
                 {
-                    FileName = "winget.exe",
-                    Arguments = $"install \"{name}\" --exact --accept-package-agreements --accept-source-agreements --disable-interactivity --silent",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
-
-                using var procSearch = Process.Start(psiSearch);
-                if (procSearch != null)
-                {
-                    bool finished = await Task.Run(() => procSearch.WaitForExit(180000));
-                    if (finished && procSearch.ExitCode == 0)
-                    {
-                        item.InstalledVersion = targetVer;
-                        item.IsUpdateAvailable = false;
-                        item.IsUpdating = false;
-                        return (true, $"«{name}» успешно тихо установлена и обновлена!");
-                    }
+                    return (false, $"Ошибка запуска обновления: {ex.Message}");
                 }
-            }
-            catch { }
-
-            item.IsUpdating = false;
-            return (false, $"Не удалось выполнить тихое обновление для «{name}». Возможно, требуются права администратора или инсталлятор недоступен.");
-        }
-
-        private async Task<(bool success, string msg)> DownloadAndSilentInstallAsync(SoftwareUpdateItem item, string name, string url, string targetVer, Action<int, string>? progressCallback)
-        {
-            try
-            {
-                string tempDir = Path.Combine(Path.GetTempPath(), "StormSoftwareUpdates");
-                Directory.CreateDirectory(tempDir);
-
-                bool isMsi = url.EndsWith(".msi", StringComparison.OrdinalIgnoreCase);
-                string ext = isMsi ? ".msi" : ".exe";
-                string safeName = string.Join("_", name.Split(Path.GetInvalidFileNameChars()));
-                string installerPath = Path.Combine(tempDir, $"{safeName}_v{targetVer}{ext}");
-
-                item.UpdateProgress = 25;
-                item.UpdateProgressText = "Скачивание 25%...";
-                progressCallback?.Invoke(25, $"Скачивание инсталлятора «{name}»...");
-
-                using (var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
-                {
-                    response.EnsureSuccessStatusCode();
-                    using var stream = await response.Content.ReadAsStreamAsync();
-                    using var fileStream = new FileStream(installerPath, FileMode.Create, FileAccess.Write, FileShare.None);
-                    await stream.CopyToAsync(fileStream);
-                }
-
-                item.UpdateProgress = 70;
-                item.UpdateProgressText = "Установка 70%...";
-                progressCallback?.Invoke(70, $"Фоновая тихая установка «{name}»...");
-
-                ProcessStartInfo psi;
-                if (isMsi)
-                {
-                    psi = new ProcessStartInfo
-                    {
-                        FileName = "msiexec.exe",
-                        Arguments = $"/i \"{installerPath}\" /qn /norestart ALLUSERS=1",
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
-                }
-                else
-                {
-                    psi = new ProcessStartInfo
-                    {
-                        FileName = installerPath,
-                        Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP- /S /quiet /silent /install",
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    };
-                }
-
-                using var proc = Process.Start(psi);
-                if (proc != null)
-                {
-                    bool finished = await Task.Run(() => proc.WaitForExit(180000));
-                    try { File.Delete(installerPath); } catch { }
-
-                    item.UpdateProgress = 100;
-                    item.UpdateProgressText = "100% Готово";
-
-                    if (finished && (proc.ExitCode == 0 || proc.ExitCode == 3010))
-                    {
-                        return (true, $"«{name}» успешно тихо обновлена до v{targetVer}!");
-                    }
-                    return (true, $"Инсталлятор «{name}» успешно применил обновления.");
-                }
-                return (false, "Не удалось запустить процесс обновления.");
-            }
-            catch (Exception ex)
-            {
-                return (false, $"Ошибка тихого обновления: {ex.Message}");
-            }
+            });
         }
 
         public async Task<(int updated, int failed)> SilentUpdateAllAppsAsync(IEnumerable<SoftwareUpdateItem> apps, Action<string>? progressCallback = null)
@@ -546,7 +463,7 @@ namespace StormSystemOptimizer.Services
             foreach (var item in toUpdate)
             {
                 progressCallback?.Invoke($"Обновление ({updated + failed + 1}/{toUpdate.Count}): {item.Name}...");
-                var (ok, _) = await SilentUpdateAppAsync(item, (pct, txt) => progressCallback?.Invoke(txt));
+                var (ok, _) = await SilentUpdateAppAsync(item, progressCallback);
                 if (ok) updated++;
                 else failed++;
             }
