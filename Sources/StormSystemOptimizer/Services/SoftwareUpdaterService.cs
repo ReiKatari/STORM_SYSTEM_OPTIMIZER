@@ -20,51 +20,47 @@ namespace StormSystemOptimizer.Services
         private readonly HashSet<string> _blacklistedPackages = new(StringComparer.OrdinalIgnoreCase);
         private readonly HttpClient _httpClient;
 
-        // Comprehensive multi-repository cloud catalog of official latest versions and direct download endpoints
-        private static readonly Dictionary<string, (string LatestVersion, string DownloadUrl, string Publisher)> _cloudCatalog =
+        // Comprehensive cloud catalog of official latest versions, categories and direct download links
+        private static readonly Dictionary<string, (string LatestVersion, string DownloadUrl, string Publisher, string Category)> _cloudCatalog =
             new(StringComparer.OrdinalIgnoreCase)
             {
-                { "WinRAR", ("7.10", "https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-x64-701ru.exe", "RARLab") },
-                { "WinRAR (64-bit)", ("7.10", "https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-x64-701ru.exe", "RARLab") },
-                { "WinRAR (32-bit)", ("7.10", "https://www.win-rar.com/fileadmin/winrar-versions/winrar/wrar701ru.exe", "RARLab") },
-                { "Bitrix24", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix") },
-                { "Bitrix24 for Windows", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix") },
-                { "Битрикс24", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix") },
-                { "Telegram Desktop", ("5.5.5", "https://telegram.org/dl/desktop/win64", "Telegram FZ-LLC") },
-                { "Telegram", ("5.5.5", "https://telegram.org/dl/desktop/win64", "Telegram FZ-LLC") },
-                { "Yandex", ("24.7.1.1120", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "YANDEX LLC") },
-                { "Яндекс Браузер", ("24.7.1.1120", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "YANDEX LLC") },
-                { "Google Chrome", ("128.0.6613.120", "https://dl.google.com/chrome/install/standalone/service/ChromeStandaloneSetup64.exe", "Google LLC") },
-                { "Mozilla Firefox", ("130.0", "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=ru", "Mozilla Corporation") },
-                { "Opera Stable", ("113.0.5230.86", "https://net.geo.opera.com/opera/stable/windows", "Opera Software") },
-                { "7-Zip", ("24.08", "https://www.7-zip.org/a/7z2408-x64.exe", "Igor Pavlov") },
-                { "Notepad++", ("8.7.5", "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7.5/npp.8.7.5.Installer.x64.exe", "Don HO") },
-                { "AIMP", ("5.30.2563", "https://aimp.ru/files/aimp_5.30.2563_w64.exe", "Artem Izmaylov") },
-                { "Discord", ("1.0.9168", "https://discord.com/api/download?platform=win", "Discord Inc.") },
-                { "VLC media player", ("3.0.21", "https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe", "VideoLAN") },
-                { "Steam", ("1.0.0.79", "https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe", "Valve Corporation") },
-                { "Epic Games Launcher", ("1.3.193.0", "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", "Epic Games Inc.") },
-                { "qBittorrent", ("4.6.5", "https://downloads.sourceforge.net/project/qbittorrent/qbittorrent-win32/qbittorrent-4.6.5/qbittorrent_4.6.5_x64_setup.exe", "The qBittorrent Project") },
-                { "Total Commander", ("11.03", "https://totalcommander.ch/win/tcmd1103x64.exe", "Christian Ghisler") },
-                { "FastStone Image Viewer", ("7.8", "https://www.faststonesoft.net/DN/FSViewerSetup78.exe", "FastStone Soft") },
-                { "CPU-Z", ("2.12", "https://download.cpuid.com/cpu-z/cpu-z_2.12-en.exe", "CPUID") },
-                { "GPU-Z", ("2.60.0", "https://us2-dl.techpowerup.com/files/1-K7R8k3sQ/GPU-Z.2.60.0.exe", "TechPowerUp") },
-                { "HWiNFO64", ("8.06", "https://www.sac.sk/download/utildi/hwi_806.exe", "REALiX") },
-                { "CrystalDiskInfo", ("9.3.2", "https://crystalmark.info/redirect.php?product=CrystalDiskInfoInstaller", "Crystal Dew World") },
-                { "Rufus", ("4.5", "https://github.com/pbatard/rufus/releases/download/v4.5/rufus-4.5.exe", "Pete Batard") },
-                { "OBS Studio", ("31.0.1", "https://github.com/obsproject/obs-studio/releases/download/31.0.1/OBS-Studio-31.0.1-Windows-Installer.exe", "OBS Project") },
-                { "Zoom", ("6.1.5", "https://zoom.us/client/latest/ZoomInstallerFull.exe", "Zoom Video Communications") },
-                { "Docker Desktop", ("4.33.1", "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe", "Docker Inc.") },
-                { "AnyDesk", ("9.0.0", "https://download.anydesk.com/AnyDesk.exe", "AnyDesk Software GmbH") },
-                { "AnyDesk 6.1", ("9.0.0", "https://download.anydesk.com/AnyDesk.exe", "AnyDesk Software GmbH") },
-                { "Git", ("2.46.0", "https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe", "The Git Project") },
-                { "IObit Uninstaller", ("13.6.0.4", "https://download.iobit.com/iobituninstaller.exe", "IObit") },
-                { "ShareX", ("16.1.0", "https://github.com/ShareX/ShareX/releases/download/v16.1.0/ShareX-16.1.0-setup.exe", "ShareX Team") },
-                { "K-Lite Codec Pack", ("18.5.0", "https://files3.codecguide.com/K-Lite_Codec_Pack_1850_Standard.exe", "Codec Guide") },
-                { "Audacity", ("3.6.2", "https://github.com/audacity/audacity/releases/download/Audacity-3.6.2/audacity-win-3.6.2-64bit.exe", "Audacity Team") },
-                { "GIMP", ("2.10.38", "https://download.gimp.org/gimp/v2.10/windows/gimp-2.10.38-setup.exe", "The GIMP Team") },
-                { "Blender", ("4.2.1", "https://download.blender.org/release/Blender4.2/blender-4.2.1-windows-x64.msi", "Blender Foundation") },
-                { "HandBrake", ("1.8.2", "https://github.com/HandBrake/HandBrake/releases/download/1.8.2/HandBrake-1.8.2-x86_64-Win_GUI.exe", "HandBrake Team") }
+                { "WinRAR", ("7.10", "https://www.win-rar.com/fileadmin/winrar-versions/winrar/winrar-x64-701ru.exe", "RARLab", "Утилиты") },
+                { "7-Zip", ("24.08", "https://www.7-zip.org/a/7z2408-x64.exe", "Igor Pavlov", "Утилиты") },
+                { "Bitrix24", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix", "Утилиты") },
+                { "Битрикс24", ("24.0.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "Bitrix", "Утилиты") },
+                { "Telegram", ("5.5.5", "https://telegram.org/dl/desktop/win64", "Telegram FZ-LLC", "Медиа") },
+                { "Telegram Desktop", ("5.5.5", "https://telegram.org/dl/desktop/win64", "Telegram FZ-LLC", "Медиа") },
+                { "Yandex", ("24.7.1.1120", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "YANDEX LLC", "Браузеры") },
+                { "Яндекс Браузер", ("24.7.1.1120", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "YANDEX LLC", "Браузеры") },
+                { "Google Chrome", ("128.0.6613.120", "https://dl.google.com/chrome/install/standalone/service/ChromeStandaloneSetup64.exe", "Google LLC", "Браузеры") },
+                { "Mozilla Firefox", ("130.0", "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=ru", "Mozilla Corporation", "Браузеры") },
+                { "Opera Stable", ("113.0.5230.86", "https://net.geo.opera.com/opera/stable/windows", "Opera Software", "Браузеры") },
+                { "Notepad++", ("8.7.5", "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7.5/npp.8.7.5.Installer.x64.exe", "Don HO", "Разработка") },
+                { "AIMP", ("5.30.2563", "https://aimp.ru/files/aimp_5.30.2563_w64.exe", "Artem Izmaylov", "Медиа") },
+                { "Discord", ("1.0.9168", "https://discord.com/api/download?platform=win", "Discord Inc.", "Медиа") },
+                { "VLC media player", ("3.0.21", "https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe", "VideoLAN", "Медиа") },
+                { "Steam", ("1.0.0.79", "https://cdn.cloudflare.steamstatic.com/client/installer/SteamSetup.exe", "Valve Corporation", "Игры") },
+                { "Epic Games Launcher", ("1.3.193.0", "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", "Epic Games Inc.", "Игры") },
+                { "qBittorrent", ("4.6.5", "https://downloads.sourceforge.net/project/qbittorrent/qbittorrent-win32/qbittorrent-4.6.5/qbittorrent_4.6.5_x64_setup.exe", "The qBittorrent Project", "Утилиты") },
+                { "Total Commander", ("11.03", "https://totalcommander.ch/win/tcmd1103x64.exe", "Christian Ghisler", "Утилиты") },
+                { "FastStone Image Viewer", ("7.8", "https://www.faststonesoft.net/DN/FSViewerSetup78.exe", "FastStone Soft", "Медиа") },
+                { "CPU-Z", ("2.12", "https://download.cpuid.com/cpu-z/cpu-z_2.12-en.exe", "CPUID", "Утилиты") },
+                { "GPU-Z", ("2.60.0", "https://us2-dl.techpowerup.com/files/1-K7R8k3sQ/GPU-Z.2.60.0.exe", "TechPowerUp", "Утилиты") },
+                { "HWiNFO64", ("8.06", "https://www.sac.sk/download/utildi/hwi_806.exe", "REALiX", "Утилиты") },
+                { "CrystalDiskInfo", ("9.3.2", "https://crystalmark.info/redirect.php?product=CrystalDiskInfoInstaller", "Crystal Dew World", "Утилиты") },
+                { "Rufus", ("4.5", "https://github.com/pbatard/rufus/releases/download/v4.5/rufus-4.5.exe", "Pete Batard", "Утилиты") },
+                { "OBS Studio", ("31.0.1", "https://github.com/obsproject/obs-studio/releases/download/31.0.1/OBS-Studio-31.0.1-Windows-Installer.exe", "OBS Project", "Медиа") },
+                { "Zoom", ("6.1.5", "https://zoom.us/client/latest/ZoomInstallerFull.exe", "Zoom Video Communications", "Медиа") },
+                { "Docker Desktop", ("4.33.1", "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe", "Docker Inc.", "Разработка") },
+                { "AnyDesk", ("9.0.0", "https://download.anydesk.com/AnyDesk.exe", "AnyDesk Software GmbH", "Утилиты") },
+                { "Git", ("2.46.0", "https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe", "The Git Project", "Разработка") },
+                { "IObit Uninstaller", ("13.6.0.4", "https://download.iobit.com/iobituninstaller.exe", "IObit", "Утилиты") },
+                { "ShareX", ("16.1.0", "https://github.com/ShareX/ShareX/releases/download/v16.1.0/ShareX-16.1.0-setup.exe", "ShareX Team", "Утилиты") },
+                { "K-Lite Codec Pack", ("18.5.0", "https://files3.codecguide.com/K-Lite_Codec_Pack_1850_Standard.exe", "Codec Guide", "Медиа") },
+                { "Audacity", ("3.6.2", "https://github.com/audacity/audacity/releases/download/Audacity-3.6.2/audacity-win-3.6.2-64bit.exe", "Audacity Team", "Медиа") },
+                { "GIMP", ("2.10.38", "https://download.gimp.org/gimp/v2.10/windows/gimp-2.10.38-setup.exe", "The GIMP Team", "Медиа") },
+                { "Blender", ("4.2.1", "https://download.blender.org/release/Blender4.2/blender-4.2.1-windows-x64.msi", "Blender Foundation", "Медиа") },
+                { "HandBrake", ("1.8.2", "https://github.com/HandBrake/HandBrake/releases/download/1.8.2/HandBrake-1.8.2-x86_64-Win_GUI.exe", "HandBrake Team", "Медиа") }
             };
 
         private SoftwareUpdaterService()
@@ -75,7 +71,7 @@ namespace StormSystemOptimizer.Services
             LoadBlacklist();
 
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/0.3.1");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/0.3.2");
             _httpClient.Timeout = TimeSpan.FromSeconds(30);
         }
 
@@ -131,7 +127,7 @@ namespace StormSystemOptimizer.Services
                 var installedList = new List<SoftwareUpdateItem>();
                 var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. Ultra-fast In-Memory scan from Registry (64-bit, 32-bit, CU) in ~5ms
+                // 1. Ultra-fast Registry scan
                 void ScanRegistryHive(RegistryHive hive, RegistryView view, string subKey)
                 {
                     try
@@ -162,7 +158,7 @@ namespace StormSystemOptimizer.Services
                                 if (seenKeys.Contains(dedupeKey)) continue;
                                 seenKeys.Add(dedupeKey);
 
-                                string appType = name.Contains("Game", StringComparison.OrdinalIgnoreCase) || name.Contains("Launcher", StringComparison.OrdinalIgnoreCase) ? "Игра" : "Программа";
+                                string category = DetermineCategory(name, pub);
 
                                 installedList.Add(new SoftwareUpdateItem
                                 {
@@ -171,7 +167,7 @@ namespace StormSystemOptimizer.Services
                                     Publisher = pub,
                                     InstalledVersion = ver,
                                     AvailableVersion = ver,
-                                    AppType = appType,
+                                    AppType = category,
                                     IsUpdateAvailable = false,
                                     IsBlacklisted = IsBlacklisted(subName) || IsBlacklisted(name)
                                 });
@@ -186,15 +182,18 @@ namespace StormSystemOptimizer.Services
                 ScanRegistryHive(RegistryHive.LocalMachine, RegistryView.Registry32, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
                 ScanRegistryHive(RegistryHive.CurrentUser, RegistryView.Registry64, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
 
-                // 2. Instant In-Memory matching against Cloud Catalog (0ms)
+                // 2. Direct File Scanner for common standalone apps (WinRAR, 7-Zip, Notepad++, Git, Telegram)
+                CheckDirectFileInstallation(installedList, "WinRAR", @"C:\Program Files\WinRAR\WinRAR.exe", "RARLab", "Утилиты");
+                CheckDirectFileInstallation(installedList, "7-Zip", @"C:\Program Files\7-Zip\7zFM.exe", "Igor Pavlov", "Утилиты");
+                CheckDirectFileInstallation(installedList, "Notepad++", @"C:\Program Files\Notepad++\notepad++.exe", "Don HO", "Разработка");
+                CheckDirectFileInstallation(installedList, "Telegram Desktop", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Telegram Desktop\Telegram.exe"), "Telegram FZ-LLC", "Медиа");
+
+                // 3. Match against Cloud Catalog
                 foreach (var app in installedList)
                 {
                     foreach (var kvp in _cloudCatalog)
                     {
-                        if (app.Name.Equals(kvp.Key, StringComparison.OrdinalIgnoreCase) ||
-                            app.Name.StartsWith(kvp.Key + " ", StringComparison.OrdinalIgnoreCase) ||
-                            app.Name.StartsWith(kvp.Key + "-", StringComparison.OrdinalIgnoreCase) ||
-                            (kvp.Key.Length > 4 && app.Name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0))
+                        if (IsAppNameMatching(app.Name, kvp.Key))
                         {
                             string cloudVer = kvp.Value.LatestVersion;
                             if (IsNewerVersion(cloudVer, app.InstalledVersion))
@@ -202,6 +201,7 @@ namespace StormSystemOptimizer.Services
                                 app.AvailableVersion = cloudVer;
                                 app.IsUpdateAvailable = !app.IsBlacklisted;
                                 if (app.Publisher == "Разработчик ПО") app.Publisher = kvp.Value.Publisher;
+                                app.AppType = kvp.Value.Category;
                             }
                             break;
                         }
@@ -211,6 +211,76 @@ namespace StormSystemOptimizer.Services
                 return installedList.OrderByDescending(a => a.IsUpdateAvailable && !a.IsBlacklisted)
                                    .ThenBy(a => a.Name).ToList();
             });
+        }
+
+        private static void CheckDirectFileInstallation(List<SoftwareUpdateItem> list, string appName, string exePath, string publisher, string category)
+        {
+            try
+            {
+                if (File.Exists(exePath))
+                {
+                    var fvi = FileVersionInfo.GetVersionInfo(exePath);
+                    string ver = fvi.FileVersion?.Trim() ?? fvi.ProductVersion?.Trim() ?? "1.0.0";
+                    var existing = list.FirstOrDefault(a => IsAppNameMatching(a.Name, appName));
+                    if (existing != null)
+                    {
+                        if (string.IsNullOrEmpty(existing.InstalledVersion) || existing.InstalledVersion == "1.0.0")
+                        {
+                            existing.InstalledVersion = ver;
+                        }
+                    }
+                    else
+                    {
+                        list.Add(new SoftwareUpdateItem
+                        {
+                            Name = appName,
+                            PackageId = appName,
+                            Publisher = publisher,
+                            InstalledVersion = ver,
+                            AvailableVersion = ver,
+                            AppType = category,
+                            IsUpdateAvailable = false
+                        });
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private static bool IsAppNameMatching(string actualName, string catalogName)
+        {
+            if (string.IsNullOrWhiteSpace(actualName) || string.IsNullOrWhiteSpace(catalogName)) return false;
+            if (actualName.Equals(catalogName, StringComparison.OrdinalIgnoreCase)) return true;
+            if (actualName.StartsWith(catalogName + " ", StringComparison.OrdinalIgnoreCase)) return true;
+            if (actualName.StartsWith(catalogName + "-", StringComparison.OrdinalIgnoreCase)) return true;
+            if (actualName.StartsWith(catalogName + "(", StringComparison.OrdinalIgnoreCase)) return true;
+
+            // Handle Russian versions like "WinRAR 7.01 (64-разрядная)"
+            if (actualName.IndexOf(catalogName, StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                if (catalogName.Equals("WinRAR", StringComparison.OrdinalIgnoreCase) && actualName.Contains("WinRAR", StringComparison.OrdinalIgnoreCase)) return true;
+                if (catalogName.Equals("Bitrix24", StringComparison.OrdinalIgnoreCase) && actualName.Contains("Bitrix", StringComparison.OrdinalIgnoreCase)) return true;
+                if (catalogName.Equals("AnyDesk", StringComparison.OrdinalIgnoreCase) && actualName.Contains("AnyDesk", StringComparison.OrdinalIgnoreCase)) return true;
+                if (catalogName.Equals("Telegram", StringComparison.OrdinalIgnoreCase) && actualName.Contains("Telegram", StringComparison.OrdinalIgnoreCase)) return true;
+                if (catalogName.Equals("7-Zip", StringComparison.OrdinalIgnoreCase) && actualName.Contains("7-Zip", StringComparison.OrdinalIgnoreCase)) return true;
+            }
+
+            return false;
+        }
+
+        private static string DetermineCategory(string name, string publisher)
+        {
+            string n = name.ToLowerInvariant();
+            if (n.Contains("game") || n.Contains("launcher") || n.Contains("steam") || n.Contains("epic") || n.Contains("ubisoft") || n.Contains("ea app") || n.Contains("riot"))
+                return "Игры";
+            if (n.Contains("browser") || n.Contains("chrome") || n.Contains("firefox") || n.Contains("opera") || n.Contains("yandex") || n.Contains("edge"))
+                return "Браузеры";
+            if (n.Contains("player") || n.Contains("media") || n.Contains("vlc") || n.Contains("aimp") || n.Contains("audio") || n.Contains("discord") || n.Contains("telegram") || n.Contains("obs"))
+                return "Медиа";
+            if (n.Contains("visual studio") || n.Contains("git") || n.Contains("sdk") || n.Contains(".net") || n.Contains("code") || n.Contains("docker") || n.Contains("python") || n.Contains("node"))
+                return "Разработка";
+
+            return "Утилиты";
         }
 
         public static bool IsNewerVersion(string available, string installed)
@@ -281,11 +351,9 @@ namespace StormSystemOptimizer.Services
 
                 progressCallback?.Invoke($"Подготовка к установке обновления «{name}» (v{targetVer})...");
 
-                // 1. Direct Cloud Catalog Installer Download & Fast Execution
                 foreach (var kvp in _cloudCatalog)
                 {
-                    if (name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        kvp.Key.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (IsAppNameMatching(name, kvp.Key))
                     {
                         string downloadUrl = kvp.Value.DownloadUrl;
                         if (!string.IsNullOrEmpty(downloadUrl))
@@ -327,7 +395,6 @@ namespace StormSystemOptimizer.Services
                             }
                             catch { }
 
-                            // Fallback to opening direct link
                             try
                             {
                                 Process.Start(new ProcessStartInfo { FileName = downloadUrl, UseShellExecute = true });
@@ -340,7 +407,6 @@ namespace StormSystemOptimizer.Services
                     }
                 }
 
-                // 2. Fallback search
                 try
                 {
                     string searchUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} update download official");

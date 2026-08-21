@@ -128,6 +128,47 @@
                 </Grid>
             </Border>
 
+            <!-- Telemetry & Gaming Performance Bar: DPC Latency, Game Ping & Power Plan -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16,12" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 1. DPC Latency -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Padding="5" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradEmerald}" Width="12" Height="12" Stretch="Uniform"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Задержка DPC (Ядро)" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding DpcLatencyText}" FontSize="12" FontWeight="Bold" Foreground="{Binding DpcLatencyColor}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- 2. Game Pings -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,10,0">
+                        <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Padding="5" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform"/>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Игровой пинг" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                            <TextBlock Text="{Binding GamePingsSummary}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- 3. Power Plan Quick Switch -->
+                    <Button Grid.Column="2" Command="{Binding TogglePowerPlanCommand}" Style="{StaticResource StormSecondaryButton}" Padding="10,6" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoPower}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform" Margin="0,0,5,0"/>
+                            <TextBlock Text="{Binding ActivePowerPlanText, StringFormat='{}План: {0}'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
             <!-- Radial Speedometer Gauges & Live Waveform Grid -->
             <Grid Margin="0,0,0,20">
                 <Grid.ColumnDefinitions>

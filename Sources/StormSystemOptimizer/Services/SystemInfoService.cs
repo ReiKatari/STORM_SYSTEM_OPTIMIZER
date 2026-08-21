@@ -465,8 +465,34 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine v0.1.4 • 100% Safe Optimization        ");
+            sb.AppendLine("         Сформировано через STORM Engine v0.3.2 • 100% Safe Optimization        ");
             sb.AppendLine("================================================================================");
+            return sb.ToString();
+        }
+
+        public string ExportSpecsToHtml(List<HardwareDetailCategory> specs)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("<!DOCTYPE html><html><head><meta charset='utf-8'/><title>STORM SYSTEM OPTIMIZER - Отчет оборудования</title>");
+            sb.AppendLine("<style>body{background:#0A0E1A;color:#E2E8F0;font-family:'Segoe UI',sans-serif;padding:30px;}h1{color:#00D2FF;border-bottom:2px solid #00D2FF;padding-bottom:10px;}");
+            sb.AppendLine(".card{background:#111827;border:1px solid #1F2937;border-radius:10px;padding:20px;margin-bottom:20px;}");
+            sb.AppendLine(".title{color:#38BDF8;font-size:18px;font-weight:bold;margin-bottom:12px;}table{width:100%;border-collapse:collapse;}");
+            sb.AppendLine("td{padding:8px 0;border-bottom:1px solid #1F2937;}.prop{color:#94A3B8;width:40%;}.val{color:#F8FAFC;font-weight:bold;}");
+            sb.AppendLine("</style></head><body>");
+            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER — Спецификация системы</h1>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v0.3.2</p>");
+
+            foreach (var cat in specs)
+            {
+                sb.AppendLine($"<div class='card'><div class='title'>{cat.Title}</div><table>");
+                foreach (var p in cat.Properties)
+                {
+                    sb.AppendLine($"<tr><td class='prop'>{p.Name}</td><td class='val'>{p.Value}</td></tr>");
+                }
+                sb.AppendLine("</table></div>");
+            }
+
+            sb.AppendLine("</body></html>");
             return sb.ToString();
         }
     }

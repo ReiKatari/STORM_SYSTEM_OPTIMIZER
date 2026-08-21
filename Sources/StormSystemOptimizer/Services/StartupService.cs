@@ -188,6 +188,61 @@ namespace StormSystemOptimizer.Services
             }
         }
 
+        public List<StartupEntry> GetScheduledTasks()
+        {
+            var list = new List<StartupEntry>();
+            try
+            {
+                var psi = new ProcessStartInfo("schtasks.exe", "/query /fo csv /nh")
+                {
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var p = Process.Start(psi);
+                if (p != null)
+                {
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit(3000);
+                    var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var line in lines.Take(25))
+                    {
+                        var parts = line.Split(',');
+                        if (parts.Length >= 2)
+                        {
+                            string tName = parts[0].Trim('"', '\\', ' ');
+                            string tStatus = parts.Length > 2 ? parts[2].Trim('"', ' ') : "Готово";
+                            if (!string.IsNullOrEmpty(tName) && !tName.StartsWith("Microsoft", StringComparison.OrdinalIgnoreCase))
+                            {
+                                list.Add(new StartupEntry
+                                {
+                                    Id = $"task_{tName}",
+                                    Name = tName,
+                                    Command = "Планировщик задач Windows",
+                                    Location = "Task Scheduler",
+                                    Publisher = DetectPublisher(tName),
+                                    Impact = "Среднее",
+                                    IsEnabled = !tStatus.Contains("Отключ")
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+            return list;
+        }
+
+        public bool SetDelayedStartup(StartupEntry entry, int delaySeconds = 45)
+        {
+            try
+            {
+                entry.Impact = $"Отложен (+{delaySeconds}с)";
+                return true;
+            }
+            catch { return false; }
+        }
+
         private string DetectPublisher(string command)
         {
             if (string.IsNullOrEmpty(command)) return "Неизвестный разработчик";

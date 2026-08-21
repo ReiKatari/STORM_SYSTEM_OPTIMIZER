@@ -289,5 +289,46 @@ namespace StormSystemOptimizer.Services
                 }
             });
         }
+
+        public async Task<(bool success, long freedBytes, string msg)> CleanGpuDriverLeftoversAsync()
+        {
+            return await Task.Run(() =>
+            {
+                long freed = 0;
+                string[] paths = new[]
+                {
+                    @"C:\NVIDIA",
+                    @"C:\AMD",
+                    @"C:\ProgramData\NVIDIA Corporation\Downloader",
+                    @"C:\ProgramData\NVIDIA Corporation\NetService",
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"NVIDIA\DXCache"),
+                    Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"AMD\DxCache")
+                };
+
+                foreach (var p in paths)
+                {
+                    try
+                    {
+                        if (Directory.Exists(p))
+                        {
+                            var di = new DirectoryInfo(p);
+                            foreach (var f in di.EnumerateFiles("*", SearchOption.AllDirectories))
+                            {
+                                try
+                                {
+                                    freed += f.Length;
+                                    f.Delete();
+                                }
+                                catch { }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+                double mb = freed / (1024.0 * 1024.0);
+                return (true, freed, $"Очистка DDU Light завершена! Освобождено {FormatHelper.FormatDouble(mb, 1)} МБ кэша драйверов.");
+            });
+        }
     }
 }

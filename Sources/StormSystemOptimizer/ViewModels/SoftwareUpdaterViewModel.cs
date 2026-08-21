@@ -39,7 +39,7 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-            StatusText = "Проверка наличия обновлений в фоновых репозиториях и Winget...";
+            StatusText = "Мгновенное сканирование установленных программ и сверка версий...";
 
             _allApps = await SoftwareUpdaterService.Instance.ScanInstalledAppsForUpdatesAsync();
             ApplyFilter();
@@ -74,6 +74,10 @@ namespace StormSystemOptimizer.ViewModels
             else if (SelectedFilter == "Blacklist")
             {
                 query = query.Where(a => a.IsBlacklisted);
+            }
+            else if (SelectedFilter == "Браузеры" || SelectedFilter == "Игры" || SelectedFilter == "Утилиты" || SelectedFilter == "Медиа" || SelectedFilter == "Разработка")
+            {
+                query = query.Where(a => a.AppType.Equals(SelectedFilter, StringComparison.OrdinalIgnoreCase));
             }
 
             var list = query.ToList();

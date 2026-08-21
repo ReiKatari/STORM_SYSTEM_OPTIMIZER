@@ -250,6 +250,21 @@ namespace StormSystemOptimizer.Services
                         MenuPathMsi = "Settings ➔ Advanced ➔ Power Management Setup ➔ PCIe ASPM [Disabled]",
                         MenuPathGigabyte = "Settings ➔ Miscellaneous ➔ Native ASPM [Disabled]",
                         MenuPathAsrock = "Advanced ➔ Chipset Configuration ➔ ASPM Support [Disabled]"
+                    },
+                    new BiosSettingItem
+                    {
+                        Id = "bios_undervolt_pbo",
+                        Title = "Андервольтинг CPU (AMD PBO Curve Optimizer / Intel Lite Load)",
+                        Category = "Процессор (CPU)",
+                        RecommendedValue = "AMD Curve Optimizer [-15..-25 All Cores] / Intel CPU Lite Load [Mode 5..7]",
+                        CurrentStatus = "Снижение температур на 8–15°C и повышение частот",
+                        PerformanceImpact = "Увеличение времени буста CPU до максимальных частот без троттлинга",
+                        SafetyLevel = "100% Безопасно (Снижение напряжения питания)",
+                        Explanation = "Тонкая настройка кривой напряжений процессора позволяет чипу работать на более высоких частотах при меньшем нагреве и потреблении энергии.",
+                        MenuPathAsus = "Ai Tweaker ➔ Precision Boost Overdrive ➔ Curve Optimizer ➔ All Cores [Negative] ➔ Magnitude [15-20]",
+                        MenuPathMsi = "OC ➔ DigitALL Power ➔ CPU Lite Load [Mode 5]",
+                        MenuPathGigabyte = "Tweaker ➔ Advanced Voltage Settings ➔ CPU Vcore Offset [-0.050V]",
+                        MenuPathAsrock = "OC Tweaker ➔ CPU Core/Cache Voltage ➔ Offset Mode [-50mV]"
                     }
                 };
 

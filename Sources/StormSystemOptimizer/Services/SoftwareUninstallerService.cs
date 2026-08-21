@@ -580,6 +580,37 @@ namespace StormSystemOptimizer.Services
             catch { }
         }
 
+        public async Task<bool> RemoveBloatwareAppAsync(string appKeyword)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo("powershell.exe", $"-NoProfile -Command \"Get-AppxPackage *{appKeyword}* | Remove-AppxPackage\"")
+                    {
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(10000);
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<(int success, int failed)> BulkUninstallAppsAsync(IEnumerable<InstalledAppItem> apps)
+        {
+            int s = 0, f = 0;
+            foreach (var a in apps)
+            {
+                var (ok, _) = await DeepUninstallAsync(a);
+                if (ok) s++;
+                else f++;
+            }
+            return (s, f);
+        }
+
         private void DeleteRegistryKey(string fullPath)
         {
             try

@@ -19,6 +19,7 @@ namespace StormOptimizerInstaller
         private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
+        private const string AppVersion = "0.3.2";
         private Button btnBrowse = null!;
 
         private RadioButton rbStandard = null!;

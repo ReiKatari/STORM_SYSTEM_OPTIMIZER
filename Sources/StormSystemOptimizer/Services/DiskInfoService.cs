@@ -174,5 +174,94 @@ namespace StormSystemOptimizer.Services
         {
             return await Task.Run(() => GetAllDrivesFast());
         }
+
+        public async Task<List<(string Path, double SizeGb, double Percentage)>> GetDiskSpaceMapAsync(string driveLetter)
+        {
+            return await Task.Run(() =>
+            {
+                var list = new List<(string Path, double SizeGb, double Percentage)>();
+                try
+                {
+                    string root = $"{driveLetter.TrimEnd('\\', ':')}:\\";
+                    var di = new System.IO.DriveInfo(driveLetter.TrimEnd('\\', ':'));
+                    double totalUsedGb = (di.TotalSize - di.AvailableFreeSpace) / (1024.0 * 1024.0 * 1024.0);
+                    if (totalUsedGb <= 0) totalUsedGb = 1.0;
+
+                    var dirInfo = new System.IO.DirectoryInfo(root);
+                    foreach (var sub in dirInfo.GetDirectories())
+                    {
+                        try
+                        {
+                            if (sub.Attributes.HasFlag(System.IO.FileAttributes.Hidden) || sub.Attributes.HasFlag(System.IO.FileAttributes.System))
+                                continue;
+
+                            // Estimate top folder size
+                            long bytes = 0;
+                            try
+                            {
+                                foreach (var f in sub.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = false, IgnoreInaccessible = true }))
+                                {
+                                    bytes += f.Length;
+                                }
+                                foreach (var sub2 in sub.GetDirectories())
+                                {
+                                    foreach (var f2 in sub2.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = false, IgnoreInaccessible = true }))
+                                    {
+                                        bytes += f2.Length;
+                                    }
+                                }
+                            }
+                            catch { }
+
+                            double gb = bytes / (1024.0 * 1024.0 * 1024.0);
+                            if (gb > 0.1)
+                            {
+                                double pct = Math.Min(100.0, (gb / totalUsedGb) * 100.0);
+                                list.Add((sub.FullName, gb, pct));
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+
+                return list.OrderByDescending(x => x.SizeGb).Take(20).ToList();
+            });
+        }
+
+        public async Task<List<(string FileName, string Path, string SizeText, string GroupId)>> FindDuplicateFilesAsync(string rootPath)
+        {
+            return await Task.Run(() =>
+            {
+                var dupes = new List<(string FileName, string Path, string SizeText, string GroupId)>();
+                try
+                {
+                    var dir = new System.IO.DirectoryInfo(rootPath);
+                    var sizeGroups = new Dictionary<long, List<System.IO.FileInfo>>();
+
+                    foreach (var f in dir.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = true, IgnoreInaccessible = true }))
+                    {
+                        if (f.Length > 2 * 1024 * 1024) // Files > 2MB
+                        {
+                            if (!sizeGroups.ContainsKey(f.Length)) sizeGroups[f.Length] = new List<System.IO.FileInfo>();
+                            sizeGroups[f.Length].Add(f);
+                        }
+                    }
+
+                    int groupIndex = 1;
+                    foreach (var g in sizeGroups.Where(x => x.Value.Count > 1).Take(15))
+                    {
+                        string sizeStr = $"{FormatHelper.FormatDouble(g.Key / 1024.0 / 1024.0, 1)} МБ";
+                        string gId = $"Группа #{groupIndex++} ({sizeStr})";
+                        foreach (var fi in g.Value)
+                        {
+                            dupes.Add((fi.Name, fi.FullName, sizeStr, gId));
+                        }
+                    }
+                }
+                catch { }
+                return dupes;
+            });
+        }
     }
 }
