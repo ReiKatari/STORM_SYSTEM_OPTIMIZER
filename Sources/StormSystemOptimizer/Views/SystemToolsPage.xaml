@@ -22,7 +22,7 @@
                         </Border>
                         <TextBlock Text="Инструменты восстановления и оснастки Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBlock Text="Глубокая проверка целостности системных файлов, восстановление образа ОС, сброс сетевых каталогов и быстрый доступ к системным оснасткам."
+                    <TextBlock Text="Глубокая проверка целостности системных файлов, восстановление образа ОС, сброс сетевых каталогов, очистка журналов и быстрый доступ к системным оснасткам."
                                FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
                     <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
                         <StackPanel Orientation="Horizontal">
@@ -38,7 +38,7 @@
                 <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
                     <Path Data="{StaticResource GeoSystemTools}" Fill="{StaticResource IconGradAmber}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <TextBlock Text="Системное восстановление и очистка хранилищ" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="Системное восстановление и глубокая очистка" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
             </StackPanel>
 
             <Grid Margin="0,0,0,16">
@@ -47,6 +47,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
@@ -64,7 +65,7 @@
                                 <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                     <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Проверка системных файлов" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Проверка системных файлов (SFC)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Сканирует и восстанавливает поврежденные системные библиотеки Windows." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
@@ -84,7 +85,7 @@
                                 <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                     <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Восстановление образа системы" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Восстановление образа DISM" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Восстанавливает поврежденные системные компоненты из хранилища обновлений." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
@@ -104,7 +105,7 @@
                                 <Border Background="#1A34D399" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                     <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Очистка хранилища компонентов" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Очистка хранилища WinSxS" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Удаляет устаревшие резервные копии компонентов Windows после обновлений." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
@@ -124,7 +125,7 @@
                                 <Border Background="#1A38BDF8" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                     <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradSky}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Сброс сетевого каталога" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Сброс сетевого каталога Winsock" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Сбрасывает конфигурацию каталога Winsock при сетевых сбоях или потере соединения." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
@@ -132,8 +133,48 @@
                     </Grid>
                 </Border>
 
+                <!-- Clear Event Logs -->
+                <Border Grid.Row="2" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,6,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Очистка журналов событий" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Очищает переполненные журналы Windows Event Viewer (Application, System, Security)." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding ClearEventLogsCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                    </Grid>
+                </Border>
+
+                <!-- Clean Temp / Prefetch -->
+                <Border Grid.Row="2" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="6,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Очистка Temp и Prefetch" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Принудительно удаляет заблокированные временные файлы %TEMP% и Windows\Temp." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding CleanTempFilesCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                    </Grid>
+                </Border>
+
                 <!-- Rebuild Icon Cache -->
-                <Border Grid.Row="2" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,6,0">
+                <Border Grid.Row="3" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,6,0">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -144,7 +185,7 @@
                                 <Border Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                     <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Перестроить кэш иконок Проводника" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Перестроить кэш иконок" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Исправляет поврежденные или белые иконки ярлыков на Рабочем столе и в папках." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
@@ -153,7 +194,7 @@
                 </Border>
 
                 <!-- Reset Store (wsreset) -->
-                <Border Grid.Row="2" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="6,0,0,0">
+                <Border Grid.Row="3" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="6,0,0,0">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -178,7 +219,7 @@
                 <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
                     <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradCyan}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <TextBlock Text="Быстрый вызов системных оснасток" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="Быстрый вызов системных оснасток Windows" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
             </StackPanel>
 
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
@@ -189,6 +230,10 @@
                     <Button Click="BtnSnapin_Click" Tag="DxDiag" Content="🎮 DirectX Диагностика" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
                     <Button Click="BtnSnapin_Click" Tag="GpEdit" Content="📜 Редактор групповых политик" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
                     <Button Click="BtnSnapin_Click" Tag="EventViewer" Content="📋 Журнал событий Windows" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
+                    <Button Click="BtnSnapin_Click" Tag="CleanMgr" Content="🧹 Очистка диска (CleanMgr)" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
+                    <Button Click="BtnSnapin_Click" Tag="ResMon" Content="📈 Монитор ресурсов" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
+                    <Button Click="BtnSnapin_Click" Tag="DiskMgmt" Content="💾 Управление дисками" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
+                    <Button Click="BtnSnapin_Click" Tag="Services" Content="⚙️ Службы (Services.msc)" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
                 </WrapPanel>
             </Border>
         </StackPanel>

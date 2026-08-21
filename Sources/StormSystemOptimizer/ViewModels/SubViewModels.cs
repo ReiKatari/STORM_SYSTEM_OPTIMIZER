@@ -1,10 +1,12 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Win32;
 using StormSystemOptimizer.Models;
 using StormSystemOptimizer.Services;
 using StormSystemOptimizer.Themes;
@@ -17,6 +19,12 @@ namespace StormSystemOptimizer.ViewModels
         public ObservableCollection<StartupEntry> StartupItems { get; } = new();
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsNotBusy))]
+        private bool _isBusy = false;
+
+        public bool IsNotBusy => !IsBusy;
+
+        [ObservableProperty]
         private string _statusText = "Загрузка автозапуска...";
 
         public StartupViewModel()
@@ -24,6 +32,7 @@ namespace StormSystemOptimizer.ViewModels
             LoadStartupApps();
         }
 
+        [RelayCommand]
         public void LoadStartupApps()
         {
             StartupItems.Clear();
@@ -35,7 +44,30 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public void ToggleEntry(StartupEntry entry)
         {
-            StartupService.Instance.ToggleStartupEntry(entry, entry.IsEnabled);
+            if (entry != null)
+            {
+                StartupService.Instance.ToggleStartupEntry(entry, entry.IsEnabled);
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplyStartupChangesAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            StatusText = "Применение параметров автозагрузки...";
+
+            await Task.Run(() =>
+            {
+                foreach (var item in StartupItems)
+                {
+                    StartupService.Instance.ToggleStartupEntry(item, item.IsEnabled);
+                }
+            });
+
+            IsBusy = false;
+            StatusText = "Параметры автозагрузки успешно сохранены!";
+            TrayService.Instance.ShowNotification("Автозагрузка", "Все изменения автозапуска успешно сохранены в реестре Windows.");
         }
     }
 
@@ -46,7 +78,25 @@ namespace StormSystemOptimizer.ViewModels
         public ObservableCollection<ServiceEntry> Services => ServicesList;
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsNotBusy))]
+        private bool _isBusy = false;
+
+        public bool IsNotBusy => !IsBusy;
+
+        [ObservableProperty]
         private string _selectedProfile = "Рекомендуемый";
+
+        [ObservableProperty]
+        private bool _isRecommendedActive = true;
+
+        [ObservableProperty]
+        private bool _isGamingActive = false;
+
+        [ObservableProperty]
+        private bool _isExtremeActive = false;
+
+        [ObservableProperty]
+        private bool _isDefaultActive = false;
 
         [ObservableProperty]
         private string _statusMessage = "Готово к настройке служб";
@@ -59,6 +109,7 @@ namespace StormSystemOptimizer.ViewModels
             RefreshServices();
         }
 
+        [RelayCommand]
         public void RefreshServices()
         {
             ServicesList.Clear();
@@ -71,24 +122,64 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public async Task ApplyProfileAsync(string profileName)
         {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            SelectedProfile = profileName;
+            IsRecommendedActive = profileName.Equals("Recommended", StringComparison.OrdinalIgnoreCase) || profileName.Equals("Рекомендуемый", StringComparison.OrdinalIgnoreCase);
+            IsGamingActive = profileName.Equals("Gaming", StringComparison.OrdinalIgnoreCase) || profileName.Equals("Игровой", StringComparison.OrdinalIgnoreCase);
+            IsExtremeActive = profileName.Equals("Extreme", StringComparison.OrdinalIgnoreCase) || profileName.Equals("Экстремальный", StringComparison.OrdinalIgnoreCase);
+            IsDefaultActive = profileName.Equals("Default", StringComparison.OrdinalIgnoreCase) || profileName.Equals("По умолчанию", StringComparison.OrdinalIgnoreCase);
+
             StatusMessage = $"Применение профиля «{profileName}»...";
             StatusText = StatusMessage;
+
             await Task.Run(() =>
             {
                 WindowsServicesService.Instance.ApplyProfile(profileName);
             });
+
             RefreshServices();
+            IsBusy = false;
             StatusMessage = $"Профиль «{profileName}» успешно применен!";
             StatusText = StatusMessage;
+
+            TrayService.Instance.ShowNotification("Службы Windows", StatusMessage);
         }
 
         [RelayCommand]
         public Task ApplyPresetAsync(string preset) => ApplyProfileAsync(preset);
 
         [RelayCommand]
+        public async Task ApplyServicesChangesAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            StatusMessage = "Сохранение настроек служб...";
+            StatusText = StatusMessage;
+
+            await Task.Run(() =>
+            {
+                foreach (var s in ServicesList)
+                {
+                    WindowsServicesService.Instance.SetServiceState(s.ServiceName, s.IsOptimized);
+                }
+            });
+
+            RefreshServices();
+            IsBusy = false;
+            StatusMessage = "Все настройки служб успешно применены!";
+            StatusText = StatusMessage;
+            TrayService.Instance.ShowNotification("Службы Windows", StatusMessage);
+        }
+
+        [RelayCommand]
         public void ToggleService(ServiceEntry entry)
         {
-            WindowsServicesService.Instance.SetServiceState(entry.ServiceName, entry.IsOptimized);
+            if (entry != null)
+            {
+                WindowsServicesService.Instance.SetServiceState(entry.ServiceName, entry.IsOptimized);
+            }
         }
     }
 
@@ -99,31 +190,28 @@ namespace StormSystemOptimizer.ViewModels
         private string _dnsStatus = "Сетевой стек готов к оптимизации";
 
         [ObservableProperty]
-        private string _pingText = "-- мс";
+        private string _activeDnsProvider = "Автоматический (DHCP)";
 
         [ObservableProperty]
-        private string _pingTarget = "1.1.1.1 (Cloudflare DNS)";
+        private string _pingText = "-- мс";
 
         [ObservableProperty]
         private bool _isMeasuring = false;
 
         [ObservableProperty]
-        private string _activeDnsProvider = "Текущий (Системный)";
+        private bool _isSpeedTesting = false;
+
+        [ObservableProperty]
+        private string _speedStatusText = "Нажмите «Запустить тест скорости» для замера пропускной способности";
+
+        [ObservableProperty]
+        private double _speedProgress = 0;
 
         [ObservableProperty]
         private NetworkInfoData _networkInfo = new();
 
         [ObservableProperty]
         private SpeedTestResult _speedTest = new();
-
-        [ObservableProperty]
-        private bool _isSpeedTesting = false;
-
-        [ObservableProperty]
-        private double _speedProgress = 0;
-
-        [ObservableProperty]
-        private string _speedStatusText = "Нажмите «Запустить тест скорости»";
 
         public NetworkViewModel()
         {
@@ -134,7 +222,7 @@ namespace StormSystemOptimizer.ViewModels
         public async Task LoadNetworkDataAsync()
         {
             NetworkInfo = await NetworkOptimizerService.Instance.GetNetworkInfoAsync();
-            await MeasurePingAsync();
+            _ = MeasurePingAsync();
         }
 
         [RelayCommand]
@@ -143,7 +231,7 @@ namespace StormSystemOptimizer.ViewModels
             if (IsSpeedTesting) return;
             IsSpeedTesting = true;
             SpeedProgress = 0;
-            SpeedStatusText = "Запуск тестирования скорости...";
+            SpeedStatusText = "Подключение к тестовому серверу...";
 
             SpeedTest = await NetworkOptimizerService.Instance.RunSpeedTestAsync((prog, msg) =>
             {
@@ -266,7 +354,32 @@ namespace StormSystemOptimizer.ViewModels
 
         public PrivacyViewModel()
         {
-            SetAllToggles(true);
+            LoadCurrentSettingsFromRegistry();
+        }
+
+        private void LoadCurrentSettingsFromRegistry()
+        {
+            try
+            {
+                using var telKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows\DataCollection");
+                if (telKey?.GetValue("AllowTelemetry") is int val)
+                {
+                    IsTelemetryDisabled = val == 0;
+                }
+
+                using var adKey = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo");
+                if (adKey?.GetValue("Enabled") is int adVal)
+                {
+                    IsAdIdDisabled = adVal == 0;
+                }
+
+                using var actKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows\System");
+                if (actKey?.GetValue("EnableActivityFeed") is int actVal)
+                {
+                    IsActivityFeedDisabled = actVal == 0;
+                }
+            }
+            catch { }
         }
 
         private void SetAllToggles(bool state)
@@ -413,6 +526,70 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
+        public void CleanTempFiles()
+        {
+            try
+            {
+                ToolStatus = "Очистка временных файлов и кэша Prefetch...";
+                string temp1 = Path.GetTempPath();
+                string temp2 = @"C:\Windows\Temp";
+                int cleaned = 0;
+
+                foreach (var dir in new[] { temp1, temp2 })
+                {
+                    if (Directory.Exists(dir))
+                    {
+                        foreach (var file in Directory.GetFiles(dir, "*", SearchOption.TopDirectoryOnly))
+                        {
+                            try { File.Delete(file); cleaned++; } catch { }
+                        }
+                    }
+                }
+
+                ToolStatus = $"Очищено {cleaned} временных файлов!";
+                TrayService.Instance.ShowNotification("Очистка Temp", ToolStatus);
+            }
+            catch (Exception ex)
+            {
+                ToolStatus = $"Ошибка очистки: {ex.Message}";
+            }
+        }
+
+        [RelayCommand]
+        public async Task ClearEventLogsAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            ToolStatus = "Очистка системных журналов событий Windows...";
+
+            await Task.Run(() =>
+            {
+                try
+                {
+                    var psi = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "wevtutil.exe",
+                        Arguments = "cl Application",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    System.Diagnostics.Process.Start(psi)?.WaitForExit(3000);
+
+                    psi.Arguments = "cl System";
+                    System.Diagnostics.Process.Start(psi)?.WaitForExit(3000);
+
+                    psi.Arguments = "cl Security";
+                    System.Diagnostics.Process.Start(psi)?.WaitForExit(3000);
+                }
+                catch { }
+            });
+
+            IsBusy = false;
+            ToolStatus = "Журналы событий Windows (Application, System, Security) успешно очищены!";
+            TrayService.Instance.ShowNotification("Журналы Windows", ToolStatus);
+        }
+
+        [RelayCommand]
         public void RebuildIconCache()
         {
             bool ok = SystemToolsService.Instance.RebuildIconCache();
@@ -438,41 +615,26 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public void LaunchSnapin(string tool)
         {
-            switch (tool)
+            try
             {
-                case "DeviceManager": SystemToolsService.Instance.LaunchSnapin("devmgmt.msc"); break;
-                case "TaskManager": SystemToolsService.Instance.LaunchSnapin("taskmgr.exe"); break;
-                case "Regedit": SystemToolsService.Instance.LaunchSnapin("regedit.exe"); break;
-                case "DxDiag": SystemToolsService.Instance.LaunchSnapin("dxdiag.exe"); break;
-                case "GpEdit": SystemToolsService.Instance.LaunchSnapin("gpedit.msc"); break;
-                case "EventViewer": SystemToolsService.Instance.LaunchSnapin("eventvwr.msc"); break;
+                switch (tool)
+                {
+                    case "DeviceManager": SystemToolsService.Instance.LaunchSnapin("devmgmt.msc"); break;
+                    case "TaskManager": SystemToolsService.Instance.LaunchSnapin("taskmgr.exe"); break;
+                    case "Regedit": SystemToolsService.Instance.LaunchSnapin("regedit.exe"); break;
+                    case "DxDiag": SystemToolsService.Instance.LaunchSnapin("dxdiag.exe"); break;
+                    case "GpEdit": SystemToolsService.Instance.LaunchSnapin("gpedit.msc"); break;
+                    case "EventViewer": SystemToolsService.Instance.LaunchSnapin("eventvwr.msc"); break;
+                    case "CleanMgr": SystemToolsService.Instance.LaunchSnapin("cleanmgr.exe"); break;
+                    case "ResMon": SystemToolsService.Instance.LaunchSnapin("resmon.exe"); break;
+                    case "Services": SystemToolsService.Instance.LaunchSnapin("services.msc"); break;
+                    case "DiskMgmt": SystemToolsService.Instance.LaunchSnapin("diskmgmt.msc"); break;
+                }
             }
-        }
-
-        [RelayCommand]
-        public async Task RunSsdTrimAsync()
-        {
-            if (IsBusy) return;
-            IsBusy = true;
-            ToolStatus = "Выполнение команды TRIM для диска C:...";
-
-            bool ok = await SystemToolsService.Instance.RunSsdTrimAsync("C:");
-            ToolStatus = ok ? "Оптимизация SSD (TRIM) успешно выполнена!" : "Ошибка TRIM.";
-            IsBusy = false;
-        }
-
-        [RelayCommand]
-        public void ActivateUltimatePlan()
-        {
-            bool ok = SystemToolsService.Instance.ActivateUltimatePerformancePlan();
-            ToolStatus = ok ? "Схема «Ultimate Performance» активирована!" : "Схема питания обновлена.";
-        }
-
-        [RelayCommand]
-        public void OptimizeResponsiveness()
-        {
-            bool ok = SystemToolsService.Instance.OptimizeMenuDelay();
-            ToolStatus = ok ? "Задержка меню снижена до 10 мс!" : "Настройки применены.";
+            catch (Exception ex)
+            {
+                ToolStatus = $"Не удалось запустить оснастку: {ex.Message}";
+            }
         }
     }
 
@@ -480,48 +642,17 @@ namespace StormSystemOptimizer.ViewModels
     public partial class SettingsViewModel : ObservableObject
     {
         [ObservableProperty]
-        private ThemeType _selectedTheme = ThemeType.StormDark;
+        private string _appVersion = "v0.0.7";
 
         [ObservableProperty]
-        private bool _minimizeToTray = true;
-
-        [ObservableProperty]
-        private bool _runAtStartup = false;
-
-        [ObservableProperty]
-        private string _appVersion = $"v{UpdateService.CurrentVersion} (Официальный релиз)";
-
-        [ObservableProperty]
-        private string _updateStatusText = "Проверка обновлений...";
+        private string _updateStatusText = "Проверка обновлений не выполнялась";
 
         [ObservableProperty]
         private bool _isCheckingUpdate = false;
 
-        [ObservableProperty]
-        private bool _hasUpdateAvailable = false;
-
-        [ObservableProperty]
-        private string _updateDownloadUrl = string.Empty;
-
-        [ObservableProperty]
-        private string _latestVersionText = string.Empty;
-
         public SettingsViewModel()
         {
-            SelectedTheme = ThemeManager.Instance.CurrentTheme;
-            ThemeManager.Instance.ThemeChanged += (s, t) => SelectedTheme = t;
-
-            _ = CheckForUpdatesAsync();
-        }
-
-        [RelayCommand]
-        public void ChangeTheme(string themeName)
-        {
-            if (Enum.TryParse<ThemeType>(themeName, out var theme))
-            {
-                SelectedTheme = theme;
-                ThemeManager.Instance.ApplyTheme(theme, Application.Current?.MainWindow);
-            }
+            AppVersion = $"v{UpdateService.CurrentVersion}";
         }
 
         [RelayCommand]
@@ -529,35 +660,40 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsCheckingUpdate) return;
             IsCheckingUpdate = true;
-            UpdateStatusText = "Проверка наличия обновлений на GitHub...";
+            UpdateStatusText = "Подключение к серверу обновлений GitHub...";
 
-            var res = await UpdateService.Instance.CheckForUpdatesAsync();
-            HasUpdateAvailable = res.HasUpdate;
-            LatestVersionText = res.LatestVersion;
-            UpdateDownloadUrl = res.DownloadUrl;
-            UpdateStatusText = res.StatusMessage;
-
+            var info = await UpdateService.Instance.CheckForUpdatesAsync();
             IsCheckingUpdate = false;
+
+            if (info != null && info.IsUpdateAvailable)
+            {
+                UpdateStatusText = $"Доступна новая версия: v{info.LatestVersion}! Нажмите «Обновить сейчас».";
+                TrayService.Instance.ShowNotification("Доступно обновление", $"Вышла новая версия STORM SYSTEM OPTIMIZER v{info.LatestVersion}!");
+            }
+            else
+            {
+                UpdateStatusText = $"У вас установлена последняя официальная версия ({AppVersion}).";
+            }
         }
 
         [RelayCommand]
         public async Task InstallUpdateAsync()
         {
-            if (string.IsNullOrEmpty(UpdateDownloadUrl))
+            UpdateStatusText = "Загрузка обновления...";
+            var info = await UpdateService.Instance.CheckForUpdatesAsync();
+            if (info != null && info.IsUpdateAvailable && !string.IsNullOrEmpty(info.DownloadUrl))
             {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                UpdateStatusText = $"Скачивание v{info.LatestVersion}...";
+                bool ok = await UpdateService.Instance.DownloadAndApplyUpdateAsync(info.DownloadUrl);
+                if (!ok)
                 {
-                    FileName = "https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER/releases",
-                    UseShellExecute = true
-                });
-                return;
+                    UpdateStatusText = "Ошибка установки обновления. Попробуйте позже.";
+                }
             }
-
-            UpdateStatusText = "Загрузка обновления и подготовка к установке...";
-            await UpdateService.Instance.DownloadAndApplyUpdateAsync(UpdateDownloadUrl, pct =>
+            else
             {
-                UpdateStatusText = $"Загрузка обновления: {pct}%...";
-            });
+                UpdateStatusText = "Обновлений не требуется. Установлена актуальная версия.";
+            }
         }
     }
 }

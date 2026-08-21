@@ -19,17 +19,52 @@
 
             <!-- Top Header -->
             <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
-                            <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Менеджер автозагрузки Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Менеджер автозагрузки Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Отключение ресурсоемких фоновых программ значительно ускоряет время загрузки системы и освобождает оперативную память."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                     </StackPanel>
-                    <TextBlock Text="Отключение ресурсоемких фоновых программ значительно ускоряет время загрузки системы и освобождает оперативную память."
-                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                    <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                </StackPanel>
+
+                    <!-- Header Action Buttons -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding ApplyStartupChangesCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Style="{StaticResource StormHeroButton}"
+                                Padding="16,10"
+                                Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#33FFFFFF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDisks}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Применить изменения" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Command="{Binding LoadStartupAppsCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Style="{StaticResource StormSecondaryButton}"
+                                Padding="12,10">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Обновить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <!-- Startup Items List -->
@@ -56,7 +91,7 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="140"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="130"/>
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Name & Command -->
@@ -79,8 +114,13 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <!-- State Toggle CheckBox -->
-                                    <CheckBox Grid.Column="2" IsChecked="{Binding IsEnabled, Mode=TwoWay}" VerticalAlignment="Center" Content="Активно" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
+                                    <!-- Dynamic State Toggle CheckBox (Активно / Отключено) -->
+                                    <CheckBox Grid.Column="2"
+                                              IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                              VerticalAlignment="Center"
+                                              Content="{Binding StateText}"
+                                              Foreground="{DynamicResource TextPrimaryBrush}"
+                                              Cursor="Hand"/>
                                 </Grid>
                             </Border>
                         </DataTemplate>

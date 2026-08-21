@@ -20,20 +20,55 @@
 
             <!-- Top Header -->
             <Border Grid.Row="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
-                <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
-                            <Path Data="{StaticResource GeoServices}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <TextBlock Text="Оптимизация служб Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoServices}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Оптимизация служб Windows" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Настройка фоновых системных служб. Отключение неиспользуемых сервисов снижает фоновую нагрузку на процессор и память."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                        <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                     </StackPanel>
-                    <TextBlock Text="Настройка фоновых системных служб. Отключение неиспользуемых сервисов снижает фоновую нагрузку на процессор и память."
-                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                    <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                </StackPanel>
+
+                    <!-- Top Action Buttons -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding ApplyServicesChangesCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Style="{StaticResource StormHeroButton}"
+                                Padding="16,10"
+                                Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#33FFFFFF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDisks}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Применить настройки" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Command="{Binding RefreshServicesCommand}"
+                                IsEnabled="{Binding IsNotBusy}"
+                                Style="{StaticResource StormSecondaryButton}"
+                                Padding="12,10">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Обновить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
             </Border>
 
-            <!-- Optimization Profile Presets -->
+            <!-- Optimization Profile Presets with active highlights -->
             <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -49,14 +84,14 @@
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <!-- Recommended -->
                         <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Recommended"
-                                Style="{StaticResource StormHeroButton}"
+                                Style="{StaticResource StormSecondaryButton}"
                                 Margin="0,0,8,0"
                                 Padding="12,7">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#33FFFFFF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoShield}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
+                                <Border Background="#1A10B981" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoShield}" Fill="#10B981" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Рекомендуемый" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                <TextBlock Text="Рекомендуемый" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
 
@@ -125,7 +160,7 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="160"/>
-                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="150"/>
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Service Title & Description -->
@@ -145,8 +180,13 @@
                                         </StackPanel>
                                     </Border>
 
-                                    <!-- Toggle CheckBox -->
-                                    <CheckBox Grid.Column="2" IsChecked="{Binding IsOptimized, Mode=TwoWay}" VerticalAlignment="Center" Content="Оптимизировано" Foreground="{DynamicResource TextPrimaryBrush}" Cursor="Hand"/>
+                                    <!-- Dynamic Optimization Toggle CheckBox (Оптимизирована / По умолчанию) -->
+                                    <CheckBox Grid.Column="2"
+                                              IsChecked="{Binding IsOptimized, Mode=TwoWay}"
+                                              VerticalAlignment="Center"
+                                              Content="{Binding OptimizationStateText}"
+                                              Foreground="{DynamicResource TextPrimaryBrush}"
+                                              Cursor="Hand"/>
                                 </Grid>
                             </Border>
                         </DataTemplate>
