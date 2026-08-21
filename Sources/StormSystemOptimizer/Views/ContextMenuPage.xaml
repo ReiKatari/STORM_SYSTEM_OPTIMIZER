@@ -25,7 +25,7 @@
                             </Border>
                             <TextBlock Text="Редактор контекстного меню и Проводника" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Очистка лишних пунктов в меню ПКМ, переключение стиля Windows 10 / Windows 11 без задержки «Показать дополнительные параметры»."
+                        <TextBlock Text="Очистка лишних пунктов в меню правой кнопки мыши, переключение стиля Windows 10 / Windows 11 и добавление полезных команд."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
                     </StackPanel>
 
@@ -48,8 +48,8 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="Классическое быстрое меню Windows 10 (Без нажатия Shift+F10)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Мгновенный показ всех команд при нажатии правой кнопкой мыши на файл или рабочий стол." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                        <TextBlock Text="Классическое быстрое меню Windows 10" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Мгновенный показ всех команд при нажатии правой кнопкой мыши без скрытия под «Показать дополнительные параметры»." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                     </StackPanel>
                     <CheckBox Grid.Column="1" IsChecked="{Binding IsClassicMenu}" Command="{Binding ToggleClassicMenuCommand}" Content="Классическое меню" VerticalAlignment="Center"/>
                 </Grid>
@@ -58,23 +58,37 @@
             <!-- Items List -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Обнаруженные обработчики контекстного меню Shell" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                    <TextBlock Text="Пункты контекстного меню и расширения Проводника" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
                     <ItemsControl ItemsSource="{Binding MenuItems}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,8">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
+                                             <ColumnDefinition Width="*"/>
+                                             <ColumnDefinition Width="Auto"/>
+                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0">
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            <TextBlock Text="{Binding Location, StringFormat='Область: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{Binding Location, StringFormat='Расположение: {0}'}" FontSize="10" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,2,0,0"/>
                                         </StackPanel>
-                                        <Border Grid.Column="1" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="6" Padding="8,4" VerticalAlignment="Center">
-                                            <TextBlock Text="Активен" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+
+                                        <Border Grid.Column="1" Background="#1A00D2FF" CornerRadius="4" Padding="8,4" Margin="12,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Location}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         </Border>
+
+                                        <Button Grid.Column="2" 
+                                                Command="{Binding DataContext.ToggleItemStateCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource StormSecondaryButton}"
+                                                Padding="12,6"
+                                                VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding IsEnabled, Converter={StaticResource BoolToStatusConverter}, ConverterParameter='Включен|Отключен'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </StackPanel>
+                                        </Button>
                                     </Grid>
                                 </Border>
                             </DataTemplate>

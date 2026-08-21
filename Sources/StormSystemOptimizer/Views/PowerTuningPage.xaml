@@ -38,7 +38,7 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding ActivateStormUltimatePlanCommand}" Style="{StaticResource StormHeroButton}" Padding="16,10" Margin="0,0,10,0">
-                            <TextBlock Text="⚡ Активировать STORM Plan" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="⚡ Активировать STORM ULTIMATE PLAN" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                         <Button Command="{Binding ActivateBalancedPlanCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,10">
                             <TextBlock Text="Сбалансированный" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -59,8 +59,14 @@
                             <TextBlock Text="Отключение парковки ядер (Core Parking)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Запрещает Windows усыплять ядра процессора в микро-паузах, что гарантирует 100% готовность всех потоков и устраняет фризы 1% и 0.1% Low FPS."
-                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,14"/>
-                        <Button Command="{Binding ApplyCoreParkingTweaksCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" HorizontalAlignment="Left">
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        
+                        <!-- Core Parking Status Badge -->
+                        <Border Background="#1A00D2FF" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding CoreParkingStatus}" FontSize="11.5" FontWeight="Bold" Foreground="{Binding CoreParkingBadgeColor}"/>
+                        </Border>
+
+                        <Button Command="{Binding ApplyCoreParkingTweaksCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
                             <TextBlock Text="🚀 Отключить парковку ядер" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                     </StackPanel>
@@ -76,10 +82,16 @@
                             <TextBlock Text="Отключение задержек C-States" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Переводит процессор в режим постоянной базовой и буст-частоты, исключая время на пробуждение транзисторов из глубокого энергосбережения."
-                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,14"/>
-                        <Border Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="6" Padding="10,6" HorizontalAlignment="Left">
-                            <TextBlock Text="✅ Включено в STORM Ultimate Plan" FontSize="11.5" FontWeight="Bold" Foreground="#10B981"/>
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        
+                        <!-- C-States Status Badge -->
+                        <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding CStatesStatus}" FontSize="11.5" FontWeight="Bold" Foreground="#10B981"/>
                         </Border>
+
+                        <Button Command="{Binding ApplyCStatesTweaksCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
+                            <TextBlock Text="⚡ Оптимизировать задержки C-States" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
                     </StackPanel>
                 </Border>
             </UniformGrid>

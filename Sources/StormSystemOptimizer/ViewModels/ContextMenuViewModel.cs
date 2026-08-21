@@ -13,7 +13,7 @@ namespace StormSystemOptimizer.ViewModels
         private bool _isClassicMenu = false;
 
         [ObservableProperty]
-        private string _statusMessage = "Готов к настройке контекстного меню Windows 10/11";
+        private string _statusMessage = "Готов к настройке контекстного меню Windows";
 
         public ObservableCollection<ContextMenuItem> MenuItems { get; } = new();
 
@@ -49,6 +49,21 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
+        public async Task ToggleItemStateAsync(ContextMenuItem item)
+        {
+            if (item == null) return;
+            item.IsEnabled = !item.IsEnabled;
+            bool ok = await ContextMenuService.Instance.ToggleItemStateAsync(item);
+            if (ok)
+            {
+                StatusMessage = item.IsEnabled 
+                    ? $"Пункт «{item.Title}» успешно добавлен в контекстное меню!" 
+                    : $"Пункт «{item.Title}» отключен в контекстном меню.";
+                TrayService.Instance.ShowNotification("Контекстное меню", StatusMessage);
+            }
+        }
+
+        [RelayCommand]
         public async Task CleanClutterAsync()
         {
             StatusMessage = "Очистка устаревших и мусорных пунктов контекстного меню...";
@@ -57,6 +72,7 @@ namespace StormSystemOptimizer.ViewModels
             {
                 StatusMessage = "Контекстное меню очищено от лишних расширений и элементов 3D/Share.";
                 TrayService.Instance.ShowNotification("Очистка меню ⚡", "Лишние пункты контекстного меню успешно удалены!");
+                LoadItems();
             }
         }
     }
