@@ -214,6 +214,22 @@ namespace StormSystemOptimizer.Services
             catch { return false; }
         }
 
+        // 15. Windows Recall & AI Analysis Blocker
+        public bool SetWindowsRecall(bool disable)
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Policies\Microsoft\Windows\WindowsAI");
+                key?.SetValue("DisableAIDataAnalysis", disable ? 1 : 0, RegistryValueKind.DWord);
+
+                using var recallKey = Registry.CurrentUser.CreateSubKey(@"Software\Policies\Microsoft\Windows\WindowsAI");
+                recallKey?.SetValue("DisableRecall", disable ? 1 : 0, RegistryValueKind.DWord);
+
+                return true;
+            }
+            catch { return false; }
+        }
+
         public bool ApplyPreset(string presetName)
         {
             bool max = presetName == "Max" || presetName == "Recommended";

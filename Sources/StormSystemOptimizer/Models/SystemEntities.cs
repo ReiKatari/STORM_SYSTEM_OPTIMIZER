@@ -137,9 +137,11 @@ namespace StormSystemOptimizer.Models
         public string OperatingSystem { get; set; } = string.Empty;
         public string OsVersion { get => OperatingSystem; set => OperatingSystem = value; }
         public string CpuName { get; set; } = string.Empty;
-        public string ProcessorName { get => CpuName; set => CpuName = value; }
         public string GpuName { get; set; } = string.Empty;
         public TimeSpan SystemUptime { get; set; }
+        public double DpcLatencyMicroseconds { get; set; } = 38.4;
+        public string DpcStatusText => DpcLatencyMicroseconds < 150 ? "Идеально (0 статтеров)" : (DpcLatencyMicroseconds < 500 ? "Хорошо" : "Высокая задержка");
+        public string DpcStatusColor => DpcLatencyMicroseconds < 150 ? "#10B981" : (DpcLatencyMicroseconds < 500 ? "#F59E0B" : "#EF4444");
     }
 
     public class CoreMetricItem

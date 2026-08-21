@@ -232,6 +232,33 @@ namespace StormSystemOptimizer.Services
             catch { }
         }
 
+        public bool CamouflageFolder(string folderPath, string clsidType = "RecycleBin")
+        {
+            try
+            {
+                string clsid = clsidType == "RecycleBin" ? "{645FF040-5081-101B-9F08-00AA002F954E}" : "{21EC2020-3AEA-1069-A2DD-08002B30309D}";
+                string desktopIni = Path.Combine(folderPath, "desktop.ini");
+                File.WriteAllText(desktopIni, $"[.ShellClassInfo]\r\nCLSID={clsid}\r\n");
+                var di = new DirectoryInfo(folderPath);
+                di.Attributes |= FileAttributes.ReadOnly | FileAttributes.System;
+                File.SetAttributes(desktopIni, FileAttributes.Hidden | FileAttributes.System);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool LockPermissionsAntiRansomware(string folderPath)
+        {
+            try
+            {
+                string user = Environment.UserName;
+                // Deny Delete and Write to protect against ransomware
+                RunIcacls($"\"{folderPath}\" /deny \"{user}\":(DE,DC,WDAC,WO)");
+                return true;
+            }
+            catch { return false; }
+        }
+
         private string HashPassword(string password, string salt)
         {
             using var sha = SHA256.Create();
