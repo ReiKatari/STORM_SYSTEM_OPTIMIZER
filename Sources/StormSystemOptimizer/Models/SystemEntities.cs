@@ -1,3 +1,4 @@
+using System;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace StormSystemOptimizer.Models
@@ -23,7 +24,10 @@ namespace StormSystemOptimizer.Models
         private string _impact = "Низкое";
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(StateText))]
         private bool _isEnabled = true;
+
+        public string StateText => IsEnabled ? "Активно" : "Отключено";
 
         [ObservableProperty]
         private string _registryPath = string.Empty;
@@ -66,7 +70,10 @@ namespace StormSystemOptimizer.Models
         private string _startupType = "Автоматически";
 
         [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(OptimizationStateText))]
         private bool _isOptimized = false;
+
+        public string OptimizationStateText => IsOptimized ? "Оптимизирована" : "По умолчанию";
 
         [ObservableProperty]
         private bool _isSafeToDisable = true;
@@ -100,38 +107,24 @@ namespace StormSystemOptimizer.Models
         public double CpuUsagePercentage { get; set; }
         public double RamUsagePercentage { get; set; }
         public double RamTotalGb { get; set; }
+        public double TotalRamGb { get => RamTotalGb; set => RamTotalGb = value; }
         public double RamUsedGb { get; set; }
         public double RamAvailableGb { get; set; }
+        public double FreeRamGb { get => RamAvailableGb; set => RamAvailableGb = value; }
         public double RamStandbyGb { get; set; }
-        public double DiskUsagePercentage { get; set; }
-        public string PrimaryDrive { get; set; } = "C:";
-        public double DriveFreeGb { get; set; }
+        public string PrimaryDrive { get; set; } = "C:\\";
         public double DriveTotalGb { get; set; }
-        public string OsVersion { get; set; } = string.Empty;
-        public string ProcessorName { get; set; } = string.Empty;
+        public double TotalDiskGb { get => DriveTotalGb; set => DriveTotalGb = value; }
+        public double DriveFreeGb { get; set; }
+        public double FreeDiskGb { get => DriveFreeGb; set => DriveFreeGb = value; }
+        public double DiskUsagePercentage { get; set; }
+        public double DiskReadSpeedMbps { get; set; }
+        public double DiskWriteSpeedMbps { get; set; }
+        public string OperatingSystem { get; set; } = string.Empty;
+        public string OsVersion { get => OperatingSystem; set => OperatingSystem = value; }
+        public string CpuName { get; set; } = string.Empty;
+        public string ProcessorName { get => CpuName; set => CpuName = value; }
         public string GpuName { get; set; } = string.Empty;
         public TimeSpan SystemUptime { get; set; }
-    }
-
-    public class ScanSummary
-    {
-        public int TotalIssuesFound { get; set; }
-        public int SafeIssuesCount { get; set; }
-        public int RecommendedIssuesCount { get; set; }
-        public int AdvancedIssuesCount { get; set; }
-        public long TotalReclaimableBytes { get; set; }
-        public int SystemHealthScore { get; set; } = 65;
-        public DateTime ScanCompletedAt { get; set; } = DateTime.Now;
-
-        public string FormattedTotalSize
-        {
-            get
-            {
-                if (TotalReclaimableBytes <= 0) return "0 МБ";
-                if (TotalReclaimableBytes < 1024 * 1024) return $"{TotalReclaimableBytes / 1024.0:F1} КБ";
-                if (TotalReclaimableBytes < 1024 * 1024 * 1024) return $"{TotalReclaimableBytes / (1024.0 * 1024.0):F1} МБ";
-                return $"{TotalReclaimableBytes / (1024.0 * 1024.0 * 1024.0):F2} ГБ";
-            }
-        }
     }
 }

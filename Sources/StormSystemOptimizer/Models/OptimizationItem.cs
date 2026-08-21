@@ -56,6 +56,30 @@ namespace StormSystemOptimizer.Models
             _ => "Оптимизация"
         };
 
+        public string CategoryTextColor => Category switch
+        {
+            OptimizationCategory.JunkAndCache => "#00D2FF",
+            OptimizationCategory.MemoryRam => "#C084FC",
+            OptimizationCategory.StartupApps => "#FBBF24",
+            OptimizationCategory.WindowsServices => "#34D399",
+            OptimizationCategory.NetworkAndDns => "#38BDF8",
+            OptimizationCategory.PrivacyTelemetry => "#FB7185",
+            OptimizationCategory.SystemHealth => "#10B981",
+            _ => "#00D2FF"
+        };
+
+        public string CategoryBgColor => Category switch
+        {
+            OptimizationCategory.JunkAndCache => "#1A00D2FF",
+            OptimizationCategory.MemoryRam => "#1AC084FC",
+            OptimizationCategory.StartupApps => "#1AFBBF24",
+            OptimizationCategory.WindowsServices => "#1A34D399",
+            OptimizationCategory.NetworkAndDns => "#1A38BDF8",
+            OptimizationCategory.PrivacyTelemetry => "#1AFB7185",
+            OptimizationCategory.SystemHealth => "#1A10B981",
+            _ => "#1A00D2FF"
+        };
+
         public string RiskBadgeText => RiskLevel switch
         {
             RiskLevel.Safe => "100% БЕЗОПАСНО",
@@ -69,7 +93,7 @@ namespace StormSystemOptimizer.Models
             get
             {
                 if (IsFixed) return "0 Б (Очищено)";
-                if (ReclaimableBytes <= 0) return string.Empty;
+                if (ReclaimableBytes <= 0) return "Оптимизация";
                 if (ReclaimableBytes < 1024) return $"{ReclaimableBytes} Б";
                 if (ReclaimableBytes < 1024 * 1024) return $"{ReclaimableBytes / 1024.0:F1} КБ";
                 if (ReclaimableBytes < 1024 * 1024 * 1024) return $"{ReclaimableBytes / (1024.0 * 1024.0):F1} МБ";

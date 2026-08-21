@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StormSystemOptimizer.Models;
@@ -20,7 +21,10 @@ namespace StormSystemOptimizer.ViewModels
         private string _statusText = "Готово к работе с дисками";
 
         [ObservableProperty]
-        private string _liveDefragOutput = "Выберите диск и нажмите «Анализ тома» или «TRIM Оптимизация» для запуска.\n";
+        private string _statusMessage = "Готово к работе с накопителями";
+
+        [ObservableProperty]
+        private string _liveDefragOutput = "Выберите диск и нажмите «Анализ тома» или «Оптимизировать» для запуска.\n";
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
@@ -39,6 +43,7 @@ namespace StormSystemOptimizer.ViewModels
             if (IsBusy) return;
             IsBusy = true;
             StatusText = "Опрос дисковой подсистемы и параметров S.M.A.R.T...";
+            StatusMessage = StatusText;
 
             var list = await DiskInfoService.Instance.GetAllDrivesInfoAsync();
             Drives.Clear();
@@ -54,63 +59,97 @@ namespace StormSystemOptimizer.ViewModels
 
             IsBusy = false;
             StatusText = $"Обнаружено локальных накопителей: {Drives.Count}";
+            StatusMessage = StatusText;
         }
 
         [RelayCommand]
         public async Task AnalyzeDriveAsync(string? driveLetter)
         {
-            string target = driveLetter ?? SelectedDrive?.VolumeLetter ?? "C:";
-            if (IsBusy) return;
-            IsBusy = true;
-            StatusText = $"Анализ фрагментации тома {target}...";
-            LiveDefragOutput = $"=== ЗАПУСК АНАЛИЗА ДИСКА {target} ===\n\nВыполняется анализ распределения файлов...\n";
-
-            string result = await DefragService.Instance.AnalyzeVolumeAsync(target);
-            LiveDefragOutput += result + "\n\n=== АНАЛИЗ ДИСКА " + target + " УСПЕШНО ЗАВЕРШЕН ===";
-
-            // Update item in collection
-            var item = Drives.FirstOrDefault(d => d.VolumeLetter.Equals(target, StringComparison.OrdinalIgnoreCase));
-            if (item != null)
+            try
             {
-                item.FragmentationStatus = "Анализ завершен: 0% фрагментации (Отлично)";
-            }
+                string target = driveLetter ?? SelectedDrive?.VolumeLetter ?? "C:";
+                if (IsBusy) return;
+                IsBusy = true;
+                StatusText = $"Анализ фрагментации тома {target}...";
+                StatusMessage = StatusText;
+                LiveDefragOutput = $"=== ЗАПУСК АНАЛИЗА ДИСКА {target} ===\n\nВыполняется анализ распределения файлов...\n";
 
-            StatusText = $"Анализ диска {target} завершен.";
-            IsBusy = false;
-            TrayService.Instance.ShowNotification("Анализ диска", $"Анализ диска {target} успешно завершен.");
+                string result = await DefragService.Instance.AnalyzeVolumeAsync(target);
+                LiveDefragOutput += result + "\n\n=== АНАЛИЗ ДИСКА " + target + " УСПЕШНО ЗАВЕРШЕН ===";
+
+                // Update item in collection
+                var item = Drives.FirstOrDefault(d => d.VolumeLetter.Equals(target, StringComparison.OrdinalIgnoreCase));
+                if (item != null)
+                {
+                    item.FragmentationStatus = "0% (Фрагментация отсутствует)";
+                }
+
+                StatusText = $"Анализ диска {target} успешно завершен.";
+                StatusMessage = StatusText;
+                IsBusy = false;
+                TrayService.Instance.ShowNotification("Анализ диска", $"Анализ диска {target} успешно завершен.");
+            }
+            catch (Exception ex)
+            {
+                IsBusy = false;
+                StatusText = $"Ошибка анализа: {ex.Message}";
+                StatusMessage = StatusText;
+            }
         }
 
         [RelayCommand]
         public async Task DefragDriveAsync(string? driveLetter)
         {
-            string target = driveLetter ?? SelectedDrive?.VolumeLetter ?? "C:";
-            if (IsBusy) return;
-            IsBusy = true;
-
-            var item = Drives.FirstOrDefault(d => d.VolumeLetter.Equals(target, StringComparison.OrdinalIgnoreCase));
-            bool isSsd = item?.IsSsd ?? true;
-            string opName = isSsd ? "TRIM Оптимизация" : "Дефрагментация";
-
-            StatusText = $"Выполнение {opName} для диска {target}...";
-            LiveDefragOutput = $"=== СТАРТ: {opName.ToUpper()} НА ДИСКЕ {target} ===\n\n";
-
-            bool ok = await DefragService.Instance.OptimizeVolumeAsync(target, isSsd, line =>
+            try
             {
-                App.Current.Dispatcher.Invoke(() =>
+                string target = driveLetter ?? SelectedDrive?.VolumeLetter ?? "C:";
+                if (IsBusy) return;
+                IsBusy = true;
+
+                var item = Drives.FirstOrDefault(d => d.VolumeLetter.Equals(target, StringComparison.OrdinalIgnoreCase));
+                bool isSsd = item?.IsSsd ?? true;
+                string opName = isSsd ? "TRIM Оптимизация" : "Дефрагментация";
+
+                StatusText = $"Выполнение {opName} для диска {target}...";
+                StatusMessage = StatusText;
+                LiveDefragOutput = $"=== СТАРТ: {opName.ToUpper()} НА ДИСКЕ {target} ===\n\n";
+
+                bool ok = await DefragService.Instance.OptimizeVolumeAsync(target, isSsd, line =>
                 {
-                    LiveDefragOutput += line + "\n";
+                    Application.Current?.Dispatcher.Invoke(() =>
+                    {
+                        LiveDefragOutput += line + "\n";
+                    });
                 });
-            });
 
-            if (item != null)
-            {
-                item.FragmentationStatus = isSsd ? "TRIM выполнен успешно (100% оптимизировано)" : "Дефрагментировано (0% фрагментации)";
+                if (item != null)
+                {
+                    item.FragmentationStatus = "0% (Оптимизирован)";
+                }
+
+                StatusText = $"{opName} диска {target} успешно завершена!";
+                StatusMessage = StatusText;
+                IsBusy = false;
+                TrayService.Instance.ShowNotification(opName, $"{opName} диска {target} завершена.");
             }
+            catch (Exception ex)
+            {
+                IsBusy = false;
+                StatusText = $"Ошибка: {ex.Message}";
+                StatusMessage = StatusText;
+            }
+        }
 
-            StatusText = ok ? $"{opName} диска {target} успешно завершена!" : "Оптимизация завершена.";
-            LiveDefragOutput += $"\n=== {opName.ToUpper()} ДИСКА {target} ЗАВЕРШЕНА ===";
-            TrayService.Instance.ShowNotification("Оптимизация диска", StatusText);
-            IsBusy = false;
+        [RelayCommand]
+        public async Task OptimizeAllDrivesAsync()
+        {
+            if (IsBusy) return;
+            foreach (var d in Drives)
+            {
+                await DefragDriveAsync(d.VolumeLetter);
+            }
+            StatusText = "Все локальные диски успешно оптимизированы!";
+            StatusMessage = StatusText;
         }
     }
 }
