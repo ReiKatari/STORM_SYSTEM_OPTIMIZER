@@ -18,6 +18,9 @@ namespace StormSystemOptimizer.ViewModels
         private bool _isBusy = false;
 
         [ObservableProperty]
+        private bool _isCheckingOnline = false;
+
+        [ObservableProperty]
         private string _statusText = "Готов к поиску обновлений программного обеспечения";
 
         [ObservableProperty]
@@ -38,8 +41,28 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-            StatusText = "Проверка наличия обновлений в фоновых репозиториях и Winget...";
+            IsCheckingOnline = true;
+            StatusText = "Мгновенное сканирование установленных программ...";
 
+            // 1. Instant local load (0 ms)
+            var localApps = await SoftwareUninstallerService.Instance.GetInstalledAppsAsync();
+            _allApps = localApps.Select(a => new SoftwareUpdateItem
+            {
+                PackageId = a.Id,
+                Name = a.DisplayName,
+                InstalledVersion = !string.IsNullOrWhiteSpace(a.DisplayVersion) ? a.DisplayVersion : "1.0.0",
+                AvailableVersion = !string.IsNullOrWhiteSpace(a.DisplayVersion) ? a.DisplayVersion : "1.0.0",
+                Publisher = !string.IsNullOrWhiteSpace(a.Publisher) ? a.Publisher : "Официальное ПО",
+                AppType = a.AppType,
+                IsUpdateAvailable = false,
+                IsBlacklisted = SoftwareUpdaterService.Instance.IsBlacklisted(a.DisplayName) || SoftwareUpdaterService.Instance.IsBlacklisted(a.Id)
+            }).ToList();
+
+            ApplyFilter();
+            StatsSummary = $"{FormatHelper.FormatInt(_allApps.Count)} программ • Проверка обновлений в репозиториях...";
+            StatusText = $"Найдено {FormatHelper.FormatInt(_allApps.Count)} приложений. Опрос Winget и облачных репозиториев...";
+
+            // 2. Background multi-repository check
             _allApps = await SoftwareUpdaterService.Instance.ScanInstalledAppsForUpdatesAsync();
             ApplyFilter();
 
@@ -48,7 +71,8 @@ namespace StormSystemOptimizer.ViewModels
 
             StatsSummary = $"{FormatHelper.FormatInt(_allApps.Count)} программ • {(updatesCount > 0 ? $"{FormatHelper.FormatInt(updatesCount)} требуют обновления ⚡" : "Все программы обновлены ✅")}" +
                            (blacklistedCount > 0 ? $" • {FormatHelper.FormatInt(blacklistedCount)} в черном списке 🔒" : "");
-            StatusText = $"Найдено {FormatHelper.FormatInt(_allApps.Count)} установленных программ и игр.";
+            StatusText = $"Проверка завершена: найдено {FormatHelper.FormatInt(updatesCount)} доступных обновлений.";
+            IsCheckingOnline = false;
             IsBusy = false;
         }
 
@@ -76,7 +100,7 @@ namespace StormSystemOptimizer.ViewModels
             }
 
             var list = query.ToList();
-            App.Current.Dispatcher.Invoke(() =>
+            App.Current?.Dispatcher?.Invoke(() =>
             {
                 DisplayApps.Clear();
                 foreach (var item in list)

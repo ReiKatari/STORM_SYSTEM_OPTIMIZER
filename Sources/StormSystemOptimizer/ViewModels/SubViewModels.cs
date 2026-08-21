@@ -632,34 +632,64 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
-        public async Task EnableMsiModeAsync()
+        public async Task ToggleMsiModeAsync()
         {
             if (IsBusy) return;
             IsBusy = true;
-            ToolStatus = "Включение режима MSI (Message Signaled Interrupts) для GPU и USB...";
 
-            bool ok = AdvancedTweaksService.Instance.EnableMsiModeForGpuAndUsb();
-            IsMsiActive = ok;
-            SavePersistentState();
-            ToolStatus = ok ? "Режим MSI успешно активирован для видеокарты и USB-контроллеров!" : "Ошибка настройки MSI режима.";
+            if (IsMsiActive)
+            {
+                ToolStatus = "Отключение режима MSI (возврат к стандартным прерываниям)...";
+                bool ok = AdvancedTweaksService.Instance.DisableMsiModeForGpuAndUsb();
+                IsMsiActive = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Режим MSI отключен (установлен стандартный режим прерываний)." : "Ошибка отключения MSI.";
+            }
+            else
+            {
+                ToolStatus = "Включение режима MSI (Message Signaled Interrupts) для GPU и USB...";
+                bool ok = AdvancedTweaksService.Instance.EnableMsiModeForGpuAndUsb();
+                IsMsiActive = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Режим MSI успешно активирован для видеокарты и USB-контроллеров!" : "Ошибка настройки MSI режима.";
+            }
+
             IsBusy = false;
             TrayService.Instance.ShowNotification("MSI Mode", ToolStatus);
         }
 
         [RelayCommand]
-        public async Task EnableDirectStorageAsync()
+        public async Task ToggleDirectStorageAsync()
         {
             if (IsBusy) return;
             IsBusy = true;
-            ToolStatus = "Оптимизация DirectStorage 1.2 и очередей Win32 IoRing...";
 
-            bool ok = AdvancedTweaksService.Instance.OptimizeDirectStorageAndIoRing();
-            IsDirectStorageActive = ok;
-            SavePersistentState();
-            ToolStatus = ok ? "DirectStorage 1.2 & NVMe BypassIO успешно настроены!" : "Ошибка применения DirectStorage.";
+            if (IsDirectStorageActive)
+            {
+                ToolStatus = "Сброс тюнинга DirectStorage & IoRing к стандартным значениям...";
+                bool ok = AdvancedTweaksService.Instance.DisableDirectStorageOptimization();
+                IsDirectStorageActive = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Параметры DirectStorage сброшены к значениям по умолчанию." : "Ошибка сброса параметров DirectStorage.";
+            }
+            else
+            {
+                ToolStatus = "Оптимизация DirectStorage 1.2 и очередей Win32 IoRing...";
+                bool ok = AdvancedTweaksService.Instance.OptimizeDirectStorageAndIoRing();
+                IsDirectStorageActive = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "DirectStorage 1.2 & NVMe BypassIO успешно настроены!" : "Ошибка применения DirectStorage.";
+            }
+
             IsBusy = false;
             TrayService.Instance.ShowNotification("DirectStorage", ToolStatus);
         }
+
+        [RelayCommand]
+        public async Task EnableMsiModeAsync() => await ToggleMsiModeAsync();
+
+        [RelayCommand]
+        public async Task EnableDirectStorageAsync() => await ToggleDirectStorageAsync();
 
         [RelayCommand]
         public async Task CreateSnapshotAsync()

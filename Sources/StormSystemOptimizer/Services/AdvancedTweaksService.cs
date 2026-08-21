@@ -192,6 +192,61 @@ namespace StormSystemOptimizer.Services
             }
         }
 
+        public bool DisableMsiModeForGpuAndUsb()
+        {
+            try
+            {
+                using var pciKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\PCI", false);
+                if (pciKey != null)
+                {
+                    foreach (var vendorSubName in pciKey.GetSubKeyNames())
+                    {
+                        using var vendorKey = pciKey.OpenSubKey(vendorSubName, false);
+                        if (vendorKey == null) continue;
+
+                        foreach (var devInstanceName in vendorKey.GetSubKeyNames())
+                        {
+                            using var devKey = vendorKey.OpenSubKey(devInstanceName, false);
+                            if (devKey == null) continue;
+
+                            string classGuid = devKey.GetValue("ClassGUID")?.ToString() ?? "";
+                            string desc = devKey.GetValue("DeviceDesc")?.ToString() ?? "";
+
+                            bool isGpu = classGuid.Equals("{4d36e968-e325-11ce-bfc1-08002be10318}", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("Radeon", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("Intel(R) Arc", StringComparison.OrdinalIgnoreCase);
+
+                            bool isUsb = classGuid.Equals("{36fc9e60-c465-11cf-8056-444553540000}", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("Host Controller", StringComparison.OrdinalIgnoreCase) ||
+                                         desc.Contains("USB", StringComparison.OrdinalIgnoreCase);
+
+                            if (isGpu || isUsb)
+                            {
+                                string subPath = $@"SYSTEM\CurrentControlSet\Enum\PCI\{vendorSubName}\{devInstanceName}\Device Parameters\Interrupt Management\MessageSignaledInterruptProperties";
+                                RunRegCommand($"add \"HKLM\\{subPath}\" /v MSISupported /t REG_DWORD /d 0 /f");
+                            }
+                        }
+                    }
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool DisableDirectStorageOptimization()
+        {
+            try
+            {
+                RunRegCommand("delete \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem\" /v Win32IoRingFlags /f");
+                RunRegCommand("delete \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Storage\" /v BypassIoAllowed /f");
+                RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem\" /v NtfsDisable8dot3NameCreation /t REG_DWORD /d 0 /f");
+                RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem\" /v NtfsMemoryUsage /t REG_DWORD /d 1 /f");
+                return true;
+            }
+            catch { return false; }
+        }
+
         public bool IsDirectStorageOptimized()
         {
             try
