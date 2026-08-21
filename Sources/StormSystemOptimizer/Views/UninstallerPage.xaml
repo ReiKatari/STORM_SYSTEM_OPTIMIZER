@@ -49,16 +49,17 @@
             </Grid>
         </Border>
 
-        <!-- Search, Filter & Tabs Bar -->
+        <!-- Search, Filter & Tabs Bar with Sorting -->
         <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="20,0,20,12">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="280"/>
+                    <ColumnDefinition Width="240"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Search Input -->
-                <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8,4" Margin="0,0,16,0">
+                <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="8,4" Margin="0,0,12,0">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -71,10 +72,27 @@
 
                 <!-- Categories Tabs -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <RadioButton Content="Все" IsChecked="True" Style="{StaticResource NavRadioButtonStyle}" Click="FilterAll_Click" Margin="0,0,8,0" Padding="12,6"/>
-                    <RadioButton Content="🎮 Игры (Steam / Standalone)" Style="{StaticResource NavRadioButtonStyle}" Click="FilterGames_Click" Margin="0,0,8,0" Padding="12,6"/>
-                    <RadioButton Content="📦 Программы" Style="{StaticResource NavRadioButtonStyle}" Click="FilterApps_Click" Margin="0,0,8,0" Padding="12,6"/>
-                    <RadioButton Content="🛒 Windows Store" Style="{StaticResource NavRadioButtonStyle}" Click="FilterStore_Click" Margin="0,0,8,0" Padding="12,6"/>
+                    <RadioButton Content="Все" IsChecked="True" Style="{StaticResource NavRadioButtonStyle}" Click="FilterAll_Click" Margin="0,0,6,0" Padding="10,5"/>
+                    <RadioButton Content="🎮 Игры" Style="{StaticResource NavRadioButtonStyle}" Click="FilterGames_Click" Margin="0,0,6,0" Padding="10,5"/>
+                    <RadioButton Content="📦 Программы" Style="{StaticResource NavRadioButtonStyle}" Click="FilterApps_Click" Margin="0,0,6,0" Padding="10,5"/>
+                    <RadioButton Content="🛒 Store" Style="{StaticResource NavRadioButtonStyle}" Click="FilterStore_Click" Margin="0,0,6,0" Padding="10,5"/>
+                </StackPanel>
+
+                <!-- Sorting Section -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Сортировка: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                    <Button Command="{Binding SetSortCommand}" CommandParameter="Размер ↓" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,0">
+                        <TextBlock Text="📊 Размер ↓" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </Button>
+                    <Button Command="{Binding SetSortCommand}" CommandParameter="Размер ↑" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,0">
+                        <TextBlock Text="📊 Размер ↑" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </Button>
+                    <Button Command="{Binding SetSortCommand}" CommandParameter="Имя (А-Я)" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,0">
+                        <TextBlock Text="🔤 Имя" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </Button>
+                    <Button Command="{Binding SetSortCommand}" CommandParameter="Дата" Style="{StaticResource StormSecondaryButton}" Padding="8,4">
+                        <TextBlock Text="📅 Дата" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </Button>
                 </StackPanel>
             </Grid>
         </Border>
