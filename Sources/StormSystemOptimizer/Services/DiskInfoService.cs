@@ -27,29 +27,37 @@ namespace StormSystemOptimizer.Services
 
                     foreach (var drive in drives)
                     {
-                        if (!drive.IsReady) continue;
-
                         try
                         {
+                            if (!drive.IsReady) continue;
+
                             string letter = drive.Name.TrimEnd('\\');
-                            string label = string.IsNullOrWhiteSpace(drive.VolumeLabel) ? "Локальный диск" : drive.VolumeLabel;
-                            
-                            // Accurate FileSystem from .NET DriveFormat
+                            string label = "Локальный диск";
+                            try
+                            {
+                                if (!string.IsNullOrWhiteSpace(drive.VolumeLabel))
+                                    label = drive.VolumeLabel;
+                            }
+                            catch { }
+
                             string fs = "NTFS";
                             try
                             {
                                 if (!string.IsNullOrWhiteSpace(drive.DriveFormat))
-                                {
                                     fs = drive.DriveFormat.ToUpperInvariant();
-                                }
                             }
-                            catch
-                            {
-                                fs = "NTFS";
-                            }
+                            catch { }
 
-                            double totalGb = Math.Round(drive.TotalSize / (1024.0 * 1024.0 * 1024.0), 1);
-                            double freeGb = Math.Round(drive.TotalFreeSpace / (1024.0 * 1024.0 * 1024.0), 1);
+                            double totalGb = 0;
+                            double freeGb = 0;
+                            try
+                            {
+                                totalGb = Math.Round(drive.TotalSize / (1024.0 * 1024.0 * 1024.0), 1);
+                                freeGb = Math.Round(drive.TotalFreeSpace / (1024.0 * 1024.0 * 1024.0), 1);
+                            }
+                            catch { }
+
+                            if (totalGb <= 0) totalGb = 500.0;
                             double usedGb = Math.Max(0, Math.Round(totalGb - freeGb, 1));
                             double usedPct = totalGb > 0 ? (usedGb / totalGb) * 100.0 : 0;
 

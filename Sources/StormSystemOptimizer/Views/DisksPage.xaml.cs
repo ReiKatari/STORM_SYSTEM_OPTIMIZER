@@ -8,13 +8,6 @@ namespace StormSystemOptimizer.Views
         public DisksPage()
         {
             InitializeComponent();
-            Loaded += async (s, e) =>
-            {
-                if (DataContext is DisksViewModel vm)
-                {
-                    await vm.LoadDrivesAsync();
-                }
-            };
         }
     }
 }

@@ -66,11 +66,33 @@
                                 <TextBlock Text="Режим MSI (Message Signaled Interrupts)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Перевод GPU и контроллеров USB в режим прерываний MSI для минимизации Input Lag." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                            <Border Visibility="{Binding IsMsiActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,6,0,0" HorizontalAlignment="Left">
-                                <TextBlock Text="✓ Включено (Режим MSI активен)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
-                            </Border>
+                            
+                            <!-- Live Status Badge -->
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsMsiActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ ВКЛЮЧЕНО (Режим MSI активен)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsMsiActive, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ ОТКЛЮЧЕНО (Line-based режим)" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
                         </StackPanel>
-                        <Button Command="{Binding EnableMsiModeCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Включить" Style="{StaticResource StormHeroButton}" Padding="14,6" VerticalAlignment="Center"/>
+
+                        <!-- Dynamic Action Button -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsMsiActive, Converter={StaticResource InverseBoolToVisConverter}}"
+                                    Command="{Binding ToggleMsiModeCommand}"
+                                    IsEnabled="{Binding IsNotBusy}"
+                                    Content="⚡ Включить"
+                                    Style="{StaticResource StormHeroButton}"
+                                    Padding="14,6"/>
+                            <Button Visibility="{Binding IsMsiActive, Converter={StaticResource BoolToVisConverter}}"
+                                    Command="{Binding ToggleMsiModeCommand}"
+                                    IsEnabled="{Binding IsNotBusy}"
+                                    Content="Отключить"
+                                    Style="{StaticResource StormSecondaryButton}"
+                                    Padding="14,6"/>
+                        </StackPanel>
                     </Grid>
                 </Border>
 
@@ -89,11 +111,33 @@
                                 <TextBlock Text="Тюнинг DirectStorage 1.2 &amp; BypassIO" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Оптимизация очередей Win32 IoRing и разгрузка шины ввода-вывода для игр." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                            <Border Visibility="{Binding IsDirectStorageActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,6,0,0" HorizontalAlignment="Left">
-                                <TextBlock Text="✓ Настроено (DirectStorage &amp; BypassIO активны)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
-                            </Border>
+                            
+                            <!-- Live Status Badge -->
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsDirectStorageActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ НАСТРОЕНО (BypassIO &amp; IoRing активны)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsDirectStorageActive, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ СТАНДАРТНЫЙ РЕЖИМ" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
                         </StackPanel>
-                        <Button Command="{Binding EnableDirectStorageCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Тюнинг" Style="{StaticResource StormHeroButton}" Padding="14,6" VerticalAlignment="Center"/>
+
+                        <!-- Dynamic Action Button -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsDirectStorageActive, Converter={StaticResource InverseBoolToVisConverter}}"
+                                    Command="{Binding ToggleDirectStorageCommand}"
+                                    IsEnabled="{Binding IsNotBusy}"
+                                    Content="⚡ Включить"
+                                    Style="{StaticResource StormHeroButton}"
+                                    Padding="14,6"/>
+                            <Button Visibility="{Binding IsDirectStorageActive, Converter={StaticResource BoolToVisConverter}}"
+                                    Command="{Binding ToggleDirectStorageCommand}"
+                                    IsEnabled="{Binding IsNotBusy}"
+                                    Content="Сбросить"
+                                    Style="{StaticResource StormSecondaryButton}"
+                                    Padding="14,6"/>
+                        </StackPanel>
                     </Grid>
                 </Border>
 
