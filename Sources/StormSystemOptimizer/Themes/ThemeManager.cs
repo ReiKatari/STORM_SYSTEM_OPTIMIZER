@@ -79,14 +79,23 @@ namespace StormSystemOptimizer.Themes
                     _ => "Themes/StormDarkTheme.xaml"
                 };
 
-                var newDict = new ResourceDictionary
+                var themeDict = new ResourceDictionary
                 {
                     Source = new Uri(themePath, UriKind.RelativeOrAbsolute)
                 };
 
-                var merged = Application.Current.Resources.MergedDictionaries;
-                merged.Clear();
-                merged.Add(newDict);
+                var iconsDict = new ResourceDictionary
+                {
+                    Source = new Uri("Themes/StormIcons.xaml", UriKind.RelativeOrAbsolute)
+                };
+
+                if (Application.Current != null)
+                {
+                    var merged = Application.Current.Resources.MergedDictionaries;
+                    merged.Clear();
+                    merged.Add(themeDict);
+                    merged.Add(iconsDict);
+                }
 
                 if (window != null)
                 {
