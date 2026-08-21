@@ -49,7 +49,7 @@
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0" WindowChrome.IsHitTestVisibleInChrome="True">
                 <!-- Check Updates Button -->
                 <Button Click="BtnCheckUpdates_Click"
-                        Style="{StaticResource StormSecondaryButton}"
+                        Style="{DynamicResource StormSecondaryButton}"
                         Padding="12,6">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Border Background="#1A00D2FF" CornerRadius="4" Padding="3" Margin="0,0,6,0">
@@ -109,7 +109,7 @@
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
                         <StackPanel>
                             <!-- 1. Dashboard -->
-                            <RadioButton GroupName="NavGroup" IsChecked="True" Tag="Dashboard" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}">
+                            <RadioButton GroupName="NavGroup" IsChecked="True" Tag="Dashboard" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -119,7 +119,7 @@
                             </RadioButton>
 
                             <!-- 2. Processes -->
-                            <RadioButton GroupName="NavGroup" Tag="Processes" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}">
+                            <RadioButton GroupName="NavGroup" Tag="Processes" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Path Data="{StaticResource GeoProcesses}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -129,7 +129,7 @@
                             </RadioButton>
 
                             <!-- 3. Disks -->
-                            <RadioButton GroupName="NavGroup" Tag="Disks" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}">
+                            <RadioButton GroupName="NavGroup" Tag="Disks" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -139,7 +139,7 @@
                             </RadioButton>
 
                             <!-- 4. Benchmarks -->
-                            <RadioButton GroupName="NavGroup" Tag="Benchmarks" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}">
+                            <RadioButton GroupName="NavGroup" Tag="Benchmarks" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Path Data="{StaticResource GeoBenchmarks}" Fill="{StaticResource IconGradPurple}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -149,7 +149,7 @@
                             </RadioButton>
 
                             <!-- 5. Scanner -->
-                            <RadioButton GroupName="NavGroup" Tag="Scanner" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}">
+                            <RadioButton GroupName="NavGroup" Tag="Scanner" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -159,7 +159,7 @@
                             </RadioButton>
 
                             <!-- 6. Startup -->
-                            <RadioButton GroupName="NavGroup" Tag="Startup" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}">
+                            <RadioButton GroupName="NavGroup" Tag="Startup" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -169,7 +169,7 @@
                             </RadioButton>
 
                             <!-- 7. Services -->
-                            <RadioButton GroupName="NavGroup" Tag="Services" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}">
+                            <RadioButton GroupName="NavGroup" Tag="Services" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Path Data="{StaticResource GeoServices}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -179,7 +179,7 @@
                             </RadioButton>
 
                             <!-- 8. Network -->
-                            <RadioButton GroupName="NavGroup" Tag="Network" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}">
+                            <RadioButton GroupName="NavGroup" Tag="Network" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -189,7 +189,7 @@
                             </RadioButton>
 
                             <!-- 9. Privacy -->
-                            <RadioButton GroupName="NavGroup" Tag="Privacy" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}">
+                            <RadioButton GroupName="NavGroup" Tag="Privacy" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Path Data="{StaticResource GeoPrivacy}" Fill="{StaticResource IconGradRose}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -199,7 +199,7 @@
                             </RadioButton>
 
                             <!-- 10. System Tools -->
-                            <RadioButton GroupName="NavGroup" Tag="SystemTools" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}">
+                            <RadioButton GroupName="NavGroup" Tag="SystemTools" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}">
                                 <StackPanel Orientation="Horizontal">
                                     <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                         <Path Data="{StaticResource GeoSystemTools}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -211,7 +211,7 @@
                     </ScrollViewer>
 
                     <!-- Bottom Settings & Themes -->
-                    <RadioButton Grid.Row="1" GroupName="NavGroup" Tag="Settings" Click="NavButton_Click" Style="{StaticResource NavRadioButtonStyle}" Margin="0,8,0,0">
+                    <RadioButton Grid.Row="1" GroupName="NavGroup" Tag="Settings" Click="NavButton_Click" Style="{DynamicResource NavRadioButtonStyle}" Margin="0,8,0,0">
                         <StackPanel Orientation="Horizontal">
                             <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradPurple}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -243,35 +243,4 @@
             </Grid>
         </Border>
     </Grid>
-
-    <Window.Resources>
-        <!-- NavRadioButtonStyle -->
-        <Style x:Key="NavRadioButtonStyle" TargetType="RadioButton">
-            <Setter Property="Height" Value="42"/>
-            <Setter Property="Margin" Value="0,2,0,2"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="bd" Background="Transparent" CornerRadius="8" Padding="10,0">
-                            <ContentPresenter VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource CardHoverBrush}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource AccentGlowBrush}"/>
-                                <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
 </Window>
