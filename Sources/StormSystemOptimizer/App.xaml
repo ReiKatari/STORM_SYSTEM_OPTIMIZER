@@ -1,6 +1,7 @@
 <Application x:Class="StormSystemOptimizer.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:StormSystemOptimizer.Converters"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
@@ -11,6 +12,8 @@
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+            <conv:InverseBoolToVisConverter x:Key="InverseBoolToVisConverter"/>
+            <conv:StringEmptyToVisibilityConverter x:Key="StringEmptyToVisibilityConverter"/>
 
             <!-- Global Neon Solid Square CheckBox Style (No checkmarks, pure filled neon square) -->
             <Style TargetType="CheckBox">
@@ -251,6 +254,220 @@
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+            </Style>
+
+            <!-- Global Cyberpunk Dark ComboBox Style -->
+            <Style TargetType="ComboBox">
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="10,6"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ComboBox">
+                            <Grid>
+                                <ToggleButton x:Name="ToggleButton"
+                                              Focusable="false"
+                                              IsChecked="{Binding Path=IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                              ClickMode="Press"
+                                              Background="{TemplateBinding Background}"
+                                              BorderBrush="{TemplateBinding BorderBrush}"
+                                              BorderThickness="{TemplateBinding BorderThickness}">
+                                    <ToggleButton.Template>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border x:Name="Border"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                                    CornerRadius="8"
+                                                    Padding="10,6">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="20"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Path Grid.Column="1"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          Data="M0 0 L4 4 L8 0 Z"
+                                                          Fill="{DynamicResource TextSecondaryBrush}"/>
+                                                </Grid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
+                                                    <Setter TargetName="Border" Property="Background" Value="{DynamicResource CardHoverBrush}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </ToggleButton.Template>
+                                </ToggleButton>
+                                <ContentPresenter x:Name="ContentSite"
+                                                  IsHitTestVisible="False"
+                                                  Content="{TemplateBinding SelectionBoxItem}"
+                                                  ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                  ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
+                                                  Margin="10,6,26,6"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Left"/>
+                                <Popup x:Name="Popup"
+                                       Placement="Bottom"
+                                       IsOpen="{TemplateBinding IsDropDownOpen}"
+                                       AllowsTransparency="True"
+                                       Focusable="False"
+                                       PopupAnimation="Slide">
+                                    <Grid x:Name="DropDown"
+                                          SnapsToDevicePixels="True"
+                                          MinWidth="{TemplateBinding ActualWidth}"
+                                          MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                          Margin="0,4,0,0">
+                                        <Border x:Name="DropDownBorder"
+                                                Background="{DynamicResource NavSidebarBrush}"
+                                                BorderBrush="{DynamicResource AccentPrimaryBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="4"
+                                                Effect="{DynamicResource StormGlowEffect}">
+                                            <ScrollViewer SnapsToDevicePixels="True">
+                                                <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained"/>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </Grid>
+                                </Popup>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="ComboBoxItem">
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Padding" Value="10,8"/>
+                <Setter Property="FontSize" Value="12"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ComboBoxItem">
+                            <Border x:Name="ItemBorder"
+                                    Background="{TemplateBinding Background}"
+                                    CornerRadius="6"
+                                    Padding="{TemplateBinding Padding}"
+                                    Margin="0,1">
+                                <ContentPresenter/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource CardHoverBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource AccentGlowBrush}"/>
+                                    <Setter Property="Foreground" Value="{DynamicResource AccentPrimaryBrush}"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Global Dark Theme ToolTip Style -->
+            <Style TargetType="ToolTip">
+                <Setter Property="Background" Value="{DynamicResource NavSidebarBrush}"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Padding" Value="10,6"/>
+                <Setter Property="FontSize" Value="11.5"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="HasDropShadow" Value="True"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToolTip">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="6"
+                                    Padding="{TemplateBinding Padding}"
+                                    Effect="{DynamicResource StormGlowEffect}">
+                                <ContentPresenter/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Global Sleek Modern Dark ScrollBar Style -->
+            <Style x:Key="StormScrollBarThumb" TargetType="{x:Type Thumb}">
+                <Setter Property="OverridesDefaultStyle" Value="true"/>
+                <Setter Property="IsTabStop" Value="false"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type Thumb}">
+                            <Border x:Name="ThumbBorder"
+                                    Background="{DynamicResource CardBorderBrush}"
+                                    CornerRadius="4"
+                                    Margin="2"/>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="true">
+                                    <Setter TargetName="ThumbBorder" Property="Background" Value="{DynamicResource AccentPrimaryBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsDragging" Value="true">
+                                    <Setter TargetName="ThumbBorder" Property="Background" Value="{DynamicResource AccentPressedBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <Style TargetType="{x:Type ScrollBar}">
+                <Setter Property="SnapsToDevicePixels" Value="True"/>
+                <Setter Property="OverridesDefaultStyle" Value="true"/>
+                <Style.Triggers>
+                    <Trigger Property="Orientation" Value="Vertical">
+                        <Setter Property="Width" Value="8"/>
+                        <Setter Property="MinWidth" Value="8"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                    <Grid Background="Transparent" SnapsToDevicePixels="true">
+                                        <Track x:Name="PART_Track" IsDirectionReversed="true">
+                                            <Track.Thumb>
+                                                <Thumb Style="{StaticResource StormScrollBarThumb}"/>
+                                            </Track.Thumb>
+                                        </Track>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                    <Trigger Property="Orientation" Value="Horizontal">
+                        <Setter Property="Height" Value="8"/>
+                        <Setter Property="MinHeight" Value="8"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                    <Grid Background="Transparent" SnapsToDevicePixels="true">
+                                        <Track x:Name="PART_Track">
+                                            <Track.Thumb>
+                                                <Thumb Style="{StaticResource StormScrollBarThumb}"/>
+                                            </Track.Thumb>
+                                        </Track>
+                                    </Grid>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                </Style.Triggers>
             </Style>
 
         </ResourceDictionary>

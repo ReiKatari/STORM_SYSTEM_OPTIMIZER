@@ -66,8 +66,11 @@
                                 <TextBlock Text="Режим MSI (Message Signaled Interrupts)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Перевод GPU и контроллеров USB в режим прерываний MSI для минимизации Input Lag." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <Border Visibility="{Binding IsMsiActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,6,0,0" HorizontalAlignment="Left">
+                                <TextBlock Text="✓ Включено (Режим MSI активен)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                            </Border>
                         </StackPanel>
-                        <Button Command="{Binding EnableMsiModeCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Включить" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                        <Button Command="{Binding EnableMsiModeCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Включить" Style="{StaticResource StormHeroButton}" Padding="14,6" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
 
@@ -86,8 +89,11 @@
                                 <TextBlock Text="Тюнинг DirectStorage 1.2 &amp; BypassIO" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Оптимизация очередей Win32 IoRing и разгрузка шины ввода-вывода для игр." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <Border Visibility="{Binding IsDirectStorageActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,6,0,0" HorizontalAlignment="Left">
+                                <TextBlock Text="✓ Настроено (DirectStorage &amp; BypassIO активны)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                            </Border>
                         </StackPanel>
-                        <Button Command="{Binding EnableDirectStorageCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Тюнинг" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                        <Button Command="{Binding EnableDirectStorageCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Тюнинг" Style="{StaticResource StormHeroButton}" Padding="14,6" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
 
@@ -106,8 +112,11 @@
                                 <TextBlock Text="Очистка кэша Standby List ОЗУ" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Мгновенное освобождение кэшированной памяти ожидания через NtSetSystemInformation." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <Border Visibility="{Binding IsStandbyPurged, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,6,0,0" HorizontalAlignment="Left">
+                                <TextBlock Text="✓ Очищено (Память свободна)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                            </Border>
                         </StackPanel>
-                        <Button Command="{Binding PurgeStandbyMemoryCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        <Button Command="{Binding PurgeStandbyMemoryCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить" Style="{StaticResource StormSecondaryButton}" Padding="14,6" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
 
@@ -127,7 +136,7 @@
                             </StackPanel>
                             <TextBlock Text="Резервный снимок критических параметров реестра перед тюнингом для быстрого отката." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
-                        <Button Command="{Binding CreateSnapshotCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Создать снимок" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        <Button Command="{Binding CreateSnapshotCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Создать снимок" Style="{StaticResource StormSecondaryButton}" Padding="14,6" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -242,7 +251,7 @@
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Border Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,0,6,0">
-                                    <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
+                                    <Path Data="{StaticResource GeoLog}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
                                 <TextBlock Text="Очистка журналов событий" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
@@ -313,7 +322,7 @@
                 </Border>
             </Grid>
 
-            <!-- Quick Snapin Launchers -->
+            <!-- Quick Snapin Launchers with High-Definition Vector Icons -->
             <StackPanel Orientation="Horizontal" Margin="0,16,0,10">
                 <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
                     <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradCyan}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -322,19 +331,150 @@
             </StackPanel>
 
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
-                <WrapPanel Orientation="Horizontal">
-                    <Button Click="BtnSnapin_Click" Tag="DeviceManager" Content="🔌 Диспетчер устройств" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
-                    <Button Click="BtnSnapin_Click" Tag="TaskManager" Content="📊 Диспетчер задач" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
-                    <Button Click="BtnSnapin_Click" Tag="Regedit" Content="🗝 Редактор реестра" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
-                    <Button Click="BtnSnapin_Click" Tag="DxDiag" Content="🎮 DirectX Диагностика" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
-                    <Button Click="BtnSnapin_Click" Tag="GpEdit" Content="📜 Редактор групповых политик" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
-                    <Button Click="BtnSnapin_Click" Tag="EventViewer" Content="📋 Журнал событий Windows" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
-                    <Button Click="BtnSnapin_Click" Tag="CleanMgr" Content="🧹 Очистка диска (CleanMgr)" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
-                    <Button Click="BtnSnapin_Click" Tag="ResMon" Content="📈 Монитор ресурсов" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
-                    <Button Click="BtnSnapin_Click" Tag="DiskMgmt" Content="💾 Управление дисками" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
-                    <Button Click="BtnSnapin_Click" Tag="Services" Content="⚙️ Службы (Services.msc)" Style="{StaticResource StormSecondaryButton}" Margin="0,0,8,8" Padding="12,7"/>
-                </WrapPanel>
+                <UniformGrid Columns="4" HorizontalAlignment="Stretch">
+                    <!-- 1. Device Manager -->
+                    <Button Click="BtnSnapin_Click" Tag="DeviceManager" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoDevice}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Диспетчер устройств" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 2. Task Manager -->
+                    <Button Click="BtnSnapin_Click" Tag="TaskManager" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoTask}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Диспетчер задач" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 3. Regedit -->
+                    <Button Click="BtnSnapin_Click" Tag="Regedit" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoKey}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Редактор реестра" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 4. DxDiag -->
+                    <Button Click="BtnSnapin_Click" Tag="DxDiag" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoGame}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="DirectX Диагностика" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 5. GpEdit -->
+                    <Button Click="BtnSnapin_Click" Tag="GpEdit" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradSky}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Групповые политики" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 6. Event Viewer -->
+                    <Button Click="BtnSnapin_Click" Tag="EventViewer" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoLog}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Журнал событий" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 7. CleanMgr -->
+                    <Button Click="BtnSnapin_Click" Tag="CleanMgr" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Очистка диска" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 8. ResMon -->
+                    <Button Click="BtnSnapin_Click" Tag="ResMon" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoSpeedTest}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Монитор ресурсов" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 9. Disk Management -->
+                    <Button Click="BtnSnapin_Click" Tag="DiskMgmt" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Управление дисками" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 10. Services -->
+                    <Button Click="BtnSnapin_Click" Tag="Services" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoServices}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Службы (Services.msc)" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 11. Network Connections -->
+                    <Button Click="BtnSnapin_Click" Tag="NetworkConn" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradSky}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Сетевые подключения" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- 12. Power Options -->
+                    <Button Click="BtnSnapin_Click" Tag="PowerCfg" Style="{StaticResource StormSecondaryButton}" Margin="4" Padding="10,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="4" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoPower}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Электропитание" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </UniformGrid>
             </Border>
+
+            <!-- FAQ Section with Gradient Vector Icons -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,12,0,10">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoQuestion}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Частые вопросы по Инструментам Windows (FAQ)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold">
+                        <Expander.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeoSystemTools}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Что делают проверки SFC и DISM?" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Expander.Header>
+                        <TextBlock Text="SFC (System File Checker) сканирует защищенные системные DLL и восстанавливает поврежденные файлы. DISM (Deployment Image Servicing and Management) восстанавливает поврежденное хранилище компонентов Windows Component Store." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,2,0,2" TextWrapping="Wrap"/>
+                    </Expander>
+                </StackPanel>
+            </Border>
+
         </StackPanel>
     </ScrollViewer>
 </Page>

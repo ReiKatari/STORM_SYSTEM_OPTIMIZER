@@ -24,48 +24,45 @@ namespace StormSystemOptimizer.Services
         {
             var results = new List<OptimizationItem>();
 
-            StatusChanged?.Invoke(this, "Глубокий анализ системных кэшей и временных файлов...");
+            StatusChanged?.Invoke(this, "Проверка служб Windows...");
             ProgressChanged?.Invoke(this, 10);
-            var junkItems = await Task.Run(() => ScanJunkFiles(cancellationToken));
-            results.AddRange(junkItems);
-
-            StatusChanged?.Invoke(this, "Глубокое сканирование кэшей браузеров и шейдеров...");
-            ProgressChanged?.Invoke(this, 25);
-            var browserShaders = await Task.Run(() => ScanBrowsersAndShaders(cancellationToken));
-            results.AddRange(browserShaders);
-
-            StatusChanged?.Invoke(this, "Анализ дампов сбоев и кэша обновлений Windows...");
-            ProgressChanged?.Invoke(this, 40);
-            var updatesAndDumps = await Task.Run(() => ScanUpdatesAndDumps(cancellationToken));
-            results.AddRange(updatesAndDumps);
-
-            StatusChanged?.Invoke(this, "Анализ оперативной памяти и фоновых процессов...");
-            ProgressChanged?.Invoke(this, 55);
-            var memItems = await Task.Run(() => ScanMemory(cancellationToken));
-            results.AddRange(memItems);
-
-            StatusChanged?.Invoke(this, "Проверка программ автозагрузки...");
-            ProgressChanged?.Invoke(this, 70);
-            var startupItems = await Task.Run(() => ScanStartup(cancellationToken));
-            results.AddRange(startupItems);
-
-            StatusChanged?.Invoke(this, "Диагностика фоновых служб Windows...");
-            ProgressChanged?.Invoke(this, 80);
             var serviceItems = await Task.Run(() => ScanServices(cancellationToken));
             results.AddRange(serviceItems);
 
-            StatusChanged?.Invoke(this, "Анализ сетевого стека, параметров DNS и TCP/IP...");
-            ProgressChanged?.Invoke(this, 90);
+            StatusChanged?.Invoke(this, "Анализ реестра и системных кэшей...");
+            ProgressChanged?.Invoke(this, 25);
+            var junkItems = await Task.Run(() => ScanJunkFiles(cancellationToken));
+            results.AddRange(junkItems);
+
+            StatusChanged?.Invoke(this, "Замер задержки DNS и сетевого стека...");
+            ProgressChanged?.Invoke(this, 40);
             var netItems = await Task.Run(() => ScanNetwork(cancellationToken));
             results.AddRange(netItems);
 
-            StatusChanged?.Invoke(this, "Проверка параметров приватности и системных настроек...");
+            StatusChanged?.Invoke(this, "Анализ дампов сбоев и кэша обновлений...");
+            ProgressChanged?.Invoke(this, 55);
+            var updatesAndDumps = await Task.Run(() => ScanUpdatesAndDumps(cancellationToken));
+            results.AddRange(updatesAndDumps);
+
+            StatusChanged?.Invoke(this, "Глубокое сканирование кэшей браузеров и шейдеров...");
+            ProgressChanged?.Invoke(this, 70);
+            var browserShaders = await Task.Run(() => ScanBrowsersAndShaders(cancellationToken));
+            results.AddRange(browserShaders);
+
+            StatusChanged?.Invoke(this, "Диагностика оперативной памяти и автозагрузки...");
+            ProgressChanged?.Invoke(this, 85);
+            var memItems = await Task.Run(() => ScanMemory(cancellationToken));
+            results.AddRange(memItems);
+            var startupItems = await Task.Run(() => ScanStartup(cancellationToken));
+            results.AddRange(startupItems);
+
+            StatusChanged?.Invoke(this, "Проверка параметров приватности и телеметрии...");
             ProgressChanged?.Invoke(this, 95);
             var privacyItems = await Task.Run(() => ScanPrivacy(cancellationToken));
             results.AddRange(privacyItems);
 
             ProgressChanged?.Invoke(this, 100);
-            StatusChanged?.Invoke(this, $"Глубокое сканирование завершено. Найдено категорий оптимизации: {results.Count}");
+            StatusChanged?.Invoke(this, $"Глубокое сканирование завершено. Найдено проблем: {results.Count}");
 
             return results;
         }

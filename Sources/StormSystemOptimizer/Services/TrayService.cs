@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -18,7 +19,41 @@ namespace StormSystemOptimizer.Services
         private Icon? _trayIcon;
 
         private const int TRAY_ICON_ID = 1001;
-        private const int WM_TRAYICON = 0x8000 + 1;
+        public const int WM_TRAYICON = 0x8000 + 1;
+
+        // Win32 context menu constants
+        private const uint MF_STRING = 0x00000000;
+        private const uint MF_SEPARATOR = 0x00000800;
+        private const uint MF_GRAYED = 0x00000001;
+        private const uint TPM_RETURNCMD = 0x0100;
+        private const uint TPM_NONOTIFY = 0x0080;
+        private const uint TPM_RIGHTBUTTON = 0x0002;
+        private const uint TPM_LEFTALIGN = 0x0000;
+
+        private const int CMD_OPEN = 1;
+        private const int CMD_EXIT = 2;
+
+        [DllImport("user32.dll")]
+        private static extern IntPtr CreatePopupMenu();
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern bool AppendMenu(IntPtr hMenu, uint uFlags, uint uIDNewItem, string lpNewItem);
+
+        [DllImport("user32.dll")]
+        private static extern int TrackPopupMenu(IntPtr hMenu, uint uFlags, int x, int y, int nReserved, IntPtr hWnd, IntPtr prcRect);
+
+        [DllImport("user32.dll")]
+        private static extern bool DestroyMenu(IntPtr hMenu);
+
+        [DllImport("user32.dll")]
+        private static extern bool GetCursorPos(out POINT lpPoint);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct POINT
+        {
+            public int X;
+            public int Y;
+        }
 
         private TrayService() { }
 
@@ -29,13 +64,54 @@ namespace StormSystemOptimizer.Services
                 var helper = new WindowInteropHelper(window);
                 _hwnd = helper.Handle;
 
-                string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "AppIcon.ico");
                 IntPtr hIcon = IntPtr.Zero;
 
-                if (File.Exists(iconPath))
+                // 1. Try loading from WPF Pack URI resource stream (works inside Single-File bundle)
+                try
                 {
-                    _trayIcon = new System.Drawing.Icon(iconPath, new System.Drawing.Size(16, 16));
-                    hIcon = _trayIcon.Handle;
+                    var iconUri = new Uri("pack://application:,,,/Assets/AppIcon.ico", UriKind.RelativeOrAbsolute);
+                    var streamInfo = Application.GetResourceStream(iconUri);
+                    if (streamInfo != null)
+                    {
+                        using var s = streamInfo.Stream;
+                        _trayIcon = new System.Drawing.Icon(s, new System.Drawing.Size(16, 16));
+                        hIcon = _trayIcon.Handle;
+                    }
+                }
+                catch { }
+
+                // 2. Fallback: Extract associated icon from running main module executable
+                if (hIcon == IntPtr.Zero)
+                {
+                    try
+                    {
+                        string? mainExe = Process.GetCurrentProcess().MainModule?.FileName;
+                        if (!string.IsNullOrEmpty(mainExe) && File.Exists(mainExe))
+                        {
+                            var extracted = System.Drawing.Icon.ExtractAssociatedIcon(mainExe);
+                            if (extracted != null)
+                            {
+                                _trayIcon = new System.Drawing.Icon(extracted, new System.Drawing.Size(16, 16));
+                                hIcon = _trayIcon.Handle;
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+                // 3. Fallback: File on disk in AppDomain BaseDirectory
+                if (hIcon == IntPtr.Zero)
+                {
+                    try
+                    {
+                        string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "AppIcon.ico");
+                        if (File.Exists(iconPath))
+                        {
+                            _trayIcon = new System.Drawing.Icon(iconPath, new System.Drawing.Size(16, 16));
+                            hIcon = _trayIcon.Handle;
+                        }
+                    }
+                    catch { }
                 }
 
                 _nid = new NativeMethods.NOTIFYICONDATA
@@ -46,7 +122,7 @@ namespace StormSystemOptimizer.Services
                     uFlags = NativeMethods.NIF_ICON | NativeMethods.NIF_TIP | NativeMethods.NIF_MESSAGE,
                     uCallbackMessage = WM_TRAYICON,
                     hIcon = hIcon,
-                    szTip = "STORM SYSTEM OPTIMIZER v0.0.1"
+                    szTip = "STORM SYSTEM OPTIMIZER v0.1.4"
                 };
 
                 _isCreated = NativeMethods.Shell_NotifyIcon(NativeMethods.NIM_ADD, ref _nid);
@@ -73,7 +149,7 @@ namespace StormSystemOptimizer.Services
             try
             {
                 window.Hide();
-                ShowNotification("STORM OPTIMIZER в фоне", "Приложение свернуто в трей.");
+                ShowNotification("STORM SYSTEM OPTIMIZER в фоне", "Приложение свернуто в системный трей. ПКМ по иконке — меню.");
             }
             catch { }
         }
@@ -85,6 +161,63 @@ namespace StormSystemOptimizer.Services
                 window.Show();
                 window.WindowState = WindowState.Normal;
                 window.Activate();
+                NativeMethods.SetForegroundWindow(new WindowInteropHelper(window).Handle);
+            }
+            catch { }
+        }
+
+        public void HandleTrayClick(Window window, int message)
+        {
+            const int WM_LBUTTONDOWN = 0x0201;
+            const int WM_RBUTTONDOWN = 0x0204;
+            const int WM_LBUTTONDBLCLK = 0x0203;
+
+            if (message == WM_LBUTTONDOWN || message == WM_LBUTTONDBLCLK)
+            {
+                RestoreFromTray(window);
+            }
+            else if (message == WM_RBUTTONDOWN)
+            {
+                ShowTrayContextMenu(window);
+            }
+        }
+
+        private void ShowTrayContextMenu(Window window)
+        {
+            try
+            {
+                IntPtr hMenu = CreatePopupMenu();
+                if (hMenu == IntPtr.Zero) return;
+
+                AppendMenu(hMenu, MF_STRING, CMD_OPEN, "🔄  Открыть STORM SYSTEM OPTIMIZER");
+                AppendMenu(hMenu, MF_SEPARATOR, 0, string.Empty);
+                AppendMenu(hMenu, MF_STRING, CMD_EXIT, "❌  Выход (полная выгрузка)");
+
+                GetCursorPos(out POINT pt);
+
+                NativeMethods.SetForegroundWindow(_hwnd);
+                int cmd = TrackPopupMenu(hMenu, TPM_RETURNCMD | TPM_NONOTIFY | TPM_LEFTALIGN | TPM_RIGHTBUTTON,
+                    pt.X, pt.Y, 0, _hwnd, IntPtr.Zero);
+
+                DestroyMenu(hMenu);
+
+                switch (cmd)
+                {
+                    case CMD_OPEN:
+                        RestoreFromTray(window);
+                        break;
+                    case CMD_EXIT:
+                        if (window is MainWindow mw)
+                        {
+                            mw.PerformRealExit();
+                        }
+                        else
+                        {
+                            RemoveIcon();
+                            Application.Current.Shutdown();
+                        }
+                        break;
+                }
             }
             catch { }
         }

@@ -21,14 +21,14 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoPrivacy}" Fill="{StaticResource IconGradRose}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Конфиденциальность и безопасность данных" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Конфиденциальность и защита от телеметрии" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Глубокое отключение диагностической телеметрии Microsoft, слежки, рекламных трекеров, фонового сбора ввода и фоновых датчиков."
+                        <TextBlock Text="Полное отключение скрытой телеметрии Microsoft, трекеров рекламы, фонового кейлоггинга и облачного сбора личных данных."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
                         <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
                             <StackPanel Orientation="Horizontal">
@@ -100,12 +100,42 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsTelemetryDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
+                            <CheckBox x:Name="Chk1" Grid.Column="0" IsChecked="{Binding IsTelemetryDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock Text="Диагностическая телеметрия Windows" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Запретить сбор и отправку логов производительности, дампов сбоев и сведений об оборудовании на сервера Microsoft." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                <TextBlock Text="Запретить сбор и отправку логов производительности, дампов сбоев и сведений об оборудовании на сервера Microsoft." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk1, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk1, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
 
@@ -115,12 +145,42 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsErrorReportingDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
+                            <CheckBox x:Name="Chk2" Grid.Column="0" IsChecked="{Binding IsErrorReportingDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock Text="Отчеты об ошибках Windows (Windows Error Reporting)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Отключить автоматическую передачу системных дампов памяти и аварийных дампов сторонних программ." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                <TextBlock Text="Отключить автоматическую передачу системных дампов памяти и аварийных дампов сторонних программ." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk2, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk2, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
 
@@ -130,12 +190,42 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsAppInventoryDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
+                            <CheckBox x:Name="Chk3" Grid.Column="0" IsChecked="{Binding IsAppInventoryDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock Text="Телеметрия инвентаря приложений и совместимости" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Запретить периодическое фоновое сканирование списка установленных программ, игр и файлов службой совместимости." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                <TextBlock Text="Запретить периодическое фоновое сканирование списка установленных программ, игр и файлов службой совместимости." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk3, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk3, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
                 </StackPanel>
@@ -157,12 +247,42 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsAdIdDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
+                            <CheckBox x:Name="Chk4" Grid.Column="0" IsChecked="{Binding IsAdIdDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock Text="Рекламный идентификатор (Advertising ID)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Запретить приложениям и сайтам использовать уникальный идентификатор для отслеживания интересов и показа рекламы." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                <TextBlock Text="Запретить приложениям и сайтам использовать уникальный идентификатор для отслеживания интересов и показа рекламы." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk4, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk4, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
 
@@ -172,98 +292,248 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsActivityFeedDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
+                            <CheckBox x:Name="Chk5" Grid.Column="0" IsChecked="{Binding IsActivityFeedDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock Text="История активности и облачная синхронизация" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Отключить сбор сведений об открытых файлах, веб-страницах и приложениях в ленту активности Microsoft Timeline." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                <TextBlock Text="Отключить сбор сведений об открытых файлах, веб-страницах и приложениях в ленту активности Microsoft Timeline." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk5, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk5, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
 
-                    <!-- 6. Edge Telemetry -->
+                    <!-- 6. Input Telemetry / Keylogging -->
                     <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsEdgeTelemetryDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="Телеметрия и фоновый трекинг Microsoft Edge" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Отключить сбор поисковых запросов, истории переходов и предиктивную отправку адресов сайтов в Microsoft." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <CheckBox x:Name="Chk6" Grid.Column="0" IsChecked="{Binding IsInputTelemetryDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Сбор рукописного ввода, набора текста и клавиатурный монитор" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Заблокировать отправку введенного текста, словарей автоисправления и речевых шаблонов на сервера Microsoft." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk6, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk6, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
                 </StackPanel>
             </Border>
 
-            <!-- Group 3: Ввод, Поиск и Ассистенты -->
+            <!-- Group 3: Браузер Edge, Поиск Bing и Ассистенты -->
             <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
-                <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="5" Width="20" Height="20" Margin="0,0,6,0" VerticalAlignment="Center">
-                    <Path Data="{StaticResource GeoProcesses}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="5" Width="20" Height="20" Margin="0,0,6,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradSky}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <TextBlock Text="Ввод данных, Поиск и Голосовые помощники" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="Браузер Microsoft Edge, поиск Bing и Copilot" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
             </StackPanel>
 
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,14">
                 <StackPanel>
-                    <!-- 7. Input Personalization -->
+                    <!-- 7. Bing in Start Menu -->
                     <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,8">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsInputTelemetryDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="Телеметрия клавиатурного и рукописного ввода" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Запретить передачу образцов набранного текста, контактов словаря и рукописных жестов для анализа." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <CheckBox x:Name="Chk7" Grid.Column="0" IsChecked="{Binding IsBingSearchDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Поиск Bing в меню «Пуск» и отправка поисковых запросов" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Отключить отправку веб-запросов из меню Пуск в поисковую систему Bing, оставив только локальный быстрый поиск по файлам." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk7, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk7, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
 
-                    <!-- 8. Bing Start Search -->
+                    <!-- 8. Edge Telemetry -->
                     <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,8">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsBingSearchDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="Поисковые подсказки Bing и веб-реклама в меню «Пуск»" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Отключить отправку каждого поискового запроса из меню «Пуск» в интернет и показ сетевых рекламных рекомендаций." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <CheckBox x:Name="Chk8" Grid.Column="0" IsChecked="{Binding IsEdgeTelemetryDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Телеметрия и фоновый трекинг Microsoft Edge" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Запретить браузеру Edge отправлять историю серфинга, поисковые подсказки и телеметрию диагностики." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk8, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk8, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
 
-                    <!-- 9. Cortana & Copilot -->
+                    <!-- 9. Cortana & Windows Copilot -->
                     <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsCortanaCopilotDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="Голосовой ассистент Кортана и фоновый агент Copilot" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Отключить фоновые службы прослушивания, распознавания голосовых команд и контекстного анализа экрана." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <CheckBox x:Name="Chk9" Grid.Column="0" IsChecked="{Binding IsCortanaCopilotDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Голосовой помощник Cortana и Windows Copilot" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Отключить фоновые службы ассистентов Cortana и Copilot, освободив оперативную память и фоновый процессорный ресурс." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk9, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk9, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
                 </StackPanel>
             </Border>
 
-            <!-- Group 4: Датчики, Сеть и Доступ -->
+            <!-- Group 4: Датчики, Сеть и Фоновый доступ -->
             <StackPanel Orientation="Horizontal" Margin="0,4,0,8">
-                <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="5" Width="20" Height="20" Margin="0,0,6,0" VerticalAlignment="Center">
-                    <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="5" Width="20" Height="20" Margin="0,0,6,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <TextBlock Text="Геолокация, Датчики и Фоновый доступ" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="Датчики геолокации, Wi-Fi Sense и фоновый доступ" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
             </StackPanel>
 
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,14">
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
                 <StackPanel>
                     <!-- 10. Location Sensors -->
                     <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,8">
@@ -271,74 +541,156 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsLocationSensorsDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="Служба геолокации и датчики местоположения" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Запретить службам Windows и фоновым приложениям непрерывно определять географические координаты устройства." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <CheckBox x:Name="Chk10" Grid.Column="0" IsChecked="{Binding IsLocationSensorsDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Датчики геолокации и служба определения местоположения" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Запретить операционной системе и приложениям постоянно определять точные географические координаты ПК." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk10, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk10, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
 
-                    <!-- 11. Feedback Frequency -->
+                    <!-- 11. Wi-Fi Sense -->
                     <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,8">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsFeedbackFrequencyDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="Запросы отзывов Windows и всплывающие опросы" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Установить частоту опросов в «Никогда» и заблокировать назойливые всплывающие окна обратной связи." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <!-- 12. Camera & Mic Background Protection -->
-                    <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,8">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsCameraMicBackgroundDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="Защита от негласного доступа к камере и микрофону" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Ограничить фоновым приложениям несанкционированное использование микрофона и веб-камеры без уведомления." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <CheckBox x:Name="Chk11" Grid.Column="0" IsChecked="{Binding IsWifiSenseDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Служба контроля сетей Wi-Fi Sense" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Отключить автоматическое подключение к открытым публичным хотспотам и передачу паролей сетей контактам." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk11, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk11, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
 
-                    <!-- 13. Wi-Fi Sense -->
-                    <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12" Margin="0,0,0,8">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsWifiSenseDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="Служба контроля Wi-Fi (Wi-Fi Sense)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Отключить передачу паролей и параметров беспроводных сетей в облако и автоподключение к открытым сетям." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
-                            </StackPanel>
-                        </Grid>
-                    </Border>
-
-                    <!-- 14. Remote Assistance -->
+                    <!-- 12. Camera & Mic Background Access -->
                     <Border Background="{DynamicResource AppBackgroundBrush}" CornerRadius="8" Padding="12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" IsChecked="{Binding IsRemoteAccessDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="Удаленный помощник и несанкционированное подключение" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                <TextBlock Text="Отключить входящие запросы удаленного помощника (Remote Assistance) для защиты от внешнего управления." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                            <CheckBox x:Name="Chk12" Grid.Column="0" IsChecked="{Binding IsCameraMicBackgroundDisabled, Mode=TwoWay}" VerticalAlignment="Center" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="Блокировка скрытого фонового доступа к микрофону и камере" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Запретить UWP и фоновым процессам несанкционированно активировать микрофон и камеру без ведома пользователя." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,10,0"/>
                             </StackPanel>
+                            <Border Grid.Column="2" CornerRadius="6" Padding="10,5" VerticalAlignment="Center" MinWidth="130">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="#1A10B981"/>
+                                        <Setter Property="BorderBrush" Value="#3310B981"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ElementName=Chk12, Path=IsChecked}" Value="False">
+                                                <Setter Property="Background" Value="#1AF59E0B"/>
+                                                <Setter Property="BorderBrush" Value="#33F59E0B"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <TextBlock HorizontalAlignment="Center" FontSize="10.5" FontWeight="Bold">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="🛡️ ЗАЩИЩЕНО"/>
+                                            <Setter Property="Foreground" Value="#10B981"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ElementName=Chk12, Path=IsChecked}" Value="False">
+                                                    <Setter Property="Text" Value="⚠️ СЛЕЖКА АКТИВНА"/>
+                                                    <Setter Property="Foreground" Value="#F59E0B"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Border>
                         </Grid>
                     </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- FAQ Section with Gradient Vector Icons -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,12,0,10">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoQuestion}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Частые вопросы по Защите приватности (FAQ)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold">
+                        <Expander.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradEmerald}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Не сломает ли отключение телеметрии работу Windows и магазина приложений?" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Expander.Header>
+                        <TextBlock Text="Нет. Все твики приватности STORM блокируют исключительно фоновый трекинг, запись нажатий клавиш (кейлоггинг) и отправку диагностических снимков экрана в Microsoft. Windows Update, магазин Microsoft Store и учетные записи продолжают работать в штатном режиме." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,2,0,2" TextWrapping="Wrap"/>
+                    </Expander>
                 </StackPanel>
             </Border>
 

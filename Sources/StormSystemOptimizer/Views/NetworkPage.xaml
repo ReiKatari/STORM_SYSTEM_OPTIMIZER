@@ -4,6 +4,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      xmlns:ctrl="clr-namespace:StormSystemOptimizer.Controls"
       Title="Network">
 
     <Page.DataContext>
@@ -45,6 +46,28 @@
                             <TextBlock Text="Обновить сеть" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+                </Grid>
+            </Border>
+
+            <!-- Comparative Impact Banner -->
+            <ctrl:ComparativeImpactControl Icon="🌐" MetricTitle="Сетевая задержка (Ping в играх)" MetricSubtitle="Применение Comss / Fast Gaming DNS и TCP NoDelay" BeforeValue="68 мс" AfterValue="24 мс" BadgeText="-44 мс пинг" Margin="0,0,0,16"/>
+
+            <!-- Current DNS Display Banner -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16,12" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
+                        <Border Background="#1A00D2FF" CornerRadius="4" Padding="4" Margin="0,0,8,0">
+                            <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform"/>
+                        </Border>
+                        <TextBlock Text="Текущий DNS в системе: " FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding NetworkInfo.DnsServers}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Grid.Column="1" Text="{Binding ActiveDnsProvider, StringFormat='(Профиль: {0})'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
                 </Grid>
             </Border>
 
@@ -188,15 +211,19 @@
                 </StackPanel>
             </Border>
 
-            <!-- Advanced Online Gaming & Security Modules (TCP NoDelay + Blackhole Shield) -->
+            <!-- Network Accelerators & Reset Grid -->
             <Grid Margin="0,0,0,16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <!-- TCP NoDelay / Nagle's Algorithm Toggle -->
-                <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,8,0">
+                <!-- TCP NoDelay -->
+                <Border Grid.Row="0" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,8,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -216,7 +243,7 @@
                 </Border>
 
                 <!-- Blackhole Shield -->
-                <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="8,0,0,0">
+                <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="8,0,0,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
@@ -232,6 +259,46 @@
                             <TextBlock Text="Блокировка серверов телеметрии и рекламы на уровне сетевых маршрутов." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                         </StackPanel>
                         <Button Command="{Binding ToggleBlackholeShieldCommand}" Grid.Column="1" Style="{StaticResource StormSecondaryButton}" Content="Вкл / Выкл" Padding="12,8" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- MTU Auto-Tuner -->
+                <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,8,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <Border Background="#1A34D399" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradEmerald}" Width="11" Height="11" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Авто-тюнинг MTU (1500 байт)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Оптимизация максимального размера пакета MTU для исключения фрагментации." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Button Command="{Binding OptimizeMtuCommand}" Grid.Column="1" Style="{StaticResource StormSecondaryButton}" Content="Настроить" Padding="12,8" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Reset Network Stack -->
+                <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="8,0,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <Border Background="#1AFBBF24" CornerRadius="4" Padding="3" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradAmber}" Width="11" Height="11" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Полный сброс сети и Winsock" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Восстановление каталога Winsock, стека TCP/IP и сброс сетевых сбоев." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Button Command="{Binding ResetNetworkStackCommand}" Grid.Column="1" Style="{StaticResource StormSecondaryButton}" Content="Сброс сети" Padding="12,8" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
             </Grid>
@@ -302,6 +369,39 @@
                     </Button>
                 </StackPanel>
             </Border>
+
+            <!-- FAQ Section with Gradient Vector Icons -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,12,0,10">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoQuestion}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Частые вопросы по Ускорению сети и DNS (FAQ)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4">
+                        <Expander.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradSky}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Зачем переключать DNS на Comss.one, Cloudflare или Яндекс?" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Expander.Header>
+                        <TextBlock Text="Стандартный DNS провайдера часто перегружен, медленно сопоставляет домены и блокирует зарубежные игровые сервисы (Xbox, Steam, Discord, Epic Games). Comss.one и Cloudflare мгновенно резолвят адреса и снижают игровой сетевой пинг." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,2,0,2" TextWrapping="Wrap"/>
+                    </Expander>
+
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold">
+                        <Expander.Header>
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeoLightning}" Fill="{StaticResource IconGradAmber}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Как TCP NoDelay убирает задержку пакетов?" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Expander.Header>
+                        <TextBlock Text="Алгоритм Нагла по умолчанию задерживает мелкие сетевые пакеты, накапливая их в буфере. Включение TCP NoDelay (TcpAckFrequency=1) принуждает сетевой стек отправлять каждый пакет мгновенно, снижая сетевой инпутлаг в шутерах." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,2,0,2" TextWrapping="Wrap"/>
+                    </Expander>
+                </StackPanel>
+            </Border>
+
         </StackPanel>
     </ScrollViewer>
 </Page>

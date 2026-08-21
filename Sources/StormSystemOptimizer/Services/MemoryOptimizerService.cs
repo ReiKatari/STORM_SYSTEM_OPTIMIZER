@@ -90,6 +90,12 @@ namespace StormSystemOptimizer.Services
             });
         }
 
+        public async Task<(double FreedMb, double TotalFreedMb)> CleanMemoryAsync()
+        {
+            var (_, freed) = await SmartCompressMemoryAsync();
+            return (freed, freed);
+        }
+
         // 4. Memory Health Metric
         public double GetRamUsagePercentage()
         {

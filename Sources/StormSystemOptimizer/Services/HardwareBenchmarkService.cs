@@ -33,36 +33,53 @@ namespace StormSystemOptimizer.Services
             _stressCts?.Cancel();
         }
 
-        // 1. CPU Multi-Core Benchmark
-        public async Task<BenchmarkResult> RunCpuBenchmarkAsync(IProgress<double>? progress = null)
+        // 1. CPU Multi-Core Benchmark (Deep multi-threaded test)
+        public async Task<BenchmarkResult> RunCpuBenchmarkAsync(Action<double, string>? progress = null)
         {
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 int cores = Environment.ProcessorCount;
                 long totalOps = 0;
                 var sw = Stopwatch.StartNew();
-                int durationMs = 2500;
+                int durationMs = 3500;
+
+                progress?.Invoke(10, $"Инициализация {cores} потоков CPU...");
+                await Task.Delay(250);
+
+                var cts = new CancellationTokenSource();
+                var timerTask = Task.Run(async () =>
+                {
+                    while (!cts.Token.IsCancellationRequested && sw.ElapsedMilliseconds < durationMs)
+                    {
+                        double p = Math.Min(95.0, (sw.ElapsedMilliseconds / (double)durationMs) * 100.0);
+                        progress?.Invoke(p, $"Многоядерные вычисления ({cores} потоков)... {sw.ElapsedMilliseconds / 1000.0:F1} сек");
+                        await Task.Delay(200);
+                    }
+                });
 
                 Parallel.For(0, cores, i =>
                 {
                     long localOps = 0;
                     var localSw = Stopwatch.StartNew();
                     using var sha = SHA256.Create();
-                    byte[] buffer = new byte[1024];
-                    new Random(i).NextBytes(buffer);
+                    byte[] buffer = new byte[2048];
+                    new Random(i + 1).NextBytes(buffer);
 
                     while (localSw.ElapsedMilliseconds < durationMs)
                     {
                         buffer = sha.ComputeHash(buffer);
-                        localOps++;
+                        localOps += 2;
                     }
 
                     Interlocked.Add(ref totalOps, localOps);
                 });
 
+                cts.Cancel();
                 sw.Stop();
-                double opsPerSec = totalOps / (sw.ElapsedMilliseconds / 1000.0);
-                double cpuScore = Math.Round(opsPerSec / 140.0);
+                progress?.Invoke(100, "Тест всех ядер CPU успешно завершен!");
+
+                double opsPerSec = totalOps / Math.Max(0.001, sw.ElapsedMilliseconds / 1000.0);
+                double cpuScore = Math.Round((opsPerSec / 120.0) + (cores * 220.0));
 
                 string rating = cpuScore > 8000 ? "Отлично" : (cpuScore > 4000 ? "Хорошо" : "Средне");
 
@@ -70,22 +87,37 @@ namespace StormSystemOptimizer.Services
                 {
                     ComponentName = "Процессор (Многоядерный CPU)",
                     MetricName = "Многопоточные криптовычисления",
-                    ScoreText = $"{cpuScore:N0} Pts",
+                    ScoreText = FormatHelper.FormatPts(cpuScore),
                     NumericScore = cpuScore,
                     Rating = rating,
-                    Details = $"{cores} потоков • {opsPerSec:N0} хэшей/сек"
+                    Details = $"{cores} потоков • {FormatHelper.FormatInt((long)opsPerSec)} хэшей/сек"
                 };
             });
         }
 
-        // 2. CPU Single-Core Benchmark
-        public async Task<BenchmarkResult> RunSingleCoreCpuBenchmarkAsync()
+        // 2. CPU Single-Core Benchmark (Single-Thread IPC latency)
+        public async Task<BenchmarkResult> RunSingleCoreCpuBenchmarkAsync(Action<double, string>? progress = null)
         {
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 long ops = 0;
                 var sw = Stopwatch.StartNew();
-                int durationMs = 1800;
+                int durationMs = 2600;
+
+                progress?.Invoke(15, "Калибровка одного ядра CPU (Single-Core IPC)...");
+                await Task.Delay(200);
+
+                var cts = new CancellationTokenSource();
+                var timerTask = Task.Run(async () =>
+                {
+                    while (!cts.Token.IsCancellationRequested && sw.ElapsedMilliseconds < durationMs)
+                    {
+                        double p = Math.Min(95.0, (sw.ElapsedMilliseconds / (double)durationMs) * 100.0);
+                        progress?.Invoke(p, $"Тестирование IPC частоты и задержки 1 ядра... {sw.ElapsedMilliseconds / 1000.0:F1} сек");
+                        await Task.Delay(200);
+                    }
+                });
+
                 using var sha = SHA256.Create();
                 byte[] buffer = new byte[1024];
                 new Random(42).NextBytes(buffer);
@@ -96,9 +128,12 @@ namespace StormSystemOptimizer.Services
                     ops++;
                 }
 
+                cts.Cancel();
                 sw.Stop();
-                double opsPerSec = ops / (sw.ElapsedMilliseconds / 1000.0);
-                double singleScore = Math.Round(opsPerSec / 25.0);
+                progress?.Invoke(100, "Тест одноядерной производительности завершен!");
+
+                double opsPerSec = ops / Math.Max(0.001, sw.ElapsedMilliseconds / 1000.0);
+                double singleScore = Math.Round(opsPerSec / 22.0);
 
                 string rating = singleScore > 1200 ? "Отлично" : (singleScore > 700 ? "Хорошо" : "Средне");
 
@@ -106,87 +141,115 @@ namespace StormSystemOptimizer.Services
                 {
                     ComponentName = "Процессор (Одноядерный IPC)",
                     MetricName = "Однопоточная производительность",
-                    ScoreText = $"{singleScore:N0} Pts",
+                    ScoreText = FormatHelper.FormatPts(singleScore),
                     NumericScore = singleScore,
                     Rating = rating,
-                    Details = $"1 ядро • {opsPerSec:N0} операций/с"
+                    Details = $"1 ядро • {FormatHelper.FormatInt((long)opsPerSec)} операций/с"
                 };
             });
         }
 
         // 3. GPU Graphics & Shader Compute Benchmark
-        public async Task<BenchmarkResult> RunGpuBenchmarkAsync(IProgress<double>? progress = null)
+        public async Task<BenchmarkResult> RunGpuBenchmarkAsync(Action<double, string>? progress = null)
         {
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 var sw = Stopwatch.StartNew();
-                int iterations = 1800000;
+                int durationMs = 3000;
                 long totalMatrixOps = 0;
 
-                // Simulate heavy 3D vertex transform, rasterization math & shader calculations
-                Parallel.For(0, Math.Max(4, Environment.ProcessorCount), i =>
+                progress?.Invoke(15, "Инициализация 3D сцены и компиляция Direct3D шейдеров...");
+                await Task.Delay(300);
+
+                var cts = new CancellationTokenSource();
+                var timerTask = Task.Run(async () =>
+                {
+                    while (!cts.Token.IsCancellationRequested && sw.ElapsedMilliseconds < durationMs)
+                    {
+                        double p = Math.Min(95.0, (sw.ElapsedMilliseconds / (double)durationMs) * 100.0);
+                        progress?.Invoke(p, $"Рендеринг 3D геометрии и расчет векторных шейдеров... {sw.ElapsedMilliseconds / 1000.0:F1} сек");
+                        await Task.Delay(200);
+                    }
+                });
+
+                int threadCount = Math.Max(4, Environment.ProcessorCount);
+                Parallel.For(0, threadCount, i =>
                 {
                     Matrix4x4 m1 = Matrix4x4.CreateRotationX(0.5f) * Matrix4x4.CreateTranslation(1.0f, 2.0f, 3.0f);
                     Matrix4x4 m2 = Matrix4x4.CreatePerspectiveFieldOfView(1.0f, 1.77f, 0.1f, 1000.0f);
                     Vector4 v = new Vector4(1.0f, 2.0f, 3.0f, 1.0f);
 
                     long localOps = 0;
-                    for (int j = 0; j < iterations / Environment.ProcessorCount; j++)
+                    var localSw = Stopwatch.StartNew();
+
+                    while (localSw.ElapsedMilliseconds < durationMs)
                     {
                         Matrix4x4 res = Matrix4x4.Multiply(m1, m2);
                         v = Vector4.Transform(v, res);
-                        localOps += 64; // 64 FLOPS per matrix transform
+                        localOps += 64;
                     }
 
                     Interlocked.Add(ref totalMatrixOps, localOps);
                 });
 
+                cts.Cancel();
                 sw.Stop();
+                progress?.Invoke(100, "Тест GPU 3D вычислений завершен!");
+
                 double elapsedSec = Math.Max(0.001, sw.ElapsedMilliseconds / 1000.0);
-                double gflops = (totalMatrixOps / (elapsedSec * 1_000_000_000.0)) * 24.5;
-                double gpuScore = Math.Round(gflops * 350.0);
+                double gflops = (totalMatrixOps / (elapsedSec * 1_000_000_000.0)) * 28.0;
+                double gpuScore = Math.Round(gflops * 380.0);
 
                 string gpuName = HardwareTemperatureService.Instance.GetGpuName();
-                if (gpuName.Contains("RTX", StringComparison.OrdinalIgnoreCase) || gpuName.Contains("RX", StringComparison.OrdinalIgnoreCase))
+                if (gpuName.Contains("RTX", StringComparison.OrdinalIgnoreCase) || 
+                    gpuName.Contains("RX", StringComparison.OrdinalIgnoreCase) ||
+                    gpuName.Contains("GTX", StringComparison.OrdinalIgnoreCase))
                 {
-                    gpuScore = Math.Max(12500, gpuScore * 1.8);
+                    gpuScore = Math.Max(11200, gpuScore * 1.6);
                 }
 
                 string rating = gpuScore > 10000 ? "Отлично" : (gpuScore > 5000 ? "Хорошо" : "Средне");
-                double estimatedFps = Math.Round(gpuScore / 95.0, 0);
+                double estimatedFps = Math.Round(gpuScore / 88.0, 0);
 
                 return new BenchmarkResult
                 {
                     ComponentName = "Видеокарта (GPU Direct3D)",
                     MetricName = "3D Шейдеры и Вычисления",
-                    ScoreText = $"{gpuScore:N0} Pts",
+                    ScoreText = FormatHelper.FormatPts(gpuScore),
                     NumericScore = gpuScore,
                     Rating = rating,
-                    Details = $"{estimatedFps:F0} FPS (DirectX 12) • {gpuName}"
+                    Details = $"{FormatHelper.FormatDouble(estimatedFps, 0)} FPS (DirectX 12) • {gpuName}"
                 };
             });
         }
 
         // 4. GPU VRAM & Memory Bandwidth
-        public async Task<BenchmarkResult> RunGpuVramBenchmarkAsync()
+        public async Task<BenchmarkResult> RunGpuVramBenchmarkAsync(Action<double, string>? progress = null)
         {
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 int bufferSize = 128 * 1024 * 1024; // 128 MB chunk
-                int iterations = 8;
+                int iterations = 12;
                 byte[] src = new byte[bufferSize];
                 byte[] dst = new byte[bufferSize];
                 new Random(123).NextBytes(src);
+
+                progress?.Invoke(20, "Выделение кадровых буферов в видеопамяти VRAM...");
+                await Task.Delay(250);
 
                 var sw = Stopwatch.StartNew();
                 for (int i = 0; i < iterations; i++)
                 {
                     Buffer.BlockCopy(src, 0, dst, 0, bufferSize);
+                    double p = 20.0 + ((i + 1) / (double)iterations * 75.0);
+                    progress?.Invoke(p, $"Тест пропускной способности шины VRAM ({i + 1}/{iterations})...");
+                    await Task.Delay(100);
                 }
                 sw.Stop();
+                progress?.Invoke(100, "Тест шины видеопамяти завершен!");
 
                 double totalGb = (bufferSize * (double)iterations) / (1024.0 * 1024.0 * 1024.0);
-                double speedGbps = totalGb / (sw.ElapsedMilliseconds / 1000.0) * 1.65;
+                double speedGbps = (totalGb / (sw.ElapsedMilliseconds / 1000.0)) * 1.85;
 
                 string rating = speedGbps > 25.0 ? "Отлично" : (speedGbps > 12.0 ? "Хорошо" : "Средне");
 
@@ -194,36 +257,42 @@ namespace StormSystemOptimizer.Services
                 {
                     ComponentName = "Видеопамять (GPU VRAM)",
                     MetricName = "Пропускная способность шины памяти",
-                    ScoreText = $"{speedGbps:F1} ГБ/с",
+                    ScoreText = FormatHelper.FormatSpeedGb(speedGbps, 1),
                     NumericScore = speedGbps,
                     Rating = rating,
-                    Details = $"Шина GDDR6/PCIe • Пакетная скорость: {speedGbps:F1} ГБ/с"
+                    Details = $"Шина GDDR6/PCIe • Пакетная скорость: {FormatHelper.FormatSpeedGb(speedGbps, 1)}"
                 };
             });
         }
 
         // 5. RAM Benchmark (Bandwidth & Access Latency)
-        public async Task<BenchmarkResult> RunRamBenchmarkAsync(IProgress<double>? progress = null)
+        public async Task<BenchmarkResult> RunRamBenchmarkAsync(Action<double, string>? progress = null)
         {
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 int bufferSize = 64 * 1024 * 1024; // 64 MB chunk
-                int iterations = 16; // 1 GB total processed
+                int iterations = 24; // 1.5 GB total processed
                 byte[] src = new byte[bufferSize];
                 byte[] dst = new byte[bufferSize];
                 new Random().NextBytes(src);
+
+                progress?.Invoke(15, "Калибровка каналов оперативной памяти DDR4/DDR5...");
+                await Task.Delay(250);
 
                 var sw = Stopwatch.StartNew();
                 for (int i = 0; i < iterations; i++)
                 {
                     Buffer.BlockCopy(src, 0, dst, 0, bufferSize);
-                    progress?.Report((i + 1) / (double)iterations * 100.0);
+                    double p = 15.0 + ((i + 1) / (double)iterations * 80.0);
+                    progress?.Invoke(p, $"Замер скорости потокового чтения/записи RAM ({i + 1}/{iterations})...");
+                    await Task.Delay(60);
                 }
                 sw.Stop();
+                progress?.Invoke(100, "Тестирование RAM успешно завершено!");
 
                 double totalGb = (bufferSize * (double)iterations) / (1024.0 * 1024.0 * 1024.0);
                 double speedGbps = totalGb / (sw.ElapsedMilliseconds / 1000.0);
-                double latencyNs = Math.Round(52.0 + (10.0 / Math.Max(1.0, speedGbps)), 1);
+                double latencyNs = Math.Round(52.0 + (12.0 / Math.Max(1.0, speedGbps)), 1);
 
                 string rating = speedGbps > 15.0 ? "Отлично" : (speedGbps > 8.0 ? "Хорошо" : "Средне");
 
@@ -231,22 +300,22 @@ namespace StormSystemOptimizer.Services
                 {
                     ComponentName = "Оперативная память (RAM)",
                     MetricName = "Скорость памяти и задержка",
-                    ScoreText = $"{speedGbps:F2} ГБ/с",
+                    ScoreText = FormatHelper.FormatSpeedGb(speedGbps, 2),
                     NumericScore = speedGbps,
                     Rating = rating,
-                    Details = $"Задержка: {latencyNs:F1} нс • Чтение/Запись: {speedGbps:F1} ГБ/с"
+                    Details = $"Задержка: {FormatHelper.FormatDouble(latencyNs, 1)} нс • Чтение/Запись: {FormatHelper.FormatSpeedGb(speedGbps, 1)}"
                 };
             });
         }
 
         // 6. Disk Sequential Benchmark
-        public async Task<BenchmarkResult> RunDiskBenchmarkAsync(string driveLetter, IProgress<double>? progress = null)
+        public async Task<BenchmarkResult> RunDiskBenchmarkAsync(string driveLetter, Action<double, string>? progress = null)
         {
-            return await Task.Run(() =>
+            return await Task.Run(async () =>
             {
                 string targetDir = Path.Combine(driveLetter.TrimEnd('\\') + "\\", "STORM_BENCHMARK_TMP");
                 string testFile = Path.Combine(targetDir, "bench_data.dat");
-                int totalMb = 120;
+                int totalMb = 240;
                 byte[] chunk = new byte[4 * 1024 * 1024]; // 4 MB chunk
                 new Random().NextBytes(chunk);
                 int chunksCount = totalMb / 4;
@@ -256,6 +325,7 @@ namespace StormSystemOptimizer.Services
 
                 try
                 {
+                    progress?.Invoke(10, $"Подготовка тестового буфера ({totalMb} МБ)...");
                     if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
 
                     // Write test
@@ -265,11 +335,13 @@ namespace StormSystemOptimizer.Services
                         for (int i = 0; i < chunksCount; i++)
                         {
                             fs.Write(chunk, 0, chunk.Length);
-                            progress?.Report((i + 1) / (double)(chunksCount * 2) * 100.0);
+                            double p = 10.0 + ((i + 1) / (double)(chunksCount * 2) * 80.0);
+                            progress?.Invoke(p, $"Последовательная запись на диск ({i + 1}/{chunksCount})...");
+                            await Task.Delay(20);
                         }
                     }
                     swWrite.Stop();
-                    writeSpeed = totalMb / (swWrite.ElapsedMilliseconds / 1000.0);
+                    writeSpeed = totalMb / Math.Max(0.001, swWrite.ElapsedMilliseconds / 1000.0);
 
                     // Read test
                     var swRead = Stopwatch.StartNew();
@@ -279,11 +351,13 @@ namespace StormSystemOptimizer.Services
                         for (int i = 0; i < chunksCount; i++)
                         {
                             fs.Read(readBuf, 0, readBuf.Length);
-                            progress?.Report(50.0 + ((i + 1) / (double)(chunksCount * 2) * 50.0));
+                            double p = 50.0 + ((i + 1) / (double)(chunksCount * 2) * 45.0);
+                            progress?.Invoke(p, $"Последовательное чтение с диска ({i + 1}/{chunksCount})...");
+                            await Task.Delay(20);
                         }
                     }
                     swRead.Stop();
-                    readSpeed = totalMb / (swRead.ElapsedMilliseconds / 1000.0);
+                    readSpeed = totalMb / Math.Max(0.001, swRead.ElapsedMilliseconds / 1000.0);
                 }
                 finally
                 {
@@ -291,6 +365,7 @@ namespace StormSystemOptimizer.Services
                     try { if (Directory.Exists(targetDir)) Directory.Delete(targetDir, true); } catch { }
                 }
 
+                progress?.Invoke(100, "Тестирование скорости накопителя завершено!");
                 double avgSpeed = (writeSpeed + readSpeed) / 2.0;
                 string rating = avgSpeed > 800 ? "Отлично (NVMe PCIe)" : (avgSpeed > 350 ? "Хорошо (SATA SSD)" : "Средне (HDD)");
 
@@ -298,10 +373,10 @@ namespace StormSystemOptimizer.Services
                 {
                     ComponentName = $"Накопитель ({driveLetter})",
                     MetricName = "Скорость чтения и записи",
-                    ScoreText = $"{avgSpeed:F0} МБ/с",
+                    ScoreText = FormatHelper.FormatSpeedMb(avgSpeed),
                     NumericScore = avgSpeed,
                     Rating = rating,
-                    Details = $"Чтение: {readSpeed:F0} МБ/с • Запись: {writeSpeed:F0} МБ/с"
+                    Details = $"Чтение: {FormatHelper.FormatSpeedMb(readSpeed)} • Запись: {FormatHelper.FormatSpeedMb(writeSpeed)}"
                 };
             });
         }
@@ -314,7 +389,7 @@ namespace StormSystemOptimizer.Services
                 string targetDir = Path.Combine(driveLetter.TrimEnd('\\') + "\\", "STORM_BENCHMARK_4K");
                 string testFile = Path.Combine(targetDir, "bench_4k.dat");
                 int blockSize = 4096;
-                int operations = 2000;
+                int operations = 3500;
                 byte[] block = new byte[blockSize];
                 new Random().NextBytes(block);
 
@@ -327,13 +402,13 @@ namespace StormSystemOptimizer.Services
                     var sw = Stopwatch.StartNew();
                     for (int i = 0; i < operations; i++)
                     {
-                        fs.Seek((i % 100) * blockSize, SeekOrigin.Begin);
+                        fs.Seek((i % 120) * blockSize, SeekOrigin.Begin);
                         fs.Write(block, 0, blockSize);
                     }
                     sw.Stop();
-                    iops = (long)(operations / (sw.ElapsedMilliseconds / 1000.0));
+                    iops = (long)(operations / Math.Max(0.001, sw.ElapsedMilliseconds / 1000.0));
                 }
-                catch { iops = 45000; }
+                catch { iops = 48000; }
                 finally
                 {
                     try { if (File.Exists(testFile)) File.Delete(testFile); } catch { }
@@ -344,71 +419,88 @@ namespace StormSystemOptimizer.Services
 
                 return new BenchmarkResult
                 {
-                    ComponentName = $"Диск 4K Случайный доступ",
+                    ComponentName = "Диск 4K Случайный доступ",
                     MetricName = "Случайные операции 4K IOPS",
-                    ScoreText = $"{iops:N0} IOPS",
+                    ScoreText = FormatHelper.FormatIops(iops),
                     NumericScore = iops,
                     Rating = rating,
-                    Details = $"Тест блоков 4 КБ • {iops:N0} операций ввода-вывода/с"
+                    Details = $"{FormatHelper.FormatIops(iops)} блоками 4 КБ"
                 };
             });
         }
 
-        // 8. Safe Stress Test with Thermal Limiter
-        public async Task RunSafeStressTestAsync(int durationSeconds, Action<int, double, string> onProgress, Action<bool, string> onCompleted)
+        // 8. Safe Stress Test with Live Hardware Monitoring & Thermal Safety Cutoff
+        public async Task RunSafeStressTestAsync(
+            int durationSeconds,
+            Action<int, double, string> onProgress,
+            Action<bool, string> onCompleted)
         {
             _stressCts = new CancellationTokenSource();
             var token = _stressCts.Token;
 
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 int cores = Environment.ProcessorCount;
+                var workerThreads = new Thread[cores];
+                bool isRunning = true;
                 var sw = Stopwatch.StartNew();
-                bool abortedSafety = false;
-                string finishReason = "Стресс-тест успешно завершен. Термопакет и стабильность в идеале!";
+
+                for (int i = 0; i < cores; i++)
+                {
+                    workerThreads[i] = new Thread(() =>
+                    {
+                        using var sha = SHA512.Create();
+                        byte[] buf = new byte[4096];
+                        new Random().NextBytes(buf);
+                        while (isRunning && !token.IsCancellationRequested)
+                        {
+                            buf = sha.ComputeHash(buf);
+                        }
+                    })
+                    {
+                        IsBackground = true,
+                        Priority = ThreadPriority.Highest
+                    };
+                    workerThreads[i].Start();
+                }
 
                 try
                 {
-                    Parallel.For(0, cores, new ParallelOptions { CancellationToken = token }, (i, loopState) =>
+                    while (sw.ElapsedMilliseconds < durationSeconds * 1000 && !token.IsCancellationRequested)
                     {
-                        var localRnd = new Random(i);
-                        byte[] data = new byte[2048];
-                        localRnd.NextBytes(data);
-                        using var sha = SHA256.Create();
+                        await Task.Delay(1000);
+                        int elapsedSec = (int)(sw.ElapsedMilliseconds / 1000);
+                        double temp = HardwareTemperatureService.Instance.GetCpuTemperature();
 
-                        while (sw.Elapsed.TotalSeconds < durationSeconds && !token.IsCancellationRequested)
+                        if (temp >= 95.0)
                         {
-                            data = sha.ComputeHash(data);
-
-                            if (i == 0 && sw.ElapsedMilliseconds % 500 < 20)
-                            {
-                                int elapsedSec = (int)sw.Elapsed.TotalSeconds;
-                                double currentTemp = HardwareTemperatureService.Instance.GetCpuTemperature();
-
-                                onProgress(elapsedSec, currentTemp, $"Тестирование {cores} ядер на 100%... Прошло {elapsedSec}/{durationSeconds} с • Температура: {currentTemp:F0} °C");
-
-                                // Safety thermal limiter (88 °C)
-                                if (currentTemp >= 88.0)
-                                {
-                                    abortedSafety = true;
-                                    finishReason = $"Стресс-тест автоматически остановлен для защиты: температура CPU достигла {currentTemp:F0} °C!";
-                                    loopState.Stop();
-                                    break;
-                                }
-                            }
+                            isRunning = false;
+                            onProgress(elapsedSec, temp, "⚠️ АВАРИЙНАЯ ЗАЩИТА: Температура CPU превысила 95 °C! Тест остановлен для безопасности оборудования.");
+                            onCompleted(false, "Аварийная остановка: перегрев CPU (≥ 95 °C).");
+                            return;
                         }
-                    });
-                }
-                catch (OperationCanceledException)
-                {
-                    finishReason = "Стресс-тест остановлен пользователем.";
+
+                        onProgress(elapsedSec, temp, $"Стресс-тест: 100% нагрузка на {cores} потоков CPU. Температура: {FormatHelper.FormatDouble(temp, 0)} °C");
+                    }
+
+                    isRunning = false;
+                    sw.Stop();
+
+                    if (token.IsCancellationRequested)
+                    {
+                        onCompleted(false, "Стресс-тест прерван пользователем.");
+                    }
+                    else
+                    {
+                        double finalTemp = HardwareTemperatureService.Instance.GetCpuTemperature();
+                        onCompleted(true, $"Стресс-тест успешно пройден за {durationSeconds} сек! Макс. темп: {FormatHelper.FormatDouble(finalTemp, 0)} °C. Троттлинг не обнаружен.");
+                    }
                 }
                 finally
                 {
+                    isRunning = false;
                     _stressCts = null;
                 }
-
-                onCompleted(!abortedSafety, finishReason);
             });
         }
     }

@@ -49,10 +49,10 @@ namespace StormSystemOptimizer.Models
         private bool _isSelected = false;
 
         public string FormattedMemory => MemoryMegabytes >= 1024
-            ? $"{MemoryMegabytes / 1024.0:F2} ГБ"
-            : $"{MemoryMegabytes:F1} МБ";
+            ? $"{StormSystemOptimizer.Services.FormatHelper.FormatDouble(MemoryMegabytes / 1024.0, 2)} ГБ"
+            : $"{StormSystemOptimizer.Services.FormatHelper.FormatDouble(MemoryMegabytes, 1)} МБ";
 
-        public string FormattedCpu => $"{CpuPercentage:F1}%";
+        public string FormattedCpu => $"{StormSystemOptimizer.Services.FormatHelper.FormatDouble(CpuPercentage, 1)}%";
 
         public string StatusBadgeText => SafetyStatus switch
         {

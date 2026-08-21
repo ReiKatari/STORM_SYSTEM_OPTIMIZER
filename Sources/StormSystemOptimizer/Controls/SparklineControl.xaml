@@ -1,0 +1,24 @@
+<UserControl x:Class="StormSystemOptimizer.Controls.SparklineControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="40" d:DesignWidth="120">
+
+    <Grid>
+        <!-- Filled Area below curve -->
+        <Path x:Name="AreaPath"
+              Fill="{Binding Path=FillBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+              Opacity="0.45"/>
+
+        <!-- Smooth Bezier Line -->
+        <Path x:Name="LinePath"
+              Stroke="{Binding Path=StrokeBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+              StrokeThickness="{Binding Path=StrokeThickness, RelativeSource={RelativeSource AncestorType=UserControl}}"
+              StrokeStartLineCap="Round"
+              StrokeEndLineCap="Round"
+              StrokeLineJoin="Round"
+              Effect="{DynamicResource StormGlowEffect}"/>
+    </Grid>
+</UserControl>

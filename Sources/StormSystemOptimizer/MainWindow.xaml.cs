@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +17,12 @@ namespace StormSystemOptimizer
     {
         private const int HOTKEY_ID_HUD = 9001;
         private HwndSource? _hwndSource;
+
+        /// <summary>
+        /// When true the app is fully closing (via tray "Выход"). 
+        /// When false the X button minimizes to tray instead of closing.
+        /// </summary>
+        private bool _isRealExit = false;
 
         public MainWindow()
         {
@@ -56,23 +63,75 @@ namespace StormSystemOptimizer
                 {
                     TxtHeaderUpdate.Text = $"Новая v{updateRes.LatestVersion}!";
                     TxtHeaderUpdate.Foreground = (System.Windows.Media.Brush)FindResource("AccentSecondaryBrush");
-                    TrayService.Instance.ShowNotification("Доступно обновление!", $"Найдена версия STORM OPTIMIZER v{updateRes.LatestVersion}. Нажмите для обновления.");
+                    TrayService.Instance.ShowNotification("Доступно обновление!", $"Найдена версия STORM SYSTEM OPTIMIZER v{updateRes.LatestVersion}. Нажмите для обновления.");
                 }
             };
 
-            Closed += (s, e) =>
+            Closing += (s, e) =>
             {
+                if (!_isRealExit)
+                {
+                    // Intercept close → minimize to tray instead
+                    e.Cancel = true;
+                    TrayService.Instance.MinimizeToTray(this);
+                    return;
+                }
+
+                // Real exit: cleanup
                 try
                 {
                     var helper = new WindowInteropHelper(this);
                     NativeMethods.UnregisterHotKey(helper.Handle, HOTKEY_ID_HUD);
                 }
                 catch { }
+
+                TrayService.Instance.RemoveIcon();
             };
+        }
+
+        /// <summary>
+        /// Called from TrayService when user selects "Выход" in tray context menu.
+        /// Forces a real shutdown, killing child processes.
+        /// </summary>
+        public void PerformRealExit()
+        {
+            _isRealExit = true;
+
+            // Gracefully stop background services
+            try { SmartDaemonService.Instance.Stop(); } catch { }
+
+            // Kill any child or related processes (e.g. nvidia-smi, powershell subprocesses)
+            try
+            {
+                int myPid = Environment.ProcessId;
+                foreach (var proc in Process.GetProcessesByName("StormSystemOptimizer"))
+                {
+                    if (proc.Id != myPid)
+                    {
+                        try { proc.Kill(entireProcessTree: true); } catch { }
+                    }
+                }
+            }
+            catch { }
+
+            TrayService.Instance.RemoveIcon();
+            Application.Current.Shutdown();
         }
 
         private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
+            // Handle tray icon messages
+            if (msg == TrayService.WM_TRAYICON)
+            {
+                int lp = lParam.ToInt32();
+                if (lp == 0x0201 || lp == 0x0204) // WM_LBUTTONDOWN or WM_RBUTTONDOWN
+                {
+                    TrayService.Instance.HandleTrayClick(this, lp);
+                    handled = true;
+                    return IntPtr.Zero;
+                }
+            }
+
             if (msg == NativeMethods.WM_HOTKEY)
             {
                 int id = wParam.ToInt32();
@@ -85,30 +144,39 @@ namespace StormSystemOptimizer
             return IntPtr.Zero;
         }
 
+        private readonly System.Collections.Generic.Dictionary<string, Page> _pageCache = new();
+
         private void NavButton_Click(object sender, RoutedEventArgs e)
         {
             if (sender is RadioButton rb && rb.Tag is string tag)
             {
-                Page? page = tag switch
+                if (!_pageCache.TryGetValue(tag, out var page) || page == null)
                 {
-                    "Dashboard" => new DashboardPage(),
-                    "Processes" => new ProcessesPage(),
-                    "Disks" => new DisksPage(),
-                    "Benchmarks" => new BenchmarksPage(),
-                    "Scanner" => new ScannerPage(),
-                    "Startup" => new StartupPage(),
-                    "Services" => new ServicesPage(),
-                    "Network" => new NetworkPage(),
-                    "Privacy" => new PrivacyPage(),
-                    "SystemTools" => new SystemToolsPage(),
-                    "Settings" => new SettingsPage(),
-                    _ => new DashboardPage()
-                };
-
-                if (page != null)
-                {
-                    MainContentFrame.Navigate(page);
+                    page = tag switch
+                    {
+                        "Dashboard" => new DashboardPage(),
+                        "Processes" => new ProcessesPage(),
+                        "Disks" => new DisksPage(),
+                        "Benchmarks" => new BenchmarksPage(),
+                        "Scanner" => new ScannerPage(),
+                        "Startup" => new StartupPage(),
+                        "Services" => new ServicesPage(),
+                        "Network" => new NetworkPage(),
+                        "Privacy" => new PrivacyPage(),
+                        "Uninstaller" => new UninstallerPage(),
+                        "FolderProtection" => new FolderProtectionPage(),
+                        "Drivers" => new DriverUpdaterPage(),
+                        "SoftwareUpdater" => new SoftwareUpdaterPage(),
+                        "SystemInfo" => new SystemInfoPage(),
+                        "BiosOptimizer" => new BiosOptimizerPage(),
+                        "SystemTools" => new SystemToolsPage(),
+                        "Settings" => new SettingsPage(),
+                        _ => new DashboardPage()
+                    };
+                    _pageCache[tag] = page;
                 }
+
+                MainContentFrame.Navigate(page);
             }
         }
 
@@ -119,6 +187,7 @@ namespace StormSystemOptimizer
 
         private void BtnMinimize_Click(object sender, RoutedEventArgs e)
         {
+            // Minimize to taskbar (normal minimize behavior)
             WindowState = WindowState.Minimized;
         }
 
@@ -129,8 +198,9 @@ namespace StormSystemOptimizer
 
         private void BtnClose_Click(object sender, RoutedEventArgs e)
         {
-            TrayService.Instance.RemoveIcon();
-            Application.Current.Shutdown();
+            // This triggers the Closing event handler which will minimize to tray
+            // unless _isRealExit is true
+            Close();
         }
     }
 }

@@ -73,6 +73,20 @@ namespace StormSystemOptimizer.Models
         [NotifyPropertyChangedFor(nameof(OptimizationStateText))]
         private bool _isOptimized = false;
 
+        partial void OnIsOptimizedChanged(bool value)
+        {
+            if (value)
+            {
+                Status = "Отключена";
+                StartupType = "Отключено";
+            }
+            else
+            {
+                Status = "Работает";
+                StartupType = "Вручную";
+            }
+        }
+
         public string OptimizationStateText => IsOptimized ? "Оптимизирована" : "По умолчанию";
 
         [ObservableProperty]
@@ -126,5 +140,14 @@ namespace StormSystemOptimizer.Models
         public string ProcessorName { get => CpuName; set => CpuName = value; }
         public string GpuName { get; set; } = string.Empty;
         public TimeSpan SystemUptime { get; set; }
+    }
+
+    public class CoreMetricItem
+    {
+        public int CoreIndex { get; set; }
+        public double LoadPercentage { get; set; }
+        public string CoreName => $"Ядро #{CoreIndex + 1}";
+        public string LoadText => $"{LoadPercentage:F0}%";
+        public string CoreColor => LoadPercentage > 80 ? "#EF4444" : (LoadPercentage > 50 ? "#F59E0B" : "#10B981");
     }
 }

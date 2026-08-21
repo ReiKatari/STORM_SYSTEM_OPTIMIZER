@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,6 +18,15 @@ namespace StormSystemOptimizer.ViewModels
 
         [ObservableProperty]
         private string _selectedFilter = "Все процессы";
+
+        [ObservableProperty]
+        private string _currentSort = "Память";
+
+        [ObservableProperty]
+        private bool _isSortAscending = false;
+
+        [ObservableProperty]
+        private string _sortDisplayName = "ОЗУ (по убыванию) ▼";
 
         [ObservableProperty]
         private string _statusText = "Загрузка списка процессов...";
@@ -67,6 +77,24 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
+        public void SetSort(string sortName)
+        {
+            if (CurrentSort == sortName)
+            {
+                IsSortAscending = !IsSortAscending;
+            }
+            else
+            {
+                CurrentSort = sortName;
+                IsSortAscending = false;
+            }
+
+            string arrow = IsSortAscending ? "▲" : "▼";
+            SortDisplayName = $"{CurrentSort} {arrow}";
+            ApplyFilters();
+        }
+
+        [RelayCommand]
         public async Task RefreshProcessesAsync()
         {
             if (IsBusy) return;
@@ -96,7 +124,7 @@ namespace StormSystemOptimizer.ViewModels
             bool ok = ProcessManagerService.Instance.TerminateProcess(SelectedProcess.ProcessId);
             if (ok)
             {
-                TrayService.Instance.ShowNotification("Процесс завершен", $"Процесс {SelectedProcess.ProcessName} (PID: {SelectedProcess.ProcessId}) успешно остановлен.");
+                TrayService.Instance.ShowNotification("Процесс завершен", $"Процесс {SelectedProcess.ProcessName} (PID: {SelectedProcess.ProcessId}) остановлен.");
                 await RefreshProcessesAsync();
             }
         }
@@ -109,9 +137,71 @@ namespace StormSystemOptimizer.ViewModels
             bool ok = ProcessManagerService.Instance.TerminateProcessTree(SelectedProcess.ProcessId);
             if (ok)
             {
-                TrayService.Instance.ShowNotification("Дерево процессов завершено", $"Все процессы ветки {SelectedProcess.ProcessName} остановлены.");
+                TrayService.Instance.ShowNotification("Дерево процессов", $"Дерево процессов {SelectedProcess.ProcessName} остановлено.");
                 await RefreshProcessesAsync();
             }
+        }
+
+        [RelayCommand]
+        public void SuspendSelectedProcess()
+        {
+            if (SelectedProcess == null) return;
+            bool ok = ProcessManagerService.Instance.SuspendProcess(SelectedProcess.ProcessId);
+            if (ok)
+            {
+                TrayService.Instance.ShowNotification("Процесс заморожен", $"Процесс {SelectedProcess.ProcessName} приостановлен.");
+            }
+        }
+
+        [RelayCommand]
+        public void ResumeSelectedProcess()
+        {
+            if (SelectedProcess == null) return;
+            bool ok = ProcessManagerService.Instance.ResumeProcess(SelectedProcess.ProcessId);
+            if (ok)
+            {
+                TrayService.Instance.ShowNotification("Процесс возобновлен", $"Процесс {SelectedProcess.ProcessName} возобновил работу.");
+            }
+        }
+
+        [RelayCommand]
+        public void SetHighPriority()
+        {
+            if (SelectedProcess == null) return;
+            bool ok = ProcessManagerService.Instance.SetProcessPriority(SelectedProcess.ProcessId, ProcessPriorityClass.High);
+            if (ok)
+            {
+                TrayService.Instance.ShowNotification("Приоритет", $"Процессу {SelectedProcess.ProcessName} назначен Высокий приоритет.");
+            }
+        }
+
+        [RelayCommand]
+        public void SetNormalPriority()
+        {
+            if (SelectedProcess == null) return;
+            bool ok = ProcessManagerService.Instance.SetProcessPriority(SelectedProcess.ProcessId, ProcessPriorityClass.Normal);
+            if (ok)
+            {
+                TrayService.Instance.ShowNotification("Приоритет", $"Процессу {SelectedProcess.ProcessName} назначен Обычный приоритет.");
+            }
+        }
+
+        [RelayCommand]
+        public void SetIdlePriority()
+        {
+            if (SelectedProcess == null) return;
+            bool ok = ProcessManagerService.Instance.SetProcessPriority(SelectedProcess.ProcessId, ProcessPriorityClass.Idle);
+            if (ok)
+            {
+                TrayService.Instance.ShowNotification("Приоритет", $"Процессу {SelectedProcess.ProcessName} назначен Низкий приоритет.");
+            }
+        }
+
+        [RelayCommand]
+        public void SearchSelectedOnline()
+        {
+            if (SelectedProcess == null) return;
+            ProcessManagerService.Instance.SearchOnline(SelectedProcess.ProcessName);
         }
 
         [RelayCommand]
@@ -176,6 +266,22 @@ namespace StormSystemOptimizer.ViewModels
                 "Пользовательские" => filtered.Where(p => p.SafetyStatus == ProcessSafetyStatus.UserApp),
                 "Системные Windows" => filtered.Where(p => p.SafetyStatus == ProcessSafetyStatus.CriticalSystem),
                 _ => filtered
+            };
+
+            filtered = CurrentSort switch
+            {
+                "ЦП" or "CPU" => IsSortAscending 
+                    ? filtered.OrderBy(p => p.CpuPercentage) 
+                    : filtered.OrderByDescending(p => p.CpuPercentage),
+                "Имя" or "Name" => IsSortAscending 
+                    ? filtered.OrderBy(p => p.ProcessName) 
+                    : filtered.OrderByDescending(p => p.ProcessName),
+                "PID" => IsSortAscending 
+                    ? filtered.OrderBy(p => p.ProcessId) 
+                    : filtered.OrderByDescending(p => p.ProcessId),
+                _ => IsSortAscending 
+                    ? filtered.OrderBy(p => p.MemoryMegabytes) 
+                    : filtered.OrderByDescending(p => p.MemoryMegabytes)
             };
 
             foreach (var item in filtered)
