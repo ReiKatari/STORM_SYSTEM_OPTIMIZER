@@ -1,0 +1,60 @@
+<Window x:Class="StormSystemOptimizer.Controls.StormOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="STORM HUD"
+        Width="220" Height="100"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        WindowStartupLocation="Manual"
+        Left="20" Top="20">
+    <Border Background="#D90A0E1A" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="10" Padding="10,8" MouseDown="Border_MouseDown">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- Header -->
+            <Grid Grid.Row="0" Margin="0,0,0,6">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Width="6" Height="6" Fill="#00D2FF" Margin="0,0,6,0"/>
+                    <TextBlock Text="STORM HUD" FontSize="11" FontWeight="Bold" Foreground="#00D2FF"/>
+                </StackPanel>
+                <TextBlock Text="[Ctrl+Shift+O]" FontSize="9" Foreground="#64748B" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+            </Grid>
+
+            <!-- Live Metrics Grid -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="CPU: " FontSize="11" Foreground="#94A3B8"/>
+                        <TextBlock x:Name="TxtCpu" Text="0% • 35°C" FontSize="11" FontWeight="Bold" Foreground="#38BDF8"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBlock Text="RAM: " FontSize="11" Foreground="#94A3B8"/>
+                        <TextBlock x:Name="TxtRam" Text="45%" FontSize="11" FontWeight="Bold" Foreground="#C084FC"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" HorizontalAlignment="Right">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="GPU: " FontSize="11" Foreground="#94A3B8"/>
+                        <TextBlock x:Name="TxtGpu" Text="38°C" FontSize="11" FontWeight="Bold" Foreground="#FB7185"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBlock Text="FPS: " FontSize="11" Foreground="#94A3B8"/>
+                        <TextBlock x:Name="TxtFps" Text="144" FontSize="11" FontWeight="Bold" Foreground="#34D399"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

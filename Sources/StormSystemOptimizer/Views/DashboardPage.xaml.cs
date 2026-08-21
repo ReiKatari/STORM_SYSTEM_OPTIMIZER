@@ -38,6 +38,14 @@ namespace StormSystemOptimizer.Views
             }
         }
 
+        private void BtnDeepScan_Click(object sender, RoutedEventArgs e)
+        {
+            if (Window.GetWindow(this) is MainWindow mw)
+            {
+                mw.MainContentFrame.Navigate(new ScannerPage());
+            }
+        }
+
         private void BtnFlushDns_Click(object sender, RoutedEventArgs e)
         {
             bool ok = NetworkOptimizerService.Instance.FlushDnsCache();
