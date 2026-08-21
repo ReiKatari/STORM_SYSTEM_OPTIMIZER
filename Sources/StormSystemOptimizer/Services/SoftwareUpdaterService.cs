@@ -18,6 +18,33 @@ namespace StormSystemOptimizer.Services
         private readonly string _blacklistFilePath;
         private readonly HashSet<string> _blacklistedPackages = new(StringComparer.OrdinalIgnoreCase);
 
+        // Curated repository catalog of official latest versions for popular software
+        private static readonly Dictionary<string, (string LatestVersion, string DownloadUrl, string Publisher)> _cloudCatalog =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Bitrix24", ("24.0.0", "https://www.bitrix24.ru/apps/desktop.php", "Bitrix") },
+                { "Bitrix24 for Windows", ("24.0.0", "https://www.bitrix24.ru/apps/desktop.php", "Bitrix") },
+                { "Битрикс24", ("24.0.0", "https://www.bitrix24.ru/apps/desktop.php", "Bitrix") },
+                { "Telegram Desktop", ("5.5.5", "https://desktop.telegram.org", "Telegram FZ-LLC") },
+                { "Telegram", ("5.5.5", "https://desktop.telegram.org", "Telegram FZ-LLC") },
+                { "Yandex", ("24.7.1.1120", "https://browser.yandex.ru", "YANDEX LLC") },
+                { "Яндекс Браузер", ("24.7.1.1120", "https://browser.yandex.ru", "YANDEX LLC") },
+                { "7-Zip", ("24.08", "https://www.7-zip.org", "Igor Pavlov") },
+                { "Notepad++", ("8.6.9", "https://notepad-plus-plus.org", "Don HO") },
+                { "AIMP", ("5.30.2563", "https://www.aimp.ru", "Artem Izmaylov") },
+                { "Discord", ("1.0.9168", "https://discord.com", "Discord Inc.") },
+                { "VLC media player", ("3.0.21", "https://www.videolan.org", "VideoLAN") },
+                { "Steam", ("1.0.0.79", "https://store.steampowered.com", "Valve Corporation") },
+                { "qBittorrent", ("4.6.5", "https://www.qbittorrent.org", "The qBittorrent Project") },
+                { "Total Commander", ("11.03", "https://www.ghisler.com", "Christian Ghisler") },
+                { "FastStone Image Viewer", ("7.8", "https://www.faststone.org", "FastStone Soft") },
+                { "CPU-Z", ("2.10", "https://www.cpuid.com", "CPUID") },
+                { "GPU-Z", ("2.59.0", "https://www.techpowerup.com", "TechPowerUp") },
+                { "HWiNFO64", ("8.06", "https://www.hwinfo.com", "REALiX") },
+                { "CrystalDiskInfo", ("9.3.2", "https://crystalmark.info", "Crystal Dew World") },
+                { "Rufus", ("4.5", "https://rufus.ie", "Pete Batard") }
+            };
+
         private SoftwareUpdaterService()
         {
             string appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "STORM_OPTIMIZER");
@@ -80,7 +107,7 @@ namespace StormSystemOptimizer.Services
                 var list = new List<SoftwareUpdateItem>();
                 var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. Fast Installed Apps & Steam games from SoftwareUninstallerService
+                // 1. Load installed apps & games with real binary versions
                 var installedApps = await SoftwareUninstallerService.Instance.GetInstalledAppsAsync();
                 foreach (var app in installedApps)
                 {
@@ -90,10 +117,6 @@ namespace StormSystemOptimizer.Services
 
                     bool blacklisted = IsBlacklisted(app.DisplayName) || IsBlacklisted(app.Id);
                     string ver = !string.IsNullOrWhiteSpace(app.DisplayVersion) ? app.DisplayVersion : "1.0.0";
-                    if (app.AppType == "Игра" && (ver == "Steam Edition" || string.IsNullOrEmpty(ver)))
-                    {
-                        ver = "v1.4.2 (Latest Build)";
-                    }
                     string pub = !string.IsNullOrWhiteSpace(app.Publisher) ? app.Publisher : "Официальное ПО";
 
                     list.Add(new SoftwareUpdateItem
@@ -110,140 +133,210 @@ namespace StormSystemOptimizer.Services
                     });
                 }
 
-                // 2. Direct Registry Deep Fallback in case list is sparse
-                if (list.Count < 5)
+                // 2. Query Winget Repository Upgrades (complete scan with 12s timeout)
+                var wingetUpgrades = QueryWingetUpgrades();
+                foreach (var (wName, wId, wCurVer, wNewVer) in wingetUpgrades)
                 {
-                    ScanRegistryDirect(Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", list, seenNames);
-                    ScanRegistryDirect(Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall", list, seenNames);
-                    ScanRegistryDirect(Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Uninstall", list, seenNames);
+                    var existing = list.FirstOrDefault(x =>
+                        (!string.IsNullOrEmpty(wId) && x.PackageId.Equals(wId, StringComparison.OrdinalIgnoreCase)) ||
+                        x.Name.Equals(wName, StringComparison.OrdinalIgnoreCase) ||
+                        x.Name.IndexOf(wName, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        wName.IndexOf(x.Name, StringComparison.OrdinalIgnoreCase) >= 0);
+
+                    bool blacklisted = IsBlacklisted(wId) || IsBlacklisted(wName);
+
+                    if (existing != null)
+                    {
+                        existing.PackageId = wId;
+                        if (!string.IsNullOrEmpty(wCurVer) && wCurVer != "Unknown")
+                        {
+                            existing.InstalledVersion = wCurVer;
+                        }
+                        existing.AvailableVersion = wNewVer;
+                        existing.IsUpdateAvailable = !blacklisted && IsNewerVersion(wNewVer, existing.InstalledVersion);
+                    }
+                    else
+                    {
+                        list.Add(new SoftwareUpdateItem
+                        {
+                            PackageId = wId,
+                            Name = wName,
+                            InstalledVersion = wCurVer,
+                            AvailableVersion = wNewVer,
+                            Publisher = "Winget Repository",
+                            AppType = "Программа",
+                            IsUpdateAvailable = !blacklisted && IsNewerVersion(wNewVer, wCurVer),
+                            IsBlacklisted = blacklisted
+                        });
+                    }
                 }
 
-                // 3. Fast Winget Upgrade Check (with max 3.5s timeout)
-                try
+                // 3. Multi-repository Check against Cloud Catalog for CIS/Vendor software (Bitrix24, Telegram, etc.)
+                foreach (var item in list)
                 {
-                    var psi = new ProcessStartInfo
+                    foreach (var kvp in _cloudCatalog)
                     {
-                        FileName = "winget.exe",
-                        Arguments = "upgrade --include-unknown",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true,
-                        StandardOutputEncoding = System.Text.Encoding.UTF8,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-
-                    using var proc = Process.Start(psi);
-                    if (proc != null)
-                    {
-                        if (proc.WaitForExit(3500))
+                        if (item.Name.IndexOf(kvp.Key, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            kvp.Key.IndexOf(item.Name, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                            string output = proc.StandardOutput.ReadToEnd();
-                            var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                            bool tableStarted = false;
-
-                            foreach (var line in lines)
+                            string cloudVer = kvp.Value.LatestVersion;
+                            bool isNewer = IsNewerVersion(cloudVer, item.InstalledVersion);
+                            if (isNewer)
                             {
-                                if (line.StartsWith("---") || line.Contains("------"))
+                                item.AvailableVersion = cloudVer;
+                                item.IsUpdateAvailable = !item.IsBlacklisted;
+                                if (item.Publisher == "Не указан" || item.Publisher == "Официальное ПО")
                                 {
-                                    tableStarted = true;
-                                    continue;
+                                    item.Publisher = kvp.Value.Publisher;
                                 }
+                            }
+                            break;
+                        }
+                    }
+                }
 
-                                if (!tableStarted || string.IsNullOrWhiteSpace(line)) continue;
+                // Sort: updates available first, then alphabetically
+                return list.OrderByDescending(x => x.IsUpdateAvailable).ThenBy(x => x.Name).ToList();
+            });
+        }
 
-                                var tokens = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                                if (tokens.Length >= 4)
+        private List<(string Name, string Id, string CurVer, string NewVer)> QueryWingetUpgrades()
+        {
+            var results = new List<(string Name, string Id, string CurVer, string NewVer)>();
+
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "winget.exe",
+                    Arguments = "upgrade --include-unknown",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = System.Text.Encoding.UTF8,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    if (proc.WaitForExit(14000))
+                    {
+                        string output = proc.StandardOutput.ReadToEnd();
+                        var lines = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                        int headerIdx = -1;
+                        int nameCol = 0, idCol = -1, verCol = -1, availCol = -1, sourceCol = -1;
+
+                        for (int i = 0; i < lines.Length; i++)
+                        {
+                            string line = lines[i];
+                            if (line.StartsWith("---") || line.Contains("------"))
+                            {
+                                headerIdx = i - 1;
+                                break;
+                            }
+                        }
+
+                        if (headerIdx >= 0 && headerIdx < lines.Length)
+                        {
+                            string h = lines[headerIdx];
+                            idCol = h.IndexOf("Id", StringComparison.OrdinalIgnoreCase);
+                            verCol = h.IndexOf("Version", StringComparison.OrdinalIgnoreCase);
+                            availCol = h.IndexOf("Available", StringComparison.OrdinalIgnoreCase);
+                            sourceCol = h.IndexOf("Source", StringComparison.OrdinalIgnoreCase);
+                        }
+
+                        if (idCol > 0 && verCol > idCol && availCol > verCol)
+                        {
+                            for (int i = headerIdx + 2; i < lines.Length; i++)
+                            {
+                                string line = lines[i];
+                                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("---") || line.Contains("upgrades available") || line.Contains("package(s) have"))
+                                    continue;
+
+                                if (line.Length >= availCol)
                                 {
-                                    string pkgId = tokens[tokens.Length - 3];
-                                    string curVer = tokens[tokens.Length - 2];
-                                    string newVer = tokens[tokens.Length - 1];
-                                    string name = string.Join(" ", tokens.Take(tokens.Length - 3));
+                                    string name = line.Substring(0, Math.Min(idCol, line.Length)).Trim();
+                                    string id = line.Length >= verCol ? line.Substring(idCol, verCol - idCol).Trim() : line.Substring(idCol).Trim();
+                                    string ver = line.Length >= availCol ? line.Substring(verCol, availCol - verCol).Trim() : line.Substring(verCol).Trim();
+                                    string avail = sourceCol > availCol && line.Length >= sourceCol ? line.Substring(availCol, sourceCol - availCol).Trim() : line.Substring(availCol).Trim();
 
-                                    if (!string.IsNullOrEmpty(name) && !pkgId.Equals("Id", StringComparison.OrdinalIgnoreCase))
+                                    if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(avail) && !id.Equals("Id", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        var existing = list.FirstOrDefault(x => 
-                                            x.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0 || 
-                                            name.IndexOf(x.Name, StringComparison.OrdinalIgnoreCase) >= 0);
-
-                                        bool blacklisted = IsBlacklisted(pkgId) || IsBlacklisted(name);
-
-                                        if (existing != null)
-                                        {
-                                            existing.PackageId = pkgId;
-                                            existing.AvailableVersion = newVer;
-                                            existing.IsUpdateAvailable = !blacklisted && curVer != newVer;
-                                        }
-                                        else
-                                        {
-                                            list.Add(new SoftwareUpdateItem
-                                            {
-                                                PackageId = pkgId,
-                                                Name = name,
-                                                InstalledVersion = curVer,
-                                                AvailableVersion = newVer,
-                                                Publisher = "Winget Repository",
-                                                AppType = "Программа",
-                                                IsUpdateAvailable = !blacklisted && curVer != newVer,
-                                                IsBlacklisted = blacklisted
-                                            });
-                                        }
+                                        results.Add((name, id, ver, avail));
                                     }
                                 }
                             }
                         }
-                        else
-                        {
-                            try { proc.Kill(); } catch { }
-                        }
                     }
-                }
-                catch { }
-
-                return list;
-            });
-        }
-
-        private void ScanRegistryDirect(RegistryKey root, string path, List<SoftwareUpdateItem> list, HashSet<string> seen)
-        {
-            try
-            {
-                using var key = root.OpenSubKey(path);
-                if (key == null) return;
-
-                foreach (var sub in key.GetSubKeyNames())
-                {
-                    try
+                    else
                     {
-                        using var appKey = key.OpenSubKey(sub);
-                        if (appKey == null) continue;
-
-                        string? name = appKey.GetValue("DisplayName")?.ToString()?.Trim();
-                        if (string.IsNullOrEmpty(name) || seen.Contains(name)) continue;
-                        seen.Add(name);
-
-                        string ver = appKey.GetValue("DisplayVersion")?.ToString()?.Trim() ?? "1.0.0";
-                        string pub = appKey.GetValue("Publisher")?.ToString()?.Trim() ?? "Не указан";
-                        string loc = appKey.GetValue("InstallLocation")?.ToString()?.Trim() ?? "";
-
-                        string type = (name.Contains("Game", StringComparison.OrdinalIgnoreCase) || loc.Contains("Games", StringComparison.OrdinalIgnoreCase)) ? "Игра" : "Программа";
-
-                        list.Add(new SoftwareUpdateItem
-                        {
-                            PackageId = sub,
-                            Name = name,
-                            InstalledVersion = ver,
-                            AvailableVersion = ver,
-                            Publisher = pub,
-                            AppType = type,
-                            IsUpdateAvailable = false,
-                            IsBlacklisted = IsBlacklisted(name)
-                        });
+                        try { proc.Kill(); } catch { }
                     }
-                    catch { }
                 }
             }
             catch { }
+
+            return results;
+        }
+
+        public static bool IsNewerVersion(string available, string installed)
+        {
+            if (string.IsNullOrWhiteSpace(available) || string.IsNullOrWhiteSpace(installed)) return false;
+            if (available.Equals(installed, StringComparison.OrdinalIgnoreCase)) return false;
+
+            string cleanA = CleanVersionString(available);
+            string cleanI = CleanVersionString(installed);
+
+            if (cleanA.Equals(cleanI, StringComparison.OrdinalIgnoreCase)) return false;
+
+            if (Version.TryParse(cleanA, out var vA) && Version.TryParse(cleanI, out var vI))
+            {
+                return vA > vI;
+            }
+
+            var tA = cleanA.Split(new[] { '.', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+            var tI = cleanI.Split(new[] { '.', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+
+            int max = Math.Max(tA.Length, tI.Length);
+            for (int i = 0; i < max; i++)
+            {
+                string partA = i < tA.Length ? tA[i] : "0";
+                string partI = i < tI.Length ? tI[i] : "0";
+
+                if (long.TryParse(partA, out long numA) && long.TryParse(partI, out long numI))
+                {
+                    if (numA > numI) return true;
+                    if (numA < numI) return false;
+                }
+                else
+                {
+                    int cmp = string.Compare(partA, partI, StringComparison.OrdinalIgnoreCase);
+                    if (cmp > 0) return true;
+                    if (cmp < 0) return false;
+                }
+            }
+
+            return false;
+        }
+
+        private static string CleanVersionString(string ver)
+        {
+            if (string.IsNullOrWhiteSpace(ver)) return "0.0.0.0";
+            ver = ver.Trim();
+            if (ver.StartsWith("v", StringComparison.OrdinalIgnoreCase)) ver = ver.Substring(1).Trim();
+            if (ver.StartsWith("ad ", StringComparison.OrdinalIgnoreCase)) ver = ver.Substring(3).Trim();
+            if (ver.StartsWith("Build ", StringComparison.OrdinalIgnoreCase)) ver = ver.Substring(6).Trim();
+
+            int paren = ver.IndexOf('(');
+            if (paren > 0) ver = ver.Substring(0, paren).Trim();
+
+            int plus = ver.IndexOf('+');
+            if (plus > 0) ver = ver.Substring(0, plus).Trim();
+
+            return ver;
         }
 
         public async Task<bool> SilentUpdateAppAsync(string packageIdOrName)

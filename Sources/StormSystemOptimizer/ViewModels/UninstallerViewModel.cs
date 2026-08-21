@@ -27,6 +27,9 @@ namespace StormSystemOptimizer.ViewModels
         private string _selectedCategory = "Все"; // Все, Игры, Программы, Windows Store
 
         [ObservableProperty]
+        private string _selectedSort = "Размер ↓"; // "Размер ↓", "Размер ↑", "Имя (А-Я)", "Дата"
+
+        [ObservableProperty]
         private string _statsSummary = "0 программ • 0 ГБ занято";
 
         [ObservableProperty]
@@ -58,10 +61,18 @@ namespace StormSystemOptimizer.ViewModels
 
         partial void OnSearchQueryChanged(string value) => ApplyFilters();
         partial void OnSelectedCategoryChanged(string value) => ApplyFilters();
+        partial void OnSelectedSortChanged(string value) => ApplyFilters();
 
+        [RelayCommand]
         public void SetCategory(string category)
         {
             SelectedCategory = category;
+        }
+
+        [RelayCommand]
+        public void SetSort(string sort)
+        {
+            SelectedSort = sort;
         }
 
         private void ApplyFilters()
@@ -86,6 +97,14 @@ namespace StormSystemOptimizer.ViewModels
             {
                 query = query.Where(a => a.AppType == "Windows Store");
             }
+
+            query = SelectedSort switch
+            {
+                "Размер ↑" => query.OrderBy(a => a.EstimatedSizeMb),
+                "Имя (А-Я)" => query.OrderBy(a => a.DisplayName),
+                "Дата" => query.OrderByDescending(a => a.InstallDate),
+                _ => query.OrderByDescending(a => a.EstimatedSizeMb)
+            };
 
             DisplayApps.Clear();
             foreach (var item in query)
@@ -119,20 +138,6 @@ namespace StormSystemOptimizer.ViewModels
             TrayService.Instance.ShowNotification("Деинсталляция программы 🗑️", msg);
 
             await LoadAppsAsync();
-            IsBusy = false;
-        }
-
-        [RelayCommand]
-        public async Task CleanResidualsOnlyAsync(InstalledAppItem? item)
-        {
-            if (item == null) return;
-            IsBusy = true;
-            StatusText = $"Очистка остаточных файлов «{item.DisplayName}»...";
-
-            int cleaned = await SoftwareUninstallerService.Instance.CleanAllResidualsAsync(item);
-            StatusText = $"Удалено {cleaned} остаточных объектов для «{item.DisplayName}».";
-            TrayService.Instance.ShowNotification("Очистка остатков 🧹", StatusText);
-
             IsBusy = false;
         }
     }
