@@ -7,7 +7,8 @@ namespace StormSystemOptimizer.Models
     {
         SafeToKill,        // 🟢 Безопасно завершить (фоновые лаунчеры, блоатваре, трекеры)
         UserApp,           // 🟡 Пользовательская программа
-        CriticalSystem     // 🔴 Системный процесс Windows (защищен)
+        CriticalSystem,    // 🔴 Системный процесс Windows (защищен)
+        Suspicious         // ⚠️ Подозрительный процесс / Майнер
     }
 
     public partial class ProcessInfoItem : ObservableObject
@@ -59,6 +60,7 @@ namespace StormSystemOptimizer.Models
             ProcessSafetyStatus.SafeToKill => "БЕЗОПАСНО ЗАВЕРШИТЬ",
             ProcessSafetyStatus.UserApp => "ПОЛЬЗОВАТЕЛЬСКОЕ ПО",
             ProcessSafetyStatus.CriticalSystem => "СИСТЕМНЫЙ ПРОЦЕСС",
+            ProcessSafetyStatus.Suspicious => "⚠️ ПОДОЗРИТЕЛЬНЫЙ (МАЙНЕР)",
             _ => "ПРОЦЕСС"
         };
 

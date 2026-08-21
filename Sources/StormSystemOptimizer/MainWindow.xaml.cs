@@ -171,6 +171,10 @@ namespace StormSystemOptimizer
                         "SystemInfo" => new SystemInfoPage(),
                         "BiosOptimizer" => new BiosOptimizerPage(),
                         "SystemTools" => new SystemToolsPage(),
+                        "PowerTuning" => new PowerTuningPage(),
+                        "InputLag" => new InputLagPage(),
+                        "ContextMenu" => new ContextMenuPage(),
+                        "BackupVault" => new BackupVaultPage(),
                         "Settings" => new SettingsPage(),
                         _ => new DashboardPage()
                     };

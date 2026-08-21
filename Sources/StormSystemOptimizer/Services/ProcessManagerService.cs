@@ -239,6 +239,56 @@ namespace StormSystemOptimizer.Services
             return false;
         }
 
+        public bool SetProcessAffinityToPCores(int processId)
+        {
+            try
+            {
+                var proc = Process.GetProcessById(processId);
+                int coreCount = Environment.ProcessorCount;
+                // For hybrid CPU (e.g. 16 threads: P-cores 0..7 or all even threads)
+                long affinityMask = 0;
+                int pCores = Math.Max(2, coreCount >= 8 ? coreCount / 2 : coreCount);
+                for (int i = 0; i < pCores; i++)
+                {
+                    affinityMask |= (1L << i);
+                }
+                proc.ProcessorAffinity = (IntPtr)affinityMask;
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool TrimProcessWorkingSet(int processId)
+        {
+            try
+            {
+                var proc = Process.GetProcessById(processId);
+                return NativeMethods.EmptyWorkingSet(proc.Handle) != 0;
+            }
+            catch { return false; }
+        }
+
+        public List<ProcessInfoItem> DetectSuspiciousMiners(IEnumerable<ProcessInfoItem> allProcs)
+        {
+            var suspicious = new List<ProcessInfoItem>();
+            foreach (var p in allProcs)
+            {
+                string n = p.ProcessName.ToLowerInvariant();
+                if (n.Contains("xmrig") || n.Contains("miner") || n.Contains("ethminer") || n.Contains("nicehash") || n.Contains("cryptonight"))
+                {
+                    p.SafetyStatus = ProcessSafetyStatus.Suspicious;
+                    p.RecommendationText = "⚠️ ОБНАРУЖЕН МАЙНЕР КРИПТОВАЛЮТЫ! Рекомендуется немедленно завершить.";
+                    suspicious.Add(p);
+                }
+                else if (p.CpuPercentage > 40.0 && p.CanBeTerminated)
+                {
+                    p.RecommendationText = "⚠️ Аномально высокая фоновая нагрузка на процессор. Проверьте источник.";
+                    suspicious.Add(p);
+                }
+            }
+            return suspicious;
+        }
+
         public bool SearchOnline(string processName)
         {
             try

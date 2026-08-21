@@ -58,12 +58,17 @@
 
         <!-- Filters Bar -->
         <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="20,0,20,12">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <RadioButton Content="Все программы" IsChecked="True" Style="{StaticResource NavRadioButtonStyle}" Click="FilterAll_Click" Margin="0,0,8,0" Padding="12,6"/>
-                <RadioButton Content="⚡ Требуют обновления" Style="{StaticResource NavRadioButtonStyle}" Click="FilterUpdates_Click" Margin="0,0,8,0" Padding="12,6"/>
-                <RadioButton Content="✅ Актуальные" Style="{StaticResource NavRadioButtonStyle}" Click="FilterActual_Click" Margin="0,0,8,0" Padding="12,6"/>
-                <RadioButton Content="🔒 Черный список" Style="{StaticResource NavRadioButtonStyle}" Click="FilterBlacklist_Click" Margin="0,0,8,0" Padding="12,6"/>
-            </StackPanel>
+            <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <RadioButton Content="🔘 Все" IsChecked="True" Style="{StaticResource NavRadioButtonStyle}" Click="FilterAll_Click" Margin="0,0,6,0" Padding="10,5"/>
+                <RadioButton Content="⚡ Требуют обновления" Style="{StaticResource NavRadioButtonStyle}" Click="FilterUpdates_Click" Margin="0,0,6,0" Padding="10,5"/>
+                <RadioButton Content="🌐 Браузеры" Style="{StaticResource NavRadioButtonStyle}" Click="FilterBrowsers_Click" Margin="0,0,6,0" Padding="10,5"/>
+                <RadioButton Content="🎮 Игры" Style="{StaticResource NavRadioButtonStyle}" Click="FilterGames_Click" Margin="0,0,6,0" Padding="10,5"/>
+                <RadioButton Content="🛠️ Утилиты" Style="{StaticResource NavRadioButtonStyle}" Click="FilterUtils_Click" Margin="0,0,6,0" Padding="10,5"/>
+                <RadioButton Content="🎬 Медиа" Style="{StaticResource NavRadioButtonStyle}" Click="FilterMedia_Click" Margin="0,0,6,0" Padding="10,5"/>
+                <RadioButton Content="💻 Разработка" Style="{StaticResource NavRadioButtonStyle}" Click="FilterDev_Click" Margin="0,0,6,0" Padding="10,5"/>
+                <RadioButton Content="✅ Актуальные" Style="{StaticResource NavRadioButtonStyle}" Click="FilterActual_Click" Margin="0,0,6,0" Padding="10,5"/>
+                <RadioButton Content="🔒 Черный список" Style="{StaticResource NavRadioButtonStyle}" Click="FilterBlacklist_Click" Margin="0,0,6,0" Padding="10,5"/>
+            </WrapPanel>
         </Border>
 
         <!-- Main Apps List -->
