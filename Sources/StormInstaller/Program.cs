@@ -175,9 +175,22 @@ namespace StormOptimizerInstaller
 
             try
             {
+                lblStatus.Text = "Остановка предыдущих запущенных процессов...";
+                progressBar.Value = 10;
+                await Task.Delay(100);
+
+                try
+                {
+                    foreach (var proc in System.Diagnostics.Process.GetProcessesByName("StormSystemOptimizer"))
+                    {
+                        try { proc.Kill(); proc.WaitForExit(2000); } catch { }
+                    }
+                }
+                catch { }
+
                 lblStatus.Text = "Подготовка целевой директории...";
-                progressBar.Value = 15;
-                await Task.Delay(200);
+                progressBar.Value = 25;
+                await Task.Delay(150);
 
                 if (!Directory.Exists(targetDir))
                 {
@@ -185,8 +198,8 @@ namespace StormOptimizerInstaller
                 }
 
                 lblStatus.Text = "Установка корневого доверенного сертификата STORM Software...";
-                progressBar.Value = 35;
-                await Task.Delay(200);
+                progressBar.Value = 45;
+                await Task.Delay(150);
 
                 ExtractResource("STORM_Certificate.cer", targetCer);
                 if (File.Exists(targetCer))
@@ -194,16 +207,16 @@ namespace StormOptimizerInstaller
                     InstallCertificate(targetCer);
                 }
 
-                lblStatus.Text = "Распаковка исполняемых файлов программы (v0.0.6)...";
-                progressBar.Value = 65;
-                await Task.Delay(300);
+                lblStatus.Text = "Распаковка исполняемых файлов программы (v0.0.8)...";
+                progressBar.Value = 70;
+                await Task.Delay(250);
 
                 ExtractResource("StormSystemOptimizer.exe", targetExe);
                 ExtractResource("AppIcon.ico", targetIco);
 
                 lblStatus.Text = "Создание системных ярлыков и регистрация в Windows...";
-                progressBar.Value = 85;
-                await Task.Delay(200);
+                progressBar.Value = 90;
+                await Task.Delay(150);
 
                 CreateShortcuts(targetDir, targetExe, targetIco, chkDesktop.Checked);
                 RegisterUninstall(targetDir, targetExe, targetIco);
@@ -248,6 +261,22 @@ namespace StormOptimizerInstaller
                     store.Open(OpenFlags.ReadWrite);
                     store.Add(cert);
                 }
+
+                // Also try LocalMachine if elevated
+                try
+                {
+                    using (var lmRoot = new X509Store(StoreName.Root, StoreLocation.LocalMachine))
+                    {
+                        lmRoot.Open(OpenFlags.ReadWrite);
+                        lmRoot.Add(cert);
+                    }
+                    using (var lmPub = new X509Store(StoreName.TrustedPublisher, StoreLocation.LocalMachine))
+                    {
+                        lmPub.Open(OpenFlags.ReadWrite);
+                        lmPub.Add(cert);
+                    }
+                }
+                catch { }
             }
             catch { }
         }
@@ -285,7 +314,7 @@ namespace StormOptimizerInstaller
                 shortcut.TargetPath = targetExe;
                 shortcut.WorkingDirectory = targetDir;
                 shortcut.IconLocation = targetIco + ",0";
-                shortcut.Description = "STORM SYSTEM OPTIMIZER v0.0.6";
+                shortcut.Description = "STORM SYSTEM OPTIMIZER v0.0.8";
                 shortcut.Save();
 
                 // Desktop shortcut
@@ -296,7 +325,7 @@ namespace StormOptimizerInstaller
                     deskShortcut.TargetPath = targetExe;
                     deskShortcut.WorkingDirectory = targetDir;
                     deskShortcut.IconLocation = targetIco + ",0";
-                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v0.0.6";
+                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v0.0.8";
                     deskShortcut.Save();
                 }
             }
@@ -310,8 +339,8 @@ namespace StormOptimizerInstaller
                 using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer");
                 if (key != null)
                 {
-                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v0.0.6");
-                    key.SetValue("DisplayVersion", "0.0.6");
+                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v0.0.8");
+                    key.SetValue("DisplayVersion", "0.0.8");
                     key.SetValue("Publisher", "STORM Software");
                     key.SetValue("DisplayIcon", targetIco);
                     key.SetValue("InstallLocation", targetDir);
