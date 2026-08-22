@@ -259,10 +259,10 @@ namespace StormSystemOptimizer.ViewModels
             DnsStatus = $"Применение {item.ProviderName}...";
             DnsBenchmarkService.SetAppliedDns(item.PrimaryDns, item.SecondaryDns);
 
-            // Instantly update active states in UI collection
+            // Instantly update active states in UI collection - strictly single active item
             foreach (var d in DnsServers)
             {
-                d.IsActive = (d == item || d.PrimaryDns == item.PrimaryDns);
+                d.IsActive = (d == item);
             }
             var custom = DnsServers.FirstOrDefault(x => x.ProviderName.StartsWith("Текущий DNS системы", StringComparison.OrdinalIgnoreCase));
             if (custom != null && item != custom)

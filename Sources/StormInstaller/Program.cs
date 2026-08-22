@@ -19,7 +19,7 @@ namespace StormOptimizerInstaller
         private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
-        private const string AppVersion = "0.3.5";
+        private const string AppVersion = "0.3.6";
         private Button btnBrowse = null!;
 
         private RadioButton rbStandard = null!;
@@ -44,7 +44,7 @@ namespace StormOptimizerInstaller
 
         private void InitializeComponent()
         {
-            this.Text = "Установка STORM SYSTEM OPTIMIZER v0.3.5";
+            this.Text = "Установка STORM SYSTEM OPTIMIZER v0.3.6";
             this.Size = new Size(620, 520);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
