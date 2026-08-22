@@ -153,6 +153,8 @@ namespace StormSystemOptimizer
 
         private void NavButton_Click(object sender, RoutedEventArgs e)
         {
+            if (MainContentFrame == null) return;
+
             if (sender is RadioButton rb && rb.Tag is string tag)
             {
                 if (!_pageCache.TryGetValue(tag, out var page) || page == null)

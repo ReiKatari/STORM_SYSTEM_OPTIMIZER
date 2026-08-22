@@ -9,7 +9,7 @@
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
         <!-- Background Track Arc -->
         <Path x:Name="TrackPath"
-              Stroke="{Binding Path=TrackBrush, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={DynamicResource GaugeTrackBrush}, FallbackValue={DynamicResource GaugeTrackBrush}}"
+              Stroke="{DynamicResource GaugeTrackBrush}"
               StrokeThickness="{Binding Path=StrokeThickness, RelativeSource={RelativeSource AncestorType=UserControl}}"
               StrokeStartLineCap="Round"
               StrokeEndLineCap="Round"/>
