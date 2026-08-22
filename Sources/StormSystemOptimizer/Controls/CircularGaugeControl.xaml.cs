@@ -103,6 +103,15 @@ namespace StormSystemOptimizer.Controls
         {
             if (TrackPath == null || ProgressPath == null) return;
 
+            if (TrackBrush != null)
+            {
+                TrackPath.Stroke = TrackBrush;
+            }
+            else
+            {
+                TrackPath.SetResourceReference(Shape.StrokeProperty, "GaugeTrackBrush");
+            }
+
             TxtValue.Text = $"{Math.Round(Value):F0}";
             TxtUnit.Text = Unit;
             TxtTitle.Text = Title;
