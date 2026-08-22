@@ -359,7 +359,7 @@
                                 <Border Background="#1AC084FC" CornerRadius="4" Padding="3" Margin="0,0,6,0">
                                     <Path Data="{StaticResource GeoRam}" Fill="{StaticResource IconGradPurple}" Width="11" Height="11" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Память (RAM Скорость &amp; Latency)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Память (RAM Скорость и Latency)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="{Binding RamScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <TextBlock Text="{Binding RamSpeedText}" FontSize="20" FontWeight="Bold" Foreground="#C084FC" Margin="0,8,0,0"/>
@@ -380,7 +380,7 @@
                                 <Border Background="#1A34D399" CornerRadius="4" Padding="3" Margin="0,0,6,0">
                                     <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradEmerald}" Width="11" Height="11" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Диск (Последовательный &amp; 4K IOPS)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Диск (Последовательный и 4K IOPS)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="{Binding DiskScoreDetail}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <TextBlock Text="{Binding DiskSpeedText}" FontSize="20" FontWeight="Bold" Foreground="#34D399" Margin="0,8,0,0"/>

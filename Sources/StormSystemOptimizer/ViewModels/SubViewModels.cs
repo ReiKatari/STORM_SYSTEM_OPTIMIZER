@@ -180,6 +180,7 @@ namespace StormSystemOptimizer.ViewModels
     }
 
     // --- Network View Model with DNS Benchmark & Blackhole Shield ---
+    // --- Network View Model with DNS Benchmark & Blackhole Shield ---
     public partial class NetworkViewModel : ObservableObject
     {
         public ObservableCollection<DnsServerItem> DnsServers { get; } = new();
@@ -188,10 +189,16 @@ namespace StormSystemOptimizer.ViewModels
         private string _pingText = "-- мс";
 
         [ObservableProperty]
-        private string _activeDnsProvider = "Cloudflare (1.1.1.1)";
+        private string _activeDnsProvider = "Определение...";
 
         [ObservableProperty]
         private string _dnsStatus = "Сетевой стек готов к работе";
+
+        [ObservableProperty]
+        private string _customDnsPrimary = "1.1.1.1";
+
+        [ObservableProperty]
+        private string _customDnsSecondary = "8.8.8.8";
 
         [ObservableProperty]
         private bool _isMeasuring = false;
@@ -230,12 +237,45 @@ namespace StormSystemOptimizer.ViewModels
             {
                 DnsServers.Add(item);
             }
+            UpdateActiveDnsLabel();
+        }
+
+        private void UpdateActiveDnsLabel()
+        {
+            var (p, s) = DnsBenchmarkService.GetCurrentSystemDns();
+            if (!string.IsNullOrEmpty(p))
+            {
+                CustomDnsPrimary = p;
+                if (!string.IsNullOrEmpty(s)) CustomDnsSecondary = s;
+
+                var match = DnsServers.FirstOrDefault(x =>
+                    string.Equals(x.PrimaryDns, p, StringComparison.OrdinalIgnoreCase) &&
+                    (string.IsNullOrEmpty(x.SecondaryDns) || string.Equals(x.SecondaryDns, s, StringComparison.OrdinalIgnoreCase)));
+
+                if (match != null && !match.ProviderName.StartsWith("Текущий", StringComparison.OrdinalIgnoreCase))
+                {
+                    ActiveDnsProvider = match.ProviderName;
+                }
+                else if (p.StartsWith("192.168.") || p.StartsWith("10.") || p.StartsWith("172."))
+                {
+                    ActiveDnsProvider = "DHCP / Локальный роутер";
+                }
+                else
+                {
+                    ActiveDnsProvider = $"Пользовательский ({p})";
+                }
+            }
+            else
+            {
+                ActiveDnsProvider = "DHCP (Автоматически)";
+            }
         }
 
         [RelayCommand]
         public async Task LoadNetworkDataAsync()
         {
             NetworkInfo = await NetworkOptimizerService.Instance.GetNetworkInfoAsync();
+            UpdateActiveDnsLabel();
             _ = MeasurePingAsync();
         }
 
@@ -249,7 +289,49 @@ namespace StormSystemOptimizer.ViewModels
             {
                 DnsServers.Add(item);
             }
+            UpdateActiveDnsLabel();
             DnsStatus = $"Тест DNS завершен! Самый быстрый: {DnsServers.FirstOrDefault()?.ProviderName} ({DnsServers.FirstOrDefault()?.PingText})";
+        }
+
+        [RelayCommand]
+        public async Task ApplyCustomDnsAsync()
+        {
+            string p = CustomDnsPrimary?.Trim() ?? "";
+            string s = CustomDnsSecondary?.Trim() ?? "";
+
+            if (string.IsNullOrWhiteSpace(p) || !System.Net.IPAddress.TryParse(p, out _))
+            {
+                DnsStatus = "Ошибка: укажите корректный IPv4 адрес для основного DNS 1 (например 1.1.1.1)";
+                TrayService.Instance.ShowNotification("DNS Ошибка", DnsStatus);
+                return;
+            }
+
+            if (!string.IsNullOrWhiteSpace(s) && !System.Net.IPAddress.TryParse(s, out _))
+            {
+                DnsStatus = "Ошибка: укажите корректный IPv4 адрес для альтернативного DNS 2 (например 8.8.8.8)";
+                TrayService.Instance.ShowNotification("DNS Ошибка", DnsStatus);
+                return;
+            }
+
+            DnsStatus = $"Установка пользовательского DNS ({p}, {s})...";
+            DnsBenchmarkService.SetAppliedDns(p, s);
+
+            bool ok = await DnsBenchmarkService.Instance.ApplyDnsToActiveAdapterAsync(p, s);
+            if (ok)
+            {
+                if (NetworkInfo != null)
+                {
+                    NetworkInfo.DnsServers = string.IsNullOrEmpty(s) ? p : $"{p}, {s}";
+                }
+                UpdateActiveDnsLabel();
+                LoadDefaultDnsList();
+                DnsStatus = $"Пользовательский DNS ({p} / {s}) успешно применен!";
+                TrayService.Instance.ShowNotification("DNS изменен", DnsStatus);
+            }
+            else
+            {
+                DnsStatus = "Не удалось применить DNS к активному сетевому адаптеру";
+            }
         }
 
         [RelayCommand]
@@ -258,6 +340,9 @@ namespace StormSystemOptimizer.ViewModels
             if (item == null) return;
             DnsStatus = $"Применение {item.ProviderName}...";
             DnsBenchmarkService.SetAppliedDns(item.PrimaryDns, item.SecondaryDns);
+
+            CustomDnsPrimary = item.PrimaryDns;
+            CustomDnsSecondary = item.SecondaryDns;
 
             // Instantly update active states in UI collection - strictly single active item
             foreach (var d in DnsServers)
@@ -289,7 +374,7 @@ namespace StormSystemOptimizer.ViewModels
         {
             IsTcpNoDelayEnabled = !IsTcpNoDelayEnabled;
             AdvancedTweaksService.Instance.DisableNaglesAlgorithm();
-            DnsStatus = IsTcpNoDelayEnabled ? "TCP NoDelay & Nagle отключены (ультра-низкий онлайн пинг)" : "Стандартные настройки TCP";
+            DnsStatus = IsTcpNoDelayEnabled ? "TCP NoDelay и Nagle отключены (ультра-низкий онлайн пинг)" : "Стандартные настройки TCP";
             TrayService.Instance.ShowNotification("TCP Оптимизация", DnsStatus);
         }
 
@@ -590,6 +675,18 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private bool _isTempCleaned = false;
 
+        [ObservableProperty]
+        private bool _isExplorerOptimized = false;
+
+        [ObservableProperty]
+        private bool _isWin32PriorityOptimized = false;
+
+        [ObservableProperty]
+        private bool _isMmcssOptimized = false;
+
+        [ObservableProperty]
+        private bool _isZeroStartupDelayActive = false;
+
         public bool IsNotBusy => !IsBusy;
 
         public SystemToolsViewModel()
@@ -606,9 +703,17 @@ namespace StormSystemOptimizer.ViewModels
             {
                 bool msiRegistry = AdvancedTweaksService.Instance.IsMsiModeActive();
                 bool dsRegistry = AdvancedTweaksService.Instance.IsDirectStorageOptimized();
+                bool expRegistry = AdvancedTweaksService.Instance.IsExplorerResponsivenessActive();
+                bool win32Registry = AdvancedTweaksService.Instance.IsWin32PrioritySeparationActive();
+                bool mmcssRegistry = AdvancedTweaksService.Instance.IsMmcssGamingOptimizationActive();
+                bool zeroStartRegistry = AdvancedTweaksService.Instance.IsZeroStartupDelayActive();
 
                 IsMsiActive = msiRegistry;
                 IsDirectStorageActive = dsRegistry;
+                IsExplorerOptimized = expRegistry;
+                IsWin32PriorityOptimized = win32Registry;
+                IsMmcssOptimized = mmcssRegistry;
+                IsZeroStartupDelayActive = zeroStartRegistry;
 
                 if (File.Exists(_stateFilePath))
                 {
@@ -618,6 +723,10 @@ namespace StormSystemOptimizer.ViewModels
                     {
                         if (dict.TryGetValue("IsMsiActive", out bool vMsi)) IsMsiActive = vMsi || msiRegistry;
                         if (dict.TryGetValue("IsDirectStorageActive", out bool vDs)) IsDirectStorageActive = vDs || dsRegistry;
+                        if (dict.TryGetValue("IsExplorerOptimized", out bool vExp)) IsExplorerOptimized = vExp || expRegistry;
+                        if (dict.TryGetValue("IsWin32PriorityOptimized", out bool vW32)) IsWin32PriorityOptimized = vW32 || win32Registry;
+                        if (dict.TryGetValue("IsMmcssOptimized", out bool vMm)) IsMmcssOptimized = vMm || mmcssRegistry;
+                        if (dict.TryGetValue("IsZeroStartupDelayActive", out bool vZs)) IsZeroStartupDelayActive = vZs || zeroStartRegistry;
                         if (dict.TryGetValue("IsStandbyPurged", out bool v1)) IsStandbyPurged = v1;
                         if (dict.TryGetValue("IsSfcChecked", out bool v2)) IsSfcChecked = v2;
                         if (dict.TryGetValue("IsDismChecked", out bool v3)) IsDismChecked = v3;
@@ -639,6 +748,10 @@ namespace StormSystemOptimizer.ViewModels
                 {
                     { "IsMsiActive", IsMsiActive },
                     { "IsDirectStorageActive", IsDirectStorageActive },
+                    { "IsExplorerOptimized", IsExplorerOptimized },
+                    { "IsWin32PriorityOptimized", IsWin32PriorityOptimized },
+                    { "IsMmcssOptimized", IsMmcssOptimized },
+                    { "IsZeroStartupDelayActive", IsZeroStartupDelayActive },
                     { "IsStandbyPurged", IsStandbyPurged },
                     { "IsSfcChecked", IsSfcChecked },
                     { "IsDismChecked", IsDismChecked },
@@ -688,7 +801,7 @@ namespace StormSystemOptimizer.ViewModels
 
             if (IsDirectStorageActive)
             {
-                ToolStatus = "Сброс тюнинга DirectStorage & IoRing к стандартным значениям...";
+                ToolStatus = "Сброс тюнинга DirectStorage и IoRing к стандартным значениям...";
                 bool ok = AdvancedTweaksService.Instance.DisableDirectStorageOptimization();
                 IsDirectStorageActive = !ok;
                 SavePersistentState();
@@ -700,7 +813,7 @@ namespace StormSystemOptimizer.ViewModels
                 bool ok = AdvancedTweaksService.Instance.OptimizeDirectStorageAndIoRing();
                 IsDirectStorageActive = ok;
                 SavePersistentState();
-                ToolStatus = ok ? "DirectStorage 1.2 & NVMe BypassIO успешно настроены!" : "Ошибка применения DirectStorage.";
+                ToolStatus = ok ? "DirectStorage 1.2 и NVMe BypassIO успешно настроены!" : "Ошибка применения DirectStorage.";
             }
 
             IsBusy = false;
@@ -712,6 +825,127 @@ namespace StormSystemOptimizer.ViewModels
 
         [RelayCommand]
         public async Task EnableDirectStorageAsync() => await ToggleDirectStorageAsync();
+
+        [RelayCommand]
+        public async Task ToggleExplorerResponsivenessAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            if (IsExplorerOptimized)
+            {
+                ToolStatus = "Возврат настроек Проводника к стандартным задержкам...";
+                bool ok = AdvancedTweaksService.Instance.ToggleExplorerResponsiveness(false);
+                IsExplorerOptimized = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Стандартные параметры задержек Проводника восстановлены." : "Ошибка возврата параметров.";
+            }
+            else
+            {
+                ToolStatus = "Оптимизация отклика Проводника и отключение зависаний...";
+                bool ok = AdvancedTweaksService.Instance.ToggleExplorerResponsiveness(true);
+                IsExplorerOptimized = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Отклик Проводника оптимизирован (MenuShowDelay=0, изоляция процессов активна)!" : "Ошибка применения настроек.";
+            }
+
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Отклик Проводника", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ToggleWin32PriorityAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            if (IsWin32PriorityOptimized)
+            {
+                ToolStatus = "Сброс квантов планировщика ядра Win32 к стандартным значениям...";
+                bool ok = AdvancedTweaksService.Instance.ToggleWin32PrioritySeparation(false);
+                IsWin32PriorityOptimized = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Стандартный планировщик ядра Win32 восстановлен." : "Ошибка сброса параметров.";
+            }
+            else
+            {
+                ToolStatus = "Активация игрового квантования Win32 Priority Separation (0x1A)...";
+                bool ok = AdvancedTweaksService.Instance.ToggleWin32PrioritySeparation(true);
+                IsWin32PriorityOptimized = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Игровой планировщик Win32 активирован (максимальный приоритет переднего окна)!" : "Ошибка настройки Win32.";
+            }
+
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Win32 Priority", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ToggleMmcssAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            if (IsMmcssOptimized)
+            {
+                ToolStatus = "Сброс MMCSS и сетевого троттлинга к значениям по умолчанию...";
+                bool ok = AdvancedTweaksService.Instance.ToggleMmcssGamingOptimization(false);
+                IsMmcssOptimized = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Стандартные параметры MMCSS восстановлены." : "Ошибка сброса.";
+            }
+            else
+            {
+                ToolStatus = "Оптимизация MMCSS (100% ресурсов GPU/CPU) и отключение сетевого троттлинга...";
+                bool ok = AdvancedTweaksService.Instance.ToggleMmcssGamingOptimization(true);
+                IsMmcssOptimized = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "MMCSS оптимизирован (NetworkThrottling отключен, Gaming Priority=8)!" : "Ошибка применения MMCSS.";
+            }
+
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("MMCSS и Сеть", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ToggleZeroStartupDelayAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            if (IsZeroStartupDelayActive)
+            {
+                ToolStatus = "Возврат стандартной задержки запуска Windows...";
+                bool ok = AdvancedTweaksService.Instance.ToggleZeroStartupDelay(false);
+                IsZeroStartupDelayActive = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Стандартная задержка автозапуска восстановлена." : "Ошибка сброса.";
+            }
+            else
+            {
+                ToolStatus = "Устранение 10-секундной системной задержки автозапуска (StartupDelay=0)...";
+                bool ok = AdvancedTweaksService.Instance.ToggleZeroStartupDelay(true);
+                IsZeroStartupDelayActive = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Мгновенный автозапуск активен (StartupDelayInMSec = 0)!" : "Ошибка применения.";
+            }
+
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Мгновенный запуск", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task RebuildShellCacheAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            ToolStatus = "Сброс и перестроение системного кэша иконок и эскизов...";
+
+            var (ok, msg) = await AdvancedTweaksService.Instance.RebuildIconAndThumbnailCacheAsync();
+            ToolStatus = msg;
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Кэш Проводника", msg);
+        }
 
         [RelayCommand]
         public async Task CreateSnapshotAsync()

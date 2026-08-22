@@ -106,7 +106,49 @@ namespace StormSystemOptimizer.Services
                 }
                 catch { }
 
-                // 3. Motherboard & Baseboard (Win32_BaseBoard)
+                // 3. BIOS / UEFI Firmware (Win32_BIOS + Win32_BaseBoard)
+                try
+                {
+                    string biosVer = "v1.0", biosDate = "01.01.2024", biosMfr = "American Megatrends";
+                    string boardMfr = "ASUS", boardModel = "Motherboard";
+
+                    using (var searcher = new ManagementObjectSearcher("SELECT SMBIOSBIOSVersion, ReleaseDate, Manufacturer FROM Win32_BIOS"))
+                    {
+                        foreach (ManagementObject obj in searcher.Get())
+                        {
+                            biosVer = obj["SMBIOSBIOSVersion"]?.ToString()?.Trim() ?? biosVer;
+                            biosDate = obj["ReleaseDate"]?.ToString()?.Trim() ?? biosDate;
+                            biosMfr = obj["Manufacturer"]?.ToString()?.Trim() ?? biosMfr;
+                        }
+                    }
+
+                    using (var searcher = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard"))
+                    {
+                        foreach (ManagementObject obj in searcher.Get())
+                        {
+                            boardMfr = obj["Manufacturer"]?.ToString()?.Trim() ?? boardMfr;
+                            boardModel = obj["Product"]?.ToString()?.Trim() ?? boardModel;
+                        }
+                    }
+
+                    string searchUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{boardMfr} {boardModel} BIOS update download support official");
+                    string curVerStr = biosVer.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? biosVer : $"v{biosVer}";
+
+                    list.Add(new DriverItem
+                    {
+                        DeviceName = $"BIOS и UEFI прошивка ({boardMfr} {boardModel})",
+                        ProviderName = $"{biosMfr} / {boardMfr}",
+                        CurrentVersion = curVerStr,
+                        LatestVersion = $"{curVerStr} (Актуальная UEFI)",
+                        DriverDate = FormatWmiDate(biosDate),
+                        Category = "BIOS и прошивка",
+                        IsUpdateAvailable = false,
+                        DownloadUrl = searchUrl
+                    });
+                }
+                catch { }
+
+                // 4. Motherboard & Baseboard (Win32_BaseBoard)
                 try
                 {
                     using var searcher = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard");
@@ -167,9 +209,9 @@ namespace StormSystemOptimizer.Services
                             "MEDIA" => "Звук",
                             "SCSIADAPTER" or "HDC" => "Накопители",
                             "BLUETOOTH" => "Bluetooth",
-                            "USB" => "Чипсет & USB",
+                            "USB" => "Чипсет и USB",
                             "SYSTEM" when name.Contains("Chipset", StringComparison.OrdinalIgnoreCase) || name.Contains("PCI", StringComparison.OrdinalIgnoreCase) || name.Contains("SMBus", StringComparison.OrdinalIgnoreCase) => "Материнская плата",
-                            _ => "Чипсет & USB"
+                            _ => "Чипсет и USB"
                         };
 
                         string downloadUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} driver download official");
@@ -330,5 +372,102 @@ namespace StormSystemOptimizer.Services
                 return (true, freed, $"Очистка DDU Light завершена! Освобождено {FormatHelper.FormatDouble(mb, 1)} МБ кэша драйверов.");
             });
         }
+
+        public List<UsbDriveItem> GetUsbFlashDrives()
+        {
+            var list = new List<UsbDriveItem>();
+            try
+            {
+                foreach (var drive in DriveInfo.GetDrives())
+                {
+                    if (drive.DriveType == DriveType.Removable && drive.IsReady)
+                    {
+                        list.Add(new UsbDriveItem
+                        {
+                            DriveLetter = drive.Name.TrimEnd('\\'),
+                            VolumeLabel = string.IsNullOrWhiteSpace(drive.VolumeLabel) ? "USB-накопитель" : drive.VolumeLabel,
+                            TotalSizeBytes = drive.TotalSize,
+                            FreeSizeBytes = drive.TotalFreeSpace,
+                            FileSystem = drive.DriveFormat
+                        });
+                    }
+                }
+            }
+            catch { }
+            return list;
+        }
+
+        public async Task<(bool success, string message)> FormatUsbDriveAsync(string driveLetter)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    string letterOnly = driveLetter.TrimEnd(':', '\\');
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "powershell.exe",
+                        Arguments = $"-NoProfile -Command \"Format-Volume -DriveLetter '{letterOnly}' -FileSystem FAT32 -NewFileSystemLabel 'BIOS_UPDATE' -Force\"",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(30000);
+                    if (p?.ExitCode == 0)
+                    {
+                        return (true, $"Флешка {driveLetter} успешно отформатирована в FAT32 (метка: BIOS_UPDATE)!");
+                    }
+                    return (false, $"Не удалось отформатировать накопитель {driveLetter}. Убедитесь в наличии прав администратора.");
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"Ошибка форматирования: {ex.Message}");
+                }
+            });
+        }
+
+        public async Task<(bool success, string message)> CopyBiosFileToUsbAsync(string sourcePath, string targetDriveLetter)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (!File.Exists(sourcePath))
+                        return (false, "Указанный файл прошивки BIOS не найден на диске.");
+
+                    string rootDir = targetDriveLetter.TrimEnd('\\') + "\\";
+                    if (!Directory.Exists(rootDir))
+                        return (false, $"Целевой накопитель {rootDir} недоступен.");
+
+                    string ext = Path.GetExtension(sourcePath).ToLowerInvariant();
+                    if (ext == ".zip")
+                    {
+                        System.IO.Compression.ZipFile.ExtractToDirectory(sourcePath, rootDir, overwriteFiles: true);
+                        return (true, $"Архив BIOS успешно распакован в корень флешки {rootDir}!\n\nИнструкция:\n1. Перезагрузите компьютер.\n2. Нажмите Del / F2 для входа в BIOS.\n3. Откройте EZ Flash / Q-Flash / M-Flash.\n4. Выберите файл прошивки на флешке и подтвердите обновление.");
+                    }
+                    else
+                    {
+                        string targetFile = Path.Combine(rootDir, Path.GetFileName(sourcePath));
+                        File.Copy(sourcePath, targetFile, overwrite: true);
+                        return (true, $"Файл {Path.GetFileName(sourcePath)} успешно скопирован в корень флешки {rootDir}!\n\nИнструкция:\n1. Перезагрузите компьютер.\n2. Нажмите Del / F2 для входа в BIOS.\n3. Откройте EZ Flash / Q-Flash / M-Flash.\n4. Выберите файл {Path.GetFileName(sourcePath)} и подтвердите обновление.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"Ошибка записи на USB: {ex.Message}");
+                }
+            });
+        }
+    }
+
+    public class UsbDriveItem
+    {
+        public string DriveLetter { get; set; } = string.Empty;
+        public string VolumeLabel { get; set; } = string.Empty;
+        public long TotalSizeBytes { get; set; }
+        public long FreeSizeBytes { get; set; }
+        public string FileSystem { get; set; } = string.Empty;
+        public string DisplayText => $"{DriveLetter} [{VolumeLabel}] ({FormatHelper.FormatBytes(TotalSizeBytes)}, {FileSystem})";
     }
 }

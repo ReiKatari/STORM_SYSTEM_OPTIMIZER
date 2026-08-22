@@ -15,7 +15,11 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _statusMessage = "Готов к настройке контекстного меню Windows";
 
+        [ObservableProperty]
+        private string _selectedCategory = "Все";
+
         public ObservableCollection<ContextMenuItem> MenuItems { get; } = new();
+        public ObservableCollection<ContextMenuItem> FilteredItems { get; } = new();
 
         public ContextMenuViewModel()
         {
@@ -29,6 +33,21 @@ namespace StormSystemOptimizer.ViewModels
             foreach (var item in ContextMenuService.Instance.GetPopularContextMenuItems())
             {
                 MenuItems.Add(item);
+            }
+            FilterCategory(SelectedCategory);
+        }
+
+        [RelayCommand]
+        public void FilterCategory(string category)
+        {
+            SelectedCategory = category;
+            FilteredItems.Clear();
+            foreach (var item in MenuItems)
+            {
+                if (category == "Все" || item.Category.Contains(category, StringComparison.OrdinalIgnoreCase))
+                {
+                    FilteredItems.Add(item);
+                }
             }
         }
 

@@ -15,6 +15,14 @@ namespace StormSystemOptimizer.ViewModels
     {
         public ObservableCollection<DiskDriveInfoItem> Drives { get; } = new();
         public ObservableCollection<DiskDriveInfoItem> FilteredDrives { get; } = new();
+        public ObservableCollection<PhysicalDriveGroupItem> PhysicalDrives { get; } = new();
+        public ObservableCollection<PhysicalDriveGroupItem> FilteredPhysicalDrives { get; } = new();
+
+        [ObservableProperty]
+        private bool _isPhysicalView = true;
+
+        [ObservableProperty]
+        private bool _isPartitionView = false;
 
         [ObservableProperty]
         private DiskDriveInfoItem? _selectedDrive;
@@ -43,6 +51,21 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
+        public void SetViewMode(string mode)
+        {
+            if (mode == "Physical")
+            {
+                IsPhysicalView = true;
+                IsPartitionView = false;
+            }
+            else
+            {
+                IsPhysicalView = false;
+                IsPartitionView = true;
+            }
+        }
+
+        [RelayCommand]
         public async Task LoadDrivesAsync()
         {
             if (IsBusy) return;
@@ -62,6 +85,43 @@ namespace StormSystemOptimizer.ViewModels
                     Drives.Add(item);
                 }
 
+                // Group by physical drive model
+                PhysicalDrives.Clear();
+                var grouped = Drives.GroupBy(d => d.Model, StringComparer.OrdinalIgnoreCase);
+                foreach (var grp in grouped)
+                {
+                    var first = grp.First();
+                    var phys = new PhysicalDriveGroupItem
+                    {
+                        Model = first.Model,
+                        MediaType = first.MediaType,
+                        InterfaceType = first.InterfaceType,
+                        HealthPercentage = first.HealthPercentage,
+                        HealthStatus = first.HealthStatus,
+                        StatusColor = first.StatusColor,
+                        StatusBgColor = first.StatusBgColor,
+                        Temperature = first.Temperature,
+                        ReleaseDateText = first.ReleaseDateText,
+                        OperatingTimeText = first.OperatingTimeText,
+                        PowerOnHours = first.PowerOnHours,
+                        SerialNumber = first.SerialNumber,
+                        FirmwareRevision = first.FirmwareRevision,
+                        IsSsd = first.IsSsd,
+                        TotalSizeGb = grp.Sum(v => v.TotalSizeGb),
+                        UsedSizeGb = grp.Sum(v => v.UsedSizeGb),
+                        FreeSizeGb = grp.Sum(v => v.FreeSizeGb)
+                    };
+                    if (phys.TotalSizeGb > 0)
+                    {
+                        phys.UsedPercentage = Math.Round((phys.UsedSizeGb / phys.TotalSizeGb) * 100.0, 1);
+                    }
+                    foreach (var vol in grp)
+                    {
+                        phys.Volumes.Add(vol);
+                    }
+                    PhysicalDrives.Add(phys);
+                }
+
                 FilterDrives(SelectedFilter);
 
                 if (!string.IsNullOrEmpty(prevLetter))
@@ -73,12 +133,12 @@ namespace StormSystemOptimizer.ViewModels
                     SelectedDrive = Drives[0];
                 }
 
-                StatusText = $"Обнаружено накопителей и томов: {Drives.Count}";
+                StatusText = $"Обнаружено физических накопителей: {PhysicalDrives.Count}, логических разделов: {Drives.Count}";
                 StatusMessage = StatusText;
             }
             catch
             {
-                StatusText = $"Готово (Накопителей: {Drives.Count})";
+                StatusText = $"Готово (Накопителей: {PhysicalDrives.Count})";
                 StatusMessage = StatusText;
             }
             finally
@@ -92,8 +152,9 @@ namespace StormSystemOptimizer.ViewModels
         {
             SelectedFilter = filter;
             FilteredDrives.Clear();
+            FilteredPhysicalDrives.Clear();
 
-            var matching = filter switch
+            var matchingDrives = filter switch
             {
                 "SSD" => Drives.Where(d => d.IsSsd && !d.FileSystem.Equals("ReFS", StringComparison.OrdinalIgnoreCase)),
                 "ReFS" => Drives.Where(d => d.FileSystem.Equals("ReFS", StringComparison.OrdinalIgnoreCase)),
@@ -101,9 +162,21 @@ namespace StormSystemOptimizer.ViewModels
                 _ => Drives
             };
 
-            foreach (var d in matching)
+            foreach (var d in matchingDrives)
             {
                 FilteredDrives.Add(d);
+            }
+
+            var matchingPhys = filter switch
+            {
+                "SSD" => PhysicalDrives.Where(p => p.IsSsd),
+                "HDD" => PhysicalDrives.Where(p => !p.IsSsd),
+                _ => PhysicalDrives
+            };
+
+            foreach (var p in matchingPhys)
+            {
+                FilteredPhysicalDrives.Add(p);
             }
         }
 

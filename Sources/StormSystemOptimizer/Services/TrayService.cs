@@ -122,7 +122,7 @@ namespace StormSystemOptimizer.Services
                     uFlags = NativeMethods.NIF_ICON | NativeMethods.NIF_TIP | NativeMethods.NIF_MESSAGE,
                     uCallbackMessage = WM_TRAYICON,
                     hIcon = hIcon,
-                    szTip = "STORM SYSTEM OPTIMIZER v0.1.4"
+                    szTip = "STORM SYSTEM OPTIMIZER v1.0.0"
                 };
 
                 _isCreated = NativeMethods.Shell_NotifyIcon(NativeMethods.NIM_ADD, ref _nid);
@@ -149,7 +149,7 @@ namespace StormSystemOptimizer.Services
             try
             {
                 window.Hide();
-                ShowNotification("STORM SYSTEM OPTIMIZER в фоне", "Приложение свернуто в системный трей. ПКМ по иконке — меню.");
+                ShowNotification("STORM SYSTEM OPTIMIZER в фоне", "Приложение свернуто в системный трей. Нажмите правой кнопкой для меню.");
             }
             catch { }
         }
@@ -182,6 +182,10 @@ namespace StormSystemOptimizer.Services
             }
         }
 
+        private const int CMD_CLEAN_RAM = 3;
+        private const int CMD_GAME_BOOST = 4;
+        private const int CMD_RESTORE_POINT = 5;
+
         private void ShowTrayContextMenu(Window window)
         {
             try
@@ -189,9 +193,13 @@ namespace StormSystemOptimizer.Services
                 IntPtr hMenu = CreatePopupMenu();
                 if (hMenu == IntPtr.Zero) return;
 
-                AppendMenu(hMenu, MF_STRING, CMD_OPEN, "🔄  Открыть STORM SYSTEM OPTIMIZER");
+                AppendMenu(hMenu, MF_STRING, CMD_OPEN, "Открыть STORM SYSTEM OPTIMIZER");
                 AppendMenu(hMenu, MF_SEPARATOR, 0, string.Empty);
-                AppendMenu(hMenu, MF_STRING, CMD_EXIT, "❌  Выход (полная выгрузка)");
+                AppendMenu(hMenu, MF_STRING, CMD_CLEAN_RAM, "Очистить оперативную память (RAM)");
+                AppendMenu(hMenu, MF_STRING, CMD_GAME_BOOST, "Активировать игровой режим (Game Boost)");
+                AppendMenu(hMenu, MF_STRING, CMD_RESTORE_POINT, "Создать точку восстановления системы");
+                AppendMenu(hMenu, MF_SEPARATOR, 0, string.Empty);
+                AppendMenu(hMenu, MF_STRING, CMD_EXIT, "Закрыть приложение (полный выход)");
 
                 GetCursorPos(out POINT pt);
 
@@ -205,6 +213,24 @@ namespace StormSystemOptimizer.Services
                 {
                     case CMD_OPEN:
                         RestoreFromTray(window);
+                        break;
+                    case CMD_CLEAN_RAM:
+                        _ = System.Threading.Tasks.Task.Run(() =>
+                        {
+                            MemoryOptimizerService.Instance.PurgeStandbyList();
+                            MemoryOptimizerService.Instance.PurgeWorkingSets();
+                        });
+                        ShowNotification("Очистка RAM", "Рабочие наборы и Standby List успешно очищены.");
+                        break;
+                    case CMD_GAME_BOOST:
+                        _ = System.Threading.Tasks.Task.Run(() =>
+                        {
+                            GameBoostService.Instance.ActivateGameBoost();
+                        });
+                        ShowNotification("Game Boost", "Игровой профиль наивысшего приоритета активирован.");
+                        break;
+                    case CMD_RESTORE_POINT:
+                        _ = BackupVaultService.Instance.CreateRestorePointAsync("STORM_TRAY_RESTOREPOINT");
                         break;
                     case CMD_EXIT:
                         if (window is MainWindow mw)

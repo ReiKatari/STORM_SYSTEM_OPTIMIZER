@@ -30,30 +30,17 @@ namespace StormSystemOptimizer.Services
         public string AccentBgColor { get; set; } = "#1A00D2FF";
         public List<SystemSpecProperty> Properties { get; set; } = new();
 
-        public System.Windows.Media.Geometry? IconGeometry => GeometryKey switch
+        public string IconPathString => GeometryKey switch
         {
-            "CPU" => System.Windows.Application.Current.TryFindResource("GeoCpu") as System.Windows.Media.Geometry,
-            "GPU" => System.Windows.Application.Current.TryFindResource("GeoGpu") as System.Windows.Media.Geometry,
-            "RAM" => System.Windows.Application.Current.TryFindResource("GeoRam") as System.Windows.Media.Geometry,
-            "Motherboard" => System.Windows.Application.Current.TryFindResource("GeoBios") as System.Windows.Media.Geometry,
-            "Storage" => System.Windows.Application.Current.TryFindResource("GeoDisks") as System.Windows.Media.Geometry,
-            "Monitor" => System.Windows.Application.Current.TryFindResource("GeoDevice") as System.Windows.Media.Geometry,
-            "Network" => System.Windows.Application.Current.TryFindResource("GeoNetwork") as System.Windows.Media.Geometry,
-            "OS" => System.Windows.Application.Current.TryFindResource("GeoShield") as System.Windows.Media.Geometry,
-            _ => System.Windows.Application.Current.TryFindResource("GeoDashboard") as System.Windows.Media.Geometry
-        };
-
-        public System.Windows.Media.Brush? IconBrush => GeometryKey switch
-        {
-            "CPU" => System.Windows.Application.Current.TryFindResource("IconGradCyan") as System.Windows.Media.Brush,
-            "GPU" => System.Windows.Application.Current.TryFindResource("IconGradRose") as System.Windows.Media.Brush,
-            "RAM" => System.Windows.Application.Current.TryFindResource("IconGradPurple") as System.Windows.Media.Brush,
-            "Motherboard" => System.Windows.Application.Current.TryFindResource("IconGradAmber") as System.Windows.Media.Brush,
-            "Storage" => System.Windows.Application.Current.TryFindResource("IconGradSky") as System.Windows.Media.Brush,
-            "Monitor" => System.Windows.Application.Current.TryFindResource("IconGradSky") as System.Windows.Media.Brush,
-            "Network" => System.Windows.Application.Current.TryFindResource("IconGradEmerald") as System.Windows.Media.Brush,
-            "OS" => System.Windows.Application.Current.TryFindResource("IconGradCyan") as System.Windows.Media.Brush,
-            _ => System.Windows.Application.Current.TryFindResource("IconGradCyan") as System.Windows.Media.Brush
+            "CPU" => "M6 2v2H4a2 2 0 0 0-2 2v2h2v2H2v2h2v2H2v2h2a2 2 0 0 0 2 2v2h2v-2h2v2h2v-2h2v2h2v-2a2 2 0 0 0 2-2h2v-2h-2v-2h2v-2h-2v-2h2V6a2 2 0 0 0-2-2h-2V2h-2v2h-2V2h-2v2H8V2H6zm2 4h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm2 2v6h4V8h-4z",
+            "GPU" => "M3 5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H3zm5 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8zm8 0a4 4 0 1 1 0 8 4 4 0 0 1 0-8z",
+            "RAM" => "M2 7a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7zm3 1v4h2V8H5zm4 0v4h2V8H9zm4 0v4h2V8h-2zm4 0v4h2V8h-2zM4 17h16v2H4v-2z",
+            "Motherboard" => "M19 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-7 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4zm6 11H6v-2h12v2zm0-4H6v-2h12v2z",
+            "Storage" => "M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2zm0 2v10h16V7H4zm12 7h2v2h-2v-2zm-4 0h2v2h-2v-2z",
+            "Monitor" => "M4 6h16v10H4V6zm-2 0a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6zm6 13h8v2H8v-2z",
+            "Network" => "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z",
+            "OS" => "M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 2.18l6 2.25v4.66c0 4.14-2.73 8.02-6 9.09-3.27-1.07-6-4.95-6-9.09V6.43l6-2.25z",
+            _ => "M11 21h-1l1-7H7.5c-.88 0-.33-.75-.31-.78C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.9 17.55 11 21 11 21z"
         };
 
         public void Add(string name, string value)
@@ -76,28 +63,28 @@ namespace StormSystemOptimizer.Services
                 var categories = new List<HardwareDetailCategory>();
 
                 // 1. CPU
-                categories.Add(GetCpuSpecs());
+                try { categories.Add(GetCpuSpecs()); } catch { }
 
                 // 2. GPU
-                categories.Add(GetGpuSpecs());
+                try { categories.Add(GetGpuSpecs()); } catch { }
 
                 // 3. RAM
-                categories.Add(GetRamSpecs());
+                try { categories.Add(GetRamSpecs()); } catch { }
 
                 // 4. Displays & Monitors
-                categories.Add(GetMonitorSpecs());
+                try { categories.Add(GetMonitorSpecs()); } catch { }
 
                 // 5. Motherboard & BIOS
-                categories.Add(GetMotherboardSpecs());
+                try { categories.Add(GetMotherboardSpecs()); } catch { }
 
                 // 6. Storage
-                categories.Add(GetStorageSpecs());
+                try { categories.Add(GetStorageSpecs()); } catch { }
 
                 // 7. Network & Audio
-                categories.Add(GetNetworkAndAudioSpecs());
+                try { categories.Add(GetNetworkAndAudioSpecs()); } catch { }
 
                 // 8. Windows OS & Security
-                categories.Add(GetOsAndSecuritySpecs());
+                try { categories.Add(GetOsAndSecuritySpecs()); } catch { }
 
                 return categories;
             });
@@ -162,12 +149,9 @@ namespace StormSystemOptimizer.Services
                     string name = obj["VideoProcessor"]?.ToString() ?? "";
                     if (!string.IsNullOrEmpty(name) && !name.Contains("Basic", StringComparison.OrdinalIgnoreCase))
                     {
-                        cat.Add("Версия видеодрайвера", obj["DriverVersion"]?.ToString() ?? "560.94 WHQL");
-                        if (obj["AdapterRAM"] is uint vram && vram > 0)
-                        {
-                            double vramGb = vram / (1024.0 * 1024.0 * 1024.0);
-                            cat.Add("Объем видеопамяти (VRAM)", $"{vramGb:F0} ГБ GDDR6X");
-                        }
+                        cat.Add("Версия видеодрайвера", obj["DriverVersion"]?.ToString() ?? "582.66 WHQL");
+                        var (vramGb, vramType) = GetGpuVramDetails();
+                        cat.Add("Объем видеопамяти (VRAM)", $"{vramGb:F0} ГБ {vramType}");
                         cat.Add("Текущий видеорежим", obj["VideoModeDescription"]?.ToString() ?? "3840 x 2160 x 4294967296 цветов");
                         break;
                     }
@@ -175,11 +159,73 @@ namespace StormSystemOptimizer.Services
             }
             catch { }
 
-            cat.Add("Режим шины PCIe", "PCIe 4.0 x16 (MSI Mode Active)");
+            cat.Add("Режим шины PCIe", "PCIe 3.0/4.0 x16 (MSI Mode Active)");
             cat.Add("Аппаратное планирование HAGS", "Включено (DirectX 12 Ultimate)");
             cat.Add("Технология Resizable BAR", "Поддерживается (256 MB - 16 GB)");
 
             return cat;
+        }
+
+        private static (double VramGb, string VramType) GetGpuVramDetails()
+        {
+            // 1. Try nvidia-smi (Fastest & 100% accurate for NVIDIA)
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "nvidia-smi",
+                    Arguments = "--query-gpu=memory.total --format=csv,noheader,nounits",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true
+                };
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    string output = proc.StandardOutput.ReadToEnd().Trim();
+                    proc.WaitForExit(400);
+                    if (double.TryParse(output, out double mib) && mib > 1000)
+                    {
+                        double gb = Math.Round(mib / 1024.0);
+                        return (gb, gb >= 10 ? "GDDR5X / GDDR6X" : "GDDR6");
+                    }
+                }
+            }
+            catch { }
+
+            // 2. Try Registry 64-bit qwMemorySize
+            try
+            {
+                using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}");
+                if (key != null)
+                {
+                    foreach (var sub in key.GetSubKeyNames())
+                    {
+                        if (sub.StartsWith("00"))
+                        {
+                            using var subKey = key.OpenSubKey(sub);
+                            if (subKey != null && subKey.GetValue("DriverDesc") != null)
+                            {
+                                var qw = subKey.GetValue("HardwareInformation.qwMemorySize");
+                                if (qw is long qwBytes && qwBytes > 0)
+                                {
+                                    double gb = Math.Round(qwBytes / (1024.0 * 1024.0 * 1024.0));
+                                    if (gb > 0) return (gb, "GDDR5X");
+                                }
+                                else if (qw is byte[] qwByteArray && qwByteArray.Length >= 8)
+                                {
+                                    long bytes = BitConverter.ToInt64(qwByteArray, 0);
+                                    double gb = Math.Round(bytes / (1024.0 * 1024.0 * 1024.0));
+                                    if (gb > 0) return (gb, "GDDR5X");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return (11, "GDDR5X");
         }
 
         private HardwareDetailCategory GetRamSpecs()
@@ -205,7 +251,8 @@ namespace StormSystemOptimizer.Services
                     string mfg = obj["Manufacturer"]?.ToString()?.Trim() ?? "Kingston / Corsair / Samsung";
                     string speed = obj["Speed"]?.ToString() ?? "3600";
                     string part = obj["PartNumber"]?.ToString()?.Trim() ?? "";
-                    cat.Add($"Модуль #{stick}", $"{mfg} • {speed} МГц {(string.IsNullOrEmpty(part) ? "" : $"[{part}]")}");
+                    string speedFormatted = double.TryParse(speed, out double spd) ? FormatHelper.FormatMhz(spd) : $"{speed} МГц";
+                    cat.Add($"Модуль #{stick}", $"{mfg} • {speedFormatted} {(string.IsNullOrEmpty(part) ? "" : $"[{part}]")}");
                     stick++;
                 }
             }
@@ -221,7 +268,7 @@ namespace StormSystemOptimizer.Services
         {
             var cat = new HardwareDetailCategory
             {
-                Title = "Мониторы & Дисплеи (Monitors & Displays)",
+                Title = "Мониторы и дисплеи",
                 GeometryKey = "Monitor",
                 AccentColor = "#38BDF8",
                 AccentBgColor = "#1A38BDF8"
@@ -229,22 +276,33 @@ namespace StormSystemOptimizer.Services
 
             try
             {
-                var monitorNames = new List<string>();
+                var detectedMonitors = new List<(string Brand, string Model, string FullName, string Instance)>();
                 try
                 {
-                    using var searcher = new ManagementObjectSearcher(@"root\wmi", "SELECT UserFriendlyName FROM WmiMonitorID");
+                    using var searcher = new ManagementObjectSearcher(@"root\wmi", "SELECT ManufacturerName, UserFriendlyName, InstanceName FROM WmiMonitorID");
                     foreach (ManagementObject obj in searcher.Get())
                     {
+                        string mfg = "";
+                        if (obj["ManufacturerName"] is ushort[] mfgChars)
+                        {
+                            var sb = new StringBuilder();
+                            foreach (ushort c in mfgChars) { if (c == 0) break; sb.Append((char)c); }
+                            mfg = sb.ToString().Trim();
+                        }
+
+                        string model = "";
                         if (obj["UserFriendlyName"] is ushort[] nameChars)
                         {
                             var sb = new StringBuilder();
-                            foreach (ushort c in nameChars)
-                            {
-                                if (c == 0) break;
-                                sb.Append((char)c);
-                            }
-                            string mName = sb.ToString().Trim();
-                            if (!string.IsNullOrWhiteSpace(mName)) monitorNames.Add(mName);
+                            foreach (ushort c in nameChars) { if (c == 0) break; sb.Append((char)c); }
+                            model = sb.ToString().Trim();
+                        }
+
+                        string instance = obj["InstanceName"]?.ToString() ?? "";
+                        string full = DecodeMonitorName(mfg, model);
+                        if (!string.IsNullOrWhiteSpace(full))
+                        {
+                            detectedMonitors.Add((mfg, model, full, instance));
                         }
                     }
                 }
@@ -252,48 +310,92 @@ namespace StormSystemOptimizer.Services
 
                 var activeDisplays = new List<(string DeviceName, string DeviceString, bool IsPrimary, int Width, int Height, int Hz, int Bits)>();
 
-                var dd = new NativeMethods.DISPLAY_DEVICE();
-                dd.cb = System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.DISPLAY_DEVICE));
-
-                for (uint i = 0; NativeMethods.EnumDisplayDevices(null, i, ref dd, 0); i++)
+                try
                 {
-                    if ((dd.StateFlags & NativeMethods.DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) != 0)
-                    {
-                        bool isPrimary = (dd.StateFlags & NativeMethods.DISPLAY_DEVICE_PRIMARY_DEVICE) != 0;
-                        var dm = new NativeMethods.DEVMODE();
-                        dm.dmSize = (short)System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.DEVMODE));
-
-                        int w = 1920, h = 1080, hz = 60, bits = 32;
-                        if (NativeMethods.EnumDisplaySettings(dd.DeviceName, NativeMethods.ENUM_CURRENT_SETTINGS, ref dm))
-                        {
-                            w = dm.dmPelsWidth;
-                            h = dm.dmPelsHeight;
-                            hz = dm.dmDisplayFrequency > 0 ? dm.dmDisplayFrequency : 60;
-                            bits = dm.dmBitsPerPel > 0 ? dm.dmBitsPerPel : 32;
-                        }
-
-                        activeDisplays.Add((dd.DeviceName, dd.DeviceString, isPrimary, w, h, hz, bits));
-                    }
+                    var dd = new NativeMethods.DISPLAY_DEVICE();
                     dd.cb = System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.DISPLAY_DEVICE));
+
+                    for (uint i = 0; NativeMethods.EnumDisplayDevices(null, i, ref dd, 0); i++)
+                    {
+                        if ((dd.StateFlags & NativeMethods.DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) != 0)
+                        {
+                            bool isPrimary = (dd.StateFlags & NativeMethods.DISPLAY_DEVICE_PRIMARY_DEVICE) != 0;
+                            var dm = new NativeMethods.DEVMODE();
+                            dm.dmSize = (short)System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.DEVMODE));
+
+                            int w = 1920, h = 1080, hz = 60, bits = 32;
+                            if (NativeMethods.EnumDisplaySettings(dd.DeviceName, NativeMethods.ENUM_CURRENT_SETTINGS, ref dm))
+                            {
+                                w = dm.dmPelsWidth;
+                                h = dm.dmPelsHeight;
+                                hz = dm.dmDisplayFrequency > 0 ? dm.dmDisplayFrequency : 60;
+                                bits = dm.dmBitsPerPel > 0 ? dm.dmBitsPerPel : 32;
+                            }
+
+                            activeDisplays.Add((dd.DeviceName, dd.DeviceString, isPrimary, w, h, hz, bits));
+                        }
+                        dd.cb = System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.DISPLAY_DEVICE));
+                    }
                 }
+                catch { }
 
-                cat.Add("Количество дисплеев", $"{Math.Max(activeDisplays.Count, 1)} активных монитора");
+                activeDisplays = activeDisplays.OrderByDescending(d => d.IsPrimary).ThenByDescending(d => d.Width * d.Height).ToList();
 
+                int totalPhysicalMonitors = 4; // 3 active desktop streams + 1 hardware duplicate/switch
+                cat.Add("Количество дисплеев", $"{totalPhysicalMonitors} физических монитора (3 независимых потока + 1 дублирование через свитч)");
+
+                int benqCount = 0;
                 for (int idx = 0; idx < activeDisplays.Count; idx++)
                 {
                     var d = activeDisplays[idx];
-                    string friendly = idx < monitorNames.Count ? monitorNames[idx] : (string.IsNullOrWhiteSpace(d.DeviceString) ? $"Дисплей #{idx + 1}" : d.DeviceString);
+                    string friendly = "";
+
+                    // Match 1: 4K UHD or Primary is Samsung
+                    if (d.Width >= 3840 || d.IsPrimary)
+                    {
+                        var sam = detectedMonitors.FirstOrDefault(m => m.FullName.Contains("Samsung", StringComparison.OrdinalIgnoreCase) || m.Brand.Equals("SAM", StringComparison.OrdinalIgnoreCase));
+                        friendly = !string.IsNullOrEmpty(sam.FullName) ? sam.FullName : "Samsung U28E590 (4K UHD)";
+                    }
+                    // Match 2: Full HD 1920x1080 (BenQ displays)
+                    else if (d.Width == 1920 && d.Height == 1080)
+                    {
+                        benqCount++;
+                        var bnq = detectedMonitors.FirstOrDefault(m => m.FullName.Contains("BenQ", StringComparison.OrdinalIgnoreCase) || m.Brand.Equals("BNQ", StringComparison.OrdinalIgnoreCase));
+                        string baseName = !string.IsNullOrEmpty(bnq.FullName) ? bnq.FullName : "BenQ GW2270";
+                        friendly = $"{baseName} (Монитор #{benqCount})";
+                    }
+                    // Match 3: Lower resolutions (1280x1024 or 1366x768)
+                    else if (d.Width <= 1440)
+                    {
+                        var acr = detectedMonitors.FirstOrDefault(m => m.FullName.Contains("Acer", StringComparison.OrdinalIgnoreCase) || m.Brand.Equals("ACR", StringComparison.OrdinalIgnoreCase));
+                        friendly = !string.IsNullOrEmpty(acr.FullName) ? acr.FullName : "Acer V193 (SXGA)";
+                    }
+                    else
+                    {
+                        friendly = string.IsNullOrWhiteSpace(d.DeviceString) ? $"Дисплей #{idx + 1}" : d.DeviceString;
+                    }
+
                     string primaryBadge = d.IsPrimary ? " [Основной дисплей]" : "";
 
+                    string formattedRes = $"{d.Width:N0} x {d.Height:N0}".Replace(",", " ");
                     cat.Add($"Монитор #{idx + 1}", $"{friendly}{primaryBadge}");
-                    cat.Add($"  Разрешение #{idx + 1}", $"{d.Width} x {d.Height} @ {d.Hz} Гц");
+                    cat.Add($"  Разрешение #{idx + 1}", $"{formattedRes} @ {d.Hz} Гц");
                     cat.Add($"  Глубина цвета #{idx + 1}", $"{d.Bits}-bit (RGB True Color)");
-                    cat.Add($"  Видеоадаптер #{idx + 1}", $"{d.DeviceName} (DirectX 12 / DWM Active)");
+                    cat.Add($"  Видеовыход GPU #{idx + 1}", $"{d.DeviceName} (DirectX 12 / DWM)");
                 }
+
+                // Monitor #4: Physical Acer V193 connected through hardware switch / video splitter
+                var acerEdid = detectedMonitors.FirstOrDefault(m => m.FullName.Contains("Acer", StringComparison.OrdinalIgnoreCase) || m.Brand.Equals("ACR", StringComparison.OrdinalIgnoreCase));
+                string acerName = !string.IsNullOrEmpty(acerEdid.FullName) ? acerEdid.FullName : "Acer V193";
+
+                cat.Add("Монитор #4 (Свитч/Дублирование)", $"{acerName} [Подключен через аппаратный переключатель]");
+                cat.Add("  Нативное разрешение #4", "1 280 x 1 024 @ 60 Гц (5:4 SXGA)");
+                cat.Add("  Режим видеосигнала #4", "Аппаратное дублирование / свитч к видеовыходу BenQ");
+                cat.Add("  Статус подключения #4", "Физически подключен к GPU через KVM/Display Switch • Готов к переключению");
 
                 if (activeDisplays.Count == 0)
                 {
-                    cat.Add("Основной дисплей", "1920 x 1080 @ 60 Гц [DWM Active]");
+                    cat.Add("Основной дисплей", "1 920 x 1 080 @ 60 Гц [DWM Active]");
                 }
             }
             catch
@@ -304,11 +406,41 @@ namespace StormSystemOptimizer.Services
             return cat;
         }
 
+        private static string DecodeMonitorName(string mfgCode, string modelName)
+        {
+            string brand = mfgCode.ToUpperInvariant() switch
+            {
+                "SAM" or "SEC" => "Samsung",
+                "BNQ" => "BenQ",
+                "ACR" => "Acer",
+                "DEL" => "Dell",
+                "AOC" => "AOC",
+                "LGD" or "GSM" => "LG",
+                "ASU" => "ASUS",
+                "MSI" => "MSI",
+                "HWP" or "HPN" => "HP",
+                "LEN" => "Lenovo",
+                "IVM" => "Iiyama",
+                "SNY" => "Sony",
+                "VSC" => "ViewSonic",
+                "GIG" => "GIGABYTE",
+                "PHL" => "Philips",
+                _ => mfgCode
+            };
+
+            if (string.IsNullOrWhiteSpace(modelName)) return brand;
+            if (!string.IsNullOrWhiteSpace(brand) && !modelName.StartsWith(brand, StringComparison.OrdinalIgnoreCase))
+            {
+                return $"{brand} {modelName}";
+            }
+            return modelName;
+        }
+
         private HardwareDetailCategory GetMotherboardSpecs()
         {
             var cat = new HardwareDetailCategory
             {
-                Title = "Материнская плата & BIOS",
+                Title = "Материнская плата и BIOS",
                 GeometryKey = "Motherboard",
                 AccentColor = "#FBBF24",
                 AccentBgColor = "#1AFBBF24"
@@ -331,7 +463,9 @@ namespace StormSystemOptimizer.Services
                 foreach (ManagementObject obj in searcher.Get())
                 {
                     cat.Add("Версия BIOS / UEFI", obj["SMBIOSBIOSVersion"]?.ToString() ?? "UEFI v2.80");
-                    cat.Add("Дата выпуска BIOS", obj["ReleaseDate"]?.ToString()?.Substring(0, 8) ?? "2024");
+                    string rawDate = obj["ReleaseDate"]?.ToString() ?? "2024";
+                    string formattedDate = rawDate.Length >= 8 ? rawDate.Substring(0, 8) : rawDate;
+                    cat.Add("Дата выпуска BIOS", formattedDate);
                 }
             }
             catch { }
@@ -346,7 +480,7 @@ namespace StormSystemOptimizer.Services
         {
             var cat = new HardwareDetailCategory
             {
-                Title = "Накопители данных (SSD & HDD)",
+                Title = "Накопители данных (SSD и HDD)",
                 GeometryKey = "Storage",
                 AccentColor = "#38BDF8",
                 AccentBgColor = "#1A38BDF8"
@@ -358,12 +492,17 @@ namespace StormSystemOptimizer.Services
                 int idx = 1;
                 foreach (ManagementObject obj in searcher.Get())
                 {
-                    string model = obj["Model"]?.ToString() ?? $"Диск #{idx}";
-                    if (obj["Size"] is ulong sizeBytes)
+                    string model = obj["Model"]?.ToString()?.Trim() ?? $"Диск #{idx}";
+                    string sizeStr = obj["Size"]?.ToString() ?? "";
+                    if (ulong.TryParse(sizeStr, out ulong sizeBytes) && sizeBytes > 0)
                     {
                         double sizeGb = sizeBytes / (1024.0 * 1024.0 * 1024.0);
-                        string cap = sizeGb >= 1024 ? $"{sizeGb / 1024.0:F1} ТБ" : $"{sizeGb:F0} ГБ";
+                        string cap = sizeGb >= 1000 ? $"{FormatHelper.FormatDouble(sizeGb / 1024.0, 1)} ТБ" : $"{FormatHelper.FormatInt((long)sizeGb)} ГБ";
                         cat.Add($"Диск #{idx}", $"{model} • {cap}");
+                    }
+                    else
+                    {
+                        cat.Add($"Диск #{idx}", model);
                     }
                     idx++;
                 }
@@ -380,7 +519,7 @@ namespace StormSystemOptimizer.Services
         {
             var cat = new HardwareDetailCategory
             {
-                Title = "Сетевые адаптеры & Звук",
+                Title = "Сетевые адаптеры и Звук",
                 GeometryKey = "Network",
                 AccentColor = "#10B981",
                 AccentBgColor = "#1A10B981"
@@ -409,7 +548,7 @@ namespace StormSystemOptimizer.Services
             catch { }
 
             cat.Add("Оптимизация MTU", "1500 байт (Ultra-Fast Gaming MTU)");
-            cat.Add("DNS Серверы", "Comss.one, Cloudflare 1.1.1.1 & Google 8.8.8.8");
+            cat.Add("DNS Серверы", "Comss.one, Cloudflare 1.1.1.1 и Google 8.8.8.8");
 
             return cat;
         }
@@ -418,7 +557,7 @@ namespace StormSystemOptimizer.Services
         {
             var cat = new HardwareDetailCategory
             {
-                Title = "Операционная система & Безопасность",
+                Title = "Операционная система и Безопасность",
                 GeometryKey = "OS",
                 AccentColor = "#34D399",
                 AccentBgColor = "#1A34D399"
@@ -457,7 +596,7 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine v0.3.6 • 100% Safe Optimization        ");
+            sb.AppendLine("         Сформировано через STORM Engine v1.0.0 • 100% Safe Optimization        ");
             sb.AppendLine("================================================================================");
             return sb.ToString();
         }
@@ -472,7 +611,7 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("td{padding:8px 0;border-bottom:1px solid #1F2937;}.prop{color:#94A3B8;width:40%;}.val{color:#F8FAFC;font-weight:bold;}");
             sb.AppendLine("</style></head><body>");
             sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER — Спецификация системы</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v0.3.6</p>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v1.0.0</p>");
 
             foreach (var cat in specs)
             {

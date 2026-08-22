@@ -19,7 +19,9 @@ namespace StormOptimizerInstaller
         private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
-        private const string AppVersion = "0.3.6";
+        private const string AppVersion = "1.0.0";
+        private const string DefaultInstallDir = @"C:\Program Files\StormSystemOptimizer";
+        private const string ExeName = "StormSystemOptimizer.exe";
         private Button btnBrowse = null!;
 
         private RadioButton rbStandard = null!;
@@ -44,7 +46,7 @@ namespace StormOptimizerInstaller
 
         private void InitializeComponent()
         {
-            this.Text = "Установка STORM SYSTEM OPTIMIZER v0.3.6";
+            this.Text = "Установка STORM SYSTEM OPTIMIZER v1.0.0";
             this.Size = new Size(620, 520);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -63,7 +65,7 @@ namespace StormOptimizerInstaller
 
             lblTitle = new Label
             {
-                Text = "⚡ STORM SYSTEM OPTIMIZER v0.3.1",
+                Text = "⚡ STORM SYSTEM OPTIMIZER v1.0.0",
                 Font = new Font("Segoe UI", 14f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(14, 165, 233),
                 AutoSize = true,
@@ -363,7 +365,7 @@ namespace StormOptimizerInstaller
 
                 if (chkInstallCert.Checked)
                 {
-                    lblStatus.Text = "Регистрация доверенного сертификата STORM Software (Root & Publisher)...";
+                    lblStatus.Text = "Регистрация доверенного сертификата STORM TEAM (Root & Publisher)...";
                     progressBar.Value = 35;
                     await Task.Delay(150);
 
@@ -374,7 +376,7 @@ namespace StormOptimizerInstaller
                     }
                 }
 
-                lblStatus.Text = "Распаковка исполняемых файлов программы (v0.1.6)...";
+                lblStatus.Text = "Распаковка исполняемых файлов программы (v1.0.0)...";
                 progressBar.Value = 65;
                 await Task.Delay(200);
 
@@ -570,7 +572,7 @@ namespace StormOptimizerInstaller
                     shortcut.TargetPath = targetExe;
                     shortcut.WorkingDirectory = targetDir;
                     shortcut.IconLocation = targetIco + ",0";
-                    shortcut.Description = "STORM SYSTEM OPTIMIZER v0.1.6";
+                    shortcut.Description = "STORM SYSTEM OPTIMIZER v0.4.3";
                     shortcut.Save();
                 }
 
@@ -582,7 +584,7 @@ namespace StormOptimizerInstaller
                     deskShortcut.TargetPath = targetExe;
                     deskShortcut.WorkingDirectory = targetDir;
                     deskShortcut.IconLocation = targetIco + ",0";
-                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v0.1.6";
+                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v0.4.3";
                     deskShortcut.Save();
                 }
             }
@@ -596,9 +598,9 @@ namespace StormOptimizerInstaller
                 using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer");
                 if (key != null)
                 {
-                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v0.1.6");
-                    key.SetValue("DisplayVersion", "0.1.6");
-                    key.SetValue("Publisher", "STORM Software");
+                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v1.0.0");
+                    key.SetValue("DisplayVersion", "1.0.0");
+                    key.SetValue("Publisher", "STORM TEAM");
                     key.SetValue("DisplayIcon", targetIco);
                     key.SetValue("InstallLocation", targetDir);
                     key.SetValue("UninstallString", $"cmd.exe /c rmdir /s /q \"{targetDir}\" & del \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\STORM SYSTEM OPTIMIZER.lnk\" & del \"%USERPROFILE%\\Desktop\\STORM SYSTEM OPTIMIZER.lnk\"");

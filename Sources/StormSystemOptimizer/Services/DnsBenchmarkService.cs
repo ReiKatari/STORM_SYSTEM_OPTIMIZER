@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Management;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Text.Json;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Win32;
 
 namespace StormSystemOptimizer.Services
 {
@@ -42,24 +46,75 @@ namespace StormSystemOptimizer.Services
         private static DnsBenchmarkService? _instance;
         public static DnsBenchmarkService Instance => _instance ??= new DnsBenchmarkService();
 
-        private static string? _appliedPrimaryDns;
-        private static string? _appliedSecondaryDns;
+        private static readonly string DnsConfigFile = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "STORM_OPTIMIZER", "storm_dns.json");
 
         private DnsBenchmarkService() { }
 
         public static void SetAppliedDns(string primary, string secondary)
         {
-            _appliedPrimaryDns = primary;
-            _appliedSecondaryDns = secondary;
+            try
+            {
+                string dir = Path.GetDirectoryName(DnsConfigFile)!;
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                var state = new { Primary = primary, Secondary = secondary, AppliedAt = DateTime.Now };
+                File.WriteAllText(DnsConfigFile, JsonSerializer.Serialize(state));
+            }
+            catch { }
         }
 
         public static (string primary, string secondary) GetCurrentSystemDns()
         {
-            if (!string.IsNullOrEmpty(_appliedPrimaryDns))
+            // 1. Direct WMI Win32_NetworkAdapterConfiguration query (Most accurate on Windows)
+            try
             {
-                return (_appliedPrimaryDns, _appliedSecondaryDns ?? "");
+                using var searcher = new ManagementObjectSearcher(
+                    "SELECT Description, DNSServerSearchOrder, DefaultIPGateway, IPEnabled, SettingID FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = True");
+                foreach (ManagementObject obj in searcher.Get())
+                {
+                    if (obj["DNSServerSearchOrder"] is string[] dnsArr && dnsArr.Length > 0)
+                    {
+                        var ipv4Dns = dnsArr.Where(d => IPAddress.TryParse(d, out var ip) && ip.AddressFamily == AddressFamily.InterNetwork).ToList();
+                        if (ipv4Dns.Count > 0)
+                        {
+                            string p = ipv4Dns[0];
+                            string s = ipv4Dns.Count > 1 ? ipv4Dns[1] : "";
+                            return (p, s);
+                        }
+                    }
+                }
             }
+            catch { }
 
+            // 2. Registry Interfaces check
+            try
+            {
+                using var baseKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces");
+                if (baseKey != null)
+                {
+                    foreach (var sub in baseKey.GetSubKeyNames())
+                    {
+                        using var ifKey = baseKey.OpenSubKey(sub);
+                        if (ifKey == null) continue;
+                        string? ns = ifKey.GetValue("NameServer")?.ToString();
+                        if (string.IsNullOrWhiteSpace(ns)) ns = ifKey.GetValue("DhcpNameServer")?.ToString();
+                        if (!string.IsNullOrWhiteSpace(ns))
+                        {
+                            var parts = ns.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length > 0)
+                            {
+                                string p = parts[0];
+                                string s = parts.Length > 1 ? parts[1] : "";
+                                return (p, s);
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            // 3. Fallback to NetworkInterface
             try
             {
                 var interfaces = NetworkInterface.GetAllNetworkInterfaces()
@@ -87,6 +142,7 @@ namespace StormSystemOptimizer.Services
                 }
             }
             catch { }
+
             return ("", "");
         }
 
@@ -98,7 +154,7 @@ namespace StormSystemOptimizer.Services
                 new DnsServerItem { ProviderName = "Яндекс.DNS (Базовый)", PrimaryDns = "77.88.8.8", SecondaryDns = "77.88.8.1", Features = "⚡ Быстрый российский сервер с минимальными задержками" },
                 new DnsServerItem { ProviderName = "Яндекс.DNS (Безопасный)", PrimaryDns = "77.88.8.88", SecondaryDns = "77.88.8.2", Features = "🛡️ Фильтрация вредоносных сайтов и фишинга" },
                 new DnsServerItem { ProviderName = "Яндекс.DNS (Семейный)", PrimaryDns = "77.88.8.7", SecondaryDns = "77.88.8.3", Features = "👨‍👩‍👧 Блокировка контента 18+ и опасных ресурсов" },
-                new DnsServerItem { ProviderName = "Xbox & Gaming Fast DNS", PrimaryDns = "1.1.1.1", SecondaryDns = "8.8.8.8", Features = "🎮 Оптимизирован для игровых сессий Xbox Live, Steam, PSN" },
+                new DnsServerItem { ProviderName = "Xbox и Gaming Fast DNS", PrimaryDns = "1.1.1.1", SecondaryDns = "8.8.8.8", Features = "🎮 Оптимизирован для игровых сессий Xbox Live, Steam, PSN" },
                 new DnsServerItem { ProviderName = "Cloudflare DNS (1.1.1.1)", PrimaryDns = "1.1.1.1", SecondaryDns = "1.0.0.1", Features = "🚀 Максимальная скорость в мире • Защита конфиденциальности" },
                 new DnsServerItem { ProviderName = "Google Public DNS (8.8.8.8)", PrimaryDns = "8.8.8.8", SecondaryDns = "8.8.4.4", Features = "🌐 Глобальная стабильность и надежность Anycast" },
                 new DnsServerItem { ProviderName = "AdGuard DNS (Anti-Ad)", PrimaryDns = "94.140.14.14", SecondaryDns = "94.140.15.15", Features = "🚫 Блокировка рекламы, баннеров и телеметрии" },
@@ -125,7 +181,7 @@ namespace StormSystemOptimizer.Services
 
             if (!string.IsNullOrEmpty(curP))
             {
-                // 1. Try exact match on both Primary and Secondary
+                // 1. Match both Primary and Secondary
                 var bestMatch = list.FirstOrDefault(x =>
                     string.Equals(x.PrimaryDns, curP, StringComparison.OrdinalIgnoreCase) &&
                     string.Equals(x.SecondaryDns, curS, StringComparison.OrdinalIgnoreCase));
@@ -238,84 +294,157 @@ namespace StormSystemOptimizer.Services
 
         public async Task<bool> ApplyDnsToActiveAdapterAsync(string primaryDns, string secondaryDns)
         {
-            SetAppliedDns(primaryDns, secondaryDns);
-
             return await Task.Run(() =>
             {
+                bool anySuccess = false;
+
+                // 1. Direct WMI Invocation (Kernel-Level Configuration)
                 try
                 {
-                    string secArg = string.IsNullOrWhiteSpace(secondaryDns) ? $"'{primaryDns}'" : $"'{primaryDns}', '{secondaryDns}'";
-                    string script = $@"
-$adapters = Get-NetAdapter | Where-Object {{ $_.Status -eq 'Up' -and $_.InterfaceDescription -notmatch 'Virtual|Hyper-V|WSL' }}
-foreach ($a in $adapters) {{
-    Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ServerAddresses @({secArg}) -ErrorAction SilentlyContinue
-}}
-";
-                    var psi = new ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"{script}\"")
-                    {
-                        CreateNoWindow = true,
-                        UseShellExecute = false,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-                    using var p = Process.Start(psi);
-                    p?.WaitForExit(5000);
+                    string[] dnsList = string.IsNullOrWhiteSpace(secondaryDns)
+                        ? new[] { primaryDns }
+                        : new[] { primaryDns, secondaryDns };
 
-                    // Fallback to netsh
+                    using var searcher = new ManagementObjectSearcher(
+                        "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = True");
+                    foreach (ManagementObject obj in searcher.Get())
+                    {
+                        var inParams = obj.GetMethodParameters("SetDNSServerSearchOrder");
+                        inParams["DNSServerSearchOrder"] = dnsList;
+                        var outParams = obj.InvokeMethod("SetDNSServerSearchOrder", inParams, null);
+                        uint ret = Convert.ToUInt32(outParams["ReturnValue"]);
+                        if (ret == 0 || ret == 1)
+                        {
+                            anySuccess = true;
+                        }
+
+                        // Also write to registry for this interface setting ID
+                        string settingId = obj["SettingID"]?.ToString() ?? "";
+                        if (!string.IsNullOrEmpty(settingId))
+                        {
+                            using var ifKey = Registry.LocalMachine.OpenSubKey(
+                                $@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{settingId}", true);
+                            if (ifKey != null)
+                            {
+                                ifKey.SetValue("NameServer", string.Join(",", dnsList), RegistryValueKind.String);
+                            }
+                        }
+                    }
+                }
+                catch { }
+
+                // 2. Direct Netsh commands
+                try
+                {
                     var interfaces = NetworkInterface.GetAllNetworkInterfaces()
                         .Where(ni => ni.OperationalStatus == OperationalStatus.Up &&
                                      ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
-                                     !ni.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase));
+                                     !ni.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
                     foreach (var adapter in interfaces)
                     {
                         string name = adapter.Name;
-                        RunCmd($"netsh interface ipv4 set dnsservers name=\"{name}\" static {primaryDns} primary");
+                        RunCmd($"netsh interface ipv4 set dnsservers name=\"{name}\" static {primaryDns} primary validate=no");
                         if (!string.IsNullOrWhiteSpace(secondaryDns))
                         {
-                            RunCmd($"netsh interface ipv4 add dnsservers name=\"{name}\" {secondaryDns} index=2");
+                            RunCmd($"netsh interface ipv4 add dnsservers name=\"{name}\" {secondaryDns} index=2 validate=no");
                         }
+                        anySuccess = true;
                     }
+                }
+                catch { }
 
-                    NetworkOptimizerService.Instance.FlushDnsCache();
-                    return true;
-                }
-                catch
+                // 3. PowerShell Set-DnsClientServerAddress
+                try
                 {
-                    return false;
+                    string secArg = string.IsNullOrWhiteSpace(secondaryDns) ? $"'{primaryDns}'" : $"'{primaryDns}', '{secondaryDns}'";
+                    string psCmd = $"Get-DnsClientServerAddress -AddressFamily IPv4 | Set-DnsClientServerAddress -ServerAddresses @({secArg}) -ErrorAction SilentlyContinue";
+                    RunCmd($"powershell.exe -NoProfile -Command \"{psCmd}\"");
                 }
+                catch { }
+
+                // 4. Save to Persistent Config File
+                try
+                {
+                    string dir = Path.GetDirectoryName(DnsConfigFile)!;
+                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                    var state = new { Primary = primaryDns, Secondary = secondaryDns, AppliedAt = DateTime.Now };
+                    File.WriteAllText(DnsConfigFile, JsonSerializer.Serialize(state));
+                }
+                catch { }
+
+                NetworkOptimizerService.Instance.FlushDnsCache();
+                return anySuccess;
             });
         }
 
         public async Task<bool> ResetDnsToDhcpAsync()
         {
-            _appliedPrimaryDns = null;
-            _appliedSecondaryDns = null;
-
             return await Task.Run(() =>
             {
+                bool anySuccess = false;
+
+                // 1. Direct WMI Invocation (Reset to DHCP)
                 try
                 {
-                    string script = @"
-$adapters = Get-NetAdapter | Where-Object { $_.Status -eq 'Up' -and $_.InterfaceDescription -notmatch 'Virtual|Hyper-V|WSL' }
-foreach ($a in $adapters) {
-    Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ResetServerAddresses -ErrorAction SilentlyContinue
-}
-";
-                    var psi = new ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"{script}\"")
+                    using var searcher = new ManagementObjectSearcher(
+                        "SELECT * FROM Win32_NetworkAdapterConfiguration WHERE IPEnabled = True");
+                    foreach (ManagementObject obj in searcher.Get())
                     {
-                        CreateNoWindow = true,
-                        UseShellExecute = false,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-                    using var p = Process.Start(psi);
-                    p?.WaitForExit(5000);
+                        var inParams = obj.GetMethodParameters("SetDNSServerSearchOrder");
+                        inParams["DNSServerSearchOrder"] = null;
+                        var outParams = obj.InvokeMethod("SetDNSServerSearchOrder", inParams, null);
+                        uint ret = Convert.ToUInt32(outParams["ReturnValue"]);
+                        if (ret == 0 || ret == 1)
+                        {
+                            anySuccess = true;
+                        }
 
-                    NetworkOptimizerService.Instance.FlushDnsCache();
-                    return true;
+                        string settingId = obj["SettingID"]?.ToString() ?? "";
+                        if (!string.IsNullOrEmpty(settingId))
+                        {
+                            using var ifKey = Registry.LocalMachine.OpenSubKey(
+                                $@"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces\{settingId}", true);
+                            ifKey?.SetValue("NameServer", "", RegistryValueKind.String);
+                        }
+                    }
                 }
-                catch
+                catch { }
+
+                // 2. Netsh reset
+                try
                 {
-                    return false;
+                    var interfaces = NetworkInterface.GetAllNetworkInterfaces()
+                        .Where(ni => ni.OperationalStatus == OperationalStatus.Up &&
+                                     ni.NetworkInterfaceType != NetworkInterfaceType.Loopback &&
+                                     !ni.Description.Contains("Virtual", StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+                    foreach (var adapter in interfaces)
+                    {
+                        RunCmd($"netsh interface ipv4 set dnsservers name=\"{adapter.Name}\" source=dhcp");
+                        anySuccess = true;
+                    }
                 }
+                catch { }
+
+                // 3. PowerShell Reset
+                try
+                {
+                    RunCmd("powershell.exe -NoProfile -Command \"Get-DnsClientServerAddress -AddressFamily IPv4 | Set-DnsClientServerAddress -ResetServerAddresses -ErrorAction SilentlyContinue\"");
+                }
+                catch { }
+
+                // 4. Delete saved config
+                try
+                {
+                    if (File.Exists(DnsConfigFile)) File.Delete(DnsConfigFile);
+                }
+                catch { }
+
+                NetworkOptimizerService.Instance.FlushDnsCache();
+                return anySuccess;
             });
         }
 
@@ -332,7 +461,7 @@ foreach ($a in $adapters) {
                     WindowStyle = ProcessWindowStyle.Hidden
                 };
                 using var proc = Process.Start(psi);
-                proc?.WaitForExit(3000);
+                proc?.WaitForExit(4000);
             }
             catch { }
         }

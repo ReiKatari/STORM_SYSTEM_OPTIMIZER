@@ -5,6 +5,10 @@ namespace StormSystemOptimizer.Models
         StormDark,
         StormNight,
         StormDay,
-        StormMidnight
+        StormMidnight,
+        StormMatrix,
+        StormCyberpunk,
+        StormFantasy,
+        StormWarhammer
     }
 }

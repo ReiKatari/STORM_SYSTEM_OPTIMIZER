@@ -48,7 +48,17 @@ namespace StormSystemOptimizer.Views
 
         private void CatChipset_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Чипсет & USB");
+            if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Чипсет и USB");
+        }
+
+        private void CatBios_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("BIOS и прошивка");
+        }
+
+        private void CatBackups_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Бэкапы");
         }
     }
 }

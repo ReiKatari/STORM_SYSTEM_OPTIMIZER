@@ -65,7 +65,7 @@ namespace StormSystemOptimizer.Services
                 sb.AppendLine($"        <div class='card-val'>{Environment.OSVersion.VersionString} (64-bit)</div>");
                 sb.AppendLine("      </div>");
                 sb.AppendLine("      <div class='card'>");
-                sb.AppendLine("        <div class='card-title'>Процессор & Потоки</div>");
+                sb.AppendLine("        <div class='card-title'>Процессор и Потоки</div>");
                 sb.AppendLine($"        <div class='card-val'>{HardwareTemperatureService.Instance.GetProcessorName()} ({Environment.ProcessorCount} потоков)</div>");
                 sb.AppendLine("      </div>");
                 sb.AppendLine("      <div class='card'>");

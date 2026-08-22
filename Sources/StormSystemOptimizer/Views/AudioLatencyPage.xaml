@@ -1,0 +1,85 @@
+<Page x:Class="StormSystemOptimizer.Views.AudioLatencyPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      Title="Задержки аудио и MMCSS">
+
+    <Page.DataContext>
+        <vm:AudioLatencyViewModel/>
+    </Page.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel>
+            <!-- Header Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Background="#1AF59E0B" BorderBrush="#33F59E0B" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoAudio}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Задержки аудио и MMCSS" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Конфигурация MMCSS Pro Audio, закрепление системного аудио-движка audiodg.exe за выделенным ядром CPU, снижение DPC Latency и ликвидация заиканий и треска звука."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="1" Command="{Binding ApplyAudioTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" VerticalAlignment="Center">
+                        <TextBlock Text="⚡ Применить тюнинг MMCSS" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- audiodg.exe Affinity Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Изоляция процесса аудио-движка Windows (audiodg.exe)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                    <TextBlock Text="На многоядерных процессорах перенос audiodg.exe с Ядра 0 на выделенное физическое ядро и приоритет High полностью устраняет прерывания звука в Discord и играх."
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12" TextWrapping="Wrap"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="100"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="Выделенное ядро CPU: " FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <Border Grid.Column="1" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="0,0,12,0">
+                            <TextBox Text="{Binding AudiodgCore, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextAlignment="Center"/>
+                        </Border>
+
+                        <TextBlock Grid.Column="2" Text="(Рекомендуется ядро 2 или 4, минуя системное ядро 0)" FontSize="11.5" Foreground="{DynamicResource AccentPrimaryBrush}" VerticalAlignment="Center"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Tweak Options -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Параметры планировщика мультимедиа и задержек" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                    <CheckBox IsChecked="{Binding BoostMmcss}" Margin="0,0,0,14">
+                        <StackPanel Margin="6,0,0,0">
+                            <TextBlock Text="Установить приоритет Pro Audio и Audio задач на High (Priority = 8, Clock Rate = 10000)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
+                            <TextBlock Text="Дает потокам звука наивысший приоритет над фоновыми процессами, предотвращая треск и рассинхрон звука." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                        </StackPanel>
+                    </CheckBox>
+
+                    <CheckBox IsChecked="{Binding BoostMmcss}">
+                        <StackPanel Margin="6,0,0,0">
+                            <TextBlock Text="Отключить троттлинг сетевого трафика мультимедиа (NetworkThrottlingIndex = 0xFFFFFFFF)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
+                            <TextBlock Text="Отменяет искусственное ограничение пропускной способности сети при воспроизведении аудио и видео." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                        </StackPanel>
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

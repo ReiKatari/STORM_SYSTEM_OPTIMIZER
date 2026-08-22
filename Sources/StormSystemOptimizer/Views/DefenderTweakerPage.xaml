@@ -1,0 +1,150 @@
+<Page x:Class="StormSystemOptimizer.Views.DefenderTweakerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      Title="Управление защитником и безопасность">
+
+    <Page.DataContext>
+        <vm:DefenderTweakerViewModel/>
+    </Page.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel>
+            <!-- Header Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoDefender}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Управление защитником и безопасность" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Настройка квоты потребления процессора антивирусом Windows Defender, отключение фонового сбора телеметрии/отчетов образцов и быстрое массовое добавление дисков и папок в исключения."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="1" Command="{Binding ApplyDefenderSettingsCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" VerticalAlignment="Center">
+                        <TextBlock Text="⚡ Сохранить параметры Защитника" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Mass Exclusion and Add Folder Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Массовое добавление дисков и папок в исключения сканирования" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                    <TextBlock Text="Защитник перестанет нагружать накопители при чтении файлов игр и тяжелых проектов." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14"/>
+
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,10,0">
+                            <TextBox Text="{Binding CustomExclusionFolder, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <Button Grid.Column="1" Command="{Binding AddExclusionCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,10,0">
+                            <TextBlock Text="➕ Добавить папку" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+
+                        <Button Grid.Column="2" Command="{Binding AddAllDrivesCommand}" Style="{StaticResource StormHeroButton}" Padding="14,8">
+                            <TextBlock Text="⚡ Исключить все диски" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- Active Exclusions List -->
+                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,8">
+                                <TextBlock Text="Текущие активные пути в исключениях Защитника:" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <Button Command="{Binding LoadExclusionsCommand}" Background="Transparent" BorderThickness="0" HorizontalAlignment="Right" Cursor="Hand">
+                                    <TextBlock Text="🔄 Обновить список" FontSize="11" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                </Button>
+                            </Grid>
+
+                            <ItemsControl ItemsSource="{Binding ActiveExclusions}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,6">
+                                            <Grid>
+                                                <TextBlock Text="{Binding}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                <Button Command="{Binding DataContext.RemoveExclusionCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                        CommandParameter="{Binding}"
+                                                        HorizontalAlignment="Right" Cursor="Hand">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="btnBorder"
+                                                                    Background="#1AEF4444"
+                                                                    BorderBrush="#55EF4444"
+                                                                    BorderThickness="1"
+                                                                    CornerRadius="6"
+                                                                    Padding="10,4"
+                                                                    SnapsToDevicePixels="True">
+                                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                                    <TextBlock Text="✕" FontSize="10" FontWeight="Bold" Foreground="#EF4444" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                                    <TextBlock Text="Удалить" FontSize="11" FontWeight="SemiBold" Foreground="#EF4444" VerticalAlignment="Center"/>
+                                                                </StackPanel>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="btnBorder" Property="Background" Value="#33EF4444"/>
+                                                                    <Setter TargetName="btnBorder" Property="BorderBrush" Value="#EF4444"/>
+                                                                    <Setter TargetName="btnBorder" Property="Effect">
+                                                                        <Setter.Value>
+                                                                            <DropShadowEffect BlurRadius="8" Color="#EF4444" Opacity="0.4" ShadowDepth="0"/>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </Trigger>
+                                                                <Trigger Property="IsPressed" Value="True">
+                                                                    <Setter TargetName="btnBorder" Property="Background" Value="#4DEF4444"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- CPU Throttling Slider & Telemetry -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Квота предельной нагрузки на процессор (AvgCPULoadFactor)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                    <TextBlock Text="По умолчанию Windows Defender может загружать до 50% CPU при фоновом сканировании, вызывая просадки FPS." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14"/>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Slider Value="{Binding DefenderCpuLimit}" Minimum="5" Maximum="50" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="{Binding DefenderCpuLimit, StringFormat='Лимит: {0}% CPU'}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                    </Grid>
+
+                    <CheckBox IsChecked="{Binding DisableTelemetry}" Margin="0,0,0,10">
+                        <StackPanel Margin="6,0,0,0">
+                            <TextBlock Text="Отключить отправку образцов телеметрии в облако Microsoft MAPS (SpyNet)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
+                            <TextBlock Text="Предотвращает фоновый интернет-трафик и задержки отправки подозрительных файлов на сервера Microsoft." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                        </StackPanel>
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

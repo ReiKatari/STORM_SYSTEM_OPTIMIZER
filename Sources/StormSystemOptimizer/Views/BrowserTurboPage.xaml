@@ -1,0 +1,83 @@
+<Page x:Class="StormSystemOptimizer.Views.BrowserTurboPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      Title="Тюнинг и очистка браузеров">
+
+    <Page.DataContext>
+        <vm:BrowserTurboViewModel/>
+    </Page.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel>
+            <!-- Header Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoBrowser}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Тюнинг и очистка браузеров" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Очистка кэша шейдеров, временных файлов и Code Cache для Chrome, Edge, Яндекс Браузера, Opera и Firefox. Отключение фоновых процессов после закрытия вкладки."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding CleanCachesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,0">
+                            <TextBlock Text="🧹 Очистить кэш браузеров" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                        <Button Command="{Binding ApplyBrowserPolicyCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10">
+                            <TextBlock Text="⚡ Применить тюнинг" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Metrics Card -->
+            <UniformGrid Columns="2" Margin="0,0,0,16">
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Объем временного кэша и шейдеров:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding DetectedCacheSize}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Аппаратное ускорение графики:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Direct3D 11/12 GPU Acceleration" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Settings Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Параметры ускорения веб-браузеров" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+                    <CheckBox IsChecked="{Binding DisableBackgroundMode}" Margin="0,0,0,14">
+                        <StackPanel Margin="6,0,0,0">
+                            <TextBlock Text="Запретить работу браузеров в фоновом режиме после закрытия (BackgroundModeEnabled = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
+                            <TextBlock Text="Освобождает до 1.5 ГБ оперативной памяти при закрытии Chrome, Edge и Яндекс Браузера." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                        </StackPanel>
+                    </CheckBox>
+
+                    <CheckBox IsChecked="{Binding EnableGpuAcceleration}">
+                        <StackPanel Margin="6,0,0,0">
+                            <TextBlock Text="Форсировать аппаратное ускорение рендеринга через GPU" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
+                            <TextBlock Text="Переносит обработку видео 4K/60FPS и анимаций CSS на графический процессор, разгружая CPU." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                        </StackPanel>
+                    </CheckBox>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

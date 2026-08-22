@@ -54,7 +54,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="⚡ Добавить папку в защищенный сейф (Поддерживается Drag &amp; Drop)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Grid.Column="0" Text="⚡ Добавить папку в защищенный сейф (Поддерживается Drag and Drop)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     <Border Grid.Column="1" Background="#1A00D2FF" CornerRadius="4" Padding="6,2">
                         <TextBlock Text="Перетащите папку сюда" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                     </Border>

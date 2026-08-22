@@ -41,10 +41,10 @@ namespace StormSystemOptimizer
             }
             catch { }
 
-            // Initialize and cache Dashboard immediately
-            var dashboard = new DashboardPage();
-            _pageCache["Dashboard"] = dashboard;
-            MainContentFrame.Navigate(dashboard);
+            // Initialize and cache QuickMaintenance immediately
+            var quickMaint = new QuickMaintenancePage();
+            _pageCache["QuickMaintenance"] = quickMaint;
+            MainContentFrame.Navigate(quickMaint);
 
             Loaded += async (s, e) =>
             {
@@ -161,6 +161,7 @@ namespace StormSystemOptimizer
                 {
                     page = tag switch
                     {
+                        "QuickMaintenance" => new QuickMaintenancePage(),
                         "Dashboard" => new DashboardPage(),
                         "Processes" => new ProcessesPage(),
                         "Disks" => new DisksPage(),
@@ -181,6 +182,16 @@ namespace StormSystemOptimizer
                         "InputLag" => new InputLagPage(),
                         "ContextMenu" => new ContextMenuPage(),
                         "BackupVault" => new BackupVaultPage(),
+                        "ExplorerTweaks" => new ExplorerTweaksPage(),
+                        "BrowserTurbo" => new BrowserTurboPage(),
+                        "GameLaunchers" => new GameLaunchersPage(),
+                        "DefenderTweaker" => new DefenderTweakerPage(),
+                        "MemoryMaster" => new MemoryMasterPage(),
+                        "AudioLatency" => new AudioLatencyPage(),
+                        "UsbPolling" => new UsbPollingPage(),
+                        "UpdateComponent" => new UpdateComponentPage(),
+                        "VisualPerformance" => new VisualPerformancePage(),
+                        "BootProfiler" => new BootProfilerPage(),
                         "Settings" => new SettingsPage(),
                         _ => new DashboardPage()
                     };

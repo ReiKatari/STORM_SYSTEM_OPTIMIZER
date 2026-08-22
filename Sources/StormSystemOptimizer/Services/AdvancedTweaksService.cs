@@ -392,5 +392,177 @@ namespace StormSystemOptimizer.Services
                 }
             });
         }
+
+        // 6. Explorer Extreme Responsiveness & Anti-Hang
+        public bool ToggleExplorerResponsiveness(bool enable)
+        {
+            try
+            {
+                if (enable)
+                {
+                    RunRegCommand("add \"HKCU\\Control Panel\\Desktop\" /v MenuShowDelay /t REG_SZ /d 0 /f");
+                    RunRegCommand("add \"HKCU\\Control Panel\\Desktop\" /v WaitToKillAppTimeout /t REG_SZ /d 2000 /f");
+                    RunRegCommand("add \"HKCU\\Control Panel\\Desktop\" /v HungAppTimeout /t REG_SZ /d 1000 /f");
+                    RunRegCommand("add \"HKCU\\Control Panel\\Desktop\" /v AutoEndTasks /t REG_SZ /d 1 /f");
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\" /v NoNetCrawling /t REG_DWORD /d 1 /f");
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer\" /v NoRemoteRecursiveEvents /t REG_DWORD /d 1 /f");
+                    RunRegCommand("add \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\" /v SeparateProcess /t REG_DWORD /d 1 /f");
+                }
+                else
+                {
+                    RunRegCommand("add \"HKCU\\Control Panel\\Desktop\" /v MenuShowDelay /t REG_SZ /d 400 /f");
+                    RunRegCommand("add \"HKCU\\Control Panel\\Desktop\" /v WaitToKillAppTimeout /t REG_SZ /d 5000 /f");
+                    RunRegCommand("add \"HKCU\\Control Panel\\Desktop\" /v HungAppTimeout /t REG_SZ /d 5000 /f");
+                    RunRegCommand("add \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Advanced\" /v SeparateProcess /t REG_DWORD /d 0 /f");
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool IsExplorerResponsivenessActive()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", false);
+                return key?.GetValue("MenuShowDelay")?.ToString() == "0";
+            }
+            catch { return false; }
+        }
+
+        // 7. Win32 Priority Separation & Kernel Scheduler
+        public bool ToggleWin32PrioritySeparation(bool enable)
+        {
+            try
+            {
+                // 26 (0x1A) = Short variable quantum, maximum foreground process boost (eSports input latency)
+                // 2 = Default Windows quantum
+                int val = enable ? 26 : 2;
+                RunRegCommand($"add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\PriorityControl\" /v Win32PrioritySeparation /t REG_DWORD /d {val} /f");
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool IsWin32PrioritySeparationActive()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\PriorityControl", false);
+                var val = key?.GetValue("Win32PrioritySeparation");
+                return val != null && Convert.ToInt32(val) == 26;
+            }
+            catch { return false; }
+        }
+
+        // 8. MMCSS & Gaming Packet Throttling Disabling
+        public bool ToggleMmcssGamingOptimization(bool enable)
+        {
+            try
+            {
+                if (enable)
+                {
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\" /v SystemResponsiveness /t REG_DWORD /d 0 /f");
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\" /v NetworkThrottlingIndex /t REG_DWORD /d 4294967295 /f");
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games\" /v \"GPU Priority\" /t REG_DWORD /d 8 /f");
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games\" /v Priority /t REG_DWORD /d 6 /f");
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games\" /v \"Scheduling Category\" /t REG_SZ /d High /f");
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\\Tasks\\Games\" /v \"SFIO Priority\" /t REG_SZ /d High /f");
+                }
+                else
+                {
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\" /v SystemResponsiveness /t REG_DWORD /d 20 /f");
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Multimedia\\SystemProfile\" /v NetworkThrottlingIndex /t REG_DWORD /d 10 /f");
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool IsMmcssGamingOptimizationActive()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile", false);
+                var val = key?.GetValue("SystemResponsiveness");
+                return val != null && Convert.ToInt32(val) == 0;
+            }
+            catch { return false; }
+        }
+
+        // 9. Zero Startup Delay (Eliminate 10-second boot pause)
+        public bool ToggleZeroStartupDelay(bool enable)
+        {
+            try
+            {
+                if (enable)
+                {
+                    RunRegCommand("add \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize\" /v StartupDelayInMSec /t REG_DWORD /d 0 /f");
+                }
+                else
+                {
+                    RunRegCommand("delete \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Serialize\" /v StartupDelayInMSec /f");
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool IsZeroStartupDelayActive()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize", false);
+                var val = key?.GetValue("StartupDelayInMSec");
+                return val != null && Convert.ToInt32(val) == 0;
+            }
+            catch { return false; }
+        }
+
+        // 10. Rebuild Icon & Thumbnail Shell Cache
+        public async Task<(bool success, string msg)> RebuildIconAndThumbnailCacheAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // Terminate explorer
+                    RunCmdCommand("taskkill /f /im explorer.exe");
+                    Task.Delay(500).Wait();
+
+                    string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    string iconCache = Path.Combine(localAppData, "IconCache.db");
+                    if (File.Exists(iconCache)) try { File.Delete(iconCache); } catch { }
+
+                    string thumbDir = Path.Combine(localAppData, @"Microsoft\Windows\Explorer");
+                    if (Directory.Exists(thumbDir))
+                    {
+                        var di = new DirectoryInfo(thumbDir);
+                        foreach (var f in di.EnumerateFiles("thumbcache_*.db"))
+                        {
+                            try { f.Delete(); } catch { }
+                        }
+                        foreach (var f in di.EnumerateFiles("iconcache_*.db"))
+                        {
+                            try { f.Delete(); } catch { }
+                        }
+                    }
+
+                    // Restart explorer
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "explorer.exe",
+                        UseShellExecute = true
+                    });
+
+                    return (true, "Кэш иконок и эскизов Проводника успешно перестроен и очищен!");
+                }
+                catch (Exception ex)
+                {
+                    Process.Start(new ProcessStartInfo { FileName = "explorer.exe", UseShellExecute = true });
+                    return (false, $"Ошибка очистки кэша: {ex.Message}");
+                }
+            });
+        }
     }
 }

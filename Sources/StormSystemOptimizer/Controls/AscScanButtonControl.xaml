@@ -36,7 +36,7 @@
 
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
         <!-- Outer Breathing Glow Disc -->
-        <Ellipse Width="170" Height="170" Fill="#050B17">
+        <Ellipse Width="170" Height="170" Fill="{DynamicResource CardBackgroundBrush}">
             <Ellipse.Effect>
                 <DropShadowEffect x:Name="GlowEffect" Color="#00D2FF" BlurRadius="24" ShadowDepth="0" Opacity="0.85"/>
             </Ellipse.Effect>
@@ -69,7 +69,7 @@
         </Grid>
 
         <!-- Outer Border Track -->
-        <Ellipse Width="168" Height="168" Stroke="#1E293B" StrokeThickness="2.5"/>
+        <Ellipse Width="168" Height="168" Stroke="{DynamicResource CardBorderBrush}" StrokeThickness="2.5"/>
 
         <!-- Main Interactive Button -->
         <Button x:Name="BtnAscScan"
@@ -79,28 +79,20 @@
             <Button.Template>
                 <ControlTemplate TargetType="Button">
                     <Grid>
-                        <!-- Button Background with Deep Glass Gradient -->
-                        <Ellipse x:Name="BtnDisc" Stroke="#3300D2FF" StrokeThickness="2">
-                            <Ellipse.Fill>
-                                <RadialGradientBrush Center="0.5,0.4" GradientOrigin="0.5,0.3" RadiusX="0.6" RadiusY="0.6">
-                                    <GradientStop Color="#1E293B" Offset="0.0"/>
-                                    <GradientStop Color="#0F172A" Offset="0.6"/>
-                                    <GradientStop Color="#0A0E1A" Offset="1.0"/>
-                                </RadialGradientBrush>
-                            </Ellipse.Fill>
-                        </Ellipse>
+                        <!-- Button Background with Dynamic Theme Gradient -->
+                        <Ellipse x:Name="BtnDisc" Stroke="{DynamicResource CardBorderBrush}" StrokeThickness="2" Fill="{DynamicResource AppBackgroundBrush}"/>
 
                         <!-- Content Overlay Container -->
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="BtnDisc" Property="Stroke" Value="#00D2FF"/>
+                            <Setter TargetName="BtnDisc" Property="Stroke" Value="{DynamicResource AccentPrimaryBrush}"/>
                             <Setter TargetName="BtnDisc" Property="StrokeThickness" Value="2.5"/>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="BtnDisc" Property="Stroke" Value="#38BDF8"/>
-                            <Setter TargetName="BtnDisc" Property="Opacity" Value="0.9"/>
+                            <Setter TargetName="BtnDisc" Property="Stroke" Value="{DynamicResource AccentPrimaryBrush}"/>
+                            <Setter TargetName="BtnDisc" Property="Opacity" Value="0.85"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
