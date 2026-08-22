@@ -65,7 +65,7 @@
                             </Border>
                             <TextBlock Text="Глубокое сканирование и оптимизация" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Интеллектуальный анализ служб, реестра, сетевого стека, шейдеров, системного мусора и настроек безопасности по стандартам IObit &amp; Ashampoo."
+                        <TextBlock Text="Интеллектуальный анализ служб, реестра, сетевого стека, шейдеров, системного мусора и настроек безопасности по стандартам IObit и Ashampoo."
                                    FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
 
                         <!-- Stats badges -->
@@ -125,7 +125,7 @@
             </Border>
 
             <!-- Comparative Impact Banner -->
-            <ctrl:ComparativeImpactControl Grid.Row="1" Icon="🧹" MetricTitle="Очистка системного мусора и кэшей" MetricSubtitle="Глубокое сканирование по стандартам Ashampoo &amp; IObit" BeforeValue="0 ГБ" AfterValue="4.8 ГБ" BadgeText="+4.8 ГБ свободно" Margin="0,0,0,14"/>
+            <ctrl:ComparativeImpactControl Grid.Row="1" Icon="🧹" MetricTitle="Очистка системного мусора и кэшей" MetricSubtitle="Глубокое сканирование по стандартам Ashampoo и IObit" BeforeValue="0 ГБ" AfterValue="4.8 ГБ" BadgeText="+4.8 ГБ свободно" Margin="0,0,0,14"/>
 
             <!-- Live Scan Progress Bar -->
             <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16"
@@ -204,28 +204,15 @@
                 </ListBox>
             </Border>
 
-            <!-- Bottom Multi-Select Helpers & Safe Optimization Note -->
+            <!-- Safe Optimization Note -->
             <Border Grid.Row="4" Margin="0,12,0,0">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding SelectAllCommand}" Content="Выбрать все" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,8,0"/>
-                        <Button Command="{Binding DeselectAllCommand}" Content="Снять выбор" Style="{StaticResource StormSecondaryButton}" Padding="12,6"/>
-                    </StackPanel>
-
-                    <TextBlock Grid.Column="1"
-                               Text="Все оптимизации проверены и гарантируют полную безопасность и целостность вашей операционной системы Windows."
-                               FontSize="11"
-                               Foreground="{DynamicResource TextSecondaryBrush}"
-                               TextWrapping="Wrap"
-                               HorizontalAlignment="Right"
-                               VerticalAlignment="Center"
-                               Margin="16,0,0,0"/>
-                </Grid>
+                <TextBlock Text="⚡ Все оптимизации проверены и гарантируют полную безопасность и целостность вашей операционной системы Windows."
+                           FontSize="11.5"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextSecondaryBrush}"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"/>
             </Border>
 
             <!-- FAQ Section with Gradient Vector Icons -->

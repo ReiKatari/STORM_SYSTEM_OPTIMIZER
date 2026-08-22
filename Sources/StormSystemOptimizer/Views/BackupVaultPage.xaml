@@ -23,7 +23,7 @@
                             <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Центр бэкапов и восстановления (Backup Vault)" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Центр бэкапов и восстановления" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Создание контрольных точек восстановления Windows, автоматический бэкап реестра перед оптимизацией и безопасный откат настроек."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
@@ -51,7 +51,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0">
-                        <TextBlock Text="Системный мастер отката Windows (System Restore GUI)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Системный мастер отката Windows" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         <TextBlock Text="Запуск встроенного системного мастера rstrui.exe для пошагового отката всех драйверов, реестра и системных файлов." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                     </StackPanel>
                     <Button Grid.Column="1" Command="{Binding LaunchWindowsRestoreGuiCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" VerticalAlignment="Center">

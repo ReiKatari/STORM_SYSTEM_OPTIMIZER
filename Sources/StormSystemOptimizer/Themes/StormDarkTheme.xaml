@@ -51,6 +51,15 @@
     <SolidColorBrush x:Key="BadgeAdvancedBgBrush" Color="{StaticResource StormBadgeAdvancedBgColor}"/>
     <SolidColorBrush x:Key="BadgeAdvancedTextBrush" Color="{StaticResource StormBadgeAdvancedTextColor}"/>
 
+    <!-- Sidebar Group Navigation Brushes -->
+    <SolidColorBrush x:Key="NavGroupHeaderBrush" Color="#161F33"/>
+    <SolidColorBrush x:Key="NavGroupHoverBrush" Color="#1E2A44"/>
+    <SolidColorBrush x:Key="NavGroupBorderBrush" Color="#263550"/>
+    <SolidColorBrush x:Key="NavGroupGuidelineBrush" Color="#1C273E"/>
+    <SolidColorBrush x:Key="NavGroupChevronBgBrush" Color="#1A00D2FF"/>
+    <SolidColorBrush x:Key="NavGroupChevronStrokeBrush" Color="#00D2FF"/>
+    <SolidColorBrush x:Key="NavGroupTextBrush" Color="#FFFFFF"/>
+
     <!-- Gradients -->
     <LinearGradientBrush x:Key="StormHeroGradient" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#00D2FF" Offset="0.0"/>

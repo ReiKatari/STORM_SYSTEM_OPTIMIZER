@@ -16,6 +16,8 @@ namespace StormSystemOptimizer.Services
         public string BiosVersion { get; set; } = "UEFI 2.0";
         public string BiosReleaseDate { get; set; } = "2024-2026";
         public string CpuArchitecture { get; set; } = "x64 AMD / Intel";
+        public string CpuName { get; set; } = "High Performance Processor";
+        public string CpuVendor { get; set; } = "Intel";
         public bool IsUefiBoot { get; set; } = true;
         public bool IsSecureBootEnabled { get; set; } = true;
     }
@@ -34,6 +36,20 @@ namespace StormSystemOptimizer.Services
             if (_cachedInfo != null) return _cachedInfo;
 
             var info = new MotherboardBiosInfo();
+
+            try
+            {
+                using var procSearcher = new ManagementObjectSearcher("SELECT Name, Manufacturer FROM Win32_Processor");
+                foreach (ManagementObject obj in procSearcher.Get())
+                {
+                    info.CpuName = obj["Name"]?.ToString()?.Trim() ?? "Processor";
+                    string mfg = obj["Manufacturer"]?.ToString()?.Trim() ?? "";
+                    info.CpuVendor = (mfg.Contains("AMD", StringComparison.OrdinalIgnoreCase) || info.CpuName.Contains("AMD", StringComparison.OrdinalIgnoreCase)) ? "AMD" : "Intel";
+                    info.CpuArchitecture = $"x64 {info.CpuVendor} Architecture";
+                    break;
+                }
+            }
+            catch { }
 
             try
             {
@@ -265,6 +281,66 @@ namespace StormSystemOptimizer.Services
                         MenuPathMsi = "OC ➔ DigitALL Power ➔ CPU Lite Load [Mode 5]",
                         MenuPathGigabyte = "Tweaker ➔ Advanced Voltage Settings ➔ CPU Vcore Offset [-0.050V]",
                         MenuPathAsrock = "OC Tweaker ➔ CPU Core/Cache Voltage ➔ Offset Mode [-50mV]"
+                    },
+                    new BiosSettingItem
+                    {
+                        Id = "bios_mcr_ddr5",
+                        Title = "Memory Context Restore (Мгновенный старт ПК на DDR5)",
+                        Category = "Память (RAM)",
+                        RecommendedValue = "Memory Context Restore [Enabled] + Power Down [Enabled]",
+                        CurrentStatus = "Ускорение холодного старта ПК в 4–5 раз",
+                        PerformanceImpact = "Сокращение времени загрузки Windows с 45 сек до 9 сек",
+                        SafetyLevel = "Официальная функция AMD AGESA & Intel",
+                        Explanation = "Сохраняет карту калибровки сигналов оперативной памяти DDR5 в энергонезависимой памяти BIOS, пропуская долгую тренировку таймингов ОЗУ при каждом включении компьютера.",
+                        MenuPathAsus = "Ai Tweaker ➔ DRAM Timing Control ➔ Memory Context Restore [Enabled]",
+                        MenuPathMsi = "OC ➔ Advanced DRAM Configuration ➔ Memory Context Restore [Enabled]",
+                        MenuPathGigabyte = "Tweaker ➔ Advanced Memory Settings ➔ Memory Context Restore [Enabled]",
+                        MenuPathAsrock = "OC Tweaker ➔ DRAM Configuration ➔ Memory Context Restore [Enabled]"
+                    },
+                    new BiosSettingItem
+                    {
+                        Id = "bios_gear1_cr",
+                        Title = "Memory Gear 1 Mode & Command Rate 1T",
+                        Category = "Память (RAM)",
+                        RecommendedValue = "Gear Mode [Gear 1] / Command Rate [1T]",
+                        CurrentStatus = "Синхронная работа контроллера памяти 1:1",
+                        PerformanceImpact = "Снижение задержки памяти RAM на 6–10 нс, рост FPS",
+                        SafetyLevel = "100% Стабильно для частот до DDR4-3600 / DDR5-6000",
+                        Explanation = "Режим Gear 1 обеспечивает синхронную работу контроллера памяти процессора на полной частоте без деления на 2, что дает минимальный пинг и задержку доступа к ОЗУ в играх.",
+                        MenuPathAsus = "Ai Tweaker ➔ Memory Controller : DRAM Frequency Ratio [1:1 / Gear 1]",
+                        MenuPathMsi = "OC ➔ CPU IMC : DRAM Frequency [1:1 (Gear 1)]",
+                        MenuPathGigabyte = "Tweaker ➔ Memory Gear Mode [Gear 1]",
+                        MenuPathAsrock = "OC Tweaker ➔ DRAM Timing Control ➔ Gear Mode [Gear 1]"
+                    },
+                    new BiosSettingItem
+                    {
+                        Id = "bios_tpm_secureboot",
+                        Title = "TPM 2.0 (AMD fTPM / Intel PTT) & Secure Boot",
+                        Category = "Загрузка и Безопасность",
+                        RecommendedValue = "Security Device Support [Enable] + Secure Boot [Enabled]",
+                        CurrentStatus = "Полное соответствие требованиям Windows 11 и античитов (Vanguard/EAC)",
+                        PerformanceImpact = "Аппаратная защита ядра и запуск современных соревновательных игр",
+                        SafetyLevel = "100% Безопасно (Стандарт Microsoft)",
+                        Explanation = "Активирует встроенный в процессор аппаратный криптопроцессор TPM 2.0 и проверку цифровых подписей загрузчика, что требуется для работы Windows 11, BitLocker и соревновательных античитов (Valorant, FACEIT, CoD).",
+                        MenuPathAsus = "Advanced ➔ Trusted Computing ➔ Security Device Support [Enable] / AMD fTPM [Firmware TPM]",
+                        MenuPathMsi = "Settings ➔ Security ➔ Trusted Computing ➔ Security Device Support [Enabled]",
+                        MenuPathGigabyte = "Settings ➔ Miscellaneous ➔ Intel Platform Trust Tech (PTT) / AMD CPU fTPM [Enabled]",
+                        MenuPathAsrock = "Advanced ➔ Security ➔ Intel PTT / AMD fTPM [Enabled]"
+                    },
+                    new BiosSettingItem
+                    {
+                        Id = "bios_fan_hysteresis",
+                        Title = "Hysteresis / Fan Step-Up & Step-Down Delay (Акустический комфорт)",
+                        Category = "Охлаждение и Вентиляторы",
+                        RecommendedValue = "Fan Step-Up [0.2 sec] / Step-Down [1.0 - 2.0 sec]",
+                        CurrentStatus = "Устранение резких завываний вентиляторов",
+                        PerformanceImpact = "Бесшумная и плавная работа кулеров при кратковременных нагрузках",
+                        SafetyLevel = "100% Безопасно для охлаждения",
+                        Explanation = "Задержка снижения оборотов (Hysteresis) предотвращает постоянные резкие скачки скорости вентиляторов кулера при открытии вкладок браузера или запуске приложений.",
+                        MenuPathAsus = "Monitor ➔ Q-Fan Configuration ➔ CPU Fan Step Up/Down Time [Level 1 - 2.0 sec]",
+                        MenuPathMsi = "Hardware Monitor ➔ Fan Step Up Time [0.2s] / Fan Step Down Time [2.0s]",
+                        MenuPathGigabyte = "Smart Fan 6 ➔ Temperature Interval / Smoothing [3]",
+                        MenuPathAsrock = "H/W Monitor ➔ Fan Step-Down Delay [2.0s]"
                     }
                 };
 

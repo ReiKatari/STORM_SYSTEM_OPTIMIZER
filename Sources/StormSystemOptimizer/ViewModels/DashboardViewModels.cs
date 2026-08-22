@@ -20,7 +20,7 @@ namespace StormSystemOptimizer.ViewModels
         private string _appTitle = "STORM SYSTEM OPTIMIZER";
 
         [ObservableProperty]
-        private string _version = "v0.3.6";
+        private string _version = "v1.0.0";
 
         [ObservableProperty]
         private string _statusMessage = "Система готова к работе";
@@ -116,6 +116,18 @@ namespace StormSystemOptimizer.ViewModels
 
         [ObservableProperty]
         private string _diskTemperatureText = "32 °C";
+
+        [ObservableProperty]
+        private string _directStorageStatus = "BypassIO Поддерживается";
+
+        [ObservableProperty]
+        private string _rebarStatus = "Resizable BAR Активен";
+
+        [ObservableProperty]
+        private string _coreIsolationStatus = "VBS / HVCI Отключен (Ultra FPS)";
+
+        [ObservableProperty]
+        private string _mmcssStatus = "MMCSS Pro Audio 0.5 мс";
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotOptimizing))]

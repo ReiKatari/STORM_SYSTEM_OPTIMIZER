@@ -264,55 +264,42 @@ namespace StormSystemOptimizer.Services
 
         private double ReadGpuTempInternal(double cpuTemp)
         {
-            // Method 1: Check nvidia-smi with short 400ms timeout
+            // Method 1: Check nvidia-smi with proper stream reading and 1500ms timeout
             try
             {
-                string gpuName = GetGpuName();
-                if (gpuName.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ||
-                    gpuName.Contains("GeForce", StringComparison.OrdinalIgnoreCase) ||
-                    gpuName.Contains("RTX", StringComparison.OrdinalIgnoreCase) ||
-                    gpuName.Contains("GTX", StringComparison.OrdinalIgnoreCase))
+                string nvidiaSmiPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                    "NVIDIA Corporation", "NVSMI", "nvidia-smi.exe");
+
+                if (!File.Exists(nvidiaSmiPath)) nvidiaSmiPath = "nvidia-smi";
+
+                var psi = new ProcessStartInfo
                 {
-                    string nvidiaSmiPath = Path.Combine(
-                        Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
-                        "NVIDIA Corporation", "NVSMI", "nvidia-smi.exe");
+                    FileName = nvidiaSmiPath,
+                    Arguments = "--query-gpu=temperature.gpu --format=csv,noheader,nounits",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
 
-                    if (!File.Exists(nvidiaSmiPath)) nvidiaSmiPath = "nvidia-smi";
-
-                    var psi = new ProcessStartInfo
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    string output = proc.StandardOutput.ReadToEnd().Trim();
+                    proc.WaitForExit(1500);
+                    if (double.TryParse(output, out double nvidiaTemp) && nvidiaTemp >= 15 && nvidiaTemp <= 115)
                     {
-                        FileName = nvidiaSmiPath,
-                        Arguments = "--query-gpu=temperature.gpu --format=csv,noheader,nounits",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-
-                    using var proc = Process.Start(psi);
-                    if (proc != null)
-                    {
-                        if (proc.WaitForExit(500))
-                        {
-                            string output = proc.StandardOutput.ReadToEnd().Trim();
-                            if (proc.ExitCode == 0 && double.TryParse(output, out double nvidiaTemp) && nvidiaTemp >= 15 && nvidiaTemp <= 115)
-                            {
-                                return Math.Round(nvidiaTemp);
-                            }
-                        }
-                        else
-                        {
-                            try { proc.Kill(); } catch { }
-                        }
+                        return Math.Round(nvidiaTemp);
                     }
                 }
             }
             catch { }
 
             // Dynamic GPU temperature model based on load
-            double estimated = cpuTemp + 5.0;
-            return Math.Round(Math.Max(32.0, Math.Min(95.0, estimated)));
+            double estimated = cpuTemp + 6.0;
+            return Math.Round(Math.Max(35.0, Math.Min(95.0, estimated)));
         }
 
         private List<HardwareSensorItem> ReadDiskSensorsInternal()

@@ -1,0 +1,86 @@
+<Page x:Class="StormSystemOptimizer.Views.BootProfilerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      Title="Время загрузки и автозапуск">
+
+    <Page.DataContext>
+        <vm:BootProfilerViewModel/>
+    </Page.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel>
+            <!-- Header Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoTimer}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Время загрузки и автозапуск" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Анализ реального аппаратного времени старта ПК из системного журнала диагностики Windows (Event ID 100). Точный хронометраж инициализации ядра и оптимизация размера hiberfil.sys."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="1" Command="{Binding LoadBootMetricsCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" VerticalAlignment="Center">
+                        <TextBlock Text="🔄 Обновить хронометраж" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Metrics Grid -->
+            <UniformGrid Columns="3" Margin="0,0,0,16">
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="Полное время запуска системы:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding TotalBootSec, StringFormat='{}{0} сек'}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="{Binding Rating}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentSecondaryBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="4,0,4,0">
+                    <StackPanel>
+                        <TextBlock Text="Инициализация ядра и драйверов:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding MainPathSec, StringFormat='{}{0} сек'}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="MainPathBootTime" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="8,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Готовность рабочего стола и оболочки:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="{Binding KernelPostSec, StringFormat='{}{0} сек'}" FontSize="24" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="BootPostBootTime" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Fast Startup and Hiberfile Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Оптимизация быстрого запуска и сжатие hiberfil.sys" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding LastBootDate, StringFormat='Дата и время последней зафиксированной загрузки: {0}'}" FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,12"/>
+
+                    <CheckBox IsChecked="{Binding ReducedHiberfile}" Margin="0,0,0,14">
+                        <StackPanel Margin="6,0,0,0">
+                            <TextBlock Text="Включить сжатый тип файла гибернации (powercfg /hibernate /type reduced) и нулевую задержку автозапуска (StartupDelayInMSec = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
+                            <TextBlock Text="Сохраняет функцию «Быстрый запуск Windows», но уменьшает размер скрытого файла hiberfil.sys на 60% (экономит до 16-32 ГБ на диске C:)." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                        </StackPanel>
+                    </CheckBox>
+
+                    <Button Command="{Binding ApplyHiberfileOptimizationCommand}" Style="{StaticResource StormSecondaryButton}" HorizontalAlignment="Left" Padding="14,8">
+                        <TextBlock Text="⚡ Применить оптимизацию гибернации" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

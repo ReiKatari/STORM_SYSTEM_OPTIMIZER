@@ -82,7 +82,7 @@ namespace StormSystemOptimizer.ViewModels
 
         // Overall Index
         [ObservableProperty]
-        private string _stormOverallScoreText = "8,450 PTS";
+        private string _stormOverallScoreText = "8 450 PTS";
 
         [ObservableProperty]
         private string _stormOverallScoreDetail = "STORM PERFORMANCE INDEX: Расчетный индекс производительности";
@@ -441,7 +441,7 @@ namespace StormSystemOptimizer.ViewModels
                 double total = Math.Round((cpu * 0.35) + (gpu * 0.40) + (ram * 0.15) + (disk * 0.10));
                 StormOverallScoreText = FormatHelper.FormatPts(total, true);
                 StormOverallScoreDetail = total > 9000 
-                    ? "STORM PERFORMANCE INDEX: Экстремальный уровень (Workstation & Enthusiast Gaming)" 
+                    ? "STORM PERFORMANCE INDEX: Экстремальный уровень (Workstation и Enthusiast Gaming)" 
                     : (total > 5000 ? "STORM PERFORMANCE INDEX: Высокий уровень (High Performance Gaming)" : "STORM PERFORMANCE INDEX: Сбалансированный ПК");
             }
         }

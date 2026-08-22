@@ -55,17 +55,28 @@
                 </Grid>
             </Border>
 
+            <!-- Filter Tabs Bar -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,0,0,16">
+                <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Все" Content="Все пункты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Инструменты" Content="⭐ Инструменты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Очистка" Content="🧹 Очистка меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Сторонние" Content="⚙️ Сторонние меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" FontSize="11.5" FontWeight="Bold"/>
+                </WrapPanel>
+            </Border>
+
             <!-- Items List -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
                 <StackPanel>
                     <TextBlock Text="Пункты контекстного меню и расширения Проводника" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
-                    <ItemsControl ItemsSource="{Binding MenuItems}">
+                    <ItemsControl ItemsSource="{Binding FilteredItems}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,8">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                              <ColumnDefinition Width="*"/>
+                                             <ColumnDefinition Width="Auto"/>
                                              <ColumnDefinition Width="Auto"/>
                                              <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -75,11 +86,15 @@
                                             <TextBlock Text="{Binding Location, StringFormat='Расположение: {0}'}" FontSize="10" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,2,0,0"/>
                                         </StackPanel>
 
-                                        <Border Grid.Column="1" Background="#1A00D2FF" CornerRadius="4" Padding="8,4" Margin="12,0" VerticalAlignment="Center">
+                                        <Border Grid.Column="1" Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="8,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Category}" FontSize="10" FontWeight="Bold" Foreground="#10B981"/>
+                                        </Border>
+
+                                        <Border Grid.Column="2" Background="#1A00D2FF" CornerRadius="4" Padding="8,4" Margin="4,0,12,0" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding Location}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                         </Border>
 
-                                        <Button Grid.Column="2" 
+                                        <Button Grid.Column="3" 
                                                 Command="{Binding DataContext.ToggleItemStateCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                 CommandParameter="{Binding}"
                                                 Style="{StaticResource StormSecondaryButton}"

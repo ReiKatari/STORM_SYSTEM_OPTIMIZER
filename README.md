@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%20Windows%2011-0078D4?style=for-the-badge&logo=windows" />
   <img src="https://img.shields.io/badge/Framework-WPF%20%2F%20.NET%208%20LTS-00D2FF?style=for-the-badge&logo=windows-terminal" />
   <img src="https://img.shields.io/badge/Language-C%23%20%2F%20.NET-7928CA?style=for-the-badge&logo=c-sharp" />
-  <img src="https://img.shields.io/badge/Version-v0.3.6-10B981?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Version-v1.0.0-10B981?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Signature-Authenticode%20SHA--256-blueviolet?style=for-the-badge" />
 </p>
 
@@ -20,11 +20,11 @@
 
 ## ⚡ О проекте
 
-**STORM SYSTEM OPTIMIZER v0.3.6** — системный оптимизатор нового поколения, разработанный на нативном высокопроизводительном движке **WPF (.NET 8 LTS)**. Программа предоставляет комплексный набор из 20 специализированных инструментов для глубокой настройки, ускорения игр, освобождения оперативной памяти ядра, устранения системных задержек и поддержания максимальной стабильности ПК.
+**STORM SYSTEM OPTIMIZER v1.0.0** — системный оптимизатор нового поколения от команды **STORM TEAM**, разработанный на нативном высокопроизводительном движке **WPF (.NET 8 LTS)**. Программа предоставляет комплексный набор из 32 специализированных инструментов для глубокой настройки, ускорения игр, освобождения оперативной памяти ядра, устранения системных задержек и поддержания максимальной стабильности ПК.
 
 ---
 
-## 🚀 20 Интеллектуальных разделов и возможностей
+## 🚀 30 Интеллектуальных разделов и возможностей
 
 ### 1. ⚡ Панель состояния (Dashboard) & Экспресс-буст
 - Мониторинг CPU, RAM (включая Standby-кэш), системных накопителей и времени аптайма в реальном времени.
@@ -149,7 +149,7 @@ E:\STORM SYSTEM OPTIMIZER\
 │   │   └── Views\            # 20 страниц интерфейса WPF
 │   └── StormInstaller\       # Проект автономного установщика Setup
 ├── Files\                    # Каталог официальных релизов Setup
-│   └── StormSystemOptimizer_Setup_v0.3.6.exe  <-- Актуальный установщик
+│   └── StormSystemOptimizer_Setup_v0.3.8.exe  <-- Актуальный установщик
 └── Assembling\               # Скомпилированный портативный релиз StormSystemOptimizer.exe
 ```
 
@@ -171,5 +171,5 @@ powershell.exe -ExecutionPolicy Bypass -File .\build.ps1
 ---
 
 ## 🔒 Цифровая подпись и безопасность
-Все бинарные файлы и инсталляторы подписываются цифровым сертификатом Authenticode SHA-256 (`CN=STORM Software Root CA`).
+Все бинарные файлы и инсталляторы подписываются цифровым сертификатом Authenticode SHA-256 (`CN=STORM TEAM Root CA`).
 Приложение не содержит сторонних библиотек сомнительного происхождения и выполняет только документированные, безопасные системные вызовы Windows NT.
