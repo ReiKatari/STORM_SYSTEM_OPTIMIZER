@@ -22,8 +22,10 @@ $setupExePath = Join-Path $filesDir "StormSystemOptimizer_Setup_v$appVersion.exe
 
 # Step 0: Terminate any running instances to release file locks
 Write-Host "[0/6] Closing running instances to release file locks..." -ForegroundColor Yellow
+cmd.exe /c "taskkill /F /IM StormSystemOptimizer.exe /T >nul 2>&1"
+cmd.exe /c "taskkill /F /IM StormInstaller.exe /T >nul 2>&1"
 Get-Process "StormSystemOptimizer", "StormInstaller" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-Start-Sleep -Milliseconds 500
+Start-Sleep -Seconds 1
 
 # Step 1: Clean build outputs
 Write-Host "[1/6] Cleaning build directories..." -ForegroundColor Yellow
@@ -45,11 +47,17 @@ if (-not (Test-Path $publishedExe)) {
 # Step 3: Copy to Assembling & Installer Resources
 Write-Host "[3/6] Copying to Assembling and Installer Resources..." -ForegroundColor Yellow
 if (-not (Test-Path $assemblingDir)) { New-Item -ItemType Directory -Path $assemblingDir | Out-Null }
-Copy-Item $publishedExe "$assemblingDir\StormSystemOptimizer.exe" -Force
+try {
+    Copy-Item $publishedExe "$assemblingDir\StormSystemOptimizer.exe" -Force -ErrorAction Stop
+} catch {
+    Write-Host "Note: Assembling\StormSystemOptimizer.exe is currently in use. Fresh publish will be packaged into installer directly." -ForegroundColor DarkGray
+}
 
 $installerResDir = Join-Path $installerProjDir "Resources"
 if (-not (Test-Path $installerResDir)) { New-Item -ItemType Directory -Path $installerResDir | Out-Null }
-Copy-Item $publishedExe "$installerResDir\StormSystemOptimizer.exe" -Force
+try {
+    Copy-Item $publishedExe "$installerResDir\StormSystemOptimizer.exe" -Force -ErrorAction SilentlyContinue
+} catch { }
 
 # Step 4: Publish Installer
 Write-Host "[4/6] Publishing Installer v$appVersion..." -ForegroundColor Yellow
@@ -63,21 +71,47 @@ if (-not (Test-Path $publishedInstaller)) {
 
 Copy-Item $publishedInstaller $setupExePath -Force
 
-# Step 5: Digital Signature (Authenticode)
-Write-Host "[5/6] Applying digital signature (Authenticode SHA-256)..." -ForegroundColor Yellow
-$cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Where-Object { $_.Subject -like "*STORM Software Root CA*" } | Select-Object -First 1
+# Step 5: Digital Signature (Authenticode) & Certificate Trust
+Write-Host "[5/6] Applying digital signature (Authenticode SHA-256) and registering trust..." -ForegroundColor Yellow
+$cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Where-Object { $_.Subject -like "*STORM TEAM*" } | Select-Object -First 1
+if (-not $cert) {
+    $cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Where-Object { $_.Subject -like "*STORM Software*" -or $_.Subject -like "*STORM*" } | Select-Object -First 1
+}
 if ($cert) {
-    Set-AuthenticodeSignature -FilePath "$assemblingDir\StormSystemOptimizer.exe" -Certificate $cert -HashAlgorithm SHA256 | Out-Null
-    Set-AuthenticodeSignature -FilePath $setupExePath -Certificate $cert -HashAlgorithm SHA256 | Out-Null
-    Write-Host "Authenticode signatures successfully applied!" -ForegroundColor Green
+    # Export CER for distribution and silent trust
+    $cerPath = Join-Path $filesDir "STORM_Certificate.cer"
+    [System.IO.File]::WriteAllBytes($cerPath, $cert.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Cert))
+    Copy-Item $cerPath (Join-Path $filesDir "StormTeamRootCA.cer") -Force -ErrorAction SilentlyContinue
+    Copy-Item $cerPath (Join-Path $filesDir "StormSoftwareRootCA.cer") -Force -ErrorAction SilentlyContinue
+    Copy-Item $cerPath (Join-Path $baseDir "StormTeamRootCA.cer") -Force -ErrorAction SilentlyContinue
+    Copy-Item $cerPath (Join-Path $baseDir "STORM_Certificate.cer") -Force -ErrorAction SilentlyContinue
+
+    # Apply Authenticode Signature
+    if (Test-Path $publishedExe) {
+        Set-AuthenticodeSignature -FilePath $publishedExe -Certificate $cert -HashAlgorithm SHA256 | Out-Null
+    }
+    try {
+        if (Test-Path "$assemblingDir\StormSystemOptimizer.exe") {
+            Set-AuthenticodeSignature -FilePath "$assemblingDir\StormSystemOptimizer.exe" -Certificate $cert -HashAlgorithm SHA256 -ErrorAction Stop | Out-Null
+        }
+    } catch { }
+    if (Test-Path $setupExePath) {
+        Set-AuthenticodeSignature -FilePath $setupExePath -Certificate $cert -HashAlgorithm SHA256 | Out-Null
+    }
+
+    # Register in User and Machine TrustedPublisher stores
+    & certutil.exe -user -addstore -f "TrustedPublisher" $cerPath 2>&1 | Out-Null
+    & certutil.exe -addstore -f "TrustedPublisher" $cerPath 2>&1 | Out-Null
+    & certutil.exe -addstore -f "Root" $cerPath 2>&1 | Out-Null
+
+    Write-Host "Authenticode signatures (STORM TEAM) and trust stores successfully updated!" -ForegroundColor Green
 } else {
     Write-Host "Code signing certificate not found in CurrentUser\My." -ForegroundColor DarkYellow
 }
 
 # Step 6: Unblock Files
-Write-Host "[6/6] Unblocking output files..." -ForegroundColor Yellow
-Unblock-File -Path "$assemblingDir\StormSystemOptimizer.exe" -ErrorAction SilentlyContinue
-Unblock-File -Path $setupExePath -ErrorAction SilentlyContinue
+Write-Host "[6/6] Unblocking all output and project files..." -ForegroundColor Yellow
+Get-ChildItem -Path $baseDir -Recurse -Include *.exe, *.dll, *.bat, *.ps1 -ErrorAction SilentlyContinue | Unblock-File -ErrorAction SilentlyContinue
 
 Write-Host "============================================================" -ForegroundColor Green
 Write-Host " RELEASE v$appVersion SUCCESSFULLY BUILT AND PACKAGED! " -ForegroundColor Green

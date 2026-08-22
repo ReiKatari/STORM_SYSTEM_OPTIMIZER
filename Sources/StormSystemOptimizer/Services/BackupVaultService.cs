@@ -217,75 +217,43 @@ namespace StormSystemOptimizer.Services
         public List<SystemBackupItem> GetExistingBackups()
         {
             var list = new List<SystemBackupItem>();
+            var seenSeq = new HashSet<int>();
 
-            // 1. Load Windows System Restore Points from History
+            // 1. Query Windows WMI System Restore Points (instant & native Unicode)
+            try
+            {
+                using var searcher = new System.Management.ManagementObjectSearcher(@"root\default", "SELECT SequenceNumber, Description, CreationTime FROM SystemRestore");
+                foreach (System.Management.ManagementObject obj in searcher.Get())
+                {
+                    string rawDesc = obj["Description"]?.ToString() ?? "Контрольная точка системы";
+                    string desc = SanitizeRestorePointDescription(rawDesc);
+                    int seq = int.TryParse(obj["SequenceNumber"]?.ToString(), out int s) ? s : 0;
+                    string rawTime = obj["CreationTime"]?.ToString() ?? "";
+                    string dateStr = FormatWmiDate(rawTime);
+
+                    list.Add(new SystemBackupItem
+                    {
+                        Title = desc,
+                        DateString = dateStr,
+                        BackupType = "Системная точка Windows",
+                        IsRestorePoint = true,
+                        SequenceNumber = seq,
+                        SizeText = "Снимок ОС"
+                    });
+                    if (seq > 0) seenSeq.Add(seq);
+                }
+            }
+            catch { }
+
+            // 2. Load Windows System Restore Points from History
             try
             {
                 var history = LoadRestoreHistory();
                 foreach (var h in history)
                 {
-                    if (h.Title.Contains("STORM", StringComparison.OrdinalIgnoreCase))
-                        h.Title = "STORM_OPTIMIZATION_RESTOREPOINT";
+                    h.Title = SanitizeRestorePointDescription(h.Title);
+                    if (h.SequenceNumber > 0 && seenSeq.Contains(h.SequenceNumber)) continue;
                     list.Add(h);
-                }
-            }
-            catch { }
-
-            // 2. Query Windows Registry / System Restore Points
-            try
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    Arguments = "-NoProfile -ExecutionPolicy Bypass -Command \"Get-ComputerRestorePoint -ErrorAction SilentlyContinue | Select-Object SequenceNumber, Description, CreationTime | ConvertTo-Json\"",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                using var p = Process.Start(psi);
-                if (p != null)
-                {
-                    string json = p.StandardOutput.ReadToEnd();
-                    p.WaitForExit(3000);
-                    if (!string.IsNullOrWhiteSpace(json))
-                    {
-                        try
-                        {
-                            using var doc = JsonDocument.Parse(json);
-                            if (doc.RootElement.ValueKind == JsonValueKind.Array)
-                            {
-                                foreach (var el in doc.RootElement.EnumerateArray())
-                                {
-                                    string desc = el.TryGetProperty("Description", out var d) ? d.GetString() ?? "STORM_OPTIMIZATION_RESTOREPOINT" : "STORM_OPTIMIZATION_RESTOREPOINT";
-                                    int seq = el.TryGetProperty("SequenceNumber", out var s) ? s.GetInt32() : 0;
-                                    list.Add(new SystemBackupItem
-                                    {
-                                        Title = desc.Contains("STORM", StringComparison.OrdinalIgnoreCase) ? "STORM_OPTIMIZATION_RESTOREPOINT" : desc,
-                                        DateString = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
-                                        BackupType = "Системная точка Windows",
-                                        IsRestorePoint = true,
-                                        SequenceNumber = seq,
-                                        SizeText = "Снимок ОС"
-                                    });
-                                }
-                            }
-                            else if (doc.RootElement.ValueKind == JsonValueKind.Object)
-                            {
-                                string desc = doc.RootElement.TryGetProperty("Description", out var d) ? d.GetString() ?? "STORM_OPTIMIZATION_RESTOREPOINT" : "STORM_OPTIMIZATION_RESTOREPOINT";
-                                int seq = doc.RootElement.TryGetProperty("SequenceNumber", out var s) ? s.GetInt32() : 0;
-                                list.Add(new SystemBackupItem
-                                {
-                                    Title = desc.Contains("STORM", StringComparison.OrdinalIgnoreCase) ? "STORM_OPTIMIZATION_RESTOREPOINT" : desc,
-                                    DateString = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
-                                    BackupType = "Системная точка Windows",
-                                    IsRestorePoint = true,
-                                    SequenceNumber = seq,
-                                    SizeText = "Снимок ОС"
-                                });
-                            }
-                        }
-                        catch { }
-                    }
                 }
             }
             catch { }
@@ -330,6 +298,51 @@ namespace StormSystemOptimizer.Services
             }
 
             return list;
+        }
+
+        private static string SanitizeRestorePointDescription(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return "Контрольная точка системы";
+            if (raw.Contains("STORM", StringComparison.OrdinalIgnoreCase)) return "STORM_OPTIMIZATION_RESTOREPOINT";
+
+            // Detect corrupt mojibake / OEM codepage distortion
+            bool hasGarbage = false;
+            foreach (char c in raw)
+            {
+                if (c == '®' || c == 'ў' || c == 'Ѓ' || c == 'Г' || (c >= 128 && c <= 191 && !char.IsLetterOrDigit(c)))
+                {
+                    hasGarbage = true;
+                    break;
+                }
+            }
+
+            if (hasGarbage || raw.StartsWith("_") || raw.Contains("®Ў"))
+            {
+                if (raw.Contains("Windows", StringComparison.OrdinalIgnoreCase) || raw.Contains("En", StringComparison.OrdinalIgnoreCase))
+                    return "Установка обновлений и компонентов Windows";
+                return "Автоматическая контрольная точка Windows";
+            }
+
+            return raw;
+        }
+
+        private static string FormatWmiDate(string wmiDate)
+        {
+            if (string.IsNullOrWhiteSpace(wmiDate)) return DateTime.Now.ToString("dd.MM.yyyy HH:mm");
+            try
+            {
+                if (wmiDate.Length >= 14 &&
+                    int.TryParse(wmiDate.Substring(0, 4), out int year) &&
+                    int.TryParse(wmiDate.Substring(4, 2), out int month) &&
+                    int.TryParse(wmiDate.Substring(6, 2), out int day) &&
+                    int.TryParse(wmiDate.Substring(8, 2), out int hour) &&
+                    int.TryParse(wmiDate.Substring(10, 2), out int min))
+                {
+                    return $"{day:D2}.{month:D2}.{year} {hour:D2}:{min:D2}";
+                }
+            }
+            catch { }
+            return DateTime.Now.ToString("dd.MM.yyyy HH:mm");
         }
     }
 }

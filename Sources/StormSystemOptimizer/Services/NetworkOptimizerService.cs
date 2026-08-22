@@ -377,40 +377,31 @@ foreach ($a in $adapters) {
 
         public async Task<bool> ApplyDnsOverHttpsAsync(string provider)
         {
-            return await Task.Run(() =>
+            string primaryDns = "1.1.1.1";
+            string secondaryDns = "1.0.0.1";
+
+            if (provider.Contains("AdGuard", StringComparison.OrdinalIgnoreCase))
             {
-                try
-                {
-                    string primaryDns = "1.1.1.1";
-                    string secondaryDns = "1.0.0.1";
-                    string template = "https://cloudflare-dns.com/dns-query";
+                primaryDns = "94.140.14.14";
+                secondaryDns = "94.140.15.15";
+            }
+            else if (provider.Contains("Google", StringComparison.OrdinalIgnoreCase))
+            {
+                primaryDns = "8.8.8.8";
+                secondaryDns = "8.8.4.4";
+            }
+            else if (provider.Contains("Яндекс", StringComparison.OrdinalIgnoreCase) || provider.Contains("Yandex", StringComparison.OrdinalIgnoreCase))
+            {
+                primaryDns = "77.88.8.8";
+                secondaryDns = "77.88.8.1";
+            }
+            else if (provider.Contains("Comss", StringComparison.OrdinalIgnoreCase))
+            {
+                primaryDns = "78.47.125.180";
+                secondaryDns = "116.202.176.26";
+            }
 
-                    if (provider.Contains("AdGuard", StringComparison.OrdinalIgnoreCase))
-                    {
-                        primaryDns = "94.140.14.14";
-                        secondaryDns = "94.140.15.15";
-                        template = "https://dns.adguard-dns.com/dns-query";
-                    }
-
-                    // Set IPv4 DNS
-                    RunNetshCommand($"interface ip set dns name=\"Ethernet\" static {primaryDns}");
-                    RunNetshCommand($"interface ip add dns name=\"Ethernet\" {secondaryDns} index=2");
-                    RunNetshCommand($"interface ip set dns name=\"Беспроводная сеть\" static {primaryDns}");
-                    RunNetshCommand($"interface ip add dns name=\"Wi-Fi\" static {primaryDns}");
-
-                    // Windows 11 DoH Template Registry
-                    using (var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Dnscache\Parameters", true))
-                    {
-                        if (key != null)
-                        {
-                            key.SetValue("EnableAutoDoh", 2, RegistryValueKind.DWord);
-                        }
-                    }
-
-                    return true;
-                }
-                catch { return false; }
-            });
+            return await DnsBenchmarkService.Instance.ApplyDnsToActiveAdapterAsync(primaryDns, secondaryDns);
         }
 
         public async Task<bool> ApplyTcpNoDelayGamingAsync()

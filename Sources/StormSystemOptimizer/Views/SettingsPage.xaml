@@ -78,15 +78,16 @@
                 </Grid>
             </Border>
 
-            <!-- Theme Picker Cards -->
+            <!-- Theme Picker Cards (8 Rich Theming Styles) -->
             <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                 <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
                     <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradPurple}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
-                <TextBlock Text="Визуальные темы оформления" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                <TextBlock Text="Визуальные темы оформления (8 стилей)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
             </StackPanel>
 
-            <Grid Margin="0,0,0,24">
+            <!-- Row 1: Dark, Night, Day, Midnight -->
+            <Grid Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -95,46 +96,100 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Storm Dark -->
-                <Button Click="BtnThemeDark_Click" Grid.Column="0" Margin="0,0,8,0" Style="{StaticResource StormSecondaryButton}" Background="#181F2C" Padding="14">
+                <Button Click="BtnThemeDark_Click" Grid.Column="0" Margin="0,0,6,0" Style="{StaticResource StormSecondaryButton}" Background="#181F2C" Padding="12">
                     <StackPanel HorizontalAlignment="Center">
-                        <Border Background="#1A00D2FF" BorderBrush="#00D2FF" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,8">
+                        <Border Background="#1A00D2FF" BorderBrush="#00D2FF" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,6">
                             <Ellipse Width="10" Height="10" Fill="#00D2FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <TextBlock Text="STORM DARK" FontSize="12" FontWeight="Bold" Foreground="#F1F5F9" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Тёмный кибер" FontSize="10" Foreground="#94A3B8" HorizontalAlignment="Center"/>
+                        <TextBlock Text="STORM DARK" FontSize="11.5" FontWeight="Bold" Foreground="#F1F5F9" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Тёмный кибер" FontSize="9.5" Foreground="#94A3B8" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
                 <!-- Storm Night -->
-                <Button Click="BtnThemeNight_Click" Grid.Column="1" Margin="4,0,4,0" Style="{StaticResource StormSecondaryButton}" Background="#0A0B10" Padding="14">
+                <Button Click="BtnThemeNight_Click" Grid.Column="1" Margin="3,0,3,0" Style="{StaticResource StormSecondaryButton}" Background="#0A0B10" Padding="12">
                     <StackPanel HorizontalAlignment="Center">
-                        <Border Background="#1A00F0FF" BorderBrush="#00F0FF" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,8">
+                        <Border Background="#1A00F0FF" BorderBrush="#00F0FF" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,6">
                             <Ellipse Width="10" Height="10" Fill="#00F0FF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <TextBlock Text="STORM NIGHT" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Чёрный OLED" FontSize="10" Foreground="#A1A1AA" HorizontalAlignment="Center"/>
+                        <TextBlock Text="STORM NIGHT" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Чёрный OLED" FontSize="9.5" Foreground="#A1A1AA" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
                 <!-- Storm Day -->
-                <Button Click="BtnThemeDay_Click" Grid.Column="2" Margin="4,0,4,0" Style="{StaticResource StormSecondaryButton}" Background="#FFFFFF" Padding="14">
+                <Button Click="BtnThemeDay_Click" Grid.Column="2" Margin="3,0,3,0" Style="{StaticResource StormSecondaryButton}" Background="#FFFFFF" Padding="12">
                     <StackPanel HorizontalAlignment="Center">
-                        <Border Background="#1A0284C7" BorderBrush="#0284C7" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,8">
+                        <Border Background="#1A0284C7" BorderBrush="#0284C7" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,6">
                             <Ellipse Width="10" Height="10" Fill="#0284C7" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <TextBlock Text="STORM DAY" FontSize="12" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Светлая" FontSize="10" Foreground="#64748B" HorizontalAlignment="Center"/>
+                        <TextBlock Text="STORM DAY" FontSize="11.5" FontWeight="Bold" Foreground="#0F172A" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Светлая" FontSize="9.5" Foreground="#64748B" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
                 <!-- Storm Midnight -->
-                <Button Click="BtnThemeMidnight_Click" Grid.Column="3" Margin="8,0,0,0" Style="{StaticResource StormSecondaryButton}" Background="#15112B" Padding="14">
+                <Button Click="BtnThemeMidnight_Click" Grid.Column="3" Margin="6,0,0,0" Style="{StaticResource StormSecondaryButton}" Background="#15112B" Padding="12">
                     <StackPanel HorizontalAlignment="Center">
-                        <Border Background="#1AA855F7" BorderBrush="#A855F7" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,8">
+                        <Border Background="#1AA855F7" BorderBrush="#A855F7" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,6">
                             <Ellipse Width="10" Height="10" Fill="#A855F7" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <TextBlock Text="STORM MIDNIGHT" FontSize="12" FontWeight="Bold" Foreground="#FAF5FF" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Аметистовая" FontSize="10" Foreground="#C084FC" HorizontalAlignment="Center"/>
+                        <TextBlock Text="STORM MIDNIGHT" FontSize="11.5" FontWeight="Bold" Foreground="#FAF5FF" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Аметистовая" FontSize="9.5" Foreground="#C084FC" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Row 2: Matrix, Cyberpunk, Fantasy, Warhammer 40K -->
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Storm Matrix -->
+                <Button Click="BtnThemeMatrix_Click" Grid.Column="0" Margin="0,0,6,0" Style="{StaticResource StormSecondaryButton}" Background="#0D1A10" Padding="12">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Border Background="#1A00FF66" BorderBrush="#00FF66" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,6">
+                            <Ellipse Width="10" Height="10" Fill="#00FF66" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="STORM MATRIX" FontSize="11.5" FontWeight="Bold" Foreground="#E6FFED" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Матричный зелёный" FontSize="9.5" Foreground="#6EE7B7" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Storm Cyberpunk -->
+                <Button Click="BtnThemeCyberpunk_Click" Grid.Column="1" Margin="3,0,3,0" Style="{StaticResource StormSecondaryButton}" Background="#170F28" Padding="12">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Border Background="#1AFF007F" BorderBrush="#FF007F" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,6">
+                            <Ellipse Width="10" Height="10" Fill="#FF007F" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="CYBERPUNK" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Неон Найт-Сити" FontSize="9.5" Foreground="#FF007F" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Storm Fantasy -->
+                <Button Click="BtnThemeFantasy_Click" Grid.Column="2" Margin="3,0,3,0" Style="{StaticResource StormSecondaryButton}" Background="#140C2E" Padding="12">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Border Background="#1AF59E0B" BorderBrush="#F59E0B" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,6">
+                            <Ellipse Width="10" Height="10" Fill="#F59E0B" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="STORM FANTASY" FontSize="11.5" FontWeight="Bold" Foreground="#FFFBEB" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Королевское золото" FontSize="9.5" Foreground="#FDE68A" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- Storm Warhammer 40K -->
+                <Button Click="BtnThemeWarhammer_Click" Grid.Column="3" Margin="6,0,0,0" Style="{StaticResource StormSecondaryButton}" Background="#17171C" Padding="12">
+                    <StackPanel HorizontalAlignment="Center">
+                        <Border Background="#1AD4AF37" BorderBrush="#D4AF37" BorderThickness="2" CornerRadius="12" Width="24" Height="24" Margin="0,0,0,6">
+                            <Ellipse Width="10" Height="10" Fill="#D4AF37" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="STORM WARHAMMER 40K" FontSize="11.5" FontWeight="Bold" Foreground="#FDF6E2" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Имперская готика" FontSize="9.5" Foreground="#D4AF37" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </Grid>

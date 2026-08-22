@@ -16,8 +16,8 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -42,6 +42,13 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding ToggleUsbWriterCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoUsb}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
+                            <TextBlock Text="Записать BIOS на USB" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                    </Button>
+
                     <Button Command="{Binding CreateSystemRestorePointCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="{StaticResource GeoShield}" Fill="{StaticResource AccentPrimaryBrush}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
@@ -66,25 +73,95 @@
             </Grid>
         </Border>
 
+        <!-- USB BIOS Flash Writer Modal Card (when opened) -->
+        <Border Grid.Row="1" Visibility="{Binding IsUsbWriterOpen, Converter={StaticResource BoolToVisConverter}}"
+                Background="{DynamicResource NavSidebarBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1.5"
+                CornerRadius="12" Padding="18" Margin="20,0,20,12">
+            <StackPanel>
+                <Grid Margin="0,0,0,12">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoUsb}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Мастер записи файла обновления BIOS на USB-флешку (FAT32)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button HorizontalAlignment="Right" Command="{Binding ToggleUsbWriterCommand}" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                        <TextBlock Text="✕" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </Button>
+                </Grid>
+
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="1. Выберите подключенный USB-накопитель:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding UsbFlashDrives}" SelectedItem="{Binding SelectedUsbDrive}" DisplayMemberPath="DisplayText"
+                                  Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" Height="34" Padding="8,4"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="10,0,0,0">
+                        <Button Command="{Binding RefreshUsbDrivesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,0">
+                            <TextBlock Text="🔄 Обновить флешки" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                        <Button Command="{Binding FormatUsbFat32Command}" Style="{StaticResource StormSecondaryButton}" Padding="10,6">
+                            <TextBlock Text="⚡ Форматировать в FAT32" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="2. Файл прошивки BIOS (.CAP, .ROM, .BIN или .ZIP):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding SelectedBiosFilePath}" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}"
+                                 BorderBrush="{DynamicResource CardBorderBrush}" Height="34" Padding="8,6" FontSize="12"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="1" Command="{Binding BrowseBiosFileCommand}" Style="{StaticResource StormSecondaryButton}" VerticalAlignment="Bottom" Padding="12,7" Margin="8,0,0,0">
+                        <TextBlock Text="📂 Обзор..." FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </Button>
+
+                    <Button Grid.Column="2" Command="{Binding WriteBiosToUsbCommand}" Style="{StaticResource StormHeroButton}" VerticalAlignment="Bottom" Padding="16,8" Margin="8,0,0,0">
+                        <TextBlock Text="🚀 Записать на флешку" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    </Button>
+                </Grid>
+
+                <!-- Status Text -->
+                <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10">
+                    <TextBlock Text="{Binding UsbWriterStatus}" FontSize="12" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
+                </Border>
+            </StackPanel>
+        </Border>
+
         <!-- Categories Filter Bar -->
-        <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="20,0,20,12">
+        <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="20,0,20,12">
             <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <RadioButton Content="Все устройства" IsChecked="True" Style="{StaticResource NavRadioButtonStyle}" Click="CatAll_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="⚙️ BIOS и прошивка" Style="{StaticResource NavRadioButtonStyle}" Click="CatBios_Click" Margin="0,0,6,4" Padding="10,5"/>
                 <RadioButton Content="🎮 Видеокарта" Style="{StaticResource NavRadioButtonStyle}" Click="CatGpu_Click" Margin="0,0,6,4" Padding="10,5"/>
                 <RadioButton Content="⚡ Процессор" Style="{StaticResource NavRadioButtonStyle}" Click="CatCpu_Click" Margin="0,0,6,4" Padding="10,5"/>
-                <RadioButton Content="🖥️ Мат. плата" Style="{StaticResource NavRadioButtonStyle}" Click="CatMobo_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="🖥️ Материнская плата" Style="{StaticResource NavRadioButtonStyle}" Click="CatMobo_Click" Margin="0,0,6,4" Padding="10,5"/>
                 <RadioButton Content="🌐 Сеть и Wi-Fi" Style="{StaticResource NavRadioButtonStyle}" Click="CatNet_Click" Margin="0,0,6,4" Padding="10,5"/>
                 <RadioButton Content="🔊 Звук" Style="{StaticResource NavRadioButtonStyle}" Click="CatAudio_Click" Margin="0,0,6,4" Padding="10,5"/>
                 <RadioButton Content="💾 Накопители" Style="{StaticResource NavRadioButtonStyle}" Click="CatDisk_Click" Margin="0,0,6,4" Padding="10,5"/>
-                <RadioButton Content="🔌 Чипсет &amp; USB" Style="{StaticResource NavRadioButtonStyle}" Click="CatChipset_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="🔌 Чипсет и USB" Style="{StaticResource NavRadioButtonStyle}" Click="CatChipset_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="💾 Бэкапы и точки восстановления" Style="{StaticResource NavRadioButtonStyle}" Click="CatBackups_Click" Margin="0,0,6,4" Padding="10,5"/>
             </WrapPanel>
         </Border>
 
-        <!-- Drivers List -->
-        <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="20,0,20,12">
+        <!-- Main Content Area: Drivers List or Backups List -->
+        <Border Grid.Row="3" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="20,0,20,12">
             <Grid>
-                <!-- Items list -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <!-- Drivers list (When not on Backups tab) -->
+                <ScrollViewer Visibility="{Binding IsBackupsSelected, Converter={StaticResource InverseBoolToVisConverter}}" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding DisplayDrivers}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -142,6 +219,63 @@
                                                     <TextBlock Text="Актуален" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Border>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Backups & Restore Points list (When on Backups tab) -->
+                <ScrollViewer Visibility="{Binding IsBackupsSelected, Converter={StaticResource BoolToVisConverter}}" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding DisplayBackups}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16,12" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="180"/>
+                                            <ColumnDefinition Width="150"/>
+                                            <ColumnDefinition Width="220"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Backup Name & Type -->
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                            <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,3" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding BackupType}" FontSize="11" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                        </StackPanel>
+
+                                        <!-- Date & Time -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock Text="{Binding DateString, StringFormat='{}Создан: {0}'}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="Хранилище STORM" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Size / Driver Count -->
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock Text="{Binding SizeText}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="Готов к откату" FontSize="10.5" Foreground="#10B981" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Actions -->
+                                        <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <Button Command="{Binding DataContext.OpenBackupFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource StormSecondaryButton}"
+                                                    Padding="10,6"
+                                                    Margin="0,0,6,0"
+                                                    ToolTip="Открыть папку с резервной копией">
+                                                <TextBlock Text="Папка" FontSize="11" FontWeight="Bold"/>
+                                            </Button>
+
+                                            <Button Command="{Binding DataContext.RestoreBackupItemCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource StormHeroButton}"
+                                                    Padding="12,6">
+                                                <TextBlock Text="Восстановить" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                            </Button>
                                         </StackPanel>
                                     </Grid>
                                 </Border>

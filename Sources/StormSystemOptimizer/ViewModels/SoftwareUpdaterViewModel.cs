@@ -27,6 +27,22 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _selectedFilter = "Все";
 
+        [ObservableProperty]
+        private string _searchQuery = string.Empty;
+
+        [ObservableProperty]
+        private bool _showBetaVersions = false;
+
+        partial void OnSearchQueryChanged(string value)
+        {
+            ApplyFilter();
+        }
+
+        partial void OnShowBetaVersionsChanged(bool value)
+        {
+            _ = LoadUpdatesAsync();
+        }
+
         public ObservableCollection<SoftwareUpdateItem> DisplayApps { get; } = new();
 
         public SoftwareUpdaterViewModel()
@@ -39,18 +55,25 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-            StatusText = "Мгновенное сканирование установленных программ и сверка версий...";
+            StatusText = ShowBetaVersions
+                ? "Сканирование программ со сверкой релизных и бета-версий..."
+                : "Мгновенное сканирование установленных программ и сверка версий...";
 
-            _allApps = await SoftwareUpdaterService.Instance.ScanInstalledAppsForUpdatesAsync();
+            _allApps = await SoftwareUpdaterService.Instance.ScanInstalledAppsForUpdatesAsync(ShowBetaVersions);
             ApplyFilter();
+            UpdateStatsSummary();
 
+            StatusText = $"Найдено {FormatHelper.FormatInt(_allApps.Count)} установленных программ и игр.";
+            IsBusy = false;
+        }
+
+        private void UpdateStatsSummary()
+        {
             int updatesCount = _allApps.Count(a => a.IsUpdateAvailable && !a.IsBlacklisted);
             int blacklistedCount = _allApps.Count(a => a.IsBlacklisted);
 
             StatsSummary = $"{FormatHelper.FormatInt(_allApps.Count)} программ • {(updatesCount > 0 ? $"{FormatHelper.FormatInt(updatesCount)} требуют обновления ⚡" : "Все программы обновлены ✅")}" +
                            (blacklistedCount > 0 ? $" • {FormatHelper.FormatInt(blacklistedCount)} в черном списке 🔒" : "");
-            StatusText = $"Найдено {FormatHelper.FormatInt(_allApps.Count)} установленных программ и игр.";
-            IsBusy = false;
         }
 
         public void SetFilter(string filter)
@@ -80,6 +103,14 @@ namespace StormSystemOptimizer.ViewModels
                 query = query.Where(a => a.AppType.Equals(SelectedFilter, StringComparison.OrdinalIgnoreCase));
             }
 
+            if (!string.IsNullOrWhiteSpace(SearchQuery))
+            {
+                string sq = SearchQuery.Trim().ToLowerInvariant();
+                query = query.Where(a => (a.Name != null && a.Name.ToLowerInvariant().Contains(sq)) ||
+                                         (a.Publisher != null && a.Publisher.ToLowerInvariant().Contains(sq)) ||
+                                         (a.AppType != null && a.AppType.ToLowerInvariant().Contains(sq)));
+            }
+
             var list = query.ToList();
             Application.Current?.Dispatcher?.Invoke(() =>
             {
@@ -106,6 +137,7 @@ namespace StormSystemOptimizer.ViewModels
             StatusText = msg;
             TrayService.Instance.ShowNotification("Обновление программ ⚡", msg);
 
+            UpdateStatsSummary();
             ApplyFilter();
             IsBusy = false;
         }

@@ -16,13 +16,15 @@ namespace StormSystemOptimizer.ViewModels
 
         public BackupVaultViewModel()
         {
-            LoadBackups();
+            _ = LoadBackupsAsync();
         }
 
-        private void LoadBackups()
+        [RelayCommand]
+        public async Task LoadBackupsAsync()
         {
+            var items = await Task.Run(() => BackupVaultService.Instance.GetExistingBackups());
             Backups.Clear();
-            foreach (var item in BackupVaultService.Instance.GetExistingBackups())
+            foreach (var item in items)
             {
                 Backups.Add(item);
             }
@@ -35,7 +37,7 @@ namespace StormSystemOptimizer.ViewModels
             var (ok, msg) = await BackupVaultService.Instance.CreateRestorePointAsync("STORM_OPTIMIZATION_RESTOREPOINT");
             StatusMessage = msg;
             TrayService.Instance.ShowNotification("Точка восстановления 🛡️", msg);
-            LoadBackups();
+            await LoadBackupsAsync();
         }
 
         [RelayCommand]
@@ -47,7 +49,7 @@ namespace StormSystemOptimizer.ViewModels
             {
                 StatusMessage = $"Резервная копия реестра сохранена: {path}";
                 TrayService.Instance.ShowNotification("Бэкап реестра 💾", "Резервная копия реестра успешно создана!");
-                LoadBackups();
+                await LoadBackupsAsync();
             }
         }
 

@@ -108,14 +108,14 @@
                                 <Border Background="#1A34D399" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                     <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Тюнинг DirectStorage 1.2 &amp; BypassIO" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Тюнинг DirectStorage 1.2 и BypassIO" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Оптимизация очередей Win32 IoRing и разгрузка шины ввода-вывода для игр." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             
                             <!-- Live Status Badge -->
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsDirectStorageActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="✓ НАСТРОЕНО (BypassIO &amp; IoRing активны)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                    <TextBlock Text="✓ НАСТРОЕНО (BypassIO и IoRing активны)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
                                 </Border>
                                 <Border Visibility="{Binding IsDirectStorageActive, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
                                     <TextBlock Text="○ СТАНДАРТНЫЙ РЕЖИМ" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
@@ -176,11 +176,175 @@
                                 <Border Background="#1A38BDF8" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                     <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradSky}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Снимок параметров (Snapshot &amp; Rollback)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Снимок параметров (Snapshot и Rollback)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </StackPanel>
                             <TextBlock Text="Резервный снимок критических параметров реестра перед тюнингом для быстрого отката." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding CreateSnapshotCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Создать снимок" Style="{StaticResource StormSecondaryButton}" Padding="14,6" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Deep Kernel, Shell & Latency Tuning -->
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,10">
+                <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradEmerald}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Глубокий отклик ОС, игровой планировщик и Проводник" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Explorer Responsiveness -->
+                <Border Grid.Row="0" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,6,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A38BDF8" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradSky}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Отклик Проводника и изоляция процессов" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="MenuShowDelay=0, мгновенный отклик системных окон, защита от зависаний папок и отключение сетевого опроса." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsExplorerOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ ВКЛЮЧЕНО (Мгновенный отклик)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsExplorerOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ СТАНДАРТНЫЕ ЗАДЕРЖКИ" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsExplorerOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Command="{Binding ToggleExplorerResponsivenessCommand}" IsEnabled="{Binding IsNotBusy}" Content="⚡ Ускорить" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                            <Button Visibility="{Binding IsExplorerOptimized, Converter={StaticResource BoolToVisConverter}}" Command="{Binding ToggleExplorerResponsivenessCommand}" IsEnabled="{Binding IsNotBusy}" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Win32 Priority Separation -->
+                <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="6,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Игровой квант ядра (Win32 Priority 0x1A)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Короткие переменные кванты времени планировщика ядра: наивысший приоритет фокуса активной игры." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsWin32PriorityOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ ВКЛЮЧЕНО (0x1A eSports Boost)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsWin32PriorityOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ СТАНДАРТНЫЙ КВАНТ" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsWin32PriorityOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Command="{Binding ToggleWin32PriorityCommand}" IsEnabled="{Binding IsNotBusy}" Content="⚡ Включить" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                            <Button Visibility="{Binding IsWin32PriorityOptimized, Converter={StaticResource BoolToVisConverter}}" Command="{Binding ToggleWin32PriorityCommand}" IsEnabled="{Binding IsNotBusy}" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- MMCSS Gaming Optimization -->
+                <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,6,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoGamepad}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Планировщик MMCSS и Снятие троттлинга сети" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Выделение 100% CPU/GPU играм (SystemResponsiveness=0), полное отключение сетевого троттлинга Windows." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsMmcssOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ ВКЛЮЧЕНО (100% CPU/GPU для игр)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsMmcssOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ СТАНДАРТНЫЙ MMCSS" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsMmcssOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Command="{Binding ToggleMmcssCommand}" IsEnabled="{Binding IsNotBusy}" Content="⚡ Включить" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                            <Button Visibility="{Binding IsMmcssOptimized, Converter={StaticResource BoolToVisConverter}}" Command="{Binding ToggleMmcssCommand}" IsEnabled="{Binding IsNotBusy}" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Zero Startup Delay -->
+                <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="6,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Мгновенный автозапуск (Zero Startup Delay)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Устранение 10-секундной искусственной паузы Windows при старте системы для мгновенной готовности рабочего стола." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsZeroStartupDelayActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ ВКЛЮЧЕНО (Задержка 0 мс)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsZeroStartupDelayActive, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ СТАНДАРТНАЯ ЗАДЕРЖКА" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsZeroStartupDelayActive, Converter={StaticResource InverseBoolToVisConverter}}" Command="{Binding ToggleZeroStartupDelayCommand}" IsEnabled="{Binding IsNotBusy}" Content="⚡ Включить" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                            <Button Visibility="{Binding IsZeroStartupDelayActive, Converter={StaticResource BoolToVisConverter}}" Command="{Binding ToggleZeroStartupDelayCommand}" IsEnabled="{Binding IsNotBusy}" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Shell Cache Rebuild -->
+                <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Сброс и восстановление кэша иконок и эскизов Проводника" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Очистка поврежденных IconCache.db и ThumbCache с мягким перезапуском Explorer без перезагрузки компьютера." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                        </StackPanel>
+                        <Button Command="{Binding RebuildShellCacheCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить и восстановить" Style="{StaticResource StormSecondaryButton}" Padding="14,6" VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
             </Grid>
