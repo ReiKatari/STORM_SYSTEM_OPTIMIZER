@@ -31,29 +31,32 @@
 
                 <StackPanel Grid.Column="0">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                        <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,10,0" VerticalAlignment="Center">
-                            <Path Data="{StaticResource GeoUninstaller}" Fill="{StaticResource IconGradCyan}" Width="16" Height="16" Stretch="Uniform"/>
+                        <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,10,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoUninstaller}" Fill="{StaticResource IconGradRose}" Width="16" Height="16" Stretch="Uniform"/>
                         </Border>
-                        <TextBlock Text="Удаление программ и игр" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        <TextBlock Text="Деинсталлятор и менеджер установленных программ" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBlock Text="Глубокий анализ реестра, поиск и полное уничтожение остаточных файлов в AppData, LocalAppData, ProgramData и ярлыков."
+                    <TextBlock Text="Полное удаление классических программ, игр Steam и приложений Windows Store с глубокой зачисткой скрытых остатков в реестре и AppData."
                                FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
                     <TextBlock Text="{Binding StatsSummary}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Command="{Binding LoadAppsCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,0">
-                        <TextBlock Text="🔄 Обновить список" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <Button Command="{Binding LoadAppsCommand}" Style="{StaticResource StormHeroButton}" Padding="14,8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoScanner}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
+                            <TextBlock Text="Сканировать" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- Search, Filter & Tabs Bar with Sorting -->
+        <!-- Search & Filter Bar -->
         <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="20,0,20,12">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="240"/>
+                    <ColumnDefinition Width="280"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
@@ -82,16 +85,16 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="Сортировка: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,6,0"/>
                     <Button Command="{Binding SetSortCommand}" CommandParameter="Размер ↓" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,0">
-                        <TextBlock Text="📊 Размер ↓" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Размер ↓" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </Button>
                     <Button Command="{Binding SetSortCommand}" CommandParameter="Размер ↑" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,0">
-                        <TextBlock Text="📊 Размер ↑" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Размер ↑" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </Button>
                     <Button Command="{Binding SetSortCommand}" CommandParameter="Имя (А-Я)" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,0">
-                        <TextBlock Text="🔤 Имя" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Имя" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </Button>
                     <Button Command="{Binding SetSortCommand}" CommandParameter="Дата" Style="{StaticResource StormSecondaryButton}" Padding="8,4">
-                        <TextBlock Text="📅 Дата" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Дата" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -99,76 +102,89 @@
 
         <!-- Main Apps List -->
         <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="20,0,20,12">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding DisplayApps}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,8">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="120"/>
-                                        <ColumnDefinition Width="130"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
+            <Grid>
+                <!-- Items list -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding DisplayApps}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="120"/>
+                                            <ColumnDefinition Width="140"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
 
-                                    <!-- Name & Publisher & Residuals -->
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
-                                        <WrapPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                            <Border Background="{Binding TypeBadgeBg}" BorderBrush="{Binding TypeBadgeColor}" BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="0,0,8,0" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding AppType}" FontSize="10" FontWeight="Bold" Foreground="{Binding TypeBadgeColor}"/>
-                                            </Border>
-                                            <TextBlock Text="{Binding DisplayName}" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                                            <TextBlock Text="{Binding DisplayVersion}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                        </WrapPanel>
+                                        <!-- Name & Publisher & Residuals -->
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <WrapPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                <Border Background="{Binding TypeBadgeBg}" BorderBrush="{Binding TypeBadgeColor}" BorderThickness="1" CornerRadius="4" Padding="6,1" Margin="0,0,8,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding AppType}" FontSize="10" FontWeight="Bold" Foreground="{Binding TypeBadgeColor}"/>
+                                                </Border>
+                                                <TextBlock Text="{Binding DisplayName}" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding DisplayVersion}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                            </WrapPanel>
 
-                                        <TextBlock Text="{Binding Publisher}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <TextBlock Text="{Binding Publisher}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
 
-                                        <TextBlock Text="{Binding ResidualStatusText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,4,0,0"/>
-                                    </StackPanel>
-
-                                    <!-- Size -->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
-                                        <TextBlock Text="{Binding FormattedSize}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
-                                        <TextBlock Text="{Binding InstallDate}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-                                    </StackPanel>
-
-                                    <!-- Residual Quick Actions -->
-                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0">
-                                        <Button Command="{Binding DataContext.ScanAppResidualsAsyncCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}"
-                                                Style="{StaticResource StormSecondaryButton}"
-                                                Padding="8,5"
-                                                Margin="0,0,0,4">
-                                            <TextBlock Text="🔍 Поиск следов" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                        </Button>
-
-                                        <Button Command="{Binding DataContext.CleanResidualsOnlyAsyncCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}"
-                                                Style="{StaticResource StormSecondaryButton}"
-                                                Padding="8,4">
-                                            <TextBlock Text="🧹 Удалить хвосты" FontSize="10" FontWeight="SemiBold" Foreground="#34D399"/>
-                                        </Button>
-                                    </StackPanel>
-
-                                    <!-- Hero Action: Deep Uninstall -->
-                                    <Button Grid.Column="3"
-                                            Command="{Binding DataContext.DeepUninstallAppAsyncCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                            CommandParameter="{Binding}"
-                                            Style="{StaticResource StormDangerButton}"
-                                            Padding="14,8"
-                                            VerticalAlignment="Center">
-                                        <StackPanel Orientation="Horizontal">
-                                            <Path Data="{StaticResource GeoClean}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
-                                            <TextBlock Text="⚡ Удалить полностью" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                            <TextBlock Text="{Binding ResidualStatusText}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,4,0,0"/>
                                         </StackPanel>
-                                    </Button>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+
+                                        <!-- Size -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <TextBlock Text="{Binding FormattedSize}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                            <TextBlock Text="{Binding InstallDate}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+
+                                        <!-- Residual Quick Actions -->
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0">
+                                            <Button Command="{Binding DataContext.ScanAppResidualsAsyncCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource StormSecondaryButton}"
+                                                    Padding="8,5"
+                                                    Margin="0,0,0,4">
+                                                <TextBlock Text="Поиск следов" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </Button>
+
+                                            <Button Command="{Binding DataContext.CleanResidualsOnlyAsyncCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource StormSecondaryButton}"
+                                                    Padding="8,4">
+                                                <TextBlock Text="Удалить хвосты" FontSize="10" FontWeight="SemiBold" Foreground="#34D399"/>
+                                            </Button>
+                                        </StackPanel>
+
+                                        <!-- Hero Action: Deep Uninstall -->
+                                        <Button Grid.Column="3"
+                                                Command="{Binding DataContext.DeepUninstallAppAsyncCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource StormDangerButton}"
+                                                Padding="14,8"
+                                                VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Path Data="{StaticResource GeoClean}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
+                                                <TextBlock Text="Удалить полностью" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Animated Loading Overlay -->
+                <Grid Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}"
+                      Background="{DynamicResource CardBackgroundBrush}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ProgressBar Style="{StaticResource StormCircularLoadingSpinner}" Margin="0,0,0,16"/>
+                        <TextBlock Text="{Binding StatusText}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Анализ реестра 64-bit/32-bit, библиотек Steam и приложений Store..." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
         </Border>
 
         <!-- FAQ Section with Gradient Vector Icons -->

@@ -43,18 +43,24 @@
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Command="{Binding CreateSystemRestorePointCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="{StaticResource GeoShield}" Fill="{StaticResource AccentPrimaryBrush}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
-                            <TextBlock Text="🛡️ Создать бэкап" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Создать бэкап" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
                     </Button>
 
                     <Button Command="{Binding BackupAllDriversCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
-                        <TextBlock Text="💾 Экспорт драйверов" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradSky}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
+                            <TextBlock Text="Экспорт драйверов" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </StackPanel>
                     </Button>
 
                     <Button Command="{Binding LoadDriversCommand}" Style="{StaticResource StormHeroButton}" Padding="14,8">
-                        <TextBlock Text="🔄 Сканировать" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoScanner}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
+                            <TextBlock Text="Сканировать" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
@@ -76,97 +82,96 @@
 
         <!-- Drivers List -->
         <Border Grid.Row="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="12" Margin="20,0,20,12">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding DisplayDrivers}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16,12" Margin="0,0,0,8">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="190"/>
-                                        <ColumnDefinition Width="190"/>
-                                        <ColumnDefinition Width="130"/>
-                                    </Grid.ColumnDefinitions>
+            <Grid>
+                <!-- Items list -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding DisplayDrivers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16,12" Margin="0,0,0,8">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="190"/>
+                                            <ColumnDefinition Width="190"/>
+                                            <ColumnDefinition Width="130"/>
+                                        </Grid.ColumnDefinitions>
 
-                                    <!-- Device Name & Provider -->
-                                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
-                                        <TextBlock Text="{Binding DeviceName}" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,3" TextWrapping="Wrap"/>
-                                        <TextBlock Text="{Binding ProviderName, StringFormat='{}Поставщик: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
-                                    </StackPanel>
+                                        <!-- Device Name & Provider -->
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                            <TextBlock Text="{Binding DeviceName}" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,3" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding ProviderName, StringFormat='{}Поставщик: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                                        </StackPanel>
 
-                                    <!-- Installed Version & Date -->
-                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
-                                        <TextBlock Text="{Binding CurrentVersion, StringFormat='{}Установлен: {0}'}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                        <TextBlock Text="{Binding DriverDate, StringFormat='{}Дата релиза: {0}'}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
-                                    </StackPanel>
+                                        <!-- Installed Version & Date -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock Text="{Binding CurrentVersion, StringFormat='{}Установлен: {0}'}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            <TextBlock Text="{Binding DriverDate, StringFormat='{}Дата релиза: {0}'}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                        </StackPanel>
 
-                                    <!-- Latest Version -->
-                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,12,0">
-                                        <TextBlock Text="{Binding LatestVersion, StringFormat='{}Доступен: {0}'}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                                        <TextBlock Text="Сертификация WHQL" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
-                                    </StackPanel>
+                                        <!-- Latest Version -->
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock Text="{Binding LatestVersion, StringFormat='{}Доступен: {0}'}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                            <TextBlock Text="Сертификация WHQL" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                        </StackPanel>
 
-                                    <!-- Action Button or Locked Actual Badge -->
-                                    <StackPanel Grid.Column="3" VerticalAlignment="Center">
-                                        <!-- When Update Available -->
-                                        <Button Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolToVisConverter}}"
-                                                Command="{Binding DataContext.UpdateDriverCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}"
-                                                Style="{StaticResource StormHeroButton}"
-                                                Padding="14,8">
-                                            <StackPanel Orientation="Horizontal">
-                                                <Path Data="{StaticResource GeoLog}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0"/>
-                                                <TextBlock Text="⚡ Обновить" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
-                                            </StackPanel>
-                                        </Button>
+                                        <!-- Action Button or Locked Actual Badge -->
+                                        <StackPanel Grid.Column="3" VerticalAlignment="Center">
+                                            <!-- When Update Available -->
+                                            <Button Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolToVisConverter}}"
+                                                    Command="{Binding DataContext.UpdateDriverCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource StormHeroButton}"
+                                                    Padding="14,8">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Path Data="{StaticResource GeoAppUpdate}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Обновить" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                                </StackPanel>
+                                            </Button>
 
-                                        <!-- When Driver is Up to Date -->
-                                        <Border Visibility="{Binding IsUpdateAvailable, Converter={StaticResource InverseBoolToVisConverter}}"
-                                                Background="#2610B981"
-                                                BorderBrush="#10B981"
-                                                BorderThickness="1"
-                                                CornerRadius="8"
-                                                Padding="14,8"
-                                                ToolTip="Установлен актуальный сертифицированный драйвер WHQL">
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                                <Path Data="{StaticResource GeoCheck}" Fill="#10B981" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Актуален" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
+                                            <!-- When Driver is Up to Date -->
+                                            <Border Visibility="{Binding IsUpdateAvailable, Converter={StaticResource InverseBoolToVisConverter}}"
+                                                    Background="#2610B981"
+                                                    BorderBrush="#10B981"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8"
+                                                    Padding="14,8"
+                                                    ToolTip="Установлен актуальный сертифицированный драйвер WHQL">
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                                    <Path Data="{StaticResource GeoCheck}" Fill="#10B981" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Актуален" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Animated Loading Overlay -->
+                <Grid Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisConverter}}"
+                      Background="{DynamicResource CardBackgroundBrush}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ProgressBar Style="{StaticResource StormCircularLoadingSpinner}" Margin="0,0,0,16"/>
+                        <TextBlock Text="{Binding StatusText}" FontSize="13.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Проверка цифровых подписей WHQL и версий оборудования..." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
         </Border>
 
-        <!-- FAQ Section with Gradient Vector Icons -->
-        <Border Grid.Row="3" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="20,0,20,10">
-            <StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                    <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center">
-                        <Path Data="{StaticResource GeoQuestion}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <TextBlock Text="Частые вопросы по Обновлению драйверов (FAQ)" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                </StackPanel>
-                <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold">
-                    <Expander.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradEmerald}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                            <TextBlock Text="Что означает статус «Актуален» и сертификат WHQL?" VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Expander.Header>
-                    <TextBlock Text="Статус «Актуален» означает, что для оборудования установлена новейшая версия драйвера. Сертификация Microsoft WHQL гарантирует 100% стабильность работы и отсутствие сбоев BSOD." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,2,0,2" TextWrapping="Wrap"/>
-                </Expander>
-            </StackPanel>
-        </Border>
-
-        <!-- Status Bottom Banner -->
-        <Border Grid.Row="4" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8" Margin="20,0,20,20">
-            <TextBlock Text="{Binding StatusText}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+        <!-- Bottom Status Bar -->
+        <Border Grid.Row="4" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="20,0,20,20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding StatusText}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="100% Безопасное обновление • Официальные WHQL источники" FontSize="11" Foreground="#10B981" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </Grid>
         </Border>
     </Grid>
 </Page>

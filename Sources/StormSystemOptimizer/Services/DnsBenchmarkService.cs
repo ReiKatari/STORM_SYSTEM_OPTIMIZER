@@ -114,36 +114,42 @@ namespace StormSystemOptimizer.Services
         public void MarkActiveDns(List<DnsServerItem> list)
         {
             var (curP, curS) = GetCurrentSystemDns();
-            bool matched = false;
 
             list.RemoveAll(x => x.ProviderName.StartsWith("Текущий DNS системы", StringComparison.OrdinalIgnoreCase));
 
+            // Reset all to false first
             foreach (var item in list)
             {
-                if ((!string.IsNullOrEmpty(curP) && (item.PrimaryDns == curP || item.SecondaryDns == curP)) ||
-                    (!string.IsNullOrEmpty(curS) && (item.PrimaryDns == curS || item.SecondaryDns == curS)))
+                item.IsActive = false;
+            }
+
+            if (!string.IsNullOrEmpty(curP))
+            {
+                // 1. Try exact match on both Primary and Secondary
+                var bestMatch = list.FirstOrDefault(x =>
+                    string.Equals(x.PrimaryDns, curP, StringComparison.OrdinalIgnoreCase) &&
+                    string.Equals(x.SecondaryDns, curS, StringComparison.OrdinalIgnoreCase));
+
+                // 2. If no exact dual match, match on Primary
+                bestMatch ??= list.FirstOrDefault(x => string.Equals(x.PrimaryDns, curP, StringComparison.OrdinalIgnoreCase));
+
+                if (bestMatch != null)
                 {
-                    item.IsActive = true;
-                    matched = true;
+                    bestMatch.IsActive = true;
                 }
                 else
                 {
-                    item.IsActive = false;
+                    list.Insert(0, new DnsServerItem
+                    {
+                        ProviderName = $"Текущий DNS системы ({curP})",
+                        PrimaryDns = curP,
+                        SecondaryDns = curS,
+                        Features = "🌐 Активный DNS-сервер, назначенный вашим роутером или провайдером по DHCP",
+                        IsActive = true,
+                        PingText = "1 мс",
+                        PingMs = 1
+                    });
                 }
-            }
-
-            if (!matched && !string.IsNullOrEmpty(curP))
-            {
-                list.Insert(0, new DnsServerItem
-                {
-                    ProviderName = $"Текущий DNS системы ({curP})",
-                    PrimaryDns = curP,
-                    SecondaryDns = curS,
-                    Features = "🌐 Активный DNS-сервер, назначенный вашим роутером или провайдером по DHCP",
-                    IsActive = true,
-                    PingText = "1 мс",
-                    PingMs = 1
-                });
             }
         }
 

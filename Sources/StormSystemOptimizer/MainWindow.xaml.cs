@@ -41,9 +41,13 @@ namespace StormSystemOptimizer
             }
             catch { }
 
+            // Initialize and cache Dashboard immediately
+            var dashboard = new DashboardPage();
+            _pageCache["Dashboard"] = dashboard;
+            MainContentFrame.Navigate(dashboard);
+
             Loaded += async (s, e) =>
             {
-                MainContentFrame.Navigate(new DashboardPage());
                 TrayService.Instance.Initialize(this);
 
                 // Register Global Hotkey Ctrl+Shift+O for Gaming HUD Overlay
