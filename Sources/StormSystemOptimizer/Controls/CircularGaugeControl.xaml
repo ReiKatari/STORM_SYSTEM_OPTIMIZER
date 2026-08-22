@@ -9,7 +9,7 @@
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
         <!-- Background Track Arc -->
         <Path x:Name="TrackPath"
-              Stroke="{Binding Path=TrackBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+              Stroke="{Binding Path=TrackBrush, RelativeSource={RelativeSource AncestorType=UserControl}, TargetNullValue={DynamicResource GaugeTrackBrush}, FallbackValue={DynamicResource GaugeTrackBrush}}"
               StrokeThickness="{Binding Path=StrokeThickness, RelativeSource={RelativeSource AncestorType=UserControl}}"
               StrokeStartLineCap="Round"
               StrokeEndLineCap="Round"/>
@@ -26,9 +26,9 @@
         <Canvas HorizontalAlignment="Left" VerticalAlignment="Top" Width="140" Height="140" IsHitTestVisible="False">
             <Ellipse x:Name="EndpointMarker"
                      Width="10" Height="10"
-                     Fill="#FFFFFF"
+                     Fill="{DynamicResource CardBackgroundBrush}"
                      Stroke="{Binding Path=ArcBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                     StrokeThickness="2"
+                     StrokeThickness="2.5"
                      Effect="{DynamicResource StormGlowEffect}"/>
         </Canvas>
 
