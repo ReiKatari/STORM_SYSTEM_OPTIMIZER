@@ -472,6 +472,46 @@
                 </Style.Triggers>
             </Style>
 
+            <!-- Modern Circular Ring Indeterminate Loading Spinner -->
+            <Style x:Key="StormCircularLoadingSpinner" TargetType="ProgressBar">
+                <Setter Property="IsIndeterminate" Value="True"/>
+                <Setter Property="Width" Value="48"/>
+                <Setter Property="Height" Value="48"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ProgressBar">
+                            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="48" Height="48">
+                                <!-- Background Track Ring -->
+                                <Ellipse Width="42" Height="42" Stroke="{DynamicResource GaugeTrackBrush}" StrokeThickness="4"/>
+                                <!-- Spinning Neon Arc -->
+                                <Path Data="M 24,4 A 20,20 0 0 1 44,24"
+                                      Stroke="{DynamicResource AccentPrimaryBrush}"
+                                      StrokeThickness="4"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      RenderTransformOrigin="0.5,0.5">
+                                    <Path.RenderTransform>
+                                        <RotateTransform x:Name="SpinnerRotate" Angle="0"/>
+                                    </Path.RenderTransform>
+                                    <Path.Triggers>
+                                        <EventTrigger RoutedEvent="Loaded">
+                                            <BeginStoryboard>
+                                                <Storyboard RepeatBehavior="Forever">
+                                                    <DoubleAnimation Storyboard.TargetName="SpinnerRotate"
+                                                                     Storyboard.TargetProperty="Angle"
+                                                                     From="0" To="360"
+                                                                     Duration="0:0:0.85"/>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </EventTrigger>
+                                    </Path.Triggers>
+                                </Path>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

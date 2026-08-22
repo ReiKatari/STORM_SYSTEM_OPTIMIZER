@@ -11,7 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%20Windows%2011-0078D4?style=for-the-badge&logo=windows" />
   <img src="https://img.shields.io/badge/Framework-WPF%20%2F%20.NET%208%20LTS-00D2FF?style=for-the-badge&logo=windows-terminal" />
-  <img src="https://img.shields.io/badge/Version-v0.3.5-10B981?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Version-v0.3.6-10B981?style=for-the-badge" />
 </p>
 
 ---

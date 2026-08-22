@@ -71,7 +71,7 @@
                                 Margin="0,0,6,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoPower}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
-                                <TextBlock Text="⚡ Перезагрузка в BIOS" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                <TextBlock Text="Перезагрузка в BIOS" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                             </StackPanel>
                         </Button>
 
@@ -81,7 +81,7 @@
                                 Margin="0,0,6,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoLog}" Fill="{StaticResource IconGradCyan}" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0"/>
-                                <TextBlock Text="📄 Шпаргалка" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Шпаргалка" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Button>
 
@@ -90,7 +90,7 @@
                                 Padding="12,10">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradEmerald}" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0"/>
-                                <TextBlock Text="🖨️ Распечатать" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Распечатать" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Button>
                     </StackPanel>
