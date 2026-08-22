@@ -30,7 +30,7 @@ namespace StormSystemOptimizer.Controls
 
         public static readonly DependencyProperty TrackBrushProperty =
             DependencyProperty.Register(nameof(TrackBrush), typeof(Brush), typeof(CircularGaugeControl),
-                new PropertyMetadata(new SolidColorBrush(Color.FromArgb(50, 255, 255, 255))));
+                new PropertyMetadata(null, OnPropertyChanged));
 
         public static readonly DependencyProperty StrokeThicknessProperty =
             DependencyProperty.Register(nameof(StrokeThickness), typeof(double), typeof(CircularGaugeControl),

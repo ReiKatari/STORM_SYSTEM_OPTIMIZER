@@ -7,6 +7,7 @@
     <Color x:Key="StormCardBackgroundColor">#15112B</Color>
     <Color x:Key="StormCardHoverColor">#1D173D</Color>
     <Color x:Key="StormCardBorderColor">#2A2157</Color>
+    <Color x:Key="StormGaugeTrackColor">#261C47</Color>
 
     <Color x:Key="StormAccentColor">#A855F7</Color>
     <Color x:Key="StormAccentSecondaryColor">#EC4899</Color>
@@ -31,6 +32,7 @@
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource StormCardBackgroundColor}"/>
     <SolidColorBrush x:Key="CardHoverBrush" Color="{StaticResource StormCardHoverColor}"/>
     <SolidColorBrush x:Key="CardBorderBrush" Color="{StaticResource StormCardBorderColor}"/>
+    <SolidColorBrush x:Key="GaugeTrackBrush" Color="{StaticResource StormGaugeTrackColor}"/>
 
     <SolidColorBrush x:Key="AccentPrimaryBrush" Color="{StaticResource StormAccentColor}"/>
     <SolidColorBrush x:Key="AccentSecondaryBrush" Color="{StaticResource StormAccentSecondaryColor}"/>

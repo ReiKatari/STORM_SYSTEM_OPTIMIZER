@@ -2,21 +2,22 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- Colors -->
-    <Color x:Key="StormAppBackgroundColor">#F4F7FB</Color>
-    <Color x:Key="StormNavSidebarColor">#E9EEF5</Color>
+    <Color x:Key="StormAppBackgroundColor">#F1F5F9</Color>
+    <Color x:Key="StormNavSidebarColor">#E2E8F0</Color>
     <Color x:Key="StormCardBackgroundColor">#FFFFFF</Color>
     <Color x:Key="StormCardHoverColor">#F8FAFC</Color>
-    <Color x:Key="StormCardBorderColor">#E2E8F0</Color>
+    <Color x:Key="StormCardBorderColor">#CBD5E1</Color>
+    <Color x:Key="StormGaugeTrackColor">#E2E8F0</Color>
 
     <Color x:Key="StormAccentColor">#0284C7</Color>
     <Color x:Key="StormAccentSecondaryColor">#6366F1</Color>
     <Color x:Key="StormAccentHoverColor">#0369A1</Color>
     <Color x:Key="StormAccentPressedColor">#075985</Color>
-    <Color x:Key="StormGlowColor">#200284C7</Color>
+    <Color x:Key="StormGlowColor">#250284C7</Color>
 
     <Color x:Key="StormTextPrimaryColor">#0F172A</Color>
-    <Color x:Key="StormTextSecondaryColor">#475569</Color>
-    <Color x:Key="StormTextMutedColor">#94A3B8</Color>
+    <Color x:Key="StormTextSecondaryColor">#334155</Color>
+    <Color x:Key="StormTextMutedColor">#64748B</Color>
 
     <Color x:Key="StormBadgeSafeBgColor">#DCFCE7</Color>
     <Color x:Key="StormBadgeSafeTextColor">#15803D</Color>
@@ -31,6 +32,7 @@
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource StormCardBackgroundColor}"/>
     <SolidColorBrush x:Key="CardHoverBrush" Color="{StaticResource StormCardHoverColor}"/>
     <SolidColorBrush x:Key="CardBorderBrush" Color="{StaticResource StormCardBorderColor}"/>
+    <SolidColorBrush x:Key="GaugeTrackBrush" Color="{StaticResource StormGaugeTrackColor}"/>
 
     <SolidColorBrush x:Key="AccentPrimaryBrush" Color="{StaticResource StormAccentColor}"/>
     <SolidColorBrush x:Key="AccentSecondaryBrush" Color="{StaticResource StormAccentSecondaryColor}"/>
