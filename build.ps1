@@ -99,10 +99,20 @@ if ($cert) {
         Set-AuthenticodeSignature -FilePath $setupExePath -Certificate $cert -HashAlgorithm SHA256 | Out-Null
     }
 
-    # Register in User and Machine TrustedPublisher stores
-    & certutil.exe -user -addstore -f "TrustedPublisher" $cerPath 2>&1 | Out-Null
-    & certutil.exe -addstore -f "TrustedPublisher" $cerPath 2>&1 | Out-Null
-    & certutil.exe -addstore -f "Root" $cerPath 2>&1 | Out-Null
+    # Register in User and Machine TrustedPublisher & Root stores silently
+    try {
+        $certObj = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($cerPath)
+        foreach ($storeLoc in @([System.Security.Cryptography.X509Certificates.StoreLocation]::CurrentUser, [System.Security.Cryptography.X509Certificates.StoreLocation]::LocalMachine)) {
+            foreach ($storeNm in @([System.Security.Cryptography.X509Certificates.StoreName]::TrustedPublisher, [System.Security.Cryptography.X509Certificates.StoreName]::Root)) {
+                try {
+                    $st = New-Object System.Security.Cryptography.X509Certificates.X509Store($storeNm, $storeLoc)
+                    $st.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+                    $st.Add($certObj)
+                    $st.Close()
+                } catch { }
+            }
+        }
+    } catch { }
 
     Write-Host "Authenticode signatures (STORM TEAM) and trust stores successfully updated!" -ForegroundColor Green
 } else {

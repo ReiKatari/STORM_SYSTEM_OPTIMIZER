@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -10,11 +10,12 @@
     <Version>1.0.7</Version>
     <AssemblyVersion>1.0.7.0</AssemblyVersion>
     <FileVersion>1.0.7.0</FileVersion>
-    <AssemblyTitle>STORM SYSTEM OPTIMIZER</AssemblyTitle>
-    <Product>STORM SYSTEM OPTIMIZER</Product>
-    <Title>STORM SYSTEM OPTIMIZER</Title>
-    <Description>STORM SYSTEM OPTIMIZER</Description>
+    <AssemblyTitle>STORM SYSTEM OPTIMIZER 1.0.7</AssemblyTitle>
+    <Product>STORM SYSTEM OPTIMIZER 1.0.7</Product>
+    <Title>STORM SYSTEM OPTIMIZER 1.0.7</Title>
+    <Description>STORM SYSTEM OPTIMIZER 1.0.7</Description>
     <Company>STORM TEAM</Company>
+    <Authors>STORM TEAM</Authors>
     <Copyright>Copyright © 2026 STORM TEAM</Copyright>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>

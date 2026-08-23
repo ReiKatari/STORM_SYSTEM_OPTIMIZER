@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
@@ -9,12 +9,13 @@
     <Version>1.0.7</Version>
     <AssemblyVersion>1.0.7.0</AssemblyVersion>
     <FileVersion>1.0.7.0</FileVersion>
-    <AssemblyTitle>STORM SYSTEM OPTIMIZER</AssemblyTitle>
-    <Title>STORM SYSTEM OPTIMIZER</Title>
-    <Product>STORM SYSTEM OPTIMIZER</Product>
+    <AssemblyTitle>STORM SYSTEM OPTIMIZER 1.0.7</AssemblyTitle>
+    <Title>STORM SYSTEM OPTIMIZER 1.0.7</Title>
+    <Product>STORM SYSTEM OPTIMIZER 1.0.7</Product>
     <Company>STORM TEAM</Company>
-    <Description>Высокопроизводительное приложение для сканирования и оптимизации Windows.</Description>
-    <Copyright>Copyright © 2026 ReiKatari / STORM TEAM</Copyright>
+    <Authors>STORM TEAM</Authors>
+    <Description>STORM SYSTEM OPTIMIZER 1.0.7</Description>
+    <Copyright>Copyright © 2026 STORM TEAM</Copyright>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
