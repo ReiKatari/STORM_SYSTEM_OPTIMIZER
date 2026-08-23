@@ -1,4 +1,4 @@
-<Page x:Class="StormSystemOptimizer.Views.SettingsPage"
+﻿<Page x:Class="StormSystemOptimizer.Views.SettingsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -56,23 +56,31 @@
                                 Style="{StaticResource StormSecondaryButton}"
                                 Margin="0,0,8,0"
                                 Padding="12,8">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Проверить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Проверить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                         </Button>
 
                         <Button Command="{Binding InstallUpdateCommand}"
                                 Style="{StaticResource StormHeroButton}"
                                 Padding="16,8">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#33FFFFFF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#33FFFFFF" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoDashboard}" Fill="#FFFFFF" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Обновить сейчас" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Обновить сейчас" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                         </Button>
                     </StackPanel>
                 </Grid>

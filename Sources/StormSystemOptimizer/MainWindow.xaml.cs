@@ -70,6 +70,18 @@ namespace StormSystemOptimizer
                     TxtHeaderUpdate.Foreground = (System.Windows.Media.Brush)FindResource("AccentSecondaryBrush");
                     TrayService.Instance.ShowNotification("Доступно обновление!", $"Найдена версия STORM SYSTEM OPTIMIZER v{updateRes.LatestVersion}. Нажмите для обновления.");
                 }
+
+                if (!string.IsNullOrEmpty(App.UnlockInitialPath))
+                {
+                    var unlockPage = new FileUnlockerPage();
+                    if (unlockPage.DataContext is FileUnlockerViewModel uvm)
+                    {
+                        uvm.LoadPathFromCommandLine(App.UnlockInitialPath);
+                    }
+                    _pageCache["FileUnlocker"] = unlockPage;
+                    NavRadioFileUnlocker.IsChecked = true;
+                    MainContentFrame.Navigate(unlockPage);
+                }
             };
 
             Closing += (s, e) =>
@@ -192,6 +204,7 @@ namespace StormSystemOptimizer
                         "UpdateComponent" => new UpdateComponentPage(),
                         "VisualPerformance" => new VisualPerformancePage(),
                         "BootProfiler" => new BootProfilerPage(),
+                        "FileUnlocker" => new FileUnlockerPage(),
                         "Settings" => new SettingsPage(),
                         _ => new DashboardPage()
                     };

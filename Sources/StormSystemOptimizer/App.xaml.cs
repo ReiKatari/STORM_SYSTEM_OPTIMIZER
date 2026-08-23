@@ -95,9 +95,22 @@ namespace StormSystemOptimizer
             catch { }
         }
 
+        public static string? UnlockInitialPath { get; set; }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+            if (e.Args.Length > 0)
+            {
+                for (int i = 0; i < e.Args.Length; i++)
+                {
+                    if (e.Args[i].Equals("/unlock", StringComparison.OrdinalIgnoreCase) && i + 1 < e.Args.Length)
+                    {
+                        UnlockInitialPath = e.Args[i + 1].Trim('"');
+                    }
+                }
+            }
 
             string? exePath = Process.GetCurrentProcess().MainModule?.FileName;
 

