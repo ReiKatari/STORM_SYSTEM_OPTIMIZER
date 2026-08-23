@@ -1,69 +1,59 @@
-# STORM SYSTEM OPTIMIZER ⚡ — Исходный код решения
+﻿# STORM SYSTEM OPTIMIZER вљЎ вЂ” РСЃС…РѕРґРЅС‹Р№ РєРѕРґ СЂРµС€РµРЅРёСЏ
 
 <p align="center">
   <img src="../Files/StormLogo.png" alt="STORM SYSTEM OPTIMIZER Logo" width="220" />
 </p>
 
 <p align="center">
-  <b>Архитектура решения C# WPF .NET 8 LTS, структура сервисов, ViewModels и сборка.</b>
+  <b>РђСЂС…РёС‚РµРєС‚СѓСЂР° СЂРµС€РµРЅРёСЏ C# WPF .NET 8 LTS, СЃС‚СЂСѓРєС‚СѓСЂР° СЃРµСЂРІРёСЃРѕРІ, ViewModels Рё СЃР±РѕСЂРєР°.</b>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%20Windows%2011-0078D4?style=for-the-badge&logo=windows" />
   <img src="https://img.shields.io/badge/Framework-WPF%20%2F%20.NET%208%20LTS-00D2FF?style=for-the-badge&logo=windows-terminal" />
-  <img src="https://img.shields.io/badge/Version-v1.0.3-10B981?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Version-v1.0.4-10B981?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Publisher-STORM%20TEAM-orange?style=for-the-badge" />
 </p>
 
 ---
 
-## ⚡ О проекте
+## вљЎ Рћ РїСЂРѕРµРєС‚Рµ
 
-**STORM SYSTEM OPTIMIZER v1.0.3** — системный оптимизатор нового поколения от команды **STORM TEAM**, разработанный на нативном высокопроизводительном движке **WPF (.NET 8 LTS)**. Программа предоставляет комплексный набор из 33 специализированных разделов для глубокой настройки, ускорения игр, освобождения оперативной памяти ядра, устранения системных задержек и поддержания максимальной стабильности ПК.
-
----
-
-## 🔒 Автоматическая цифровая подпись
-Все релизные сборки автоматически подписываются сертификатом Authenticode SHA-256 (`CN=STORM TEAM`).
-
-Скрипт `build.ps1` производит:
-  - Компиляцию проекта `StormSystemOptimizer.csproj` в единый исполняемый файл `.exe` (Single-File).
-  - Сборку инсталлятора `StormInstaller.exe` и его упаковку в `STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe`.
-  - Автоматическую подпись SHA-256 цифровым сертификатом Authenticode (`CN=STORM TEAM`).
-  - Установку доверенного сертификата `STORM TEAM` в хранилища Windows.
+**STORM SYSTEM OPTIMIZER v1.0.4** вЂ” СЃРёСЃС‚РµРјРЅС‹Р№ РѕРїС‚РёРјРёР·Р°С‚РѕСЂ РЅРѕРІРѕРіРѕ РїРѕРєРѕР»РµРЅРёСЏ РѕС‚ РєРѕРјР°РЅРґС‹ **STORM TEAM**, СЂР°Р·СЂР°Р±РѕС‚Р°РЅРЅС‹Р№ РЅР° РЅР°С‚РёРІРЅРѕРј РІС‹СЃРѕРєРѕРїСЂРѕРёР·РІРѕРґРёС‚РµР»СЊРЅРѕРј РґРІРёР¶РєРµ **WPF (.NET 8 LTS)**. РџСЂРѕРіСЂР°РјРјР° РїСЂРµРґРѕСЃС‚Р°РІР»СЏРµС‚ РєРѕРјРїР»РµРєСЃРЅС‹Р№ РЅР°Р±РѕСЂ РёР· 34 СЃРїРµС†РёР°Р»РёР·РёСЂРѕРІР°РЅРЅС‹С… СЂР°Р·РґРµР»РѕРІ РґР»СЏ РіР»СѓР±РѕРєРѕР№ РЅР°СЃС‚СЂРѕР№РєРё, СѓСЃРєРѕСЂРµРЅРёСЏ РёРіСЂ, РѕСЃРІРѕР±РѕР¶РґРµРЅРёСЏ РѕРїРµСЂР°С‚РёРІРЅРѕР№ РїР°РјСЏС‚Рё СЏРґСЂР°, СѓСЃС‚СЂР°РЅРµРЅРёСЏ СЃРёСЃС‚РµРјРЅС‹С… Р·Р°РґРµСЂР¶РµРє, СЂР°Р·Р±Р»РѕРєРёСЂРѕРІРєРё С„Р°Р№Р»РѕРІ Рё РїРѕРґРґРµСЂР¶Р°РЅРёСЏ РјР°РєСЃРёРјР°Р»СЊРЅРѕР№ СЃС‚Р°Р±РёР»СЊРЅРѕСЃС‚Рё РџРљ.
 
 ---
 
-## 🏛️ Архитектура проектов
+## рџ”’ РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ С†РёС„СЂРѕРІР°СЏ РїРѕРґРїРёСЃСЊ
+Р’СЃРµ СЂРµР»РёР·РЅС‹Рµ СЃР±РѕСЂРєРё Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РїРѕРґРїРёСЃС‹РІР°СЋС‚СЃСЏ СЃРµСЂС‚РёС„РёРєР°С‚РѕРј Authenticode SHA-256 (`CN=STORM TEAM`).
 
-### 1. `StormSystemOptimizer` (Главное приложение)
-- **Фреймворк**: WPF (.NET 8.0 LTS, C# 12, `net8.0-windows`)
-- **Паттерн**: MVVM (Model-View-ViewModel) с использованием `CommunityToolkit.Mvvm` (Source Generators, `[ObservableProperty]`, `[RelayCommand]`)
-- **Основные слои**:
-  - `Assets/` — Иконки, шрифты и растровые логотипы.
-  - `Controls/` — Интерактивный STORM HUD Overlay (`HudWindow.xaml`), кастомные диалоги `StormMessageBox`.
-  - `Themes/` — 8 динамических XAML словарей тем (`StormDark`, `StormNight`, `StormDay`, `StormMidnight`, `StormCyberpunk`, `StormMatrix`, `StormFantasy`, `StormWarhammer`) + векторная библиотека иконок `StormIcons.xaml`.
-  - `Models/` — Структуры данных и модели процессов, дисков, обновлений, служб, лаунчеров.
-  - `Services/` — Ядро приложения (низкоуровневые Win32 API, `IOCTL_STORAGE_GET_DEVICE_NUMBER`, `NtSetTimerResolution`, `NtSetSystemInformation`, WMI, драйверы, DNS, Winget).
-  - `ViewModels/` — Реактивные модели представления (Dashboard, ProcessManager, Disks, Network, PowerTuning, InputLag, ContextMenu, BackupVault, QuickMaintenance, MemoryMaster, GameLaunchers и др.).
-  - `Views/` — 33 XAML страницы пользовательского интерфейса.
-
-### 2. `StormInstaller` (Автономный установщик)
-- **Фреймворк**: Windows Forms (.NET 8.0 LTS Single-File)
-- **Функционал**:
-  - Распаковка и установка исполняемых файлов в `Program Files\StormSystemOptimizer` или портативную папку.
-  - Автоматическая установка цифрового сертификата `STORM TEAM`.
-  - Создание ярлыков на Рабочем столе и в меню Пуск.
-  - Регистрация в реестре Windows «Установка и удаление программ».
+РЎРєСЂРёРїС‚ `build.ps1` РїСЂРѕРёР·РІРѕРґРёС‚:
+  - РљРѕРјРїРёР»СЏС†РёСЋ РїСЂРѕРµРєС‚Р° `StormSystemOptimizer.csproj` РІ РµРґРёРЅС‹Р№ РёСЃРїРѕР»РЅСЏРµРјС‹Р№ С„Р°Р№Р» `.exe` (Single-File).
+  - РЎР±РѕСЂРєСѓ РёРЅСЃС‚Р°Р»Р»СЏС‚РѕСЂР° `StormInstaller.exe` Рё РµРіРѕ СѓРїР°РєРѕРІРєСѓ РІ `STORM_SYSTEM_OPTIMIZER_1.0.4_Setup.exe`.
+  - РђРІС‚РѕРјР°С‚РёС‡РµСЃРєСѓСЋ РїРѕРґРїРёСЃСЊ SHA-256 С†РёС„СЂРѕРІС‹Рј СЃРµСЂС‚РёС„РёРєР°С‚РѕРј Authenticode (`CN=STORM TEAM`).
+  - РЈСЃС‚Р°РЅРѕРІРєСѓ РґРѕРІРµСЂРµРЅРЅРѕРіРѕ СЃРµСЂС‚РёС„РёРєР°С‚Р° `STORM TEAM` РІ С…СЂР°РЅРёР»РёС‰Р° Windows.
 
 ---
 
-## 🛠️ Сборка через .NET CLI
+## рџЏ›пёЏ РђСЂС…РёС‚РµРєС‚СѓСЂР° РїСЂРѕРµРєС‚РѕРІ
 
-```powershell
-# Сборка основного приложения в Single-File Release
-dotnet publish .\StormSystemOptimizer\StormSystemOptimizer.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+### 1. `StormSystemOptimizer` (Р“Р»Р°РІРЅРѕРµ РїСЂРёР»РѕР¶РµРЅРёРµ)
+- **Р¤СЂРµР№РјРІРѕСЂРє**: WPF (.NET 8.0 LTS, C# 12, `net8.0-windows`)
+- **РџР°С‚С‚РµСЂРЅ**: MVVM (Model-View-ViewModel) СЃ РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµРј `CommunityToolkit.Mvvm` (Source Generators, `[ObservableProperty]`, `[RelayCommand]`)
+- **РћСЃРЅРѕРІРЅС‹Рµ СЃР»РѕРё**:
+  - `Assets/` вЂ” РРєРѕРЅРєРё, С€СЂРёС„С‚С‹ Рё СЂР°СЃС‚СЂРѕРІС‹Рµ Р»РѕРіРѕС‚РёРїС‹.
+  - `Controls/` вЂ” РРЅС‚РµСЂР°РєС‚РёРІРЅС‹Р№ STORM HUD Overlay (`HudWindow.xaml`), РєР°СЃС‚РѕРјРЅС‹Рµ РґРёР°Р»РѕРіРё `StormMessageBox`.
+  - `Themes/` вЂ” 8 РґРёРЅР°РјРёС‡РµСЃРєРёС… XAML СЃР»РѕРІР°СЂРµР№ С‚РµРј (`StormDark`, `StormNight`, `StormDay`, `StormMidnight`, `StormCyberpunk`, `StormMatrix`, `StormFantasy`, `StormWarhammer`) + РІРµРєС‚РѕСЂРЅР°СЏ Р±РёР±Р»РёРѕС‚РµРєР° РёРєРѕРЅРѕРє `StormIcons.xaml`.
+  - `Models/` вЂ” РЎС‚СЂСѓРєС‚СѓСЂС‹ РґР°РЅРЅС‹С… Рё РјРѕРґРµР»Рё РїСЂРѕС†РµСЃСЃРѕРІ, РґРёСЃРєРѕРІ, РѕР±РЅРѕРІР»РµРЅРёР№, СЃР»СѓР¶Р±, Р»Р°СѓРЅС‡РµСЂРѕРІ, Р°РєС‚РёРІРЅС‹С… РїРѕСЂС‚РѕРІ Рё РґРµСЃРєСЂРёРїС‚РѕСЂРѕРІ Р±Р»РѕРєРёСЂРѕРІРєРё.
+  - `Services/` вЂ” РЇРґСЂРѕ СЃРµСЂРІРёСЃРѕРІ (Win32 API, `IOCTL_STORAGE_GET_DEVICE_NUMBER`, `NtSetTimerResolution`, `NtSetSystemInformation`, Restart Manager `rstrtmgr.dll`, WMI, РґСЂР°Р№РІРµСЂС‹, DNS, Winget).
+  - `ViewModels/` вЂ” Р РµР°РєС‚РёРІРЅС‹Рµ РјРѕРґРµР»Рё РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ (Dashboard, ProcessManager, Disks, Network, PowerTuning, InputLag, ContextMenu, BackupVault, QuickMaintenance, MemoryMaster, GameLaunchers, FileUnlocker Рё РґСЂ.).
+  - `Views/` вЂ” 34 XAML СЃС‚СЂР°РЅРёС†С‹ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊСЃРєРѕРіРѕ РёРЅС‚РµСЂС„РµР№СЃР°.
 
-# Сборка инсталлятора
-dotnet publish .\StormInstaller\StormInstaller.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
-```
+### 2. `StormInstaller` (РђРІС‚РѕРЅРѕРјРЅС‹Р№ СѓСЃС‚Р°РЅРѕРІС‰РёРє)
+- **Р¤СЂРµР№РјРІРѕСЂРє**: Windows Forms (.NET 8.0 LTS Single-File)
+- **Р¤СѓРЅРєС†РёРѕРЅР°Р»**:
+  - Р Р°СЃРїР°РєРѕРІРєР° Рё СѓСЃС‚Р°РЅРѕРІРєР° РёСЃРїРѕР»РЅСЏРµРјС‹С… С„Р°Р№Р»РѕРІ РІ `Program Files\StormSystemOptimizer` РёР»Рё РїРѕСЂС‚Р°С‚РёРІРЅСѓСЋ РїР°РїРєСѓ.
+  - РђРІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ СѓСЃС‚Р°РЅРѕРІРєР° С†РёС„СЂРѕРІРѕРіРѕ СЃРµСЂС‚РёС„РёРєР°С‚Р° `STORM TEAM`.
+  - РЎРѕР·РґР°РЅРёРµ СЏСЂР»С‹РєРѕРІ РЅР° Р Р°Р±РѕС‡РµРј СЃС‚РѕР»Рµ Рё РІ РјРµРЅСЋ РџСѓСЃРє.
+  - Р РµРіРёСЃС‚СЂР°С†РёСЏ РІ СЂРµРµСЃС‚СЂРµ Windows В«РЈСЃС‚Р°РЅРѕРІРєР° Рё СѓРґР°Р»РµРЅРёРµ РїСЂРѕРіСЂР°РјРјВ».
+
+---
