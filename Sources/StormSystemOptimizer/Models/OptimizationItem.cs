@@ -94,10 +94,7 @@ namespace StormSystemOptimizer.Models
             {
                 if (IsFixed) return "0 Б (Очищено)";
                 if (ReclaimableBytes <= 0) return "Оптимизация";
-                if (ReclaimableBytes < 1024) return $"{ReclaimableBytes} Б";
-                if (ReclaimableBytes < 1024 * 1024) return $"{ReclaimableBytes / 1024.0:F1} КБ";
-                if (ReclaimableBytes < 1024 * 1024 * 1024) return $"{ReclaimableBytes / (1024.0 * 1024.0):F1} МБ";
-                return $"{ReclaimableBytes / (1024.0 * 1024.0 * 1024.0):F2} ГБ";
+                return Services.FormatHelper.FormatBytes(ReclaimableBytes);
             }
         }
     }

@@ -195,10 +195,7 @@ namespace StormSystemOptimizer.ViewModels
             RecommendedCount = AllIssues.Count(x => x.RiskLevel == RiskLevel.Recommended && !x.IsFixed);
 
             long totalBytes = AllIssues.Where(x => !x.IsFixed).Sum(x => x.ReclaimableBytes);
-            if (totalBytes < 1024) TotalReclaimableText = $"{totalBytes} Б";
-            else if (totalBytes < 1024 * 1024) TotalReclaimableText = $"{totalBytes / 1024.0:F1} КБ";
-            else if (totalBytes < 1024 * 1024 * 1024) TotalReclaimableText = $"{totalBytes / (1024.0 * 1024.0):F1} МБ";
-            else TotalReclaimableText = $"{totalBytes / (1024.0 * 1024.0 * 1024.0):F2} ГБ";
+            TotalReclaimableText = FormatHelper.FormatBytes(totalBytes);
 
             OnPropertyChanged(nameof(CanFix));
         }

@@ -294,12 +294,12 @@ namespace StormSystemOptimizer.ViewModels
         {
             TotalProcessesCount = AllProcesses.Count;
             double totalMb = AllProcesses.Sum(p => p.MemoryMegabytes);
-            TotalMemoryText = $"{totalMb / 1024.0:F2} ГБ";
+            TotalMemoryText = $"{FormatHelper.FormatDouble(totalMb / 1024.0, 2)} ГБ";
 
             var safe = AllProcesses.Where(p => p.SafetyStatus == ProcessSafetyStatus.SafeToKill).ToList();
             SafeToKillCount = safe.Count;
             double safeMb = safe.Sum(p => p.MemoryMegabytes);
-            SafeReclaimableText = safeMb >= 1024 ? $"{safeMb / 1024.0:F2} ГБ" : $"{safeMb:F0} МБ";
+            SafeReclaimableText = safeMb >= 1024 ? $"{FormatHelper.FormatDouble(safeMb / 1024.0, 2)} ГБ" : $"{FormatHelper.FormatDouble(safeMb, 0)} МБ";
         }
     }
 }
