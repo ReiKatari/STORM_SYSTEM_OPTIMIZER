@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -381,6 +381,7 @@ namespace StormSystemOptimizer.Installer
                 }
 
                 string targetExe = Path.Combine(targetDir, "StormSystemOptimizer.exe");
+                string targetLauncher = Path.Combine(targetDir, "StormLauncher.exe");
                 string targetCer = Path.Combine(targetDir, "STORM_Certificate.cer");
                 string targetIco = Path.Combine(targetDir, "AppIcon.ico");
 
@@ -402,6 +403,7 @@ namespace StormSystemOptimizer.Installer
                 await Task.Delay(200);
 
                 ExtractResource("StormSystemOptimizer.exe", targetExe);
+                ExtractResource("StormLauncher.exe", targetLauncher);
                 ExtractResource("AppIcon.ico", targetIco);
 
                 // Self-healing: Unblock files and remove Mark of the Web
@@ -410,6 +412,7 @@ namespace StormSystemOptimizer.Installer
                 await Task.Delay(100);
 
                 UnblockFile(targetExe);
+                UnblockFile(targetLauncher);
                 UnblockFile(targetCer);
                 UnblockFile(targetIco);
                 UnblockEntireDirectory(targetDir);
@@ -419,11 +422,15 @@ namespace StormSystemOptimizer.Installer
 
                 if (rbStandard.Checked)
                 {
-                    lblStatus.Text = "Создание системных ярлыков и регистрация в Windows...";
+                    lblStatus.Text = "Настройка запуска без UAC и создание системных ярлыков...";
                     progressBar.Value = 90;
                     await Task.Delay(150);
 
-                    CreateShortcuts(targetDir, targetExe, targetIco, chkDesktop.Checked, chkStartMenu.Checked);
+                    // Setup elevated Task Scheduler entry for instant zero-UAC launches
+                    SetupScheduledTaskBypassUAC(targetExe);
+
+                    string shortcutTarget = File.Exists(targetLauncher) ? targetLauncher : targetExe;
+                    CreateShortcuts(targetDir, shortcutTarget, targetIco, chkDesktop.Checked, chkStartMenu.Checked);
 
                     if (chkRegister.Checked)
                     {
@@ -436,14 +443,18 @@ namespace StormSystemOptimizer.Installer
                 lblStatus.ForeColor = Color.FromArgb(16, 185, 129);
                 await Task.Delay(500);
 
-                if (chkRunAfter.Checked && File.Exists(targetExe))
+                if (chkRunAfter.Checked)
                 {
-                    Process.Start(new ProcessStartInfo
+                    string runTarget = File.Exists(targetLauncher) ? targetLauncher : targetExe;
+                    if (File.Exists(runTarget))
                     {
-                        FileName = targetExe,
-                        WorkingDirectory = targetDir,
-                        UseShellExecute = true
-                    });
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = runTarget,
+                            WorkingDirectory = targetDir,
+                            UseShellExecute = true
+                        });
+                    }
                 }
 
                 this.Close();
@@ -655,11 +666,31 @@ namespace StormSystemOptimizer.Installer
             catch { }
         }
 
+        public static void SetupScheduledTaskBypassUAC(string targetExe)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "schtasks.exe",
+                    Arguments = $"/create /tn \"STORM_SYSTEM_OPTIMIZER\" /tr \"\\\"{targetExe}\\\"\" /sc ondemand /rl highest /f",
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+                using var p = Process.Start(psi);
+                p?.WaitForExit(5000);
+            }
+            catch { }
+        }
+
         private void RegisterUninstall(string targetDir, string targetExe, string targetIco)
         {
             try
             {
                 string displayName = $"STORM SYSTEM OPTIMIZER {AppVersion}";
+                string uninstallCmd = $"cmd.exe /c schtasks /delete /tn \"STORM_SYSTEM_OPTIMIZER\" /f & rmdir /s /q \"{targetDir}\" & del \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\STORM SYSTEM OPTIMIZER.lnk\" & del \"%USERPROFILE%\\Desktop\\STORM SYSTEM OPTIMIZER.lnk\"";
+
                 using (var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer"))
                 {
                     if (key != null)
@@ -669,7 +700,7 @@ namespace StormSystemOptimizer.Installer
                         key.SetValue("Publisher", "STORM TEAM");
                         key.SetValue("DisplayIcon", targetIco);
                         key.SetValue("InstallLocation", targetDir);
-                        key.SetValue("UninstallString", $"cmd.exe /c rmdir /s /q \"{targetDir}\" & del \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\STORM SYSTEM OPTIMIZER.lnk\" & del \"%USERPROFILE%\\Desktop\\STORM SYSTEM OPTIMIZER.lnk\"");
+                        key.SetValue("UninstallString", uninstallCmd);
                     }
                 }
 
@@ -684,7 +715,7 @@ namespace StormSystemOptimizer.Installer
                             keyLm.SetValue("Publisher", "STORM TEAM");
                             keyLm.SetValue("DisplayIcon", targetIco);
                             keyLm.SetValue("InstallLocation", targetDir);
-                            keyLm.SetValue("UninstallString", $"cmd.exe /c rmdir /s /q \"{targetDir}\" & del \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\STORM SYSTEM OPTIMIZER.lnk\" & del \"%USERPROFILE%\\Desktop\\STORM SYSTEM OPTIMIZER.lnk\"");
+                            keyLm.SetValue("UninstallString", uninstallCmd);
                         }
                     }
                 }
