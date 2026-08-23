@@ -34,8 +34,12 @@ if (Test-Path "$appProjDir\obj") { Remove-Item "$appProjDir\obj" -Recurse -Force
 if (Test-Path "$installerProjDir\bin") { Remove-Item "$installerProjDir\bin" -Recurse -Force -ErrorAction SilentlyContinue }
 if (Test-Path "$installerProjDir\obj") { Remove-Item "$installerProjDir\obj" -Recurse -Force -ErrorAction SilentlyContinue }
 
-# Step 2: Publish Single-File App Executable
-Write-Host "[2/6] Publishing App (WPF .NET 8 Single-File)..." -ForegroundColor Yellow
+$launcherProjDir = Join-Path $sourcesDir "StormLauncher"
+if (Test-Path "$launcherProjDir\bin") { Remove-Item "$launcherProjDir\bin" -Recurse -Force -ErrorAction SilentlyContinue }
+if (Test-Path "$launcherProjDir\obj") { Remove-Item "$launcherProjDir\obj" -Recurse -Force -ErrorAction SilentlyContinue }
+
+# Step 2: Publish Single-File App Executable & Fast Launcher
+Write-Host "[2/6] Publishing App & Fast Zero-UAC Launcher..." -ForegroundColor Yellow
 $appPublishDir = Join-Path $appProjDir "bin\Release\net8.0-windows\win-x64\publish"
 dotnet publish "$appProjDir\StormSystemOptimizer.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
 
@@ -44,8 +48,13 @@ if (-not (Test-Path $publishedExe)) {
     throw "Error: Published executable $publishedExe was not created!"
 }
 
-# Step 3: Digital Signature for App Executable & Certificate Trust
-Write-Host "[3/6] Applying digital signature (Authenticode SHA-256) to App..." -ForegroundColor Yellow
+$launcherPublishDir = Join-Path $launcherProjDir "bin\Release\net8.0-windows\win-x64\publish"
+dotnet publish "$launcherProjDir\StormLauncher.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+
+$publishedLauncher = Join-Path $launcherPublishDir "StormLauncher.exe"
+
+# Step 3: Digital Signature for App Executable, Launcher & Certificate Trust
+Write-Host "[3/6] Applying digital signature (Authenticode SHA-256) to App and Launcher..." -ForegroundColor Yellow
 $cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Where-Object { $_.Subject -like "*STORM TEAM*" } | Select-Object -First 1
 if (-not $cert) {
     $cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Where-Object { $_.Subject -like "*STORM Software*" -or $_.Subject -like "*STORM*" } | Select-Object -First 1
@@ -59,23 +68,32 @@ if ($cert) {
     Copy-Item $cerPath (Join-Path $baseDir "StormTeamRootCA.cer") -Force -ErrorAction SilentlyContinue
     Copy-Item $cerPath (Join-Path $baseDir "STORM_Certificate.cer") -Force -ErrorAction SilentlyContinue
 
-    # Sign the App executable FIRST before packaging
+    # Sign the App and Launcher executables FIRST before packaging
     Set-AuthenticodeSignature -FilePath $publishedExe -Certificate $cert -HashAlgorithm SHA256 | Out-Null
+    if (Test-Path $publishedLauncher) {
+        Set-AuthenticodeSignature -FilePath $publishedLauncher -Certificate $cert -HashAlgorithm SHA256 | Out-Null
+    }
 }
 
-# Step 4: Copy SIGNED App to Assembling & Installer Resources
-Write-Host "[4/6] Packaging SIGNED App into Installer Resources..." -ForegroundColor Yellow
+# Step 4: Copy SIGNED App and Launcher to Assembling & Installer Resources
+Write-Host "[4/6] Packaging SIGNED binaries into Installer Resources..." -ForegroundColor Yellow
 if (-not (Test-Path $assemblingDir)) { New-Item -ItemType Directory -Path $assemblingDir | Out-Null }
 try {
     Copy-Item $publishedExe "$assemblingDir\StormSystemOptimizer.exe" -Force -ErrorAction Stop
+    if (Test-Path $publishedLauncher) {
+        Copy-Item $publishedLauncher "$assemblingDir\StormLauncher.exe" -Force -ErrorAction Stop
+    }
 } catch {
-    Write-Host "Note: Assembling\StormSystemOptimizer.exe is currently in use." -ForegroundColor DarkGray
+    Write-Host "Note: Output binaries in Assembling are currently locked by a running process." -ForegroundColor DarkGray
 }
 
 $installerResDir = Join-Path $installerProjDir "Resources"
 if (-not (Test-Path $installerResDir)) { New-Item -ItemType Directory -Path $installerResDir | Out-Null }
 try {
     Copy-Item $publishedExe "$installerResDir\StormSystemOptimizer.exe" -Force -ErrorAction SilentlyContinue
+    if (Test-Path $publishedLauncher) {
+        Copy-Item $publishedLauncher "$installerResDir\StormLauncher.exe" -Force -ErrorAction SilentlyContinue
+    }
     if (Test-Path $cerPath) {
         Copy-Item $cerPath "$installerResDir\STORM_Certificate.cer" -Force -ErrorAction SilentlyContinue
     }
