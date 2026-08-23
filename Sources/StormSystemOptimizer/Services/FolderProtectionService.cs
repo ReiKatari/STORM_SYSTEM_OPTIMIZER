@@ -86,9 +86,7 @@ namespace StormSystemOptimizer.Services
                 }
                 catch { }
 
-                string sizeFormatted = totalBytes >= (1024 * 1024 * 1024)
-                    ? $"{totalBytes / (1024.0 * 1024.0 * 1024.0):F1} ГБ"
-                    : $"{totalBytes / (1024.0 * 1024.0):F1} МБ";
+                string sizeFormatted = FormatHelper.FormatBytes(totalBytes);
 
                 string salt = Guid.NewGuid().ToString("N");
                 string hash = HashPassword(password, salt);

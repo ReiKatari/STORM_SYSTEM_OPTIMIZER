@@ -35,7 +35,7 @@ namespace StormSystemOptimizer.Services
             _ => "Системный датчик"
         };
 
-        public string FormattedTemperature => $"{TemperatureCelsius:F0} °C";
+        public string FormattedTemperature => $"{FormatHelper.FormatDouble(TemperatureCelsius, 0)} °C";
         public string TemperatureText => FormattedTemperature;
 
         public string StatusColor => TemperatureCelsius < 55 ? "#10B981" : (TemperatureCelsius < 75 ? "#F59E0B" : "#EF4444");

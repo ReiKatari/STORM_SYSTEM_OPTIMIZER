@@ -144,6 +144,7 @@ namespace StormSystemOptimizer.Services
                                 InstallDate = FormatInstallDate(date),
                                 EstimatedSizeMb = sizeMb,
                                 AppType = type,
+                                RegistryKeyPath = $@"{root.Name}\{subKeyPath}\{appSubKeyName}",
                                 IconSource = null
                             };
                         }
@@ -382,7 +383,8 @@ namespace StormSystemOptimizer.Services
                                 InstallLocation = fullGameDir,
                                 AppType = "Игра",
                                 EstimatedSizeMb = sizeMb,
-                                UninstallString = $"steam://uninstall/{appid}"
+                                UninstallString = $"steam://uninstall/{appid}",
+                                ManifestFilePath = manifestFile
                             };
                         }
                         catch { }
@@ -630,7 +632,22 @@ namespace StormSystemOptimizer.Services
                         }
                     }
 
-                    // 3. Force clean target directory if still exists
+                    // 3. Delete Steam Manifest if present
+                    if (!string.IsNullOrEmpty(app.ManifestFilePath) && File.Exists(app.ManifestFilePath))
+                    {
+                        try { File.Delete(app.ManifestFilePath); } catch { }
+                    }
+
+                    // 4. Delete Specific Registry Uninstall Key
+                    if (!string.IsNullOrEmpty(app.RegistryKeyPath))
+                    {
+                        DeleteRegistryKey(app.RegistryKeyPath);
+                    }
+
+                    // 5. Force purge all matching Uninstall registry entries across 64-bit, 32-bit & HKCU
+                    RemoveUninstallRegistryEntries(app.DisplayName);
+
+                    // 6. Force clean target directory if still exists
                     if (!string.IsNullOrEmpty(app.InstallLocation) && Directory.Exists(app.InstallLocation))
                     {
                         try
@@ -640,7 +657,7 @@ namespace StormSystemOptimizer.Services
                         catch { }
                     }
 
-                    // 4. Scan and delete all residuals
+                    // 7. Scan and delete all residuals
                     await ScanResidualClutterAsync(app);
 
                     int deletedDirs = 0;
@@ -839,6 +856,47 @@ namespace StormSystemOptimizer.Services
                 else f++;
             }
             return (s, f);
+        }
+
+        private void RemoveUninstallRegistryEntries(string appDisplayName)
+        {
+            if (string.IsNullOrWhiteSpace(appDisplayName)) return;
+            string safeName = CleanForSearch(appDisplayName);
+
+            var targets = new (RegistryKey root, string path)[]
+            {
+                (Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"),
+                (Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"),
+                (Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Uninstall")
+            };
+
+            foreach (var (root, path) in targets)
+            {
+                try
+                {
+                    using var key = root.OpenSubKey(path, writable: true);
+                    if (key == null) continue;
+
+                    foreach (var sub in key.GetSubKeyNames())
+                    {
+                        try
+                        {
+                            using var subKey = key.OpenSubKey(sub);
+                            if (subKey == null) continue;
+
+                            string name = subKey.GetValue("DisplayName")?.ToString()?.Trim() ?? string.Empty;
+                            if ((!string.IsNullOrEmpty(name) && name.Contains(safeName, StringComparison.OrdinalIgnoreCase)) ||
+                                sub.Contains(safeName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                subKey.Dispose();
+                                key.DeleteSubKeyTree(sub, false);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+            }
         }
 
         private void DeleteRegistryKey(string fullPath)

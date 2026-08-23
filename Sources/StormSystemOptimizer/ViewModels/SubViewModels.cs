@@ -1153,7 +1153,7 @@ namespace StormSystemOptimizer.ViewModels
             ToolStatus = "Сжатие и оптимизация памяти фоновых процессов...";
 
             var (count, freedMb) = await MemoryOptimizerService.Instance.SmartCompressMemoryAsync();
-            ToolStatus = $"Сжатие завершено: освобождено {freedMb:F0} МБ памяти у {count} процессов!";
+            ToolStatus = $"Сжатие завершено: освобождено {FormatHelper.FormatDouble(freedMb, 0)} МБ памяти у {FormatHelper.FormatInt(count)} процессов!";
             IsBusy = false;
             TrayService.Instance.ShowNotification("Smart RAM", ToolStatus);
         }

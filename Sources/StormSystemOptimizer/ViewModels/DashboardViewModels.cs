@@ -196,13 +196,13 @@ namespace StormSystemOptimizer.ViewModels
         {
             var metrics = HardwareMonitorService.Instance.GetCurrentMetrics();
             CpuUsage = metrics.CpuUsagePercentage;
-            CpuUsageText = $"{CpuUsage:F0}%";
+            CpuUsageText = $"{FormatHelper.FormatDouble(CpuUsage, 0)}%";
 
             RamUsage = metrics.RamUsagePercentage;
-            RamUsageText = $"{RamUsage:F0}%";
+            RamUsageText = $"{FormatHelper.FormatDouble(RamUsage, 0)}%";
 
             DiskUsage = metrics.DiskUsagePercentage;
-            DiskUsageText = $"{DiskUsage:F0}%";
+            DiskUsageText = $"{FormatHelper.FormatDouble(DiskUsage, 0)}%";
 
             RamDetails = $"{FormatHelper.FormatDouble(metrics.RamUsedGb, 1)} ГБ / {FormatHelper.FormatDouble(metrics.RamTotalGb, 1)} ГБ ({FormatHelper.FormatDouble(metrics.RamUsagePercentage, 0)}%)";
             DiskDetails = $"Свободно {FormatHelper.FormatDouble(metrics.DriveFreeGb, 1)} ГБ из {FormatHelper.FormatDouble(metrics.DriveTotalGb, 1)} ГБ";
@@ -219,15 +219,15 @@ namespace StormSystemOptimizer.ViewModels
             double gpuTemp = HardwareTemperatureService.Instance.GetGpuTemperature(cpuTemp);
             CpuTemperatureValue = cpuTemp;
             GpuTemperatureValue = gpuTemp;
-            CpuTemperatureText = $"{cpuTemp:F0} °C";
-            GpuTemperatureText = $"{gpuTemp:F0} °C";
+            CpuTemperatureText = $"{FormatHelper.FormatDouble(cpuTemp, 0)} °C";
+            GpuTemperatureText = $"{FormatHelper.FormatDouble(gpuTemp, 0)} °C";
 
             try
             {
                 var diskTemps = HardwareTemperatureService.Instance.GetDiskTemperatures();
                 if (diskTemps.Count > 0)
                 {
-                    DiskTemperatureText = $"{diskTemps[0].TemperatureCelsius:F0} °C";
+                    DiskTemperatureText = $"{FormatHelper.FormatDouble(diskTemps[0].TemperatureCelsius, 0)} °C";
                 }
             }
             catch { }
@@ -240,7 +240,7 @@ namespace StormSystemOptimizer.ViewModels
 
             // Live DPC Latency & Game Pings
             DpcLatencyValue = metrics.DpcLatencyMicroseconds;
-            DpcLatencyText = $"{metrics.DpcLatencyMicroseconds:F1} мкс ({metrics.DpcStatusText})";
+            DpcLatencyText = $"{FormatHelper.FormatDouble(metrics.DpcLatencyMicroseconds, 1)} мкс ({metrics.DpcStatusText})";
             DpcLatencyColor = metrics.DpcStatusColor;
 
             // Compute dynamic STORM INDEX (0..100)
@@ -298,7 +298,7 @@ namespace StormSystemOptimizer.ViewModels
 
             var (freedMb, totalFreedMb) = await MemoryOptimizerService.Instance.CleanMemoryAsync();
 
-            string notify = $"Очищено {freedMb:F0} МБ памяти. Сжатие рабочих наборов завершено.";
+            string notify = $"Очищено {FormatHelper.FormatDouble(freedMb, 0)} МБ памяти. Сжатие рабочих наборов завершено.";
             TrayService.Instance.ShowNotification("Память оптимизирована ⚡", notify);
 
             await Task.Delay(1000);
