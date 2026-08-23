@@ -16,8 +16,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path 
 :: Запуск установленной программы, установщика или портативной версии
 if exist "C:\Program Files\StormSystemOptimizer\StormSystemOptimizer.exe" (
     start "" "C:\Program Files\StormSystemOptimizer\StormSystemOptimizer.exe"
-) else if exist "%SCRIPT_DIR%Files\StormSystemOptimizer_Setup_v1.0.0.exe" (
-    start "" "%SCRIPT_DIR%Files\StormSystemOptimizer_Setup_v1.0.0.exe"
+) else if exist "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe" (
+    start "" "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe"
 ) else if exist "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe" (
     start "" "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe"
 ) else (

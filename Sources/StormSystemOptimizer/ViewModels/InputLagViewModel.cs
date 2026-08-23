@@ -18,14 +18,95 @@ namespace StormSystemOptimizer.ViewModels
         private bool _isMultimediaPriorityHigh = true;
 
         [ObservableProperty]
-        private string _statusMessage = "Готов к оптимизации задержки ввода мыши и клавиатуры";
+        private string _mouseStatus = "✓ 1:1 Raw Input активен (Акселерация отключена)";
+
+        [ObservableProperty]
+        private string _mouseBadgeColor = "#10B981";
+
+        [ObservableProperty]
+        private string _keyboardStatus = "✓ Задержка 0, Скорость 31 (Мгновенный отклик)";
+
+        [ObservableProperty]
+        private string _keyboardBadgeColor = "#10B981";
+
+        [ObservableProperty]
+        private string _systemResponsivenessStatus = "✓ 100% CPU приоритет для игр (SystemResponsiveness = 0)";
+
+        [ObservableProperty]
+        private string _responsivenessBadgeColor = "#10B981";
+
+        [ObservableProperty]
+        private string _usbStatus = "✓ USB Low Latency активен (Selective Suspend = Off)";
+
+        [ObservableProperty]
+        private string _usbBadgeColor = "#10B981";
+
+        [ObservableProperty]
+        private string _statusMessage = "✓ Режим минимальной задержки ввода (1:1 Raw Input) активен!";
 
         public InputLagViewModel()
         {
-            IsMouseSmoothingDisabled = InputLagService.Instance.IsEnhancedPointerPrecisionDisabled();
-            if (IsMouseSmoothingDisabled)
+            RefreshStatus();
+        }
+
+        public void RefreshStatus()
+        {
+            bool mouseTweak = InputLagService.Instance.IsEnhancedPointerPrecisionDisabled();
+            IsMouseSmoothingDisabled = mouseTweak;
+            if (mouseTweak)
             {
-                StatusMessage = "Прямой ввод 1:1 активен (скрытая акселерация Windows отключена).";
+                MouseStatus = "✓ Применено (1:1 Raw Input активен)";
+                MouseBadgeColor = "#10B981";
+            }
+            else
+            {
+                MouseStatus = "○ Стандартный режим (Акселерация Windows)";
+                MouseBadgeColor = "#F59E0B";
+            }
+
+            bool keybTweak = InputLagService.Instance.IsKeyboardTweakApplied();
+            if (keybTweak)
+            {
+                KeyboardStatus = "✓ Применено (Задержка 0, Скорость 31)";
+                KeyboardBadgeColor = "#10B981";
+            }
+            else
+            {
+                KeyboardStatus = "○ Стандартная задержка повтора";
+                KeyboardBadgeColor = "#F59E0B";
+            }
+
+            bool respTweak = InputLagService.Instance.IsSystemResponsivenessApplied();
+            if (respTweak)
+            {
+                SystemResponsivenessStatus = "✓ Применено (100% CPU для игр и ввода)";
+                ResponsivenessBadgeColor = "#10B981";
+            }
+            else
+            {
+                SystemResponsivenessStatus = "○ Стандартный троттлинг Windows (20%)";
+                ResponsivenessBadgeColor = "#F59E0B";
+            }
+
+            bool usbTweak = InputLagService.Instance.IsUsbPowerSavingDisabled();
+            if (usbTweak)
+            {
+                UsbStatus = "✓ Применено (USB энергосбережение выключено)";
+                UsbBadgeColor = "#10B981";
+            }
+            else
+            {
+                UsbStatus = "○ USB Selective Suspend включен";
+                UsbBadgeColor = "#F59E0B";
+            }
+
+            if (mouseTweak && keybTweak && respTweak)
+            {
+                StatusMessage = "✓ Все твики минимальной задержки ввода (Raw Input 1:1) применены и активны!";
+            }
+            else
+            {
+                StatusMessage = "Готов к оптимизации задержки ввода мыши, клавиатуры и USB-портов.";
             }
         }
 
@@ -36,8 +117,8 @@ namespace StormSystemOptimizer.ViewModels
             var (ok, msg) = await InputLagService.Instance.ApplyZeroInputLagTweaksAsync();
             if (ok)
             {
-                IsMouseSmoothingDisabled = true;
-                StatusMessage = "⚡ Режим минимальной задержки ввода активирован! Мышь и клавиатура работают с точностью 1:1.";
+                RefreshStatus();
+                StatusMessage = "✓ Применено! Режим минимальной задержки ввода активирован (1:1 Raw Input, 0ms задержки).";
                 TrayService.Instance.ShowNotification("Задержка ввода 🖱️", "Твики прямого ввода 1:1 и приоритета отклика успешно применены!");
             }
             else

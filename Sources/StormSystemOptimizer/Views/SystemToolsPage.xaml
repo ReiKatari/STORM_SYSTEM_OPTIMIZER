@@ -70,10 +70,10 @@
                             <!-- Live Status Badge -->
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsMsiActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="✓ ВКЛЮЧЕНО (Режим MSI активен)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                    <TextBlock Text="✓ Включено (Режим MSI активен)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
                                 </Border>
                                 <Border Visibility="{Binding IsMsiActive, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="○ ОТКЛЮЧЕНО (Line-based режим)" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="○ Отключено (Line-based режим)" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </Border>
                             </StackPanel>
                         </StackPanel>
@@ -115,10 +115,10 @@
                             <!-- Live Status Badge -->
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsDirectStorageActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="✓ НАСТРОЕНО (BypassIO и IoRing активны)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                    <TextBlock Text="✓ Настроено (BypassIO и IoRing активны)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
                                 </Border>
                                 <Border Visibility="{Binding IsDirectStorageActive, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="○ СТАНДАРТНЫЙ РЕЖИМ" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="○ Стандартный режим" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </Border>
                             </StackPanel>
                         </StackPanel>
@@ -221,10 +221,10 @@
                             <TextBlock Text="MenuShowDelay=0, мгновенный отклик системных окон, защита от зависаний папок и отключение сетевого опроса." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsExplorerOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="✓ ВКЛЮЧЕНО (Мгновенный отклик)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                    <TextBlock Text="✓ Включено (Мгновенный отклик)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
                                 </Border>
                                 <Border Visibility="{Binding IsExplorerOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="○ СТАНДАРТНЫЕ ЗАДЕРЖКИ" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="○ Стандартные задержки" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </Border>
                             </StackPanel>
                         </StackPanel>
@@ -252,10 +252,10 @@
                             <TextBlock Text="Короткие переменные кванты времени планировщика ядра: наивысший приоритет фокуса активной игры." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsWin32PriorityOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="✓ ВКЛЮЧЕНО (0x1A eSports Boost)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                    <TextBlock Text="✓ Включено (0x1A eSports Boost)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
                                 </Border>
                                 <Border Visibility="{Binding IsWin32PriorityOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="○ СТАНДАРТНЫЙ КВАНТ" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="○ Стандартный квант" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </Border>
                             </StackPanel>
                         </StackPanel>
@@ -283,10 +283,10 @@
                             <TextBlock Text="Выделение 100% CPU/GPU играм (SystemResponsiveness=0), полное отключение сетевого троттлинга Windows." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsMmcssOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="✓ ВКЛЮЧЕНО (100% CPU/GPU для игр)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                    <TextBlock Text="✓ Включено (100% CPU/GPU для игр)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
                                 </Border>
                                 <Border Visibility="{Binding IsMmcssOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="○ СТАНДАРТНЫЙ MMCSS" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="○ Стандартный MMCSS" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </Border>
                             </StackPanel>
                         </StackPanel>
@@ -314,10 +314,10 @@
                             <TextBlock Text="Устранение 10-секундной искусственной паузы Windows при старте системы для мгновенной готовности рабочего стола." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsZeroStartupDelayActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="✓ ВКЛЮЧЕНО (Задержка 0 мс)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                    <TextBlock Text="✓ Включено (Задержка 0 мс)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
                                 </Border>
                                 <Border Visibility="{Binding IsZeroStartupDelayActive, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="○ СТАНДАРТНАЯ ЗАДЕРЖКА" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="○ Стандартная задержка" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                 </Border>
                             </StackPanel>
                         </StackPanel>
@@ -345,6 +345,181 @@
                             <TextBlock Text="Очистка поврежденных IconCache.db и ThumbCache с мягким перезапуском Explorer без перезагрузки компьютера." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding RebuildShellCacheCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить и восстановить" Style="{StaticResource StormSecondaryButton}" Padding="14,6" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Anti-Stutter, Latency & Frame Pacing Engine (New in v1.0.2) -->
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,10">
+                <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoVisual}" Fill="{StaticResource IconGradRose}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Плавность фреймтайма, Anti-Stutter и таймеры ядра" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- MPO (Multi-Plane Overlay) Switcher -->
+                <Border Grid.Row="0" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,6,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoGpu}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Отключение MPO (Multi-Plane Overlay)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Устраняет мерцание экрана, микростаттеры и сбои драйверов GPU на системах с мониторами разной частоты (144+ Гц + 60 Гц)." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsMpoDisabled, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ MPO отключен (Плавный DWM без статтеров)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsMpoDisabled, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ MPO включен (Заводской режим)" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsMpoDisabled, Converter={StaticResource InverseBoolToVisConverter}}" Command="{Binding ToggleMpoModeCommand}" IsEnabled="{Binding IsNotBusy}" Content="⚡ Отключить" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                            <Button Visibility="{Binding IsMpoDisabled, Converter={StaticResource BoolToVisConverter}}" Command="{Binding ToggleMpoModeCommand}" IsEnabled="{Binding IsNotBusy}" Content="Включить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- VBS / Core Isolation Optimizer -->
+                <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="6,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Оптимизация VBS и изоляции ядра (Hyper-V HVCI)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Отключает оверхед гипервизора безопасности (VM-Exit), высвобождая +5–15% чистой процессорной мощи в играх." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsVbsDisabled, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ VBS отключен (+5–15% FPS буст)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsVbsDisabled, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ VBS активен (Гипервизор включен)" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsVbsDisabled, Converter={StaticResource InverseBoolToVisConverter}}" Command="{Binding ToggleVbsCommand}" IsEnabled="{Binding IsNotBusy}" Content="⚡ Оптимизировать" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                            <Button Visibility="{Binding IsVbsDisabled, Converter={StaticResource BoolToVisConverter}}" Command="{Binding ToggleVbsCommand}" IsEnabled="{Binding IsNotBusy}" Content="Восстановить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- HPET & Invariant TSC Platform Timers -->
+                <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,6,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Синхронизация таймеров Invariant TSC" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Исключение медленного таймера HPET, активация Invariant TSC и UsePlatformTick для ликвидации микродрожания (Jitter)." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsHpetOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ Настроено (Аппаратный TSC активен)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsHpetOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ Стандартные таймеры" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsHpetOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Command="{Binding ToggleHpetCommand}" IsEnabled="{Binding IsNotBusy}" Content="⚡ Включить" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                            <Button Visibility="{Binding IsHpetOptimized, Converter={StaticResource BoolToVisConverter}}" Command="{Binding ToggleHpetCommand}" IsEnabled="{Binding IsNotBusy}" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Shader Cache 10GB Expansion -->
+                <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="6,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Расширение кэша шейдеров (10 ГБ)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Увеличивает дисковый кэш шейдеров NVIDIA/DirectX до 10 ГБ, навсегда избавляя от повторных заиканий при входе в локации." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsShaderCacheOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ Расширено (10 ГБ кэша шейдеров)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsShaderCacheOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ Стандартный лимит (512 МБ)" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsShaderCacheOptimized, Converter={StaticResource InverseBoolToVisConverter}}" Command="{Binding ToggleShaderCacheCommand}" IsEnabled="{Binding IsNotBusy}" Content="⚡ Расширить" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                            <Button Visibility="{Binding IsShaderCacheOptimized, Converter={StaticResource BoolToVisConverter}}" Command="{Binding ToggleShaderCacheCommand}" IsEnabled="{Binding IsNotBusy}" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- GameDVR & FSO Background Capture Kill -->
+                <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1A10B981" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                                    <Path Data="{StaticResource GeoGamepad}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Отключение скрытого GameDVR и оптимизация полноэкранного FSO" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Полная деактивация фонового видеозахвата Windows GameDVR и принудительный аппаратный DirectFlip для минимального Input Lag." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                <Border Visibility="{Binding IsGameDvrDisabled, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="✓ Включено (GameDVR отключен, DirectFlip активен)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                                <Border Visibility="{Binding IsGameDvrDisabled, Converter={StaticResource InverseBoolToVisConverter}}" Background="#1A6B7280" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="6,2">
+                                    <TextBlock Text="○ Стандартный режим" FontSize="10.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <Button Visibility="{Binding IsGameDvrDisabled, Converter={StaticResource InverseBoolToVisConverter}}" Command="{Binding ToggleGameDvrCommand}" IsEnabled="{Binding IsNotBusy}" Content="⚡ Оптимизировать" Style="{StaticResource StormHeroButton}" Padding="14,6"/>
+                            <Button Visibility="{Binding IsGameDvrDisabled, Converter={StaticResource BoolToVisConverter}}" Command="{Binding ToggleGameDvrCommand}" IsEnabled="{Binding IsNotBusy}" Content="Восстановить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
+                        </StackPanel>
                     </Grid>
                 </Border>
             </Grid>
@@ -660,6 +835,92 @@
                         </StackPanel>
                     </Button>
                 </UniformGrid>
+            </Border>
+
+            <!-- Deep Maintenance Tools Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoSystemTools}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="Глубокое системное обслуживание и стек ОС" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                    <TextBlock Text="Быстрый сброс сетевого стека TCP/IP, ARP-таблиц и DNS, принудительная очистка зависшей очереди Print Spooler и синхронизация времени NTP."
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14"/>
+
+                    <WrapPanel Orientation="Horizontal">
+                        <Button Command="{Binding FlushNetworkStackCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,8">
+                            <TextBlock Text="🌐 Сбросить сетевой стек и сокеты" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                        <Button Command="{Binding ClearSpoolerCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,8">
+                            <TextBlock Text="🖨️ Очистить очередь печати" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                        <Button Command="{Binding ResyncClockCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,8">
+                            <TextBlock Text="⏱️ Синхронизировать время NTP" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- OS Active Ports & Sockets Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradAmber}" Width="12" Height="12" Stretch="Uniform"/>
+                                </Border>
+                                <TextBlock Text="Активные сетевые порты и сокеты Windows" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="{Binding PortStatusMessage}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Command="{Binding LoadPortsCommand}" Style="{StaticResource StormHeroButton}" Padding="14,8" Margin="0,0,8,0">
+                                <TextBlock Text="🔄 Сканировать порты" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            </Button>
+                            <Button Command="{Binding KillSelectedPortProcessCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8">
+                                <TextBlock Text="🛑 Завершить процесс порта" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Ports DataGrid -->
+                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" MaxHeight="240">
+                        <DataGrid ItemsSource="{Binding ActivePorts}"
+                                  SelectedItem="{Binding SelectedPort}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="{DynamicResource CardBorderBrush}"
+                                  Background="Transparent"
+                                  RowBackground="Transparent"
+                                  BorderThickness="0"
+                                  FontSize="12"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  SelectionMode="Single">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Протокол" Binding="{Binding Protocol}" Width="80"/>
+                                <DataGridTextColumn Header="Локальный адрес и порт" Binding="{Binding LocalAddress}" Width="180"/>
+                                <DataGridTextColumn Header="Удаленный адрес" Binding="{Binding ForeignAddress}" Width="180"/>
+                                <DataGridTextColumn Header="Состояние" Binding="{Binding State}" Width="120"/>
+                                <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="70"/>
+                                <DataGridTextColumn Header="Имя процесса" Binding="{Binding ProcessName}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </StackPanel>
             </Border>
 
             <!-- FAQ Section with Gradient Vector Icons -->

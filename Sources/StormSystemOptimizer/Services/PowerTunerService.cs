@@ -251,5 +251,129 @@ namespace StormSystemOptimizer.Services
                 catch { return false; }
             });
         }
+
+        public async Task<bool> ApplyEnergyPerformancePreferenceEppAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // Energy Performance Preference = 0 (Speed Shift / CPPC 100% responsiveness)
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PERFEPP 0",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setacvalueindex SCHEME_CURRENT SUB_PROCESSOR PERFEPP1 0",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setactive SCHEME_CURRENT",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> ApplyHeteroSchedulingPolicyAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // Heterogeneous thread scheduling: Prefer high performance cores (P-Cores) for game threads
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setacvalueindex SCHEME_CURRENT SUB_PROCESSOR 93b8b6dc-0646-4d39-92a2-076e0f9ac606 0",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setactive SCHEME_CURRENT",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> ApplyPcieAspmDisableAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // PCIe Link State Power Management = Off (0)
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setacvalueindex SCHEME_CURRENT SUB_PCIEXPRESS 0012ee47-9041-4b5d-9b77-535fba8b1442 0",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setactive SCHEME_CURRENT",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> ApplyProcessorBoostModeAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // Processor Performance Boost Mode = 2 (Aggressive)
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setacvalueindex SCHEME_CURRENT SUB_PROCESSOR be337238-0d82-4146-a960-4f3749d470c7 2",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setactive SCHEME_CURRENT",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
     }
 }

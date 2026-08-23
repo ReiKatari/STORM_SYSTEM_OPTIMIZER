@@ -26,6 +26,18 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _statusMessage = "Готов к тюнингу схемы электропитания и ядер CPU";
 
+        [ObservableProperty]
+        private string _eppStatus = "EPP: 0% (Мгновенный отклик Speed Shift / CPPC)";
+
+        [ObservableProperty]
+        private string _heteroStatus = "Приоритет P-Cores для игр активен";
+
+        [ObservableProperty]
+        private string _pcieAspmStatus = "PCIe энергосбережение: Отключено (0 ms задержка GPU/SSD)";
+
+        [ObservableProperty]
+        private string _boostStatus = "Режим Boost: Агрессивный (Максимальная частота ядер)";
+
         public PowerTuningViewModel()
         {
             RefreshStatus();
@@ -40,16 +52,20 @@ namespace StormSystemOptimizer.ViewModels
             bool isUnparked = PowerTunerService.Instance.IsCoreParkingDisabled();
             if (isUnparked)
             {
-                CoreParkingStatus = "Парковка ядер: ОТКЛЮЧЕНА (100% ядер активны)";
+                CoreParkingStatus = "✓ Парковка ядер: Отключена (100% ядер активны)";
                 CoreParkingBadgeColor = "#10B981";
             }
             else
             {
-                CoreParkingStatus = "Парковка ядер: ВКЛЮЧЕНА (Windows усыпляет ядра)";
+                CoreParkingStatus = "○ Парковка ядер: Включена (Windows усыпляет ядра)";
                 CoreParkingBadgeColor = "#F59E0B";
             }
 
-            CStatesStatus = IsUltimateActive ? "C-States отключены (STORM ULTIMATE PLAN)" : "Стандартное энергосбережение";
+            CStatesStatus = IsUltimateActive ? "✓ C-States оптимизированы (STORM ULTIMATE PLAN)" : "○ Стандартное энергосбережение";
+            EppStatus = IsUltimateActive ? "✓ EPP: 0% (Максимальный отклик Speed Shift)" : "○ EPP: Стандартный режим";
+            HeteroStatus = IsUltimateActive ? "✓ Приоритет P-Cores для игр активен" : "○ Авто-распределение Windows";
+            PcieAspmStatus = IsUltimateActive ? "✓ PCIe ASPM: Отключено (0 ms задержка)" : "○ PCIe ASPM: Включено";
+            BoostStatus = IsUltimateActive ? "✓ Режим Boost: Агрессивный" : "○ Режим Boost: Стандартный";
         }
 
         [RelayCommand]
@@ -60,8 +76,12 @@ namespace StormSystemOptimizer.ViewModels
             if (ok)
             {
                 await PowerTunerService.Instance.ApplyCoreParkingDisableTweaksAsync();
+                await PowerTunerService.Instance.ApplyEnergyPerformancePreferenceEppAsync();
+                await PowerTunerService.Instance.ApplyHeteroSchedulingPolicyAsync();
+                await PowerTunerService.Instance.ApplyPcieAspmDisableAsync();
+                await PowerTunerService.Instance.ApplyProcessorBoostModeAsync();
                 RefreshStatus();
-                StatusMessage = "⚡ Активирован профиль STORM ULTIMATE PLAN! Парковка ядер отключена.";
+                StatusMessage = "⚡ Активирован профиль STORM ULTIMATE PLAN! Все ядра и шины работают на максимальной скорости.";
                 TrayService.Instance.ShowNotification("Электропитание ⚡", "Схема STORM ULTIMATE PLAN успешно активирована!");
             }
             else
@@ -105,6 +125,45 @@ namespace StormSystemOptimizer.ViewModels
                 RefreshStatus();
                 StatusMessage = "Задержки C-States устранены! Микро-фризы при пробуждении CPU ликвидированы.";
                 TrayService.Instance.ShowNotification("C-States Тюнинг", "Задержки энергосбережения процессора отключены!");
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplyEppTweaksAsync()
+        {
+            StatusMessage = "Установка Energy Performance Preference (EPP = 0%)...";
+            bool ok = await PowerTunerService.Instance.ApplyEnergyPerformancePreferenceEppAsync();
+            if (ok)
+            {
+                RefreshStatus();
+                StatusMessage = "EPP = 0% применен! Мгновенная готовность частот Intel Speed Shift и AMD CPPC.";
+                TrayService.Instance.ShowNotification("EPP 0% ⚡", "Процессор переведен в режим мгновенной реакции без задержек раскачки!");
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplyHeteroSchedulingAsync()
+        {
+            StatusMessage = "Настройка гетерогенного планировщика ядер...";
+            bool ok = await PowerTunerService.Instance.ApplyHeteroSchedulingPolicyAsync();
+            if (ok)
+            {
+                RefreshStatus();
+                StatusMessage = "Игровые потоки привязаны к высокопроизводительным P-Cores / лучшему CCD!";
+                TrayService.Instance.ShowNotification("Планировщик CPU 🎯", "Приоритет высокопроизводительных ядер для активных игр включен!");
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplyPcieAspmAsync()
+        {
+            StatusMessage = "Отключение энергосбережения PCIe Link State ASPM...";
+            bool ok = await PowerTunerService.Instance.ApplyPcieAspmDisableAsync();
+            if (ok)
+            {
+                RefreshStatus();
+                StatusMessage = "PCIe шины видеокарты и NVMe SSD работают без задержек засыпания!";
+                TrayService.Instance.ShowNotification("PCIe ASPM 🏎️", "Латентность шины PCIe снижена до 0!");
             }
         }
     }

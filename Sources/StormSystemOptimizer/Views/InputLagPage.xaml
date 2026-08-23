@@ -36,38 +36,59 @@
             </Border>
 
             <!-- Tweak Grid -->
-            <UniformGrid Columns="3" Margin="0,0,0,16">
+            <UniformGrid Columns="2" Margin="0,0,0,16">
                 <!-- 1. Raw Mouse Input -->
-                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,8,0">
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,8,12">
                     <StackPanel>
-                        <TextBlock Text="🖱️ Прямой ввод 1:1 (Без акселерации)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="Отключает кривые сглаживания и повышенную точность указателя (Enhanced Pointer Precision), давая пиксельную точность аима в шутерах."
-                                   FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                        <TextBlock Text="🖱️ Прямой ввод 1:1 (Без акселерации)" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Отключает кривые сглаживания и повышенную точность указателя (Enhanced Pointer Precision), обеспечивая 100% пиксельную точность аима в шутерах."
+                                   FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <Border Background="#1A10B981" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding MouseStatus}" FontSize="11.5" FontWeight="Bold" Foreground="{Binding MouseBadgeColor}"/>
+                        </Border>
                     </StackPanel>
                 </Border>
 
                 <!-- 2. Keyboard Repeat Delay -->
-                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="4,0,4,0">
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="8,0,0,12">
                     <StackPanel>
-                        <TextBlock Text="⌨️ Ускорение отклика клавиатуры" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="Устанавливает максимальную скорость повтора клавиш (скорость 31, задержка 0) для мгновенных стрейфов."
-                                   FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                        <TextBlock Text="⌨️ Ускорение отклика клавиатуры" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Устанавливает максимальную скорость повтора клавиш (скорость 31, задержка 0) для мгновенных микро-стрейфов и смены позиций."
+                                   FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <Border Background="#1A10B981" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding KeyboardStatus}" FontSize="11.5" FontWeight="Bold" Foreground="{Binding KeyboardBadgeColor}"/>
+                        </Border>
                     </StackPanel>
                 </Border>
 
                 <!-- 3. System Responsiveness -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="🎮 Приоритет игрового ввода и MMCSS" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Резервирует 100% времени планировщика Windows для игр и системного ввода, отключая фоновое троттлинг-дросселирование сети."
+                                   FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <Border Background="#1A10B981" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding SystemResponsivenessStatus}" FontSize="11.5" FontWeight="Bold" Foreground="{Binding ResponsivenessBadgeColor}"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- 4. USB Low Latency -->
                 <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="8,0,0,0">
                     <StackPanel>
-                        <TextBlock Text="🎮 Приоритет игрового ввода" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
-                        <TextBlock Text="Резервирует 100% времени планировщика Windows для игр и системного ввода, отключая фоновое троттлинг-дросселирование сети."
-                                   FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                        <TextBlock Text="⚡ USB Low Latency и опрос портов" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <TextBlock Text="Запрещает контроллерам USB переходить в режим энергосбережения Selective Suspend, обеспечивая стабильную частоту опроса 1000–8000 Гц."
+                                   FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <Border Background="#1A10B981" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,5" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding UsbStatus}" FontSize="11.5" FontWeight="Bold" Foreground="{Binding UsbBadgeColor}"/>
+                        </Border>
                     </StackPanel>
                 </Border>
             </UniformGrid>
 
             <!-- Status Banner -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10">
-                <TextBlock Text="{Binding StatusMessage, StringFormat='💡 Статус: {0}'}" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
             </Border>
         </StackPanel>
     </ScrollViewer>

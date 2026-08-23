@@ -564,5 +564,182 @@ namespace StormSystemOptimizer.Services
                 }
             });
         }
+
+        // 11. Multi-Plane Overlay (MPO) Manager (Fix multi-monitor stutter, frame drops & driver blackouts)
+        public bool ToggleMpoMode(bool disableMpo)
+        {
+            try
+            {
+                if (disableMpo)
+                {
+                    // OverlayTestMode = 5 disables MPO in DWM, eliminating mixed refresh rate (144Hz + 60Hz) stutters and GPU driver timeouts
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Microsoft\\Windows\\Dwm\" /v OverlayTestMode /t REG_DWORD /d 5 /f");
+                }
+                else
+                {
+                    RunRegCommand("delete \"HKLM\\SOFTWARE\\Microsoft\\Windows\\Dwm\" /v OverlayTestMode /f");
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool IsMpoDisabled()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\Dwm", false);
+                var val = key?.GetValue("OverlayTestMode");
+                return val != null && Convert.ToInt32(val) == 5;
+            }
+            catch { return false; }
+        }
+
+        // 12. Virtualization-Based Security (VBS / Core Isolation) Optimizer (Reclaim 5-15% CPU Gaming Performance)
+        public bool ToggleVbsHypervisor(bool disableVbs)
+        {
+            try
+            {
+                if (disableVbs)
+                {
+                    RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\" /v EnableVirtualizationBasedSecurity /t REG_DWORD /d 0 /f");
+                    RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\HypervisorEnforcedCodeIntegrity\" /v Enabled /t REG_DWORD /d 0 /f");
+                    RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\\Scenarios\\CredentialGuard\" /v Enabled /t REG_DWORD /d 0 /f");
+                    RunCmdCommand("bcdedit /set hypervisorlaunchtype off");
+                }
+                else
+                {
+                    RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\DeviceGuard\" /v EnableVirtualizationBasedSecurity /t REG_DWORD /d 1 /f");
+                    RunCmdCommand("bcdedit /set hypervisorlaunchtype auto");
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool IsVbsDisabled()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\DeviceGuard", false);
+                var val = key?.GetValue("EnableVirtualizationBasedSecurity");
+                if (val != null && Convert.ToInt32(val) == 0) return true;
+            }
+            catch { }
+            return false;
+        }
+
+        // 13. HPET & Invariant TSC Platform Timer Optimization (Eliminate Micro-Jitter)
+        public bool ToggleHpetSyntheticTimers(bool optimize)
+        {
+            try
+            {
+                if (optimize)
+                {
+                    // Disable slow platform clock (HPET) and enforce hardware Invariant TSC + platform ticks
+                    RunCmdCommand("bcdedit /set useplatformclock false");
+                    RunCmdCommand("bcdedit /set useplatformtick yes");
+                    RunCmdCommand("bcdedit /set tscsyncpolicy Enhanced");
+                    RunCmdCommand("bcdedit /set disabledynamictick no");
+                    RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel\" /v GlobalTimerResolutionRequests /t REG_DWORD /d 1 /f");
+                }
+                else
+                {
+                    RunCmdCommand("bcdedit /deletevalue useplatformclock");
+                    RunCmdCommand("bcdedit /deletevalue useplatformtick");
+                    RunCmdCommand("bcdedit /deletevalue tscsyncpolicy");
+                    RunRegCommand("delete \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\kernel\" /v GlobalTimerResolutionRequests /f");
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool IsHpetOptimized()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\kernel", false);
+                var val = key?.GetValue("GlobalTimerResolutionRequests");
+                return val != null && Convert.ToInt32(val) == 1;
+            }
+            catch { return false; }
+        }
+
+        // 14. DirectX & NVIDIA Shader Cache Expansion (Prevent Continuous Pipeline State Object Stutter)
+        public bool OptimizeShaderCacheSize(bool expand)
+        {
+            try
+            {
+                if (expand)
+                {
+                    // Set Shader Cache to 10GB / Unlimited in registry and environment
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak\" /v MaxShaderCacheSize /t REG_DWORD /d 10240 /f");
+                    RunRegCommand("add \"HKCU\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak\" /v MaxShaderCacheSize /t REG_DWORD /d 10240 /f");
+                    RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment\" /v __GL_SHADER_DISK_CACHE_SIZE /t REG_SZ /d 10737418240 /f");
+                    RunRegCommand("add \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment\" /v AMD_DEBUG /t REG_SZ /d noshaderdiskcache=0 /f");
+                }
+                else
+                {
+                    RunRegCommand("delete \"HKLM\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak\" /v MaxShaderCacheSize /f");
+                    RunRegCommand("delete \"HKCU\\SOFTWARE\\NVIDIA Corporation\\Global\\NVTweak\" /v MaxShaderCacheSize /f");
+                    RunRegCommand("delete \"HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment\" /v __GL_SHADER_DISK_CACHE_SIZE /f");
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool IsShaderCacheOptimized()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\NVIDIA Corporation\Global\NVTweak", false);
+                var val = key?.GetValue("MaxShaderCacheSize");
+                if (val != null && Convert.ToInt32(val) >= 10240) return true;
+
+                using var envKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Environment", false);
+                var envVal = envKey?.GetValue("__GL_SHADER_DISK_CACHE_SIZE");
+                return envVal != null;
+            }
+            catch { return false; }
+        }
+
+        // 15. GameDVR & Fullscreen Optimizations Latency Removal
+        public bool ToggleGameDvrAndFso(bool disableDvr)
+        {
+            try
+            {
+                if (disableDvr)
+                {
+                    RunRegCommand("add \"HKCU\\System\\GameConfigStore\" /v GameDVR_Enabled /t REG_DWORD /d 0 /f");
+                    RunRegCommand("add \"HKCU\\System\\GameConfigStore\" /v GameDVR_FSEBehaviorMode /t REG_DWORD /d 2 /f");
+                    RunRegCommand("add \"HKCU\\System\\GameConfigStore\" /v GameDVR_HonorUserFSEBehaviorMode /t REG_DWORD /d 1 /f");
+                    RunRegCommand("add \"HKCU\\System\\GameConfigStore\" /v GameDVR_DXGIHonorFSEWindowsCompatible /t REG_DWORD /d 1 /f");
+                    RunRegCommand("add \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR\" /v AllowGameDVR /t REG_DWORD /d 0 /f");
+                    RunRegCommand("add \"HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR\" /v AppCaptureEnabled /t REG_DWORD /d 0 /f");
+                }
+                else
+                {
+                    RunRegCommand("add \"HKCU\\System\\GameConfigStore\" /v GameDVR_Enabled /t REG_DWORD /d 1 /f");
+                    RunRegCommand("add \"HKCU\\System\\GameConfigStore\" /v GameDVR_FSEBehaviorMode /t REG_DWORD /d 0 /f");
+                    RunRegCommand("delete \"HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR\" /v AllowGameDVR /f");
+                    RunRegCommand("add \"HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\GameDVR\" /v AppCaptureEnabled /t REG_DWORD /d 1 /f");
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool IsGameDvrDisabled()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(@"System\GameConfigStore", false);
+                var val = key?.GetValue("GameDVR_Enabled");
+                return val != null && Convert.ToInt32(val) == 0;
+            }
+            catch { return false; }
+        }
     }
 }

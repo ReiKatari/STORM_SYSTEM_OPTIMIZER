@@ -47,10 +47,10 @@
                 </Grid>
             </Border>
 
-            <!-- Tweak Cards -->
+            <!-- Tweak Cards Grid -->
             <UniformGrid Columns="2" Margin="0,0,0,16">
                 <!-- Card 1: Core Parking -->
-                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,8,0">
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,8,12">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
@@ -61,7 +61,6 @@
                         <TextBlock Text="Запрещает Windows усыплять ядра процессора в микро-паузах, что гарантирует 100% готовность всех потоков и устраняет фризы 1% и 0.1% Low FPS."
                                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
                         
-                        <!-- Core Parking Status Badge -->
                         <Border Background="#1A00D2FF" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
                             <TextBlock Text="{Binding CoreParkingStatus}" FontSize="11.5" FontWeight="Bold" Foreground="{Binding CoreParkingBadgeColor}"/>
                         </Border>
@@ -73,7 +72,7 @@
                 </Border>
 
                 <!-- Card 2: C-States & Throttle -->
-                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="8,0,0,0">
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="8,0,0,12">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
@@ -84,14 +83,62 @@
                         <TextBlock Text="Переводит процессор в режим постоянной базовой и буст-частоты, исключая время на пробуждение транзисторов из глубокого энергосбережения."
                                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
                         
-                        <!-- C-States Status Badge -->
-                        <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
+                        <Border Background="#1A10B981" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
                             <TextBlock Text="{Binding CStatesStatus}" FontSize="11.5" FontWeight="Bold" Foreground="#10B981"/>
                         </Border>
 
                         <Button Command="{Binding ApplyCStatesTweaksCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
                             <TextBlock Text="⚡ Оптимизировать задержки C-States" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 3: Energy Performance Preference (EPP 0%) -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,8,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoPower}" Fill="{StaticResource IconGradAmber}" Width="12" Height="12" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="Energy Performance Preference (EPP = 0%)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Задает приоритет максимальной производительности для Intel Speed Shift и AMD CPPC2, ликвидируя время на раскачку частоты ядер под нагрузкой."
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        
+                        <Border Background="#1AFBBF24" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding EppStatus}" FontSize="11.5" FontWeight="Bold" Foreground="#F59E0B"/>
+                        </Border>
+
+                        <Button Command="{Binding ApplyEppTweaksCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
+                            <TextBlock Text="⚡ Задать EPP = 0% (Speed Shift)" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 4: Heterogeneous P-Core & PCIe ASPM -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="8,0,0,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoCpu}" Fill="{StaticResource IconGradPurple}" Width="12" Height="12" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="Приоритет P-Cores и отключение PCIe ASPM" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Принудительно направляет потоки активных 3D-игр на производительные P-ядра / лучший CCD и запрещает шине PCIe переходить в экономичный сон."
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        
+                        <Border Background="#1AC084FC" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding HeteroStatus}" FontSize="11.5" FontWeight="Bold" Foreground="#C084FC"/>
+                        </Border>
+
+                        <StackPanel Orientation="Horizontal">
+                            <Button Command="{Binding ApplyHeteroSchedulingCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
+                                <TextBlock Text="🎯 Приоритет P-Cores" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                            <Button Command="{Binding ApplyPcieAspmCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8">
+                                <TextBlock Text="🏎️ Отключить PCIe ASPM" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </UniformGrid>

