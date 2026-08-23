@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 title STORM SYSTEM OPTIMIZER - Быстрый запуск
 
@@ -16,8 +16,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path 
 :: Запуск установленной программы, установщика или портативной версии
 if exist "C:\Program Files\StormSystemOptimizer\StormSystemOptimizer.exe" (
     start "" "C:\Program Files\StormSystemOptimizer\StormSystemOptimizer.exe"
-) else if exist "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.4_Setup.exe" (
-    start "" "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.4_Setup.exe"
+) else if exist "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.5_Setup.exe" (
+    start "" "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.5_Setup.exe"
 ) else if exist "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe" (
     start "" "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe"
 ) else (
