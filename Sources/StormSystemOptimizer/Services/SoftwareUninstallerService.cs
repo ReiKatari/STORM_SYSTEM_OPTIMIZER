@@ -413,14 +413,20 @@ namespace StormSystemOptimizer.Services
                 string safeName = CleanForSearch(app.DisplayName);
                 string safePub = CleanForSearch(app.Publisher);
 
-                if (string.IsNullOrWhiteSpace(safeName) || safeName.Length < 3) return;
+                if (string.IsNullOrWhiteSpace(safeName) || safeName.Length < 2) return;
 
+                // 1. Scan filesystem folders
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string docsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                string savedGames = Path.Combine(userProfile, "Saved Games");
                 string tempDir = Path.GetTempPath();
 
-                foreach (var baseDir in new[] { appData, localAppData, programData, tempDir })
+                var baseDirs = new[] { appData, localAppData, programData, docsDir, savedGames, tempDir };
+
+                foreach (var baseDir in baseDirs)
                 {
                     if (!Directory.Exists(baseDir)) continue;
                     try
@@ -429,26 +435,38 @@ namespace StormSystemOptimizer.Services
                         {
                             string dirName = Path.GetFileName(dir);
                             if (dirName.Contains(safeName, StringComparison.OrdinalIgnoreCase) ||
-                                (!string.IsNullOrEmpty(safePub) && safePub.Length > 3 && dirName.Contains(safePub, StringComparison.OrdinalIgnoreCase)))
+                                (!string.IsNullOrEmpty(safePub) && safePub.Length > 3 && !safePub.Equals("Microsoft Corporation", StringComparison.OrdinalIgnoreCase) && dirName.Contains(safePub, StringComparison.OrdinalIgnoreCase)))
                             {
-                                foundDirs.Add(dir);
-                                try
+                                if (!foundDirs.Contains(dir, StringComparer.OrdinalIgnoreCase))
                                 {
-                                    var di = new DirectoryInfo(dir);
-                                    long bytes = di.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 2, IgnoreInaccessible = true }).Sum(f => f.Length);
-                                    sizeMb += bytes / (1024.0 * 1024.0);
+                                    foundDirs.Add(dir);
+                                    try
+                                    {
+                                        var di = new DirectoryInfo(dir);
+                                        long bytes = di.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 3, IgnoreInaccessible = true }).Sum(f => f.Length);
+                                        sizeMb += bytes / (1024.0 * 1024.0);
+                                    }
+                                    catch { }
                                 }
-                                catch { }
                             }
                         }
                     }
                     catch { }
                 }
 
-                // Scan Registry Keys
+                // Check install location itself if still present
+                if (!string.IsNullOrEmpty(app.InstallLocation) && Directory.Exists(app.InstallLocation) && !foundDirs.Contains(app.InstallLocation, StringComparer.OrdinalIgnoreCase))
+                {
+                    foundDirs.Add(app.InstallLocation);
+                }
+
+                // 2. Scan Registry Keys
                 ScanRegistryForLeftovers(Registry.CurrentUser, @"Software", safeName, foundRegs);
                 ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE", safeName, foundRegs);
                 ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE\WOW6432Node", safeName, foundRegs);
+
+                // Scan Uninstall hives for leftover uninstallation keys
+                ScanUninstallHivesForLeftovers(safeName, foundRegs);
 
                 app.FoundFolders = foundDirs;
                 app.FoundRegistryKeys = foundRegs;
@@ -467,13 +485,52 @@ namespace StormSystemOptimizer.Services
                 if (key == null) return;
                 foreach (var sub in key.GetSubKeyNames())
                 {
-                    if (sub.Contains(name, StringComparison.OrdinalIgnoreCase))
+                    if (sub.Contains(name, StringComparison.OrdinalIgnoreCase) &&
+                        !sub.Equals("Microsoft", StringComparison.OrdinalIgnoreCase) &&
+                        !sub.Equals("Windows", StringComparison.OrdinalIgnoreCase))
                     {
-                        found.Add($@"{root.Name}\{path}\{sub}");
+                        string fullPath = $@"{root.Name}\{path}\{sub}";
+                        if (!found.Contains(fullPath, StringComparer.OrdinalIgnoreCase))
+                            found.Add(fullPath);
                     }
                 }
             }
             catch { }
+        }
+
+        private void ScanUninstallHivesForLeftovers(string name, List<string> found)
+        {
+            var paths = new[]
+            {
+                (Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Uninstall"),
+                (Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"),
+                (Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall")
+            };
+
+            foreach (var (root, subPath) in paths)
+            {
+                try
+                {
+                    using var key = root.OpenSubKey(subPath);
+                    if (key == null) continue;
+                    foreach (var appSub in key.GetSubKeyNames())
+                    {
+                        try
+                        {
+                            using var appKey = key.OpenSubKey(appSub);
+                            string dn = appKey?.GetValue("DisplayName")?.ToString() ?? "";
+                            if (dn.Contains(name, StringComparison.OrdinalIgnoreCase) || appSub.Contains(name, StringComparison.OrdinalIgnoreCase))
+                            {
+                                string full = $@"{root.Name}\{subPath}\{appSub}";
+                                if (!found.Contains(full, StringComparer.OrdinalIgnoreCase))
+                                    found.Add(full);
+                            }
+                        }
+                        catch { }
+                    }
+                }
+                catch { }
+            }
         }
 
         private string CleanForSearch(string input)
@@ -482,34 +539,19 @@ namespace StormSystemOptimizer.Services
             return input.Replace("(x86)", "").Replace("(64-bit)", "").Replace("(32-bit)", "").Trim();
         }
 
-        public async Task<(bool success, string message)> DeepUninstallAsync(InstalledAppItem app)
+        public async Task<(bool success, string message)> CleanResidualsAsync(InstalledAppItem app)
         {
             return await Task.Run(async () =>
             {
                 try
                 {
-                    // 1. Run Standard Uninstaller
-                    string uninstallCmd = !string.IsNullOrEmpty(app.QuietUninstallString)
-                        ? app.QuietUninstallString
-                        : app.UninstallString;
-
-                    if (!string.IsNullOrEmpty(uninstallCmd))
+                    if (!app.IsScanned)
                     {
-                        if (uninstallCmd.StartsWith("steam://", StringComparison.OrdinalIgnoreCase))
-                        {
-                            Process.Start(new ProcessStartInfo { FileName = uninstallCmd, UseShellExecute = true });
-                        }
-                        else
-                        {
-                            RunUninstallProcess(uninstallCmd);
-                        }
+                        await ScanResidualClutterAsync(app);
                     }
 
-                    // 2. Scan and clean residuals automatically
-                    await ScanResidualClutterAsync(app);
-
                     int deletedDirs = 0;
-                    foreach (var dir in app.FoundFolders)
+                    foreach (var dir in app.FoundFolders.ToList())
                     {
                         try
                         {
@@ -523,7 +565,7 @@ namespace StormSystemOptimizer.Services
                     }
 
                     int deletedRegs = 0;
-                    foreach (var reg in app.FoundRegistryKeys)
+                    foreach (var reg in app.FoundRegistryKeys.ToList())
                     {
                         try
                         {
@@ -533,23 +575,161 @@ namespace StormSystemOptimizer.Services
                         catch { }
                     }
 
-                    return (true, $"Деинсталляция «{app.DisplayName}» завершена! Очищено {deletedDirs} папок и {deletedRegs} ключей реестра.");
+                    CleanShortcuts(app.DisplayName);
+
+                    app.FoundFolders.Clear();
+                    app.FoundRegistryKeys.Clear();
+                    app.ResidualFilesCount = 0;
+                    app.ResidualRegistryCount = 0;
+                    app.ResidualSizeMb = 0;
+                    app.IsScanned = true;
+
+                    return (true, $"Удаление хвостов для «{app.DisplayName}» завершено! Очищено {deletedDirs} папок и {deletedRegs} ключей реестра.");
                 }
                 catch (Exception ex)
                 {
-                    return (false, $"Ошибка деинсталляции: {ex.Message}");
+                    return (false, $"Ошибка очистки остаточных следов: {ex.Message}");
                 }
             });
+        }
+
+        public async Task<(bool success, string message)> DeepUninstallAsync(InstalledAppItem app)
+        {
+            return await Task.Run(async () =>
+            {
+                try
+                {
+                    // 1. Terminate running processes belonging to target app
+                    KillAppProcesses(app);
+
+                    // 2. Run Standard Uninstaller or Appx removal
+                    if (app.AppType == "Windows Store" || (app.UninstallString.Contains("ms-resource:", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        await RemoveBloatwareAppAsync(CleanForSearch(app.DisplayName));
+                    }
+                    else
+                    {
+                        string uninstallCmd = !string.IsNullOrEmpty(app.QuietUninstallString)
+                            ? app.QuietUninstallString
+                            : app.UninstallString;
+
+                        if (!string.IsNullOrEmpty(uninstallCmd))
+                        {
+                            if (uninstallCmd.StartsWith("steam://", StringComparison.OrdinalIgnoreCase))
+                            {
+                                try
+                                {
+                                    Process.Start(new ProcessStartInfo { FileName = uninstallCmd, UseShellExecute = true });
+                                }
+                                catch { }
+                            }
+                            else
+                            {
+                                RunUninstallProcess(uninstallCmd);
+                            }
+                        }
+                    }
+
+                    // 3. Force clean target directory if still exists
+                    if (!string.IsNullOrEmpty(app.InstallLocation) && Directory.Exists(app.InstallLocation))
+                    {
+                        try
+                        {
+                            Directory.Delete(app.InstallLocation, true);
+                        }
+                        catch { }
+                    }
+
+                    // 4. Scan and delete all residuals
+                    await ScanResidualClutterAsync(app);
+
+                    int deletedDirs = 0;
+                    foreach (var dir in app.FoundFolders.ToList())
+                    {
+                        try
+                        {
+                            if (Directory.Exists(dir))
+                            {
+                                Directory.Delete(dir, true);
+                                deletedDirs++;
+                            }
+                        }
+                        catch { }
+                    }
+
+                    int deletedRegs = 0;
+                    foreach (var reg in app.FoundRegistryKeys.ToList())
+                    {
+                        try
+                        {
+                            DeleteRegistryKey(reg);
+                            deletedRegs++;
+                        }
+                        catch { }
+                    }
+
+                    CleanShortcuts(app.DisplayName);
+
+                    app.FoundFolders.Clear();
+                    app.FoundRegistryKeys.Clear();
+                    app.ResidualFilesCount = 0;
+                    app.ResidualRegistryCount = 0;
+                    app.ResidualSizeMb = 0;
+                    app.IsScanned = true;
+
+                    return (true, $"Программа «{app.DisplayName}» успешно удалена! Очищено {deletedDirs} папок и {deletedRegs} ключей реестра.");
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"Ошибка при удалении «{app.DisplayName}»: {ex.Message}");
+                }
+            });
+        }
+
+        private void KillAppProcesses(InstalledAppItem app)
+        {
+            try
+            {
+                string search = CleanForSearch(app.DisplayName);
+                foreach (var proc in Process.GetProcesses())
+                {
+                    try
+                    {
+                        if (proc.ProcessName.Contains(search, StringComparison.OrdinalIgnoreCase))
+                        {
+                            proc.Kill(entireProcessTree: true);
+                            continue;
+                        }
+
+                        if (!string.IsNullOrEmpty(app.InstallLocation))
+                        {
+                            string? fn = proc.MainModule?.FileName;
+                            if (!string.IsNullOrEmpty(fn) && fn.StartsWith(app.InstallLocation, StringComparison.OrdinalIgnoreCase))
+                            {
+                                proc.Kill(entireProcessTree: true);
+                            }
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
         }
 
         private void RunUninstallProcess(string command)
         {
             try
             {
-                string file = command;
+                string file = command.Trim();
                 string args = string.Empty;
 
-                if (command.StartsWith("\""))
+                if (file.StartsWith("MsiExec.exe", StringComparison.OrdinalIgnoreCase) || file.StartsWith("msiexec", StringComparison.OrdinalIgnoreCase))
+                {
+                    file = "msiexec.exe";
+                    int idx = command.IndexOf(' ');
+                    args = idx > 0 ? command.Substring(idx + 1).Trim() : "/X";
+                }
+                else if (command.StartsWith("\""))
                 {
                     int quoteEnd = command.IndexOf('\"', 1);
                     if (quoteEnd > 0)
@@ -561,10 +741,14 @@ namespace StormSystemOptimizer.Services
                 else
                 {
                     int spaceIdx = command.IndexOf(' ');
-                    if (spaceIdx > 0 && File.Exists(command.Substring(0, spaceIdx)))
+                    if (spaceIdx > 0)
                     {
-                        file = command.Substring(0, spaceIdx);
-                        args = command.Substring(spaceIdx + 1).Trim();
+                        string possibleFile = command.Substring(0, spaceIdx);
+                        if (File.Exists(possibleFile) || !possibleFile.Contains("\\"))
+                        {
+                            file = possibleFile;
+                            args = command.Substring(spaceIdx + 1).Trim();
+                        }
                     }
                 }
 
@@ -572,10 +756,56 @@ namespace StormSystemOptimizer.Services
                 {
                     FileName = file,
                     Arguments = args,
-                    UseShellExecute = true
+                    UseShellExecute = true,
+                    Verb = "runas"
                 };
                 using var proc = Process.Start(psi);
-                proc?.WaitForExit(30000);
+                proc?.WaitForExit(60000);
+            }
+            catch
+            {
+                // Fallback to cmd execution
+                try
+                {
+                    var psiCmd = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/c {command}",
+                        UseShellExecute = true,
+                        Verb = "runas"
+                    };
+                    using var procCmd = Process.Start(psiCmd);
+                    procCmd?.WaitForExit(60000);
+                }
+                catch { }
+            }
+        }
+
+        private void CleanShortcuts(string appName)
+        {
+            try
+            {
+                string safeName = CleanForSearch(appName);
+                string desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                string commonDesktop = Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory);
+                string startMenu = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+                string commonStartMenu = Environment.GetFolderPath(Environment.SpecialFolder.CommonPrograms);
+
+                foreach (var loc in new[] { desktop, commonDesktop, startMenu, commonStartMenu })
+                {
+                    if (!Directory.Exists(loc)) continue;
+                    try
+                    {
+                        foreach (var lnk in Directory.GetFiles(loc, "*.lnk", SearchOption.AllDirectories))
+                        {
+                            if (Path.GetFileNameWithoutExtension(lnk).Contains(safeName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                try { File.Delete(lnk); } catch { }
+                            }
+                        }
+                    }
+                    catch { }
+                }
             }
             catch { }
         }
@@ -586,13 +816,13 @@ namespace StormSystemOptimizer.Services
             {
                 try
                 {
-                    var psi = new ProcessStartInfo("powershell.exe", $"-NoProfile -Command \"Get-AppxPackage *{appKeyword}* | Remove-AppxPackage\"")
+                    var psi = new ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"Get-AppxPackage *{appKeyword}* | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue\"")
                     {
                         CreateNoWindow = true,
                         UseShellExecute = false
                     };
                     using var p = Process.Start(psi);
-                    p?.WaitForExit(10000);
+                    p?.WaitForExit(15000);
                     return true;
                 }
                 catch { return false; }

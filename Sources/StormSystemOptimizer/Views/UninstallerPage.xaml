@@ -140,7 +140,7 @@
 
                                         <!-- Residual Quick Actions -->
                                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,10,0">
-                                            <Button Command="{Binding DataContext.ScanAppResidualsAsyncCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            <Button Command="{Binding DataContext.ScanAppResidualsCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormSecondaryButton}"
                                                     Padding="8,5"
@@ -148,7 +148,7 @@
                                                 <TextBlock Text="Поиск следов" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </Button>
 
-                                            <Button Command="{Binding DataContext.CleanResidualsOnlyAsyncCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            <Button Command="{Binding DataContext.CleanResidualsOnlyCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormSecondaryButton}"
                                                     Padding="8,4">
@@ -158,7 +158,7 @@
 
                                         <!-- Hero Action: Deep Uninstall -->
                                         <Button Grid.Column="3"
-                                                Command="{Binding DataContext.DeepUninstallAppAsyncCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                Command="{Binding DataContext.DeepUninstallAppCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding}"
                                                 Style="{StaticResource StormDangerButton}"
                                                 Padding="14,8"
