@@ -19,8 +19,8 @@ namespace StormSystemOptimizer.Installer
         private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
-        private const string AppVersion = "1.0.8";
-        private const string DefaultInstallDir = @"C:\Program Files\StormSystemOptimizer";
+        private const string AppVersion = "4.6.9";
+        private const string DefaultInstallDir = @"C:\Program Files\STORM SYSTEM OPTIMIZER";
         private const string ExeName = "StormSystemOptimizer.exe";
         private Button btnBrowse = null!;
 

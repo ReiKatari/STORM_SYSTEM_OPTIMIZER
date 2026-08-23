@@ -44,35 +44,8 @@ if (-not (Test-Path $publishedExe)) {
     throw "Error: Published executable $publishedExe was not created!"
 }
 
-# Step 3: Copy to Assembling & Installer Resources
-Write-Host "[3/6] Copying to Assembling and Installer Resources..." -ForegroundColor Yellow
-if (-not (Test-Path $assemblingDir)) { New-Item -ItemType Directory -Path $assemblingDir | Out-Null }
-try {
-    Copy-Item $publishedExe "$assemblingDir\StormSystemOptimizer.exe" -Force -ErrorAction Stop
-} catch {
-    Write-Host "Note: Assembling\StormSystemOptimizer.exe is currently in use. Fresh publish will be packaged into installer directly." -ForegroundColor DarkGray
-}
-
-$installerResDir = Join-Path $installerProjDir "Resources"
-if (-not (Test-Path $installerResDir)) { New-Item -ItemType Directory -Path $installerResDir | Out-Null }
-try {
-    Copy-Item $publishedExe "$installerResDir\StormSystemOptimizer.exe" -Force -ErrorAction SilentlyContinue
-} catch { }
-
-# Step 4: Publish Installer
-Write-Host "[4/6] Publishing Installer v$appVersion..." -ForegroundColor Yellow
-$installerPublishDir = Join-Path $installerProjDir "bin\Release\net8.0-windows\win-x64\publish"
-dotnet publish "$installerProjDir\StormInstaller.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
-
-$publishedInstaller = Join-Path $installerPublishDir "StormInstaller.exe"
-if (-not (Test-Path $publishedInstaller)) {
-    throw "Error: Published installer $publishedInstaller was not created!"
-}
-
-Copy-Item $publishedInstaller $setupExePath -Force
-
-# Step 5: Digital Signature (Authenticode) & Certificate Trust
-Write-Host "[5/6] Applying digital signature (Authenticode SHA-256) and registering trust..." -ForegroundColor Yellow
+# Step 3: Digital Signature for App Executable & Certificate Trust
+Write-Host "[3/6] Applying digital signature (Authenticode SHA-256) to App..." -ForegroundColor Yellow
 $cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Where-Object { $_.Subject -like "*STORM TEAM*" } | Select-Object -First 1
 if (-not $cert) {
     $cert = Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert | Where-Object { $_.Subject -like "*STORM Software*" -or $_.Subject -like "*STORM*" } | Select-Object -First 1
@@ -86,32 +59,53 @@ if ($cert) {
     Copy-Item $cerPath (Join-Path $baseDir "StormTeamRootCA.cer") -Force -ErrorAction SilentlyContinue
     Copy-Item $cerPath (Join-Path $baseDir "STORM_Certificate.cer") -Force -ErrorAction SilentlyContinue
 
-    # Apply Authenticode Signature
-    if (Test-Path $publishedExe) {
-        Set-AuthenticodeSignature -FilePath $publishedExe -Certificate $cert -HashAlgorithm SHA256 | Out-Null
+    # Sign the App executable FIRST before packaging
+    Set-AuthenticodeSignature -FilePath $publishedExe -Certificate $cert -HashAlgorithm SHA256 | Out-Null
+}
+
+# Step 4: Copy SIGNED App to Assembling & Installer Resources
+Write-Host "[4/6] Packaging SIGNED App into Installer Resources..." -ForegroundColor Yellow
+if (-not (Test-Path $assemblingDir)) { New-Item -ItemType Directory -Path $assemblingDir | Out-Null }
+try {
+    Copy-Item $publishedExe "$assemblingDir\StormSystemOptimizer.exe" -Force -ErrorAction Stop
+} catch {
+    Write-Host "Note: Assembling\StormSystemOptimizer.exe is currently in use." -ForegroundColor DarkGray
+}
+
+$installerResDir = Join-Path $installerProjDir "Resources"
+if (-not (Test-Path $installerResDir)) { New-Item -ItemType Directory -Path $installerResDir | Out-Null }
+try {
+    Copy-Item $publishedExe "$installerResDir\StormSystemOptimizer.exe" -Force -ErrorAction SilentlyContinue
+    if (Test-Path $cerPath) {
+        Copy-Item $cerPath "$installerResDir\STORM_Certificate.cer" -Force -ErrorAction SilentlyContinue
     }
-    try {
-        if (Test-Path "$assemblingDir\StormSystemOptimizer.exe") {
-            Set-AuthenticodeSignature -FilePath "$assemblingDir\StormSystemOptimizer.exe" -Certificate $cert -HashAlgorithm SHA256 -ErrorAction Stop | Out-Null
-        }
-    } catch { }
-    if (Test-Path $setupExePath) {
-        Set-AuthenticodeSignature -FilePath $setupExePath -Certificate $cert -HashAlgorithm SHA256 | Out-Null
+} catch { }
+
+# Step 5: Publish & Sign Installer
+Write-Host "[5/6] Publishing and Signing Installer v$appVersion..." -ForegroundColor Yellow
+$installerPublishDir = Join-Path $installerProjDir "bin\Release\net8.0-windows\win-x64\publish"
+dotnet publish "$installerProjDir\StormInstaller.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+
+$publishedInstaller = Join-Path $installerPublishDir "StormInstaller.exe"
+if (-not (Test-Path $publishedInstaller)) {
+    throw "Error: Published installer $publishedInstaller was not created!"
+}
+
+Copy-Item $publishedInstaller $setupExePath -Force
+
+if ($cert) {
+    Set-AuthenticodeSignature -FilePath $setupExePath -Certificate $cert -HashAlgorithm SHA256 | Out-Null
+    if (Test-Path "$assemblingDir\StormSystemOptimizer.exe") {
+        try { Set-AuthenticodeSignature -FilePath "$assemblingDir\StormSystemOptimizer.exe" -Certificate $cert -HashAlgorithm SHA256 -ErrorAction SilentlyContinue | Out-Null } catch {}
     }
 
-    # Register in User and Machine TrustedPublisher & Root stores silently
+    # Register in User TrustedPublisher & My stores silently without UI prompts
     try {
         $certObj = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($cerPath)
-        foreach ($storeLoc in @([System.Security.Cryptography.X509Certificates.StoreLocation]::CurrentUser, [System.Security.Cryptography.X509Certificates.StoreLocation]::LocalMachine)) {
-            foreach ($storeNm in @([System.Security.Cryptography.X509Certificates.StoreName]::TrustedPublisher, [System.Security.Cryptography.X509Certificates.StoreName]::Root)) {
-                try {
-                    $st = New-Object System.Security.Cryptography.X509Certificates.X509Store($storeNm, $storeLoc)
-                    $st.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-                    $st.Add($certObj)
-                    $st.Close()
-                } catch { }
-            }
-        }
+        $userPub = New-Object System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreName]::TrustedPublisher, [System.Security.Cryptography.X509Certificates.StoreLocation]::CurrentUser)
+        $userPub.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+        $userPub.Add($certObj)
+        $userPub.Close()
     } catch { }
 
     Write-Host "Authenticode signatures (STORM TEAM) and trust stores successfully updated!" -ForegroundColor Green
@@ -119,9 +113,21 @@ if ($cert) {
     Write-Host "Code signing certificate not found in CurrentUser\My." -ForegroundColor DarkYellow
 }
 
-# Step 6: Unblock Files
-Write-Host "[6/6] Unblocking all output and project files..." -ForegroundColor Yellow
-Get-ChildItem -Path $baseDir -Recurse -Include *.exe, *.dll, *.bat, *.ps1 -ErrorAction SilentlyContinue | Unblock-File -ErrorAction SilentlyContinue
+# Step 6: Unblock Files and apply Smart App Control / Defender exclusions
+Write-Host "[6/6] Unblocking all output and project files and configuring trust..." -ForegroundColor Yellow
+Get-ChildItem -Path $baseDir -Recurse -Include *.exe, *.dll, *.bat, *.ps1, *.cer -ErrorAction SilentlyContinue | ForEach-Object {
+    Unblock-File -Path $_.FullName -ErrorAction SilentlyContinue
+}
+
+try {
+    # Defender exclusions for project and output binaries
+    Add-MpPreference -ExclusionPath $baseDir -ErrorAction SilentlyContinue
+    Add-MpPreference -ExclusionPath $filesDir -ErrorAction SilentlyContinue
+    Add-MpPreference -ExclusionPath $assemblingDir -ErrorAction SilentlyContinue
+    Add-MpPreference -ExclusionPath "C:\Program Files\StormSystemOptimizer" -ErrorAction SilentlyContinue
+    Add-MpPreference -ExclusionProcess "StormSystemOptimizer.exe" -ErrorAction SilentlyContinue
+    Add-MpPreference -ExclusionProcess "STORM_SYSTEM_OPTIMIZER_${appVersion}_Setup.exe" -ErrorAction SilentlyContinue
+} catch { }
 
 Write-Host "============================================================" -ForegroundColor Green
 Write-Host " RELEASE v$appVersion SUCCESSFULLY BUILT AND PACKAGED! " -ForegroundColor Green
