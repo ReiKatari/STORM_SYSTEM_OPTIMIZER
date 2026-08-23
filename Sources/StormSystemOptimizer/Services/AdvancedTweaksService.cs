@@ -741,5 +741,103 @@ namespace StormSystemOptimizer.Services
             }
             catch { return false; }
         }
+
+        // 16. File Shredder (DoD 5220.22-M & Gutmann style permanent wipe)
+        public async Task<bool> ShredFileAsync(string filePath, int passes = 3)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    if (!File.Exists(filePath)) return false;
+
+                    // Remove ReadOnly attributes
+                    File.SetAttributes(filePath, FileAttributes.Normal);
+                    var fileInfo = new FileInfo(filePath);
+                    long length = fileInfo.Length;
+
+                    var rng = new Random();
+                    byte[] buffer = new byte[Math.Min(length > 0 ? length : 4096, 65536)];
+
+                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Write, FileShare.None))
+                    {
+                        for (int pass = 0; pass < passes; pass++)
+                        {
+                            stream.Position = 0;
+                            long written = 0;
+                            while (written < length)
+                            {
+                                int toWrite = (int)Math.Min(buffer.Length, length - written);
+                                if (pass % 2 == 0)
+                                    rng.NextBytes(buffer);
+                                else
+                                    Array.Clear(buffer, 0, buffer.Length);
+
+                                stream.Write(buffer, 0, toWrite);
+                                written += toWrite;
+                            }
+                            stream.Flush();
+                        }
+                        stream.SetLength(0);
+                    }
+
+                    File.Delete(filePath);
+                    return !File.Exists(filePath);
+                }
+                catch { return false; }
+            });
+        }
+
+        // 17. Empty Folders Recursive Cleaner
+        public int CleanEmptyFolders(string rootDir)
+        {
+            int deleted = 0;
+            try
+            {
+                if (!Directory.Exists(rootDir)) return 0;
+                foreach (var dir in Directory.GetDirectories(rootDir))
+                {
+                    deleted += CleanEmptyFolders(dir);
+                }
+
+                if (Directory.GetFileSystemEntries(rootDir).Length == 0)
+                {
+                    try
+                    {
+                        Directory.Delete(rootDir, false);
+                        deleted++;
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+            return deleted;
+        }
+
+        // 18. Internet & MTU Optimizer (Ashampoo / IObit style)
+        public bool OptimizeMtuAndTcpWindow(bool optimize)
+        {
+            try
+            {
+                if (optimize)
+                {
+                    RunCmdCommand("netsh int tcp set global autotuninglevel=normal");
+                    RunCmdCommand("netsh int tcp set global rss=enabled");
+                    RunCmdCommand("netsh int tcp set global rsc=enabled");
+                    RunCmdCommand("netsh int tcp set global directcacheaccess=enabled");
+                    RunCmdCommand("netsh int tcp set global netdma=enabled");
+                    RunCmdCommand("netsh int tcp set global ecncapability=disabled");
+                    RunCmdCommand("netsh int tcp set global timestamps=disabled");
+                    RunCmdCommand("netsh int tcp set heuristics disabled");
+                }
+                else
+                {
+                    RunCmdCommand("netsh int tcp set global autotuninglevel=normal");
+                    RunCmdCommand("netsh int tcp set heuristics enabled");
+                }
+                return true;
+            }
+            catch { return false; }
+        }
     }
 }

@@ -81,9 +81,22 @@ namespace StormSystemOptimizer.Services
 
             try
             {
-                // Method 1: System.Drawing.Icon.ExtractAssociatedIcon
-                if (File.Exists(filePath))
+                if (filePath.EndsWith(".ico", StringComparison.OrdinalIgnoreCase) || filePath.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
                 {
+                    if (File.Exists(filePath))
+                    {
+                        var bi = new BitmapImage();
+                        bi.BeginInit();
+                        bi.UriSource = new Uri(filePath, UriKind.Absolute);
+                        bi.CacheOption = BitmapCacheOption.OnLoad;
+                        bi.EndInit();
+                        bi.Freeze();
+                        source = bi;
+                    }
+                }
+                else if (File.Exists(filePath))
+                {
+                    // Method 1: System.Drawing.Icon.ExtractAssociatedIcon
                     using var icon = Icon.ExtractAssociatedIcon(filePath);
                     if (icon != null)
                     {
@@ -99,11 +112,11 @@ namespace StormSystemOptimizer.Services
 
             if (source == null)
             {
-                // Method 2: Win32 SHGetFileInfo
+                // Method 2: Win32 SHGetFileInfo with High-DPI Large Icon
                 try
                 {
                     var shinfo = new SHFILEINFO();
-                    IntPtr hImgSmall = SHGetFileInfo(filePath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), SHGFI_ICON | SHGFI_SMALLICON);
+                    IntPtr hImg = SHGetFileInfo(filePath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), SHGFI_ICON | SHGFI_LARGEICON);
                     if (shinfo.hIcon != IntPtr.Zero)
                     {
                         source = Imaging.CreateBitmapSourceFromHIcon(

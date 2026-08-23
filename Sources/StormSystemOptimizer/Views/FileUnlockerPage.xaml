@@ -1,0 +1,202 @@
+<Page x:Class="StormSystemOptimizer.Views.FileUnlockerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      Title="Разблокировка файлов и папок">
+
+    <Page.DataContext>
+        <vm:FileUnlockerViewModel x:Name="ViewModel"/>
+    </Page.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel>
+            <!-- Header Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoLock}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Разблокировка файлов и папок (STORM Unlocker)" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Снятие блокировок любых файлов и папок, удерживаемых системными процессами Windows, службами или скрытыми дескрипторами. Принудительное удаление, переименование, перемещение и завершение блокирующих задач."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <Button Command="{Binding ToggleContextMenuCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,8">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🖱️ " FontSize="12"/>
+                                <TextBlock Text="{Binding IsContextMenuEnabled, Converter={StaticResource BoolToContextMenuTextConverter}, FallbackValue='Интеграция в контекстное меню'}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Drag & Drop Dropzone and Select Area -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Выбор объекта для анализа и разблокировки" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+
+                    <!-- Drag and Drop Target Area -->
+                    <Border x:Name="DropZone"
+                            AllowDrop="True"
+                            Drop="DropZone_Drop"
+                            DragEnter="DropZone_DragEnter"
+                            DragLeave="DropZone_DragLeave"
+                            Background="{DynamicResource AppBackgroundBrush}"
+                            BorderBrush="{DynamicResource AccentPrimaryBrush}"
+                            BorderThickness="1.5"
+                            CornerRadius="10"
+                            Padding="24,18"
+                            Margin="0,0,0,14"
+                            Cursor="Hand">
+                        <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="20" Width="40" Height="40" HorizontalAlignment="Center" Margin="0,0,0,8">
+                                    <Path Data="{StaticResource GeoLock}" Fill="{StaticResource IconGradCyan}" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Перетащите заблокированный файл или папку сюда (Drag and Drop)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Или укажите путь вручную с помощью кнопок обзора ниже" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Manual Input and Buttons -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10,6" Margin="0,0,10,0">
+                            <TextBox Text="{Binding TargetPath, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <Button Grid.Column="1" Command="{Binding BrowseFileCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,0">
+                            <TextBlock Text="📄 Выбрать файл" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+
+                        <Button Grid.Column="2" Command="{Binding BrowseFolderCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,0">
+                            <TextBlock Text="📁 Выбрать папку" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+
+                        <Button Grid.Column="3" Command="{Binding AnalyzeTargetCommand}" Style="{StaticResource StormHeroButton}" Padding="16,8">
+                            <TextBlock Text="🔍 Анализировать" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- Action Bar -->
+                    <WrapPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <Button Command="{Binding UnlockCommand}" Style="{StaticResource StormHeroButton}" Padding="16,8" Margin="0,0,10,8">
+                            <TextBlock Text="⚡ Разблокировать" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </Button>
+                        <Button Command="{Binding UnlockAndDeleteCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,8" Margin="0,0,10,8">
+                            <TextBlock Text="🗑️ Разблокировать и удалить" FontSize="12" FontWeight="Bold" Foreground="#EF4444"/>
+                        </Button>
+                        <Button Command="{Binding UnlockAndRenameCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,8" Margin="0,0,10,8">
+                            <TextBlock Text="✏️ Разблокировать и переименовать" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                        <Button Command="{Binding UnlockAndMoveCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,8" Margin="0,0,10,8">
+                            <TextBlock Text="📦 Разблокировать и переместить" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Locking Processes Table Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <Grid Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoProcesses}" Fill="{StaticResource IconGradRose}" Width="12" Height="12" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="Процессы и системные дескрипторы, блокирующие доступ" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- DataGrid of Lockers -->
+                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" MaxHeight="280">
+                        <DataGrid ItemsSource="{Binding LockingProcesses}"
+                                  SelectedItem="{Binding SelectedProcess}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="{DynamicResource CardBorderBrush}"
+                                  Background="Transparent"
+                                  RowBackground="Transparent"
+                                  BorderThickness="0"
+                                  FontSize="12"
+                                  Foreground="{DynamicResource TextPrimaryBrush}"
+                                  SelectionMode="Single">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="70"/>
+                                <DataGridTextColumn Header="Имя процесса" Binding="{Binding ProcessName}" Width="180"/>
+                                <DataGridTextColumn Header="Тип блокировки" Binding="{Binding ApplicationType}" Width="180"/>
+                                <DataGridTextColumn Header="Исполняемый файл" Binding="{Binding ExecutablePath}" Width="*"/>
+                                <DataGridTemplateColumn Header="Действие" Width="140">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Command="{Binding DataContext.KillSelectedProcessCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource StormSecondaryButton}"
+                                                    Padding="8,4" Margin="4,2">
+                                                <TextBlock Text="🛑 Завершить" FontSize="11" FontWeight="Bold" Foreground="#EF4444"/>
+                                            </Button>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- FAQ Section -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,10">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoQuestion}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Частые вопросы по Разблокировке файлов (FAQ)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4">
+                        <Expander.Header>
+                            <TextBlock Text="Почему Windows пишет «Файл уже используется другим процессом»?" VerticalAlignment="Center"/>
+                        </Expander.Header>
+                        <TextBlock Text="Когда приложение или фоновая служба Windows открывает файл без флага FileShare.Delete или FileShare.ReadWrite, ядро NT запрещает любые модификации, удаление и перемещение. STORM Unlocker опрашивает системный диспетчер Restart Manager и закрывает блокирующие дескрипторы." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
+                    </Expander>
+
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4">
+                        <Expander.Header>
+                            <TextBlock Text="Безопасно ли принудительное снятие блокировки?" VerticalAlignment="Center"/>
+                        </Expander.Header>
+                        <TextBlock Text="Да. STORM Unlocker сбрасывает атрибуты только для чтения (Read-Only/System) и аккуратно выгружает зависшие дескрипторы. Если файл удерживается системным драйвером ядра, программа автоматически планирует удаление на момент следующей перезагрузки ОС через MoveFileEx." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
+                    </Expander>
+
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold">
+                        <Expander.Header>
+                            <TextBlock Text="Как использовать разблокировку из Проводника Windows?" VerticalAlignment="Center"/>
+                        </Expander.Header>
+                        <TextBlock Text="Нажмите кнопку «Интеграция в контекстное меню». После этого вы сможете нажать правой кнопкой мыши по любому файлу или папке в Проводнике и выбрать «⚡ Разблокировать через STORM Optimizer»." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
+                    </Expander>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

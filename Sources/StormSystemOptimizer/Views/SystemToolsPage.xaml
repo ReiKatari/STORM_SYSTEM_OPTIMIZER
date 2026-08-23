@@ -1,4 +1,4 @@
-<Page x:Class="StormSystemOptimizer.Views.SystemToolsPage"
+﻿<Page x:Class="StormSystemOptimizer.Views.SystemToolsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -59,12 +59,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoGpu}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Режим MSI (Message Signaled Interrupts)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Режим MSI (Message Signaled Interrupts)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Перевод GPU и контроллеров USB в режим прерываний MSI для минимизации Input Lag." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             
                             <!-- Live Status Badge -->
@@ -104,12 +108,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A34D399" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A34D399" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Тюнинг DirectStorage 1.2 и BypassIO" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Тюнинг DirectStorage 1.2 и BypassIO" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Оптимизация очередей Win32 IoRing и разгрузка шины ввода-вывода для игр." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             
                             <!-- Live Status Badge -->
@@ -149,12 +157,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoRam}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Очистка кэша Standby List ОЗУ" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Очистка кэша Standby List ОЗУ" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Мгновенное освобождение кэшированной памяти ожидания через NtSetSystemInformation." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <Border Visibility="{Binding IsStandbyPurged, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,6,0,0" HorizontalAlignment="Left">
                                 <TextBlock Text="✓ Очищено (Память свободна)" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
@@ -172,12 +184,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A38BDF8" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A38BDF8" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradSky}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Снимок параметров (Snapshot и Rollback)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Снимок параметров (Snapshot и Rollback)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Резервный снимок критических параметров реестра перед тюнингом для быстрого отката." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding CreateSnapshotCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Создать снимок" Style="{StaticResource StormSecondaryButton}" Padding="14,6" VerticalAlignment="Center"/>
@@ -212,12 +228,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A38BDF8" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A38BDF8" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradSky}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Отклик Проводника и изоляция процессов" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Отклик Проводника и изоляция процессов" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="MenuShowDelay=0, мгновенный отклик системных окон, защита от зависаний папок и отключение сетевого опроса." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsExplorerOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
@@ -243,12 +263,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Игровой квант ядра (Win32 Priority 0x1A)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Игровой квант ядра (Win32 Priority 0x1A)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Короткие переменные кванты времени планировщика ядра: наивысший приоритет фокуса активной игры." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsWin32PriorityOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
@@ -274,12 +298,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoGamepad}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Планировщик MMCSS и Снятие троттлинга сети" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Планировщик MMCSS и Снятие троттлинга сети" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Выделение 100% CPU/GPU играм (SystemResponsiveness=0), полное отключение сетевого троттлинга Windows." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsMmcssOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
@@ -305,12 +333,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Мгновенный автозапуск (Zero Startup Delay)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Мгновенный автозапуск (Zero Startup Delay)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Устранение 10-секундной искусственной паузы Windows при старте системы для мгновенной готовности рабочего стола." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsZeroStartupDelayActive, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
@@ -336,12 +368,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoDisks}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Сброс и восстановление кэша иконок и эскизов Проводника" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Сброс и восстановление кэша иконок и эскизов Проводника" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Очистка поврежденных IconCache.db и ThumbCache с мягким перезапуском Explorer без перезагрузки компьютера." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding RebuildShellCacheCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить и восстановить" Style="{StaticResource StormSecondaryButton}" Padding="14,6" VerticalAlignment="Center"/>
@@ -376,12 +412,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoGpu}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Отключение MPO (Multi-Plane Overlay)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Отключение MPO (Multi-Plane Overlay)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Устраняет мерцание экрана, микростаттеры и сбои драйверов GPU на системах с мониторами разной частоты (144+ Гц + 60 Гц)." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsMpoDisabled, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
@@ -407,12 +447,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Оптимизация VBS и изоляции ядра (Hyper-V HVCI)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Оптимизация VBS и изоляции ядра (Hyper-V HVCI)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Отключает оверхед гипервизора безопасности (VM-Exit), высвобождая +5–15% чистой процессорной мощи в играх." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsVbsDisabled, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
@@ -438,12 +482,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Синхронизация таймеров Invariant TSC" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Синхронизация таймеров Invariant TSC" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Исключение медленного таймера HPET, активация Invariant TSC и UsePlatformTick для ликвидации микродрожания (Jitter)." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsHpetOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
@@ -469,12 +517,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Расширение кэша шейдеров (10 ГБ)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Расширение кэша шейдеров (10 ГБ)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Увеличивает дисковый кэш шейдеров NVIDIA/DirectX до 10 ГБ, навсегда избавляя от повторных заиканий при входе в локации." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsShaderCacheOptimized, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
@@ -500,12 +552,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A10B981" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A10B981" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoGamepad}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Отключение скрытого GameDVR и оптимизация полноэкранного FSO" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Отключение скрытого GameDVR и оптимизация полноэкранного FSO" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Полная деактивация фонового видеозахвата Windows GameDVR и принудительный аппаратный DirectFlip для минимального Input Lag." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                             <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                 <Border Visibility="{Binding IsGameDvrDisabled, Converter={StaticResource BoolToVisConverter}}" Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="4" Padding="6,2">
@@ -552,12 +608,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Проверка системных файлов (SFC)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Проверка системных файлов (SFC)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Сканирует и восстанавливает поврежденные системные библиотеки Windows." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding RunSfcScanCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Запустить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
@@ -572,12 +632,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoDashboard}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Восстановление образа DISM" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Восстановление образа DISM" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Восстанавливает поврежденные системные компоненты из хранилища обновлений." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding RunDismRestoreCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Запустить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
@@ -592,12 +656,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A34D399" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A34D399" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Очистка хранилища WinSxS" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Очистка хранилища WinSxS" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Удаляет устаревшие резервные копии компонентов Windows после обновлений." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding CleanWinSxSCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
@@ -612,12 +680,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A38BDF8" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A38BDF8" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradSky}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Сброс сетевого каталога Winsock" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Сброс сетевого каталога Winsock" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Сбрасывает конфигурацию каталога Winsock при сетевых сбоях или потере соединения." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding ResetWinsockCommand}" Grid.Column="1" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
@@ -632,12 +704,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoLog}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Очистка журналов событий" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Очистка журналов событий" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Очищает переполненные журналы Windows Event Viewer (Application, System, Security)." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding ClearEventLogsCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
@@ -652,12 +728,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Очистка Temp и Prefetch" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Очистка Temp и Prefetch" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Принудительно удаляет заблокированные временные файлы %TEMP% и Windows\Temp." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding CleanTempFilesCommand}" IsEnabled="{Binding IsNotBusy}" Grid.Column="1" Content="Очистить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
@@ -672,12 +752,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AFBBF24" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradAmber}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Перестроить кэш иконок" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Перестроить кэш иконок" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Исправляет поврежденные или белые иконки ярлыков на Рабочем столе и в папках." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding RebuildIconCacheCommand}" Grid.Column="1" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
@@ -692,12 +776,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,0,6,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0" Background="#1AFB7185" CornerRadius="3" Padding="2" Margin="0,2,6,0" VerticalAlignment="Top">
                                     <Path Data="{StaticResource GeoStartup}" Fill="{StaticResource IconGradRose}" Width="10" Height="10" Stretch="Uniform"/>
                                 </Border>
-                                <TextBlock Text="Сброс кэша Магазина Windows" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
-                            </StackPanel>
+                                <TextBlock Grid.Column="1" Text="Сброс кэша Магазина Windows" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                            </Grid>
                             <TextBlock Text="Очищает кэш Microsoft Store при сбоях загрузки приложений и игр." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,0"/>
                         </StackPanel>
                         <Button Command="{Binding ResetWindowsStoreCommand}" Grid.Column="1" Content="Сбросить" Style="{StaticResource StormSecondaryButton}" Padding="14,6"/>
@@ -895,7 +983,7 @@
                     </Grid>
 
                     <!-- Ports DataGrid -->
-                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" MaxHeight="240">
+                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" MaxHeight="260">
                         <DataGrid ItemsSource="{Binding ActivePorts}"
                                   SelectedItem="{Binding SelectedPort}"
                                   AutoGenerateColumns="False"
@@ -911,12 +999,66 @@
                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                   SelectionMode="Single">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Протокол" Binding="{Binding Protocol}" Width="80"/>
-                                <DataGridTextColumn Header="Локальный адрес и порт" Binding="{Binding LocalAddress}" Width="180"/>
-                                <DataGridTextColumn Header="Удаленный адрес" Binding="{Binding ForeignAddress}" Width="180"/>
-                                <DataGridTextColumn Header="Состояние" Binding="{Binding State}" Width="120"/>
-                                <DataGridTextColumn Header="PID" Binding="{Binding ProcessId}" Width="70"/>
-                                <DataGridTextColumn Header="Имя процесса" Binding="{Binding ProcessName}" Width="*"/>
+                                <!-- Protocol Badge -->
+                                <DataGridTemplateColumn Header="Протокол" Width="90">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Protocol}" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Local Address & Port -->
+                                <DataGridTemplateColumn Header="Локальный адрес и порт" Width="180">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding LocalAddress}" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Foreign Address -->
+                                <DataGridTemplateColumn Header="Удаленный адрес" Width="180">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding ForeignAddress}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- State Badge -->
+                                <DataGridTemplateColumn Header="Состояние" Width="130">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding State}" FontWeight="SemiBold" FontSize="11" Foreground="#10B981"/>
+                                            </Border>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- PID -->
+                                <DataGridTemplateColumn Header="PID" Width="70">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding ProcessId}" Foreground="{DynamicResource AccentPrimaryBrush}" FontWeight="Bold" FontFamily="Consolas, Segoe UI" VerticalAlignment="Center"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+
+                                <!-- Process Name -->
+                                <DataGridTemplateColumn Header="Имя процесса" Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Border Background="#1AFB7185" Width="6" Height="6" CornerRadius="3" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding ProcessName}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
                             </DataGrid.Columns>
                         </DataGrid>
                     </Border>

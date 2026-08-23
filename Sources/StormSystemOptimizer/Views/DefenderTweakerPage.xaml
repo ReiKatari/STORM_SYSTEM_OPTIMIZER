@@ -123,19 +123,46 @@
             </Border>
 
             <!-- CPU Throttling Slider & Telemetry -->
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Квота предельной нагрузки на процессор (AvgCPULoadFactor)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
-                    <TextBlock Text="По умолчанию Windows Defender может загружать до 50% CPU при фоновом сканировании, вызывая просадки FPS." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14"/>
-
-                    <Grid Margin="0,0,0,16">
+                    <Grid Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Slider Value="{Binding DefenderCpuLimit}" Minimum="5" Maximum="50" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center"/>
-                        <TextBlock Grid.Column="1" Text="{Binding DefenderCpuLimit, StringFormat='Лимит: {0}% CPU'}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="16,0,0,0" VerticalAlignment="Center"/>
+                        <Border Grid.Column="0" Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoCpu}" Fill="{StaticResource IconGradAmber}" Width="12" Height="12" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Grid.Column="1" Text="Квота предельной нагрузки на процессор (AvgCPULoadFactor)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </Grid>
+                    <TextBlock Text="По умолчанию Защитник Windows может загружать до 50% CPU при фоновом сканировании, вызывая резкие просадки FPS и статтеры. Ограничьте квоту до безопасных 5–15%." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,16" TextWrapping="Wrap"/>
+
+                    <!-- Custom Styled Slider Container -->
+                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16,14" Margin="0,0,0,16">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Slider Grid.Row="0" Grid.Column="0" Value="{Binding DefenderCpuLimit}" Minimum="5" Maximum="50" TickFrequency="5" IsSnapToTickEnabled="True" VerticalAlignment="Center" Height="24"/>
+                            
+                            <!-- Value Badge -->
+                            <Border Grid.Row="0" Grid.Column="1" Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Padding="10,4" Margin="14,0,0,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding DefenderCpuLimit, StringFormat='Лимит: {0}% CPU'}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                            </Border>
+
+                            <Grid Grid.Row="1" Grid.Column="0" Margin="0,6,0,0">
+                                <TextBlock Text="5% (Минимум оверхеда)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Left"/>
+                                <TextBlock Text="25% (Баланс)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                                <TextBlock Text="50% (Заводской максимум)" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </Grid>
+                    </Border>
 
                     <CheckBox IsChecked="{Binding DisableTelemetry}" Margin="0,0,0,10">
                         <StackPanel Margin="6,0,0,0">
@@ -143,6 +170,32 @@
                             <TextBlock Text="Предотвращает фоновый интернет-трафик и задержки отправки подозрительных файлов на сервера Microsoft." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
                         </StackPanel>
                     </CheckBox>
+                </StackPanel>
+            </Border>
+
+            <!-- FAQ Section -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="4" Width="18" Height="18" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoQuestion}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Частые вопросы по Защитнику Windows (FAQ)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4">
+                        <Expander.Header>
+                            <TextBlock Text="Зачем добавлять диски или лаунчеры в исключения?" VerticalAlignment="Center"/>
+                        </Expander.Header>
+                        <TextBlock Text="В реальном времени Windows Defender сканирует каждый считываемый текстурный файл и шейдер при загрузке уровней игры. Добавление папок Steam, Epic и других лаунчеров в исключения ускоряет загрузку игр в 2–3 раза и предотвращает микрофризы." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
+                    </Expander>
+
+                    <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold">
+                        <Expander.Header>
+                            <TextBlock Text="Что дает ограничение AvgCPULoadFactor?" VerticalAlignment="Center"/>
+                        </Expander.Header>
+                        <TextBlock Text="Параметр AvgCPULoadFactor жестко ограничивает процент процессорного времени, который служба MsMpEng.exe может занять во время фоновых проверок. Значение 5–10% гарантирует, что даже во время сканирования игра не потеряет кадры." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
+                    </Expander>
                 </StackPanel>
             </Border>
         </StackPanel>

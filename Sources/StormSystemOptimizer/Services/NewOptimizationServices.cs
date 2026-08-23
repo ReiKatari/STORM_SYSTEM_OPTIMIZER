@@ -842,19 +842,34 @@ namespace StormSystemOptimizer.Services
             // Scan running processes, cache sizes, and extract real application icons
             foreach (var launcher in all)
             {
+                // Fallback to registry App Paths & Uninstall keys if not yet found
+                if (string.IsNullOrEmpty(launcher.ExePath) || !File.Exists(launcher.ExePath))
+                {
+                    string defaultExe = launcher.ProcessNames.Count > 0 ? launcher.ProcessNames[0] + ".exe" : "";
+                    string? regExe = FindExeInRegistry(launcher.Name, defaultExe);
+                    if (!string.IsNullOrEmpty(regExe) && File.Exists(regExe))
+                    {
+                        launcher.ExePath = regExe;
+                        if (string.IsNullOrEmpty(launcher.Path)) launcher.Path = Path.GetDirectoryName(regExe) ?? "";
+                        launcher.IsInstalled = true;
+
+                        // Add standard relative cache dirs if not already added
+                        if (launcher.Id == "retroarch" && !string.IsNullOrEmpty(launcher.Path))
+                        {
+                            launcher.CacheDirectories.Add(Path.Combine(launcher.Path, "thumbnails"));
+                            launcher.CacheDirectories.Add(Path.Combine(launcher.Path, "logs"));
+                            launcher.CacheDirectories.Add(Path.Combine(launcher.Path, "cache"));
+                            launcher.CacheDirectories.Add(Path.Combine(launcher.Path, "temp"));
+                        }
+                    }
+                }
+
                 if (launcher.IsInstalled)
                 {
                     launcher.IsRunning = launcher.ProcessNames.Any(p => Process.GetProcessesByName(p).Length > 0);
-                    // Fallback to registry App Paths & Uninstall keys
-                    if ((string.IsNullOrEmpty(launcher.ExePath) || !File.Exists(launcher.ExePath)))
-                    {
-                        string? regExe = FindExeInRegistry(launcher.Name, launcher.ProcessNames.Count > 0 ? launcher.ProcessNames[0] + ".exe" : "");
-                        if (!string.IsNullOrEmpty(regExe))
-                        {
-                            launcher.ExePath = regExe;
-                            if (string.IsNullOrEmpty(launcher.Path)) launcher.Path = Path.GetDirectoryName(regExe);
-                        }
-                    }
+
+                    // Compute real cache size
+                    launcher.CacheSizeBytes = CalculateCacheSize(launcher.CacheDirectories);
 
                     // Extract 100% REAL application icon from executable
                     if (!string.IsNullOrEmpty(launcher.ExePath) && File.Exists(launcher.ExePath))
@@ -897,31 +912,51 @@ namespace StormSystemOptimizer.Services
                 string[] uninstKeys = new[]
                 {
                     @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
-                    @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+                    @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall",
+                    @"Software\Microsoft\Windows\CurrentVersion\Uninstall"
                 };
+
+                var keywords = appName.Split(new[] { ' ', '(', ')', '&' }, StringSplitOptions.RemoveEmptyEntries);
 
                 foreach (var uk in uninstKeys)
                 {
-                    using var rk = Registry.LocalMachine.OpenSubKey(uk);
+                    var root = uk.StartsWith("Software") ? Registry.CurrentUser : Registry.LocalMachine;
+                    using var rk = root.OpenSubKey(uk);
                     if (rk != null)
                     {
                         foreach (var skName in rk.GetSubKeyNames())
                         {
                             using var sk = rk.OpenSubKey(skName);
                             string disp = sk?.GetValue("DisplayName")?.ToString() ?? "";
-                            if (disp.Contains(appName, StringComparison.OrdinalIgnoreCase))
+                            bool matches = keywords.Any(k => k.Length > 2 && disp.Contains(k, StringComparison.OrdinalIgnoreCase)) ||
+                                           skName.Contains(appName, StringComparison.OrdinalIgnoreCase);
+
+                            if (matches)
                             {
                                 string iconStr = sk?.GetValue("DisplayIcon")?.ToString() ?? "";
                                 if (!string.IsNullOrEmpty(iconStr))
                                 {
                                     string clean = iconStr.Split(',')[0].Trim('"');
-                                    if (File.Exists(clean)) return clean;
+                                    if (File.Exists(clean) && clean.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        if (!clean.Contains("unins", StringComparison.OrdinalIgnoreCase))
+                                            return clean;
+                                    }
                                 }
                                 string loc = sk?.GetValue("InstallLocation")?.ToString() ?? "";
-                                if (!string.IsNullOrEmpty(loc) && !string.IsNullOrEmpty(exeName))
+                                if (!string.IsNullOrEmpty(loc))
                                 {
-                                    string target = Path.Combine(loc, exeName);
-                                    if (File.Exists(target)) return target;
+                                    if (!string.IsNullOrEmpty(exeName))
+                                    {
+                                        string target = Path.Combine(loc, exeName);
+                                        if (File.Exists(target)) return target;
+                                    }
+                                    if (Directory.Exists(loc))
+                                    {
+                                        var exes = Directory.GetFiles(loc, "*.exe", SearchOption.TopDirectoryOnly);
+                                        var valid = exes.FirstOrDefault(e => !e.Contains("unins", StringComparison.OrdinalIgnoreCase) && !e.Contains("setup", StringComparison.OrdinalIgnoreCase));
+                                        if (!string.IsNullOrEmpty(valid)) return valid;
+                                    }
                                 }
                             }
                         }
