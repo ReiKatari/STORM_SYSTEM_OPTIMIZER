@@ -27,6 +27,36 @@ namespace StormSystemOptimizer.Services
             return false;
         }
 
+        public bool IsKeyboardTweakApplied()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(@"Control Panel\Keyboard");
+                return key?.GetValue("KeyboardDelay")?.ToString() == "0" && key?.GetValue("KeyboardSpeed")?.ToString() == "31";
+            }
+            catch { return false; }
+        }
+
+        public bool IsSystemResponsivenessApplied()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile");
+                return (int?)key?.GetValue("SystemResponsiveness") == 0;
+            }
+            catch { return false; }
+        }
+
+        public bool IsUsbPowerSavingDisabled()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\USB");
+                return (int?)key?.GetValue("DisableSelectiveSuspend") == 1;
+            }
+            catch { return false; }
+        }
+
         public async Task<(bool success, string msg)> ApplyZeroInputLagTweaksAsync()
         {
             return await Task.Run(() =>
@@ -103,6 +133,18 @@ namespace StormSystemOptimizer.Services
                         if (winlogonKey != null)
                         {
                             winlogonKey.SetValue("EnableCursorSuppression", 0, RegistryValueKind.DWord);
+                            appliedCount++;
+                        }
+                    }
+                    catch { }
+
+                    // 6. USB Low Latency & Disable Selective Suspend
+                    try
+                    {
+                        using var usbKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Services\USB");
+                        if (usbKey != null)
+                        {
+                            usbKey.SetValue("DisableSelectiveSuspend", 1, RegistryValueKind.DWord);
                             appliedCount++;
                         }
                     }

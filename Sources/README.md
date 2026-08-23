@@ -11,7 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%20Windows%2011-0078D4?style=for-the-badge&logo=windows" />
   <img src="https://img.shields.io/badge/Framework-WPF%20%2F%20.NET%208%20LTS-00D2FF?style=for-the-badge&logo=windows-terminal" />
-  <img src="https://img.shields.io/badge/Version-v1.0.0-10B981?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Version-v1.0.3-10B981?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Publisher-STORM%20TEAM-orange?style=for-the-badge" />
 </p>
 
@@ -19,7 +19,7 @@
 
 ## ⚡ О проекте
 
-**STORM SYSTEM OPTIMIZER v1.0.0** — системный оптимизатор нового поколения от команды **STORM TEAM**, разработанный на нативном высокопроизводительном движке **WPF (.NET 8 LTS)**. Программа предоставляет комплексный набор из 33 специализированных разделов для глубокой настройки, ускорения игр, освобождения оперативной памяти ядра, устранения системных задержек и поддержания максимальной стабильности ПК.
+**STORM SYSTEM OPTIMIZER v1.0.3** — системный оптимизатор нового поколения от команды **STORM TEAM**, разработанный на нативном высокопроизводительном движке **WPF (.NET 8 LTS)**. Программа предоставляет комплексный набор из 33 специализированных разделов для глубокой настройки, ускорения игр, освобождения оперативной памяти ядра, устранения системных задержек и поддержания максимальной стабильности ПК.
 
 ---
 
@@ -28,7 +28,7 @@
 
 Скрипт `build.ps1` производит:
   - Компиляцию проекта `StormSystemOptimizer.csproj` в единый исполняемый файл `.exe` (Single-File).
-  - Сборку инсталлятора `StormInstaller.exe` и его упаковку в `StormSystemOptimizer_Setup_v1.0.0.exe`.
+  - Сборку инсталлятора `StormInstaller.exe` и его упаковку в `STORM_SYSTEM_OPTIMIZER_1.0.3_Setup.exe`.
   - Автоматическую подпись SHA-256 цифровым сертификатом Authenticode (`CN=STORM TEAM`).
   - Установку доверенного сертификата `STORM TEAM` в хранилища Windows.
 

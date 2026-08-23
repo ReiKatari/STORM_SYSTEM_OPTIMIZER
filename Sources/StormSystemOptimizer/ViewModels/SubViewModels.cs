@@ -687,6 +687,21 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private bool _isZeroStartupDelayActive = false;
 
+        [ObservableProperty]
+        private bool _isMpoDisabled = false;
+
+        [ObservableProperty]
+        private bool _isVbsDisabled = false;
+
+        [ObservableProperty]
+        private bool _isHpetOptimized = false;
+
+        [ObservableProperty]
+        private bool _isShaderCacheOptimized = false;
+
+        [ObservableProperty]
+        private bool _isGameDvrDisabled = false;
+
         public bool IsNotBusy => !IsBusy;
 
         public SystemToolsViewModel()
@@ -707,6 +722,11 @@ namespace StormSystemOptimizer.ViewModels
                 bool win32Registry = AdvancedTweaksService.Instance.IsWin32PrioritySeparationActive();
                 bool mmcssRegistry = AdvancedTweaksService.Instance.IsMmcssGamingOptimizationActive();
                 bool zeroStartRegistry = AdvancedTweaksService.Instance.IsZeroStartupDelayActive();
+                bool mpoRegistry = AdvancedTweaksService.Instance.IsMpoDisabled();
+                bool vbsRegistry = AdvancedTweaksService.Instance.IsVbsDisabled();
+                bool hpetRegistry = AdvancedTweaksService.Instance.IsHpetOptimized();
+                bool shaderRegistry = AdvancedTweaksService.Instance.IsShaderCacheOptimized();
+                bool dvrRegistry = AdvancedTweaksService.Instance.IsGameDvrDisabled();
 
                 IsMsiActive = msiRegistry;
                 IsDirectStorageActive = dsRegistry;
@@ -714,6 +734,11 @@ namespace StormSystemOptimizer.ViewModels
                 IsWin32PriorityOptimized = win32Registry;
                 IsMmcssOptimized = mmcssRegistry;
                 IsZeroStartupDelayActive = zeroStartRegistry;
+                IsMpoDisabled = mpoRegistry;
+                IsVbsDisabled = vbsRegistry;
+                IsHpetOptimized = hpetRegistry;
+                IsShaderCacheOptimized = shaderRegistry;
+                IsGameDvrDisabled = dvrRegistry;
 
                 if (File.Exists(_stateFilePath))
                 {
@@ -727,6 +752,11 @@ namespace StormSystemOptimizer.ViewModels
                         if (dict.TryGetValue("IsWin32PriorityOptimized", out bool vW32)) IsWin32PriorityOptimized = vW32 || win32Registry;
                         if (dict.TryGetValue("IsMmcssOptimized", out bool vMm)) IsMmcssOptimized = vMm || mmcssRegistry;
                         if (dict.TryGetValue("IsZeroStartupDelayActive", out bool vZs)) IsZeroStartupDelayActive = vZs || zeroStartRegistry;
+                        if (dict.TryGetValue("IsMpoDisabled", out bool vMpo)) IsMpoDisabled = vMpo || mpoRegistry;
+                        if (dict.TryGetValue("IsVbsDisabled", out bool vVbs)) IsVbsDisabled = vVbs || vbsRegistry;
+                        if (dict.TryGetValue("IsHpetOptimized", out bool vHp)) IsHpetOptimized = vHp || hpetRegistry;
+                        if (dict.TryGetValue("IsShaderCacheOptimized", out bool vSc)) IsShaderCacheOptimized = vSc || shaderRegistry;
+                        if (dict.TryGetValue("IsGameDvrDisabled", out bool vDvr)) IsGameDvrDisabled = vDvr || dvrRegistry;
                         if (dict.TryGetValue("IsStandbyPurged", out bool v1)) IsStandbyPurged = v1;
                         if (dict.TryGetValue("IsSfcChecked", out bool v2)) IsSfcChecked = v2;
                         if (dict.TryGetValue("IsDismChecked", out bool v3)) IsDismChecked = v3;
@@ -752,6 +782,11 @@ namespace StormSystemOptimizer.ViewModels
                     { "IsWin32PriorityOptimized", IsWin32PriorityOptimized },
                     { "IsMmcssOptimized", IsMmcssOptimized },
                     { "IsZeroStartupDelayActive", IsZeroStartupDelayActive },
+                    { "IsMpoDisabled", IsMpoDisabled },
+                    { "IsVbsDisabled", IsVbsDisabled },
+                    { "IsHpetOptimized", IsHpetOptimized },
+                    { "IsShaderCacheOptimized", IsShaderCacheOptimized },
+                    { "IsGameDvrDisabled", IsGameDvrDisabled },
                     { "IsStandbyPurged", IsStandbyPurged },
                     { "IsSfcChecked", IsSfcChecked },
                     { "IsDismChecked", IsDismChecked },
@@ -932,6 +967,141 @@ namespace StormSystemOptimizer.ViewModels
 
             IsBusy = false;
             TrayService.Instance.ShowNotification("Мгновенный запуск", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ToggleMpoModeAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            if (IsMpoDisabled)
+            {
+                ToolStatus = "Включение Multi-Plane Overlay (MPO) обратно...";
+                bool ok = AdvancedTweaksService.Instance.ToggleMpoMode(false);
+                IsMpoDisabled = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "MPO включен (стандартный режим DWM)." : "Ошибка изменения MPO.";
+            }
+            else
+            {
+                ToolStatus = "Отключение Multi-Plane Overlay (MPO) для устранения микрофризов и черных экранов...";
+                bool ok = AdvancedTweaksService.Instance.ToggleMpoMode(true);
+                IsMpoDisabled = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "MPO успешно отключен (ликвидированы статтеры при разной частоте мониторов)!" : "Ошибка отключения MPO.";
+            }
+
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("MPO Anti-Stutter", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ToggleVbsAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            if (IsVbsDisabled)
+            {
+                ToolStatus = "Включение Virtualization-Based Security (VBS) и изоляции ядра...";
+                bool ok = AdvancedTweaksService.Instance.ToggleVbsHypervisor(false);
+                IsVbsDisabled = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "VBS и гипервизор переведены в стандартный режим." : "Ошибка переключения VBS.";
+            }
+            else
+            {
+                ToolStatus = "Отключение VBS и HVCI гипервизора для возврата 5-15% FPS...";
+                bool ok = AdvancedTweaksService.Instance.ToggleVbsHypervisor(true);
+                IsVbsDisabled = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "VBS отключен (гипервизор выключен, освобождена процессорная мощь)!" : "Ошибка отключения VBS.";
+            }
+
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("VBS Оптимизация", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ToggleHpetAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            if (IsHpetOptimized)
+            {
+                ToolStatus = "Сброс таймеров Windows к заводским значениям...";
+                bool ok = AdvancedTweaksService.Instance.ToggleHpetSyntheticTimers(false);
+                IsHpetOptimized = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Таймеры Windows сброшены к стандартным значениям." : "Ошибка сброса таймеров.";
+            }
+            else
+            {
+                ToolStatus = "Оптимизация Invariant TSC и отключение платформенного таймера HPET...";
+                bool ok = AdvancedTweaksService.Instance.ToggleHpetSyntheticTimers(true);
+                IsHpetOptimized = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Аппаратный Invariant TSC активен, HPET отключен (ликвидирован джиттер)!" : "Ошибка настройки таймеров.";
+            }
+
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Синхронизация таймеров", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ToggleShaderCacheAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            if (IsShaderCacheOptimized)
+            {
+                ToolStatus = "Сброс размера кэша шейдеров к стандартному...";
+                bool ok = AdvancedTweaksService.Instance.OptimizeShaderCacheSize(false);
+                IsShaderCacheOptimized = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Размер кэша шейдеров сброшен к заводскому." : "Ошибка сброса кэша.";
+            }
+            else
+            {
+                ToolStatus = "Расширение кэша шейдеров DirectX/NVIDIA до 10 ГБ...";
+                bool ok = AdvancedTweaksService.Instance.OptimizeShaderCacheSize(true);
+                IsShaderCacheOptimized = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "Кэш шейдеров расширен до 10 ГБ (устранены статтеры перекомпиляции)!" : "Ошибка настройки кэша.";
+            }
+
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Кэш шейдеров GPU", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ToggleGameDvrAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+
+            if (IsGameDvrDisabled)
+            {
+                ToolStatus = "Включение GameDVR и фоновой записи...";
+                bool ok = AdvancedTweaksService.Instance.ToggleGameDvrAndFso(false);
+                IsGameDvrDisabled = !ok;
+                SavePersistentState();
+                ToolStatus = ok ? "GameDVR включен." : "Ошибка переключения GameDVR.";
+            }
+            else
+            {
+                ToolStatus = "Отключение GameDVR и фонового перехвата видеокадров...";
+                bool ok = AdvancedTweaksService.Instance.ToggleGameDvrAndFso(true);
+                IsGameDvrDisabled = ok;
+                SavePersistentState();
+                ToolStatus = ok ? "GameDVR полностью отключен (устранены задержки конвейера FSO)!" : "Ошибка отключения GameDVR.";
+            }
+
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("GameDVR Тюнинг", ToolStatus);
         }
 
         [RelayCommand]
@@ -1144,6 +1314,80 @@ namespace StormSystemOptimizer.ViewModels
         {
             bool ok = SystemToolsService.Instance.ResetWindowsStore();
             ToolStatus = ok ? "Сброс кэша Microsoft Store (wsreset) запущен!" : "Ошибка запуска wsreset.";
+        }
+
+        public ObservableCollection<SystemPortInfo> ActivePorts { get; } = new();
+
+        [ObservableProperty]
+        private SystemPortInfo? _selectedPort;
+
+        [ObservableProperty]
+        private string _portStatusMessage = "Нажмите «Сканировать порты» для анализа активных сокетов ОС.";
+
+        [RelayCommand]
+        public async Task LoadPortsAsync()
+        {
+            PortStatusMessage = "Сканирование открытых TCP/UDP портов и служб...";
+            var ports = await SystemToolsService.Instance.GetActivePortsAsync();
+            ActivePorts.Clear();
+            foreach (var p in ports)
+            {
+                ActivePorts.Add(p);
+            }
+            PortStatusMessage = $"Обнаружено активных сетевых портов и подключений: {ActivePorts.Count}";
+        }
+
+        [RelayCommand]
+        public void KillSelectedPortProcess()
+        {
+            if (SelectedPort == null)
+            {
+                PortStatusMessage = "Выберите соединение или порт в таблице для завершения процесса.";
+                return;
+            }
+            if (SelectedPort.ProcessId <= 4)
+            {
+                PortStatusMessage = "Нельзя принудительно завершить системный процесс ядра (PID 0 / 4).";
+                return;
+            }
+            bool ok = SystemToolsService.Instance.KillProcessByPid(SelectedPort.ProcessId);
+            if (ok)
+            {
+                PortStatusMessage = $"Процесс {SelectedPort.ProcessName} (PID: {SelectedPort.ProcessId}) успешно завершен, порт освобожден!";
+                TrayService.Instance.ShowNotification("Освобождение порта 🛡️", PortStatusMessage);
+                _ = LoadPortsAsync();
+            }
+            else
+            {
+                PortStatusMessage = $"Не удалось завершить процесс PID {SelectedPort.ProcessId}.";
+            }
+        }
+
+        [RelayCommand]
+        public async Task FlushNetworkStackAsync()
+        {
+            ToolStatus = "Сброс сокетов, очистка ARP, DNS и сброс IP-стека...";
+            bool ok = await SystemToolsService.Instance.FlushDnsArpIpStackAsync();
+            ToolStatus = ok ? "Сетевой стек, DNS, ARP и Winsock полностью очищены!" : "Ошибка сброса сетевого стека.";
+            TrayService.Instance.ShowNotification("Сетевой стек 🌐", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ClearSpoolerAsync()
+        {
+            ToolStatus = "Очистка очереди печати Print Spooler...";
+            bool ok = await SystemToolsService.Instance.ClearPrintSpoolerQueueAsync();
+            ToolStatus = ok ? "Очередь Print Spooler очищена, служба печати перезапущена!" : "Ошибка очистки очереди печати.";
+            TrayService.Instance.ShowNotification("Служба печати 🖨️", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ResyncClockAsync()
+        {
+            ToolStatus = "Синхронизация системного времени через NTP (time.windows.com)...";
+            bool ok = await SystemToolsService.Instance.ResyncSystemClockAsync();
+            ToolStatus = ok ? "Системное время Windows успешно синхронизировано с сервером NTP!" : "Ошибка синхронизации времени.";
+            TrayService.Instance.ShowNotification("Синхронизация времени ⏱️", ToolStatus);
         }
 
         [RelayCommand]
