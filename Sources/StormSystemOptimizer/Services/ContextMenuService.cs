@@ -84,6 +84,14 @@ namespace StormSystemOptimizer.Services
             {
                 // 1. POWER TOOLS
                 new() {
+                    Title = "Разблокировать файл / папку (STORM)",
+                    Description = "Мгновенное снятие блокировок ядра NT, закрытие удерживающих дескрипторов и удаление занятых файлов",
+                    KeyPath = @"*\shell\StormUnlocker",
+                    Location = "Все файлы, папки и диски",
+                    Category = "⭐ Инструменты",
+                    IsEnabled = CheckRegistryKeyExists(@"*\shell\StormUnlocker") || CheckCurrentUserKeyExists(@"Software\Classes\*\shell\StormUnlocker")
+                },
+                new() {
                     Title = "Открыть в PowerShell (Администратор)",
                     Description = "Мгновенный запуск консоли с повышенными правами в выбранной папке",
                     KeyPath = @"Directory\Background\shell\PowerShellAdmin",
@@ -259,6 +267,43 @@ namespace StormSystemOptimizer.Services
                     bool enable = item.IsEnabled;
                     switch (item.Title)
                     {
+                        case "Разблокировать файл / папку (STORM)":
+                            string currentExe = Process.GetCurrentProcess().MainModule?.FileName ?? @"C:\Program Files\StormSystemOptimizer\StormSystemOptimizer.exe";
+                            string[] unlockKeys = new[] { @"*\shell\StormUnlocker", @"Directory\shell\StormUnlocker", @"Drive\shell\StormUnlocker", @"Folder\shell\StormUnlocker" };
+                            if (enable)
+                            {
+                                foreach (var uk in unlockKeys)
+                                {
+                                    try
+                                    {
+                                        using var k = Registry.ClassesRoot.CreateSubKey(uk);
+                                        k?.SetValue("", "Разблокировать через STORM OPTIMIZER");
+                                        k?.SetValue("Icon", $"\"{currentExe}\",0");
+                                        using var cmd = k?.CreateSubKey("command");
+                                        cmd?.SetValue("", $"\"{currentExe}\" /unlock \"%1\"");
+                                    }
+                                    catch { }
+                                    try
+                                    {
+                                        using var kCu = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{uk}");
+                                        kCu?.SetValue("", "Разблокировать через STORM OPTIMIZER");
+                                        kCu?.SetValue("Icon", $"\"{currentExe}\",0");
+                                        using var cmdCu = kCu?.CreateSubKey("command");
+                                        cmdCu?.SetValue("", $"\"{currentExe}\" /unlock \"%1\"");
+                                    }
+                                    catch { }
+                                }
+                            }
+                            else
+                            {
+                                foreach (var uk in unlockKeys)
+                                {
+                                    try { Registry.ClassesRoot.DeleteSubKeyTree(uk, false); } catch { }
+                                    try { Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\{uk}", false); } catch { }
+                                }
+                            }
+                            break;
+
                         case "Открыть в PowerShell (Администратор)":
                             if (enable)
                             {
@@ -450,6 +495,47 @@ namespace StormSystemOptimizer.Services
                 return key != null;
             }
             catch { return false; }
+        }
+
+        private static bool CheckCurrentUserKeyExists(string relativePath)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(relativePath);
+                return key != null;
+            }
+            catch { return false; }
+        }
+
+        public void RegisterStormUnlockerContextMenu(string? customExePath = null)
+        {
+            try
+            {
+                string exe = customExePath ?? Process.GetCurrentProcess().MainModule?.FileName ?? @"C:\Program Files\StormSystemOptimizer\StormSystemOptimizer.exe";
+                string[] unlockKeys = new[] { @"*\shell\StormUnlocker", @"Directory\shell\StormUnlocker", @"Drive\shell\StormUnlocker", @"Folder\shell\StormUnlocker" };
+                foreach (var uk in unlockKeys)
+                {
+                    try
+                    {
+                        using var k = Registry.ClassesRoot.CreateSubKey(uk);
+                        k?.SetValue("", "Разблокировать через STORM OPTIMIZER");
+                        k?.SetValue("Icon", $"\"{exe}\",0");
+                        using var cmd = k?.CreateSubKey("command");
+                        cmd?.SetValue("", $"\"{exe}\" /unlock \"%1\"");
+                    }
+                    catch { }
+                    try
+                    {
+                        using var kCu = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{uk}");
+                        kCu?.SetValue("", "Разблокировать через STORM OPTIMIZER");
+                        kCu?.SetValue("Icon", $"\"{exe}\",0");
+                        using var cmdCu = kCu?.CreateSubKey("command");
+                        cmdCu?.SetValue("", $"\"{exe}\" /unlock \"%1\"");
+                    }
+                    catch { }
+                }
+            }
+            catch { }
         }
 
         public async Task<bool> CleanContextMenuClutterAsync()

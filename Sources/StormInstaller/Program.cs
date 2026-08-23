@@ -19,7 +19,7 @@ namespace StormSystemOptimizer.Installer
         private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
-        private const string AppVersion = "1.0.6";
+        private const string AppVersion = "1.0.7";
         private const string DefaultInstallDir = @"C:\Program Files\StormSystemOptimizer";
         private const string ExeName = "StormSystemOptimizer.exe";
         private Button btnBrowse = null!;
@@ -67,7 +67,7 @@ namespace StormSystemOptimizer.Installer
 
         private void InitializeComponent()
         {
-            this.Text = "STORM SYSTEM OPTIMIZER v1.0.6 — Установка";
+            this.Text = "STORM SYSTEM OPTIMIZER v1.0.7 — Установка";
             this.Size = new Size(620, 520);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -86,7 +86,7 @@ namespace StormSystemOptimizer.Installer
 
             lblTitle = new Label
             {
-                Text = "⚡ STORM SYSTEM OPTIMIZER v1.0.6",
+                Text = "⚡ STORM SYSTEM OPTIMIZER v1.0.7",
                 Font = new Font("Segoe UI", 14f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(14, 165, 233),
                 AutoSize = true,
@@ -397,7 +397,7 @@ namespace StormSystemOptimizer.Installer
                     }
                 }
 
-                lblStatus.Text = "Распаковка исполняемых файлов программы (v1.0.6)...";
+                lblStatus.Text = "Распаковка исполняемых файлов программы (v1.0.7)...";
                 progressBar.Value = 65;
                 await Task.Delay(200);
 
@@ -593,7 +593,7 @@ namespace StormSystemOptimizer.Installer
                     shortcut.TargetPath = targetExe;
                     shortcut.WorkingDirectory = targetDir;
                     shortcut.IconLocation = targetIco + ",0";
-                    shortcut.Description = "STORM SYSTEM OPTIMIZER v1.0.6";
+                    shortcut.Description = "STORM SYSTEM OPTIMIZER v1.0.7";
                     shortcut.Save();
                 }
 
@@ -605,8 +605,51 @@ namespace StormSystemOptimizer.Installer
                     deskShortcut.TargetPath = targetExe;
                     deskShortcut.WorkingDirectory = targetDir;
                     deskShortcut.IconLocation = targetIco + ",0";
-                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v1.0.6";
+                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v1.0.7";
                     deskShortcut.Save();
+                }
+            }
+            catch { }
+        }
+
+        private void RegisterContextMenu(string targetExe)
+        {
+            try
+            {
+                string[] rootKeys = new[]
+                {
+                    @"Software\Classes\*\shell\StormUnlocker",
+                    @"Software\Classes\Directory\shell\StormUnlocker",
+                    @"Software\Classes\Drive\shell\StormUnlocker",
+                    @"Software\Classes\Folder\shell\StormUnlocker"
+                };
+
+                foreach (var rk in rootKeys)
+                {
+                    using var key = Registry.CurrentUser.CreateSubKey(rk);
+                    key?.SetValue("", "Разблокировать через STORM OPTIMIZER");
+                    key?.SetValue("Icon", $"\"{targetExe}\",0");
+                    using var cmd = key?.CreateSubKey("command");
+                    cmd?.SetValue("", $"\"{targetExe}\" /unlock \"%1\"");
+                }
+
+                if (IsAdministrator())
+                {
+                    string[] lmKeys = new[]
+                    {
+                        @"*\shell\StormUnlocker",
+                        @"Directory\shell\StormUnlocker",
+                        @"Drive\shell\StormUnlocker",
+                        @"Folder\shell\StormUnlocker"
+                    };
+                    foreach (var lmk in lmKeys)
+                    {
+                        using var key = Registry.ClassesRoot.CreateSubKey(lmk);
+                        key?.SetValue("", "Разблокировать через STORM OPTIMIZER");
+                        key?.SetValue("Icon", $"\"{targetExe}\",0");
+                        using var cmd = key?.CreateSubKey("command");
+                        cmd?.SetValue("", $"\"{targetExe}\" /unlock \"%1\"");
+                    }
                 }
             }
             catch { }
@@ -616,16 +659,37 @@ namespace StormSystemOptimizer.Installer
         {
             try
             {
-                using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer");
-                if (key != null)
+                string displayName = $"STORM SYSTEM OPTIMIZER, v{AppVersion}";
+                using (var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer"))
                 {
-                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v1.0.6");
-                    key.SetValue("DisplayVersion", "1.0.6");
-                    key.SetValue("Publisher", "STORM TEAM");
-                    key.SetValue("DisplayIcon", targetIco);
-                    key.SetValue("InstallLocation", targetDir);
-                    key.SetValue("UninstallString", $"cmd.exe /c rmdir /s /q \"{targetDir}\" & del \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\STORM SYSTEM OPTIMIZER.lnk\" & del \"%USERPROFILE%\\Desktop\\STORM SYSTEM OPTIMIZER.lnk\"");
+                    if (key != null)
+                    {
+                        key.SetValue("DisplayName", displayName);
+                        key.SetValue("DisplayVersion", AppVersion);
+                        key.SetValue("Publisher", "STORM TEAM");
+                        key.SetValue("DisplayIcon", targetIco);
+                        key.SetValue("InstallLocation", targetDir);
+                        key.SetValue("UninstallString", $"cmd.exe /c rmdir /s /q \"{targetDir}\" & del \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\STORM SYSTEM OPTIMIZER.lnk\" & del \"%USERPROFILE%\\Desktop\\STORM SYSTEM OPTIMIZER.lnk\"");
+                    }
                 }
+
+                if (IsAdministrator())
+                {
+                    using (var keyLm = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer"))
+                    {
+                        if (keyLm != null)
+                        {
+                            keyLm.SetValue("DisplayName", displayName);
+                            keyLm.SetValue("DisplayVersion", AppVersion);
+                            keyLm.SetValue("Publisher", "STORM TEAM");
+                            keyLm.SetValue("DisplayIcon", targetIco);
+                            keyLm.SetValue("InstallLocation", targetDir);
+                            keyLm.SetValue("UninstallString", $"cmd.exe /c rmdir /s /q \"{targetDir}\" & del \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\STORM SYSTEM OPTIMIZER.lnk\" & del \"%USERPROFILE%\\Desktop\\STORM SYSTEM OPTIMIZER.lnk\"");
+                        }
+                    }
+                }
+
+                RegisterContextMenu(targetExe);
             }
             catch { }
         }

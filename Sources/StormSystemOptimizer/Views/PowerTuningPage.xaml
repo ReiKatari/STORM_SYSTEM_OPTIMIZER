@@ -116,13 +116,13 @@
                 </Border>
 
                 <!-- Card 4: Heterogeneous P-Core & PCIe ASPM -->
-                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="8,0,0,0">
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="8,0,0,12">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoCpu}" Fill="{StaticResource IconGradPurple}" Width="12" Height="12" Stretch="Uniform"/>
                             </Border>
-                            <TextBlock Text="Приоритет P-Cores и отключение PCIe ASPM" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Приоритет P-Cores и PCIe ASPM" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Принудительно направляет потоки активных 3D-игр на производительные P-ядра / лучший CCD и запрещает шине PCIe переходить в экономичный сон."
                                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
@@ -136,9 +136,97 @@
                                 <TextBlock Text="🎯 Приоритет P-Cores" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
                             <Button Command="{Binding ApplyPcieAspmCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8">
-                                <TextBlock Text="🏎️ Отключить PCIe ASPM" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="🏎️ Отключить ASPM" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
                         </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 5: Multimedia & System Responsiveness -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,8,12">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Border Background="#1A06B6D4" BorderBrush="#3306B6D4" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoGamepad}" Fill="{StaticResource IconGradSky}" Width="12" Height="12" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="Снятие троттлинга Windows (Responsiveness 0%)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Отключает 20% резервирование CPU для фоновых задач Windows и снимает сетевой троттлинг сетевых пакетов в играх (NetworkThrottlingIndex)."
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        
+                        <Border Background="#1A06B6D4" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding SystemResponsivenessStatus}" FontSize="11.5" FontWeight="Bold" Foreground="#06B6D4"/>
+                        </Border>
+
+                        <Button Command="{Binding ApplySystemResponsivenessCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
+                            <TextBlock Text="🎮 Снять троттлинг Windows" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 6: GPU Energy Management & HAGS -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="8,0,0,12">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoMonitor}" Fill="{StaticResource IconGradEmerald}" Width="12" Height="12" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="GPU Maximum Performance &amp; HAGS" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Принудительно форсирует профиль максимальной мощности графического адаптера, активирует планирование HAGS и увеличивает тайм-аут TDR видеодрайвера."
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        
+                        <Border Background="#1A10B981" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding GpuPowerStatus}" FontSize="11.5" FontWeight="Bold" Foreground="#10B981"/>
+                        </Border>
+
+                        <Button Command="{Binding ApplyGpuMaxPerformanceCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
+                            <TextBlock Text="⚡ Форсировать GPU Max Performance" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 7: USB Selective Suspend -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,8,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoUsb}" Fill="{StaticResource IconGradRose}" Width="12" Height="12" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="Отключение USB Selective Suspend" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Запрещает контроллерам USB переводить мыши, клавиатуры и звуковые интерфейсы в энергосберегающий микро-сон, снижая задержку ввода до минимума."
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        
+                        <Border Background="#1AFB7185" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding UsbSuspendStatus}" FontSize="11.5" FontWeight="Bold" Foreground="#FB7185"/>
+                        </Border>
+
+                        <Button Command="{Binding ApplyUsbSelectiveSuspendCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
+                            <TextBlock Text="🖱️ Отключить микро-сон USB" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 8: Unlock Hidden Power Attributes -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="8,0,0,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoLock}" Fill="{StaticResource IconGradAmber}" Width="12" Height="12" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="Разблокировка 40+ скрытых параметров" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Делает видимыми все скрытые системные настройки питания ядра Windows (Processor Boost, Autonomous Mode, C-State limits) в powercfg и Панели управления."
+                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        
+                        <Border Background="#1AFBBF24" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding HiddenAttributesStatus}" FontSize="11.5" FontWeight="Bold" Foreground="#F59E0B"/>
+                        </Border>
+
+                        <Button Command="{Binding UnlockHiddenAttributesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
+                            <TextBlock Text="🔓 Разблокировать параметры Powercfg" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
                     </StackPanel>
                 </Border>
             </UniformGrid>

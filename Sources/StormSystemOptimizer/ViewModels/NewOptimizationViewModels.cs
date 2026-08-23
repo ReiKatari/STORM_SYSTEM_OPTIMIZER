@@ -78,8 +78,11 @@ namespace StormSystemOptimizer.ViewModels
     // ==========================================
     // 2. BROWSER TURBO VIEW MODEL
     // ==========================================
+    // ==========================================
     public partial class BrowserTurboViewModel : ObservableObject
     {
+        [ObservableProperty] private ObservableCollection<BrowserTabItem> _browserTabs = new();
+        [ObservableProperty] private BrowserTabItem? _selectedBrowser;
         [ObservableProperty] private string _detectedCacheSize = "Сканирование...";
         [ObservableProperty] private bool _disableBackgroundMode = true;
         [ObservableProperty] private bool _enableGpuAcceleration = true;
@@ -94,8 +97,95 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public async Task RefreshStatsAsync()
         {
-            var size = await Task.Run(() => BrowserTurboService.Instance.GetBrowserCacheSize());
-            DetectedCacheSize = FormatHelper.FormatSize(size);
+            IsBusy = true;
+            StatusMessage = "Сканирование установленных браузеров, профилей и кэшей...";
+            
+            var tabs = await Task.Run(() => BrowserTurboService.Instance.GetDetailedBrowserTabs());
+            
+            BrowserTabs.Clear();
+            foreach (var t in tabs)
+            {
+                BrowserTabs.Add(t);
+            }
+
+            if (SelectedBrowser == null || !BrowserTabs.Any(x => x.Id == SelectedBrowser.Id))
+            {
+                SelectedBrowser = BrowserTabs.FirstOrDefault();
+            }
+            else
+            {
+                SelectedBrowser = BrowserTabs.FirstOrDefault(x => x.Id == SelectedBrowser.Id);
+            }
+
+            var all = BrowserTabs.FirstOrDefault(x => x.Id == "all");
+            DetectedCacheSize = all?.CacheSizeFormatted ?? "0 Б";
+            StatusMessage = $"Обнаружено {BrowserTabs.Count(x => x.IsInstalled && x.Id != "all")} браузеров в системе. Общий кэш: {DetectedCacheSize}";
+            IsBusy = false;
+        }
+
+        [RelayCommand]
+        public void SelectBrowser(BrowserTabItem browser)
+        {
+            if (browser != null)
+            {
+                SelectedBrowser = browser;
+            }
+        }
+
+        [RelayCommand]
+        public async Task CleanSelectedBrowserCacheAsync()
+        {
+            if (IsBusy || SelectedBrowser == null) return;
+            IsBusy = true;
+            StatusMessage = $"Очистка кэша для {SelectedBrowser.Name}...";
+
+            int cleaned = await BrowserTurboService.Instance.CleanSpecificBrowserCacheAsync(SelectedBrowser);
+            await RefreshStatsAsync();
+
+            StatusMessage = $"Успешно очищено {cleaned} файлов кэша ({SelectedBrowser.Name})!";
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Очистка браузера 🧹", $"{SelectedBrowser.Name}: кэш и временные файлы успешно удалены!");
+        }
+
+        [RelayCommand]
+        public async Task DefragSelectedBrowserSqliteAsync()
+        {
+            if (IsBusy || SelectedBrowser == null) return;
+            IsBusy = true;
+            StatusMessage = $"Дефрагментация и сжатие баз SQLite ({SelectedBrowser.Name})...";
+
+            int defragged = await BrowserTurboService.Instance.DefragBrowserSqliteDatabasesAsync(SelectedBrowser);
+            StatusMessage = $"Сжато и оптимизировано {defragged} баз данных истории и закладок!";
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("SQLite Оптимизация ⚡", $"{SelectedBrowser.Name}: базы данных успешно дефрагментированы!");
+        }
+
+        [RelayCommand]
+        public async Task ApplySelectedBrowserTweaksAsync()
+        {
+            if (IsBusy || SelectedBrowser == null) return;
+            IsBusy = true;
+            StatusMessage = $"Применение настроек оптимизации ({SelectedBrowser.Name})...";
+
+            bool ok = await BrowserTurboService.Instance.ApplyBrowserCustomPoliciesAsync(SelectedBrowser);
+            if (ok)
+            {
+                StatusMessage = $"Политики и твики для {SelectedBrowser.Name} успешно применены!";
+                TrayService.Instance.ShowNotification("Тюнинг браузера ⚡", $"{SelectedBrowser.Name}: индивидуальные твики успешно применены!");
+            }
+            else
+            {
+                StatusMessage = "Не удалось применить все твики (требуются права администратора).";
+            }
+            IsBusy = false;
+        }
+
+        [RelayCommand]
+        public void LaunchWithTurboGpu()
+        {
+            if (SelectedBrowser == null) return;
+            BrowserTurboService.Instance.LaunchBrowserWithTurboGpuFlags(SelectedBrowser);
+            StatusMessage = $"Запущен {SelectedBrowser.Name} с аппаратным Zero-Copy и GPU-растеризацией!";
         }
 
         [RelayCommand]
@@ -103,14 +193,14 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-            StatusMessage = "Очистка кэша, шейдеров и временных данных браузеров...";
+            StatusMessage = "Глобальная очистка кэша всех установленных браузеров...";
 
             int deleted = await BrowserTurboService.Instance.CleanBrowserCachesAsync();
             await RefreshStatsAsync();
 
-            StatusMessage = $"Очищено {deleted} файлов кэша браузеров!";
+            StatusMessage = $"Очищено {deleted} файлов кэша во всех браузерах!";
             IsBusy = false;
-            TrayService.Instance.ShowNotification("Очистка браузеров", "Кэш шейдеров и временные файлы браузеров успешно удалены.");
+            TrayService.Instance.ShowNotification("Глобальная очистка браузеров 🧹", "Кэш шейдеров и временные данные всех браузеров удалены!");
         }
 
         [RelayCommand]
@@ -118,16 +208,22 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-            StatusMessage = "Применение политик оптимизации браузеров...";
+            StatusMessage = "Глобальное применение политик оптимизации для всех браузеров...";
 
             await Task.Run(() =>
             {
                 BrowserTurboService.Instance.ApplyBrowserBackgroundExtensionTweak(DisableBackgroundMode);
             });
 
-            StatusMessage = "Политики браузеров успешно обновлены!";
+            var all = BrowserTabs.FirstOrDefault(x => x.Id == "all");
+            if (all != null)
+            {
+                await BrowserTurboService.Instance.ApplyBrowserCustomPoliciesAsync(all);
+            }
+
+            StatusMessage = "Политики для всех браузеров успешно обновлены!";
             IsBusy = false;
-            TrayService.Instance.ShowNotification("Тюнинг браузеров", "Фоновая активность браузеров и ускорение GPU настроены.");
+            TrayService.Instance.ShowNotification("Тюнинг браузеров ⚡", "Фоновая активность отключена, аппаратное ускорение форсировано!");
         }
     }
 

