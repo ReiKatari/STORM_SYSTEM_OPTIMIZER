@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:StormSystemOptimizer"
-        Icon="Assets/AppIcon.ico" Title="STORM SYSTEM OPTIMIZER 1.0.8"
+        Icon="Assets/AppIcon.ico" Title="STORM SYSTEM OPTIMIZER 4.6.9"
         Height="920" Width="1520"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource AppBackgroundBrush}">
@@ -42,7 +42,7 @@
                 <TextBlock Text=" SYSTEM OPTIMIZER" FontWeight="SemiBold" FontSize="14" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                 <!-- Version Badge -->
                 <Border Background="{DynamicResource AccentGlowBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1" CornerRadius="8" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                    <TextBlock Text="1.0.8" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                    <TextBlock Text="4.6.9" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                 </Border>
             </StackPanel>
 
@@ -540,7 +540,7 @@
                     <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="10" Width="12" Height="12" Margin="0,0,8,0" VerticalAlignment="Center">
                         <Ellipse Width="6" Height="6" Fill="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <TextBlock Text="STORM Engine 1.0.8 готов • Система оптимизирована и стабильна" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBlock Text="STORM Engine 4.6.9 готов • Система оптимизирована и стабильна" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
                 <TextBlock Grid.Column="1" Text="100% Безопасная Оптимизация • WPF .NET 8" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
             </Grid>
