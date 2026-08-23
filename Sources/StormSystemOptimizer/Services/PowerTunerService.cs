@@ -375,5 +375,116 @@ namespace StormSystemOptimizer.Services
                 catch { return false; }
             });
         }
+
+        public async Task<bool> ApplySystemResponsivenessMultimediaTweakAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    using (var sp = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"))
+                    {
+                        sp?.SetValue("SystemResponsiveness", 0, RegistryValueKind.DWord);
+                        sp?.SetValue("NetworkThrottlingIndex", unchecked((int)0xFFFFFFFF), RegistryValueKind.DWord);
+                        sp?.SetValue("NoLazyMode", 1, RegistryValueKind.DWord);
+                    }
+
+                    using (var games = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games"))
+                    {
+                        games?.SetValue("GPU Priority", 8, RegistryValueKind.DWord);
+                        games?.SetValue("Priority", 6, RegistryValueKind.DWord);
+                        games?.SetValue("Scheduling Category", "High", RegistryValueKind.String);
+                        games?.SetValue("SFIO Priority", "High", RegistryValueKind.String);
+                    }
+
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> ApplyGpuMaximumPerformancePowerPolicyAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // Force HAGS (Hardware-accelerated GPU Scheduling)
+                    using (var gfx = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\GraphicsDrivers"))
+                    {
+                        gfx?.SetValue("HwSchMode", 2, RegistryValueKind.DWord);
+                    }
+
+                    // TDR Delay & TDR DdiDelay to prevent false GPU driver resets in intense rendering
+                    using (var gfx = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\GraphicsDrivers"))
+                    {
+                        gfx?.SetValue("TdrDelay", 8, RegistryValueKind.DWord);
+                        gfx?.SetValue("TdrDdiDelay", 8, RegistryValueKind.DWord);
+                    }
+
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> ApplyUsbSelectiveSuspendDisableAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // Disable USB Selective Suspend in Power Scheme
+                    // SUB_USB: 2a737441-1930-4402-8d77-b2bebba4d5a0, USBSELECT: 48e6b63a-08b2-4590-80d6-6637f8138009
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba4d5a0 48e6b63a-08b2-4590-80d6-6637f8138009 0",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "powercfg.exe",
+                        Arguments = "/setactive SCHEME_CURRENT",
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    })?.WaitForExit(1000);
+
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> UnlockAllHiddenPowerSchemeAttributesAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    const string rootPower = @"SYSTEM\CurrentControlSet\Control\Power\PowerSettings";
+                    using var rootKey = Registry.LocalMachine.OpenSubKey(rootPower, true);
+                    if (rootKey != null)
+                    {
+                        foreach (var subGroup in rootKey.GetSubKeyNames())
+                        {
+                            using var groupKey = rootKey.OpenSubKey(subGroup, true);
+                            if (groupKey != null)
+                            {
+                                foreach (var setting in groupKey.GetSubKeyNames())
+                                {
+                                    using var settingKey = groupKey.OpenSubKey(setting, true);
+                                    settingKey?.SetValue("Attributes", 2, RegistryValueKind.DWord);
+                                }
+                            }
+                        }
+                    }
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
     }
 }

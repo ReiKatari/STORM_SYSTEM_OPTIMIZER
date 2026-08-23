@@ -156,5 +156,57 @@ namespace StormSystemOptimizer.Services
 
             return null;
         }
+
+        public static ImageSource GetLauncherFallbackIcon(string launcherId)
+        {
+            string key = "fallback_launcher_" + launcherId.ToLowerInvariant();
+            if (_iconCache.TryGetValue(key, out var cached) && cached != null)
+            {
+                return cached;
+            }
+
+            var group = new DrawingGroup();
+            var dc = group.Open();
+
+            (System.Windows.Media.Color bg1, System.Windows.Media.Color bg2, string text, System.Windows.Media.Color textColor) = launcherId.ToLowerInvariant() switch
+            {
+                "steam" => (System.Windows.Media.Color.FromRgb(23, 36, 54), System.Windows.Media.Color.FromRgb(15, 23, 42), "♨", System.Windows.Media.Color.FromRgb(0, 210, 255)),
+                "epic" => (System.Windows.Media.Color.FromRgb(30, 41, 59), System.Windows.Media.Color.FromRgb(15, 23, 42), "⚡", System.Windows.Media.Color.FromRgb(241, 245, 249)),
+                "ea" => (System.Windows.Media.Color.FromRgb(225, 29, 72), System.Windows.Media.Color.FromRgb(159, 18, 57), "EA", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "gog" => (System.Windows.Media.Color.FromRgb(124, 58, 237), System.Windows.Media.Color.FromRgb(76, 29, 149), "GOG", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "battlenet" => (System.Windows.Media.Color.FromRgb(2, 132, 199), System.Windows.Media.Color.FromRgb(12, 74, 110), "⚔", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "playnite" => (System.Windows.Media.Color.FromRgb(249, 115, 22), System.Windows.Media.Color.FromRgb(194, 65, 12), "🕹", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "retroarch" => (System.Windows.Media.Color.FromRgb(16, 185, 129), System.Windows.Media.Color.FromRgb(4, 120, 87), "👾", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "discord" => (System.Windows.Media.Color.FromRgb(88, 101, 242), System.Windows.Media.Color.FromRgb(67, 76, 182), "💬", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "ubisoft" => (System.Windows.Media.Color.FromRgb(6, 182, 212), System.Windows.Media.Color.FromRgb(14, 116, 144), "🌀", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "vkplay" => (System.Windows.Media.Color.FromRgb(255, 51, 75), System.Windows.Media.Color.FromRgb(220, 20, 50), "▶", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "rockstar" => (System.Windows.Media.Color.FromRgb(245, 158, 11), System.Windows.Media.Color.FromRgb(180, 83, 9), "★", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "launchbox" => (System.Windows.Media.Color.FromRgb(14, 165, 233), System.Windows.Media.Color.FromRgb(3, 105, 161), "📦", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                _ => (System.Windows.Media.Color.FromRgb(71, 85, 105), System.Windows.Media.Color.FromRgb(30, 41, 59), "🎮", System.Windows.Media.Color.FromRgb(255, 255, 255))
+            };
+
+            var bgBrush = new LinearGradientBrush(bg1, bg2, new System.Windows.Point(0, 0), new System.Windows.Point(1, 1));
+            var borderPen = new System.Windows.Media.Pen(new SolidColorBrush(System.Windows.Media.Color.FromArgb(80, 255, 255, 255)), 1.5);
+            dc.DrawRoundedRectangle(bgBrush, borderPen, new Rect(2, 2, 44, 44), 8, 8);
+
+            var ft = new FormattedText(
+                text,
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Windows.FlowDirection.LeftToRight,
+                new Typeface(new System.Windows.Media.FontFamily("Segoe UI, Segoe UI Emoji, Arial"), System.Windows.FontStyles.Normal, System.Windows.FontWeights.Bold, System.Windows.FontStretches.Normal),
+                text.Length > 2 ? 14 : 20,
+                new SolidColorBrush(textColor),
+                1.0);
+
+            double x = (48 - ft.Width) / 2;
+            double y = (48 - ft.Height) / 2;
+            dc.DrawText(ft, new System.Windows.Point(x, y));
+
+            dc.Close();
+            var img = new DrawingImage(group);
+            img.Freeze();
+            _iconCache[key] = img;
+            return img;
+        }
     }
 }

@@ -23,59 +23,160 @@
                             <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoBrowser}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Тюнинг и очистка браузеров" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Тюнинг и очистка веб-браузеров" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Очистка кэша шейдеров, временных файлов и Code Cache для Chrome, Edge, Яндекс Браузера, Opera и Firefox. Отключение фоновых процессов после закрытия вкладки."
+                        <TextBlock Text="Индивидуальное и глобальное управление браузерами: Google Chrome, Яндекс Браузер, Microsoft Edge, Mozilla Firefox, Opera &amp; GX, Brave, Vivaldi, Tor. Дефрагментация баз SQLite, глубокая очистка кэшей и разгон аппаратного рендера."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding CleanCachesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,0">
-                            <TextBlock Text="🧹 Очистить кэш браузеров" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Button Command="{Binding RefreshStatsCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
+                            <TextBlock Text="🔄 Сканировать" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding ApplyBrowserPolicyCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10">
-                            <TextBlock Text="⚡ Применить тюнинг" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <Button Command="{Binding CleanCachesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,0">
+                            <TextBlock Text="🧹 Очистить все кэши" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                        <Button Command="{Binding ApplyBrowserPolicyCommand}" Style="{StaticResource StormHeroButton}" Padding="16,9">
+                            <TextBlock Text="⚡ Применить глобально" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- Metrics Card -->
-            <UniformGrid Columns="2" Margin="0,0,0,16">
-                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="0,0,8,0">
-                    <StackPanel>
-                        <TextBlock Text="Объем временного кэша и шейдеров:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock Text="{Binding DetectedCacheSize}" FontSize="22" FontWeight="Bold" Foreground="{DynamicResource AccentSecondaryBrush}"/>
-                    </StackPanel>
-                </Border>
+            <!-- Browser Selection Tabs (Horizontal Scroll / Items) -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="14,12" Margin="0,0,0,16">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding BrowserTabs}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding DataContext.SelectBrowserCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                        CommandParameter="{Binding}"
+                                        Margin="0,0,8,0" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                                    <Border CornerRadius="10" Padding="14,10" MinWidth="130"
+                                            Background="{DynamicResource AppBackgroundBrush}"
+                                            BorderBrush="{DynamicResource CardBorderBrush}"
+                                            BorderThickness="1">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding IconEmoji}" FontSize="20" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Name}" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                    <Ellipse Width="6" Height="6" Margin="6,0,0,0" VerticalAlignment="Center"
+                                                             Fill="{Binding IsInstalled, Converter={StaticResource BoolToColorConverter}}"/>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding CacheSizeFormatted}" FontSize="11" Foreground="{DynamicResource AccentPrimaryBrush}" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Border>
 
-                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="16" Margin="8,0,0,0">
-                    <StackPanel>
-                        <TextBlock Text="Аппаратное ускорение графики:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                        <TextBlock Text="Direct3D 11/12 GPU Acceleration" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                    </StackPanel>
-                </Border>
-            </UniformGrid>
-
-            <!-- Settings Card -->
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+            <!-- Selected Browser Details & Custom Controls -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="22" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Параметры ускорения веб-браузеров" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+                    <!-- Browser Header Row -->
+                    <Grid Margin="0,0,0,18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-                    <CheckBox IsChecked="{Binding DisableBackgroundMode}" Margin="0,0,0,14">
-                        <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Запретить работу браузеров в фоновом режиме после закрытия (BackgroundModeEnabled = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Освобождает до 1.5 ГБ оперативной памяти при закрытии Chrome, Edge и Яндекс Браузера." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                        <StackPanel Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="{Binding SelectedBrowser.IconEmoji}" FontSize="26" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding SelectedBrowser.Name}" FontSize="19" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="5" Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center"
+                                        Visibility="{Binding SelectedBrowser.IsInstalled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <TextBlock Text="Установлен в системе" FontSize="11" FontWeight="Bold" Foreground="#10B981"/>
+                                </Border>
+                            </StackPanel>
+                            <TextBlock Text="{Binding SelectedBrowser.Subtitle}" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                            <TextBlock Text="{Binding SelectedBrowser.InstallPath, StringFormat='📂 Путь профилей: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Opacity="0.8"/>
                         </StackPanel>
-                    </CheckBox>
 
-                    <CheckBox IsChecked="{Binding EnableGpuAcceleration}">
-                        <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Форсировать аппаратное ускорение рендеринга через GPU" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Переносит обработку видео 4K/60FPS и анимаций CSS на графический процессор, разгружая CPU." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                        <!-- Individual Quick Actions -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Command="{Binding CleanSelectedBrowserCacheCommand}" Style="{StaticResource StormSecondaryButton}" Padding="13,8" Margin="0,0,8,0">
+                                <TextBlock Text="🧹 Очистить кэш" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                            <Button Command="{Binding DefragSelectedBrowserSqliteCommand}" Style="{StaticResource StormSecondaryButton}" Padding="13,8" Margin="0,0,8,0">
+                                <TextBlock Text="⚡ Сжать базы SQLite" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                            <Button Command="{Binding LaunchWithTurboGpuCommand}" Style="{StaticResource StormSecondaryButton}" Padding="13,8" Margin="0,0,8,0"
+                                    Visibility="{Binding SelectedBrowser.ExePath, Converter={StaticResource NullToVisibilityConverter}}">
+                                <TextBlock Text="🚀 Запуск с Zero-Copy" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                            </Button>
+                            <Button Command="{Binding ApplySelectedBrowserTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="16,8">
+                                <TextBlock Text="💾 Применить твики" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            </Button>
                         </StackPanel>
-                    </CheckBox>
+                    </Grid>
+
+                    <Separator Background="{DynamicResource CardBorderBrush}" Margin="0,0,0,16"/>
+
+                    <!-- Custom Browser Tweaks (4 CheckBoxes) -->
+                    <TextBlock Text="Индивидуальные твики и оптимизации" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,14"/>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Tweak 1 -->
+                        <Border Grid.Row="0" Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,8,10">
+                            <CheckBox IsChecked="{Binding SelectedBrowser.Tweak1}" VerticalAlignment="Center">
+                                <StackPanel Margin="8,0,0,0">
+                                    <TextBlock Text="{Binding SelectedBrowser.Tweak1Title}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding SelectedBrowser.Tweak1Description}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+
+                        <!-- Tweak 2 -->
+                        <Border Grid.Row="0" Grid.Column="1" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="8,0,0,10">
+                            <CheckBox IsChecked="{Binding SelectedBrowser.Tweak2}" VerticalAlignment="Center">
+                                <StackPanel Margin="8,0,0,0">
+                                    <TextBlock Text="{Binding SelectedBrowser.Tweak2Title}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding SelectedBrowser.Tweak2Description}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+
+                        <!-- Tweak 3 -->
+                        <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="0,0,8,0">
+                            <CheckBox IsChecked="{Binding SelectedBrowser.Tweak3}" VerticalAlignment="Center">
+                                <StackPanel Margin="8,0,0,0">
+                                    <TextBlock Text="{Binding SelectedBrowser.Tweak3Title}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding SelectedBrowser.Tweak3Description}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+
+                        <!-- Tweak 4 -->
+                        <Border Grid.Row="1" Grid.Column="1" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,12" Margin="8,0,0,0">
+                            <CheckBox IsChecked="{Binding SelectedBrowser.Tweak4}" VerticalAlignment="Center">
+                                <StackPanel Margin="8,0,0,0">
+                                    <TextBlock Text="{Binding SelectedBrowser.Tweak4Title}" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12.5" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding SelectedBrowser.Tweak4Description}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+                    </Grid>
                 </StackPanel>
             </Border>
         </StackPanel>
