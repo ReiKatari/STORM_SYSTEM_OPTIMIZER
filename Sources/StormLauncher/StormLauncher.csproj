@@ -8,9 +8,9 @@
     <ApplicationIcon>..\..\Files\AppIcon.ico</ApplicationIcon>
     <AssemblyName>StormLauncher</AssemblyName>
     <RootNamespace>StormLauncher</RootNamespace>
-    <Version>4.6.9</Version>
-    <AssemblyVersion>4.6.9.0</AssemblyVersion>
-    <FileVersion>4.6.9.0</FileVersion>
+    <Version>1.0.9</Version>
+    <AssemblyVersion>1.0.9.0</AssemblyVersion>
+    <FileVersion>1.0.9.0</FileVersion>
     <Company>STORM TEAM</Company>
     <Authors>STORM TEAM</Authors>
     <Product>STORM SYSTEM OPTIMIZER</Product>
