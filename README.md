@@ -1,4 +1,4 @@
-<h1 align="center">STORM SYSTEM OPTIMIZER 1.0.7</h1>
+<h1 align="center">STORM SYSTEM OPTIMIZER</h1>
 
 <p align="center">
   <img src="Files/StormLogo.png" alt="STORM SYSTEM OPTIMIZER Logo" width="240" />
@@ -12,7 +12,6 @@
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%20Windows%2011-0078D4?style=for-the-badge&logo=windows" />
   <img src="https://img.shields.io/badge/Framework-WPF%20%2F%20.NET%208%20LTS-00D2FF?style=for-the-badge&logo=windows-terminal" />
   <img src="https://img.shields.io/badge/Language-C%23%20%2F%20.NET-7928CA?style=for-the-badge&logo=c-sharp" />
-  <img src="https://img.shields.io/badge/Version-1.0.7-10B981?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Signature-Authenticode%20SHA--256-blueviolet?style=for-the-badge" />
   <img src="https://img.shields.io/badge/Publisher-STORM%20TEAM-orange?style=for-the-badge" />
 </p>
@@ -21,7 +20,7 @@
 
 ## ⚡ О проекте
 
-**STORM SYSTEM OPTIMIZER 1.0.7** — комплексный программный комплекс для глубокой диагностики, очистки, ускорения и тонкой настройки операционных систем Windows 10 и Windows 11. Приложение построено на базе современной архитектуры **MVVM** с использованием **C# 12/.NET 8 LTS** и прямого взаимодействия с низкоуровневыми API ядра Windows NT (`ntdll.dll`, `kernel32.dll`, `rstrtmgr.dll`, Win32 IOCTL).
+**STORM SYSTEM OPTIMIZER** — комплексный программный комплекс для глубокой диагностики, очистки, ускорения и тонкой настройки операционных систем Windows 10 и Windows 11. Приложение построено на базе современной архитектуры **MVVM** с использованием **C# 12/.NET 8 LTS** и прямого взаимодействия с низкоуровневыми API ядра Windows NT (`ntdll.dll`, `kernel32.dll`, `rstrtmgr.dll`, Win32 IOCTL).
 
 Все операции оптимизации строго классифицированы по уровням безопасности, сопровождаются автоматическим созданием резервных точек восстановления и не нарушают целостность системных компонентов.
 
@@ -243,7 +242,7 @@ E:\STORM SYSTEM OPTIMIZER\
 │   │   └── Views\                              # 34 страницы пользовательского интерфейса XAML
 │   └── StormInstaller\                         # Автономный однофайловый установщик Setup
 ├── Files\                                      # Скомпилированные официальные установщики
-│   ├── STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe  # Актуальный установщик релиза v1.0.7
+│   ├── STORM_SYSTEM_OPTIMIZER_Setup.exe        # Актуальный установщик программы
 │   ├── STORM_Certificate.cer                   # Цифровой сертификат Authenticode STORM TEAM
 │   └── Разблокировать_И_Установить_Сертификат.bat # Скрипт мгновенного доверия и разблокировки
 ├── Assembling\                                 # Портативная версия StormSystemOptimizer.exe
@@ -268,7 +267,7 @@ powershell.exe -ExecutionPolicy Bypass -File .\build.ps1
 
 После завершения работы скрипта:
 1. Портативная версия будет собрана в `Assembling\StormSystemOptimizer.exe`.
-2. Готовый подписанный установщик будет скомпонован в `Files\STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe`.
+2. Готовый подписанный установщик будет скомпонован в папку `Files\`.
 
 ---
 
