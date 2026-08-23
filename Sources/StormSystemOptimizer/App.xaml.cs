@@ -101,6 +101,16 @@ namespace StormSystemOptimizer
         {
             base.OnStartup(e);
 
+            try
+            {
+                System.Threading.Thread.CurrentThread.CurrentCulture = Services.FormatHelper.RuCulture;
+                System.Threading.Thread.CurrentThread.CurrentUICulture = Services.FormatHelper.RuCulture;
+                FrameworkElement.LanguageProperty.OverrideMetadata(
+                    typeof(FrameworkElement),
+                    new FrameworkPropertyMetadata(System.Windows.Markup.XmlLanguage.GetLanguage("ru-RU")));
+            }
+            catch { }
+
             if (e.Args.Length > 0)
             {
                 for (int i = 0; i < e.Args.Length; i++)

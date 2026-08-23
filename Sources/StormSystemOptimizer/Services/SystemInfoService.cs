@@ -110,13 +110,13 @@ namespace StormSystemOptimizer.Services
                 foreach (ManagementObject obj in searcher.Get())
                 {
                     cat.Add("Физические ядра", obj["NumberOfCores"]?.ToString() ?? "8");
-                    cat.Add("Базовая тактовая частота", $"{Convert.ToDouble(obj["MaxClockSpeed"] ?? 3600) / 1000.0:F2} ГГц");
+                    cat.Add("Базовая тактовая частота", $"{FormatHelper.FormatDouble(Convert.ToDouble(obj["MaxClockSpeed"] ?? 3600) / 1000.0, 2)} ГГц");
                     cat.Add("Разъем сокета", obj["SocketDesignation"]?.ToString() ?? "LGA1151 / AM4");
                     
                     if (obj["L3CacheSize"] is uint l3 && l3 > 0)
-                        cat.Add("Кэш L3", $"{l3 / 1024.0:F1} МБ");
+                        cat.Add("Кэш L3", $"{FormatHelper.FormatDouble(l3 / 1024.0, 1)} МБ");
                     if (obj["L2CacheSize"] is uint l2 && l2 > 0)
-                        cat.Add("Кэш L2", $"{l2 / 1024.0:F1} МБ");
+                        cat.Add("Кэш L2", $"{FormatHelper.FormatDouble(l2 / 1024.0, 1)} МБ");
                 }
             }
             catch { }
@@ -151,7 +151,7 @@ namespace StormSystemOptimizer.Services
                     {
                         cat.Add("Версия видеодрайвера", obj["DriverVersion"]?.ToString() ?? "582.66 WHQL");
                         var (vramGb, vramType) = GetGpuVramDetails();
-                        cat.Add("Объем видеопамяти (VRAM)", $"{vramGb:F0} ГБ {vramType}");
+                        cat.Add("Объем видеопамяти (VRAM)", $"{FormatHelper.FormatDouble(vramGb, 0)} ГБ {vramType}");
                         cat.Add("Текущий видеорежим", obj["VideoModeDescription"]?.ToString() ?? "3840 x 2160 x 4294967296 цветов");
                         break;
                     }
@@ -239,8 +239,8 @@ namespace StormSystemOptimizer.Services
             };
 
             var mem = HardwareMonitorService.Instance.GetCurrentMetrics();
-            cat.Add("Общий объем RAM", $"{mem.TotalRamGb:F1} ГБ");
-            cat.Add("Доступно физической памяти", $"{mem.FreeRamGb:F1} ГБ");
+            cat.Add("Общий объем RAM", $"{FormatHelper.FormatDouble(mem.TotalRamGb, 1)} ГБ");
+            cat.Add("Доступно физической памяти", $"{FormatHelper.FormatDouble(mem.FreeRamGb, 1)} ГБ");
 
             try
             {
@@ -596,7 +596,7 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine v1.0.5 • 100% Safe Optimization        ");
+            sb.AppendLine("         Сформировано через STORM Engine v1.0.6 • 100% Safe Optimization        ");
             sb.AppendLine("================================================================================");
             return sb.ToString();
         }
@@ -611,7 +611,7 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("td{padding:8px 0;border-bottom:1px solid #1F2937;}.prop{color:#94A3B8;width:40%;}.val{color:#F8FAFC;font-weight:bold;}");
             sb.AppendLine("</style></head><body>");
             sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER — Спецификация системы</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v1.0.5</p>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v1.0.6</p>");
 
             foreach (var cat in specs)
             {

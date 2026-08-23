@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
+using StormSystemOptimizer.Services;
 
 namespace StormSystemOptimizer.Models
 {
@@ -16,9 +17,11 @@ namespace StormSystemOptimizer.Models
         public string UninstallString { get; set; } = string.Empty;
         public string QuietUninstallString { get; set; } = string.Empty;
         public double EstimatedSizeMb { get; set; } = 0;
-        public string FormattedSize => EstimatedSizeMb >= 1024 ? $"{EstimatedSizeMb / 1024.0:F1} ГБ" : (EstimatedSizeMb > 0 ? $"{EstimatedSizeMb:F0} МБ" : "—");
+        public string FormattedSize => FormatHelper.FormatMegabytes(EstimatedSizeMb);
         public string AppType { get; set; } = "Программа"; // Игра, Программа, Windows Store, Системное
         public string DisplayIconPath { get; set; } = string.Empty;
+        public string RegistryKeyPath { get; set; } = string.Empty;
+        public string ManifestFilePath { get; set; } = string.Empty;
 
         [ObservableProperty]
         private bool _isSelected = false;
@@ -53,7 +56,7 @@ namespace StormSystemOptimizer.Models
                 }
                 if (ResidualFilesCount > 0 || ResidualRegistryCount > 0)
                 {
-                    return $"⚠️ Найдено {ResidualFilesCount} остаточных папок и {ResidualRegistryCount} ключей реестра ({ResidualSizeMb:F1} МБ)";
+                    return $"⚠️ Найдено {FormatHelper.FormatInt(ResidualFilesCount)} остаточных папок и {FormatHelper.FormatInt(ResidualRegistryCount)} ключей реестра ({FormatHelper.FormatDouble(ResidualSizeMb, 1)} МБ)";
                 }
                 return "✅ Остаточные следы не обнаружены / полностью зачищены";
             }

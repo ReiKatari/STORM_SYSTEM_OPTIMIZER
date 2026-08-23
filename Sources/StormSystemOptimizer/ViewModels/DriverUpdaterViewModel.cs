@@ -231,7 +231,7 @@ namespace StormSystemOptimizer.ViewModels
                                 DateString = di.LastWriteTime.ToString("dd.MM.yyyy HH:mm"),
                                 BackupType = "Бэкап драйверов (.inf)",
                                 FilePath = dir,
-                                SizeText = $"{infCount} пакетов ({mb:F0} МБ)",
+                                SizeText = $"{FormatHelper.FormatInt(infCount)} пакетов ({FormatHelper.FormatDouble(mb, 0)} МБ)",
                                 IsRestorePoint = false
                             });
                         }

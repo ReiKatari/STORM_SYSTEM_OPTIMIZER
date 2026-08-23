@@ -21,6 +21,18 @@
             <conv:NonNullToVisibilityConverter x:Key="NonNullToVisibilityConverter"/>
             <conv:BoolToContextMenuTextConverter x:Key="BoolToContextMenuTextConverter"/>
 
+            <!-- Global TextBox Style with Vivid Caret & Selection -->
+            <Style TargetType="TextBox">
+                <Setter Property="CaretBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
+                <Setter Property="SelectionBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
+                <Setter Property="SelectionOpacity" Value="0.4"/>
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="FontSize" Value="12.5"/>
+            </Style>
+
             <!-- Global Neon Solid Square CheckBox Style (No checkmarks, pure filled neon square) -->
             <Style TargetType="CheckBox">
                 <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>

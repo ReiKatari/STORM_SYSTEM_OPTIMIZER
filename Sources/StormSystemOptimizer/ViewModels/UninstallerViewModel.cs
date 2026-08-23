@@ -52,11 +52,15 @@ namespace StormSystemOptimizer.ViewModels
             _allApps = await SoftwareUninstallerService.Instance.GetInstalledAppsAsync();
 
             ApplyFilters();
-
-            double totalGb = _allApps.Sum(a => a.EstimatedSizeMb) / 1024.0;
-            StatsSummary = $"{_allApps.Count} программ и игр • {totalGb:F1} ГБ на дисках";
-            StatusText = $"Найдено {_allApps.Count} приложений в системе";
+            UpdateStatsSummary();
+            StatusText = $"Найдено {FormatHelper.FormatInt(_allApps.Count)} приложений в системе";
             IsBusy = false;
+        }
+
+        private void UpdateStatsSummary()
+        {
+            double totalGb = _allApps.Sum(a => a.EstimatedSizeMb) / 1024.0;
+            StatsSummary = $"{FormatHelper.FormatInt(_allApps.Count)} программ и игр • {FormatHelper.FormatDouble(totalGb, 1)} ГБ на дисках";
         }
 
         partial void OnSearchQueryChanged(string value) => ApplyFilters();
@@ -145,7 +149,7 @@ namespace StormSystemOptimizer.ViewModels
             if (item == null) return;
 
             var confirm = Controls.StormMessageBox.Show(
-                $"Вы действительно хотите полностью удалить «{item.DisplayName}»?\n\nБудет запущен деинсталлятор, после чего STORM автоматически зачистит все остаточные папки, кэш в AppData и ключи реестра.",
+                $"Вы действительно хотите полностью удалить «{item.DisplayName}»?\n\nБудет запущен штатный деинсталлятор, после чего STORM автоматически закроет зависшие процессы, удалит каталог установки, зачистит все остаточные папки в AppData/ProgramData и записи реестра.",
                 "Полное удаление программы",
                 System.Windows.MessageBoxButton.YesNo,
                 System.Windows.MessageBoxImage.Question);
@@ -157,10 +161,23 @@ namespace StormSystemOptimizer.ViewModels
 
             var (success, msg) = await SoftwareUninstallerService.Instance.DeepUninstallAsync(item);
             StatusText = msg;
+
+            // Immediately purge from UI collections so it instantly disappears
+            _allApps.RemoveAll(a => a.Id == item.Id || a.DisplayName.Equals(item.DisplayName, StringComparison.OrdinalIgnoreCase));
+            DisplayApps.Remove(item);
+            ApplyFilters();
+            UpdateStatsSummary();
+
             TrayService.Instance.ShowNotification("Деинсталляция программы 🗑️", msg);
             Controls.StormMessageBox.Show(msg, "Деинсталляция завершена", System.Windows.MessageBoxButton.OK, success ? System.Windows.MessageBoxImage.Information : System.Windows.MessageBoxImage.Warning);
 
-            await LoadAppsAsync();
+            // Rescan in background to ensure sync with system registry
+            await Task.Delay(400);
+            var refreshed = await SoftwareUninstallerService.Instance.GetInstalledAppsAsync();
+            _allApps = refreshed;
+            ApplyFilters();
+            UpdateStatsSummary();
+
             IsBusy = false;
         }
     }
