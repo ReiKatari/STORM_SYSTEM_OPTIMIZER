@@ -127,7 +127,7 @@ namespace StormSystemOptimizer.ViewModels
                     $"[{s.Category}] {s.Title}\r\n" +
                     $"  Рекомендуемое значение: {s.RecommendedValue}\r\n" +
                     $"  Прирост: {s.PerformanceImpact}\r\n" +
-                    $"  Путь в меню {MotherboardManufacturer}: {s.ActiveBoardPath(MotherboardManufacturer)}\r\n" +
+                    $"  Путь в меню вашей платы ({MotherboardManufacturer}): {s.ActiveBoardPath}\r\n" +
                     $"  Описание: {s.Explanation}\r\n" +
                     new string('-', 70));
 
@@ -156,7 +156,7 @@ namespace StormSystemOptimizer.ViewModels
                     <tr>
                         <td style='font-weight: bold; width: 40px; text-align: center;'>{idx + 1}</td>
                         <td style='width: 140px;'><span class='badge'>{s.Category}</span><br/><strong style='color:#0284c7;'>{s.Title}</strong></td>
-                        <td style='width: 160px; font-family: Consolas, monospace; font-size: 11px; background: #f8fafc;'>{s.ActiveBoardPath(MotherboardManufacturer)}</td>
+                        <td style='width: 160px; font-family: Consolas, monospace; font-size: 11px; background: #f8fafc;'>{s.ActiveBoardPath}</td>
                         <td style='width: 130px; font-weight: bold; color: #15803d;'>{s.RecommendedValue}</td>
                         <td style='width: 120px; color: #b45309; font-weight: 600;'>{s.PerformanceImpact}</td>
                         <td style='font-size: 11.5px; color: #334155;'>{s.Explanation}</td>

@@ -18,7 +18,7 @@ Write-Host "============================================================" -Foreg
 Write-Host " STORM SYSTEM OPTIMIZER v$appVersion - PRODUCTION BUILD PIPELINE " -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 
-$setupExePath = Join-Path $filesDir "StormSystemOptimizer_Setup_v$appVersion.exe"
+$setupExePath = Join-Path $filesDir "STORM_SYSTEM_OPTIMIZER_${appVersion}_Setup.exe"
 
 # Step 0: Terminate any running instances to release file locks
 Write-Host "[0/6] Closing running instances to release file locks..." -ForegroundColor Yellow
