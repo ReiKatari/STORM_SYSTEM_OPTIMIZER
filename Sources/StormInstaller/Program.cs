@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -19,7 +19,7 @@ namespace StormSystemOptimizer.Installer
         private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
-        private const string AppVersion = "1.0.4";
+        private const string AppVersion = "1.0.5";
         private const string DefaultInstallDir = @"C:\Program Files\StormSystemOptimizer";
         private const string ExeName = "StormSystemOptimizer.exe";
         private Button btnBrowse = null!;
@@ -67,7 +67,7 @@ namespace StormSystemOptimizer.Installer
 
         private void InitializeComponent()
         {
-            this.Text = "STORM SYSTEM OPTIMIZER v1.0.4 — Установка";
+            this.Text = "STORM SYSTEM OPTIMIZER v1.0.5 — Установка";
             this.Size = new Size(620, 520);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -86,7 +86,7 @@ namespace StormSystemOptimizer.Installer
 
             lblTitle = new Label
             {
-                Text = "⚡ STORM SYSTEM OPTIMIZER v1.0.4",
+                Text = "⚡ STORM SYSTEM OPTIMIZER v1.0.5",
                 Font = new Font("Segoe UI", 14f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(14, 165, 233),
                 AutoSize = true,
@@ -397,7 +397,7 @@ namespace StormSystemOptimizer.Installer
                     }
                 }
 
-                lblStatus.Text = "Распаковка исполняемых файлов программы (v1.0.4)...";
+                lblStatus.Text = "Распаковка исполняемых файлов программы (v1.0.5)...";
                 progressBar.Value = 65;
                 await Task.Delay(200);
 
@@ -593,7 +593,7 @@ namespace StormSystemOptimizer.Installer
                     shortcut.TargetPath = targetExe;
                     shortcut.WorkingDirectory = targetDir;
                     shortcut.IconLocation = targetIco + ",0";
-                    shortcut.Description = "STORM SYSTEM OPTIMIZER v1.0.4";
+                    shortcut.Description = "STORM SYSTEM OPTIMIZER v1.0.5";
                     shortcut.Save();
                 }
 
@@ -605,7 +605,7 @@ namespace StormSystemOptimizer.Installer
                     deskShortcut.TargetPath = targetExe;
                     deskShortcut.WorkingDirectory = targetDir;
                     deskShortcut.IconLocation = targetIco + ",0";
-                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v1.0.4";
+                    deskShortcut.Description = "STORM SYSTEM OPTIMIZER v1.0.5";
                     deskShortcut.Save();
                 }
             }
@@ -619,8 +619,8 @@ namespace StormSystemOptimizer.Installer
                 using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer");
                 if (key != null)
                 {
-                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v1.0.4");
-                    key.SetValue("DisplayVersion", "1.0.4");
+                    key.SetValue("DisplayName", "STORM SYSTEM OPTIMIZER v1.0.5");
+                    key.SetValue("DisplayVersion", "1.0.5");
                     key.SetValue("Publisher", "STORM TEAM");
                     key.SetValue("DisplayIcon", targetIco);
                     key.SetValue("InstallLocation", targetDir);

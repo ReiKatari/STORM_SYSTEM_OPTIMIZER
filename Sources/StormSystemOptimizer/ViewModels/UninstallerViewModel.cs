@@ -127,15 +127,38 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
+        public async Task CleanResidualsOnlyAsync(InstalledAppItem? item)
+        {
+            if (item == null) return;
+            IsBusy = true;
+            StatusText = $"Удаление остаточных следов для «{item.DisplayName}»...";
+
+            var (success, msg) = await SoftwareUninstallerService.Instance.CleanResidualsAsync(item);
+            StatusText = msg;
+            Controls.StormMessageBox.Show(msg, "Очистка хвостов", System.Windows.MessageBoxButton.OK, success ? System.Windows.MessageBoxImage.Information : System.Windows.MessageBoxImage.Warning);
+            IsBusy = false;
+        }
+
+        [RelayCommand]
         public async Task DeepUninstallAppAsync(InstalledAppItem? item)
         {
             if (item == null) return;
+
+            var confirm = Controls.StormMessageBox.Show(
+                $"Вы действительно хотите полностью удалить «{item.DisplayName}»?\n\nБудет запущен деинсталлятор, после чего STORM автоматически зачистит все остаточные папки, кэш в AppData и ключи реестра.",
+                "Полное удаление программы",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Question);
+
+            if (confirm != System.Windows.MessageBoxResult.Yes) return;
+
             IsBusy = true;
             StatusText = $"Запуск деинсталлятора «{item.DisplayName}»...";
 
             var (success, msg) = await SoftwareUninstallerService.Instance.DeepUninstallAsync(item);
             StatusText = msg;
             TrayService.Instance.ShowNotification("Деинсталляция программы 🗑️", msg);
+            Controls.StormMessageBox.Show(msg, "Деинсталляция завершена", System.Windows.MessageBoxButton.OK, success ? System.Windows.MessageBoxImage.Information : System.Windows.MessageBoxImage.Warning);
 
             await LoadAppsAsync();
             IsBusy = false;

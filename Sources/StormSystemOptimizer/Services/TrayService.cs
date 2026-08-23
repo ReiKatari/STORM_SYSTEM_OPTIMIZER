@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -122,7 +122,7 @@ namespace StormSystemOptimizer.Services
                     uFlags = NativeMethods.NIF_ICON | NativeMethods.NIF_TIP | NativeMethods.NIF_MESSAGE,
                     uCallbackMessage = WM_TRAYICON,
                     hIcon = hIcon,
-                    szTip = "STORM SYSTEM OPTIMIZER v1.0.4"
+                    szTip = "STORM SYSTEM OPTIMIZER v1.0.5"
                 };
 
                 _isCreated = NativeMethods.Shell_NotifyIcon(NativeMethods.NIM_ADD, ref _nid);

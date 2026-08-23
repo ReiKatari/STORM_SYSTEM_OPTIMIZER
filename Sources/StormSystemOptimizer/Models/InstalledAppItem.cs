@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Media;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace StormSystemOptimizer.Models
 {
-    public class InstalledAppItem
+    public partial class InstalledAppItem : ObservableObject
     {
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public string DisplayName { get; set; } = string.Empty;
@@ -18,16 +19,29 @@ namespace StormSystemOptimizer.Models
         public string FormattedSize => EstimatedSizeMb >= 1024 ? $"{EstimatedSizeMb / 1024.0:F1} ГБ" : (EstimatedSizeMb > 0 ? $"{EstimatedSizeMb:F0} МБ" : "—");
         public string AppType { get; set; } = "Программа"; // Игра, Программа, Windows Store, Системное
         public string DisplayIconPath { get; set; } = string.Empty;
-        public bool IsSelected { get; set; } = false;
+
+        [ObservableProperty]
+        private bool _isSelected = false;
 
         public ImageSource? IconSource { get; set; }
         public bool HasIcon => IconSource != null;
 
         // Residual info after scan
-        public bool IsScanned { get; set; } = false;
-        public int ResidualFilesCount { get; set; } = 0;
-        public int ResidualRegistryCount { get; set; } = 0;
-        public double ResidualSizeMb { get; set; } = 0;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ResidualStatusText))]
+        private bool _isScanned = false;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ResidualStatusText))]
+        private int _residualFilesCount = 0;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ResidualStatusText))]
+        private int _residualRegistryCount = 0;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(ResidualStatusText))]
+        private double _residualSizeMb = 0;
 
         public string ResidualStatusText
         {
