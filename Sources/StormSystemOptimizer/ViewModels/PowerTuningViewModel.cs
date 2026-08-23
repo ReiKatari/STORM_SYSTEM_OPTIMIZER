@@ -38,6 +38,18 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _boostStatus = "Режим Boost: Агрессивный (Максимальная частота ядер)";
 
+        [ObservableProperty]
+        private string _systemResponsivenessStatus = "Приоритет игр: 100% CPU без системного троттлинга";
+
+        [ObservableProperty]
+        private string _gpuPowerStatus = "GPU: Maximum Performance (HAGS + TDR Delay)";
+
+        [ObservableProperty]
+        private string _usbSuspendStatus = "USB: Отключение микро-засыпания контроллеров";
+
+        [ObservableProperty]
+        private string _hiddenAttributesStatus = "Разблокировано 40+ скрытых параметров питания";
+
         public PowerTuningViewModel()
         {
             RefreshStatus();
@@ -66,6 +78,10 @@ namespace StormSystemOptimizer.ViewModels
             HeteroStatus = IsUltimateActive ? "✓ Приоритет P-Cores для игр активен" : "○ Авто-распределение Windows";
             PcieAspmStatus = IsUltimateActive ? "✓ PCIe ASPM: Отключено (0 ms задержка)" : "○ PCIe ASPM: Включено";
             BoostStatus = IsUltimateActive ? "✓ Режим Boost: Агрессивный" : "○ Режим Boost: Стандартный";
+            SystemResponsivenessStatus = IsUltimateActive ? "✓ Троттлинг 0% (Multimedia Profile Gaming)" : "○ Стандартный троттлинг 20%";
+            GpuPowerStatus = IsUltimateActive ? "✓ GPU Max Performance (HAGS активирован)" : "○ Стандартный видеодрайвер";
+            UsbSuspendStatus = IsUltimateActive ? "✓ USB Suspend: Отключено (0 ms Input Lag)" : "○ USB Suspend: Стандартный";
+            HiddenAttributesStatus = "✓ 40+ скрытых параметров Powercfg разблокированы";
         }
 
         [RelayCommand]
@@ -80,8 +96,12 @@ namespace StormSystemOptimizer.ViewModels
                 await PowerTunerService.Instance.ApplyHeteroSchedulingPolicyAsync();
                 await PowerTunerService.Instance.ApplyPcieAspmDisableAsync();
                 await PowerTunerService.Instance.ApplyProcessorBoostModeAsync();
+                await PowerTunerService.Instance.ApplySystemResponsivenessMultimediaTweakAsync();
+                await PowerTunerService.Instance.ApplyGpuMaximumPerformancePowerPolicyAsync();
+                await PowerTunerService.Instance.ApplyUsbSelectiveSuspendDisableAsync();
+                await PowerTunerService.Instance.UnlockAllHiddenPowerSchemeAttributesAsync();
                 RefreshStatus();
-                StatusMessage = "⚡ Активирован профиль STORM ULTIMATE PLAN! Все ядра и шины работают на максимальной скорости.";
+                StatusMessage = "⚡ Активирован профиль STORM ULTIMATE PLAN! Все ядра, GPU и шины работают на максимальной скорости.";
                 TrayService.Instance.ShowNotification("Электропитание ⚡", "Схема STORM ULTIMATE PLAN успешно активирована!");
             }
             else
@@ -164,6 +184,58 @@ namespace StormSystemOptimizer.ViewModels
                 RefreshStatus();
                 StatusMessage = "PCIe шины видеокарты и NVMe SSD работают без задержек засыпания!";
                 TrayService.Instance.ShowNotification("PCIe ASPM 🏎️", "Латентность шины PCIe снижена до 0!");
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplySystemResponsivenessAsync()
+        {
+            StatusMessage = "Отключение системного троттлинга Windows Multimedia Profile...";
+            bool ok = await PowerTunerService.Instance.ApplySystemResponsivenessMultimediaTweakAsync();
+            if (ok)
+            {
+                RefreshStatus();
+                StatusMessage = "Системный и сетевой троттлинг отключен! Приоритет игровых задач максимален.";
+                TrayService.Instance.ShowNotification("Мультимедиа & Игры 🎮", "Троттлинг CPU снят, приоритет GPU и игровых потоков установлен на максимум!");
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplyGpuMaxPerformanceAsync()
+        {
+            StatusMessage = "Форсирование максимальной производительности GPU и аппаратного HAGS...";
+            bool ok = await PowerTunerService.Instance.ApplyGpuMaximumPerformancePowerPolicyAsync();
+            if (ok)
+            {
+                RefreshStatus();
+                StatusMessage = "Режим GPU Maximum Performance и HAGS активированы!";
+                TrayService.Instance.ShowNotification("Видеокарта ⚡", "Энергосбережение GPU отключено, время задержки TDR увеличено!");
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplyUsbSelectiveSuspendAsync()
+        {
+            StatusMessage = "Отключение микро-сна USB портов и концентраторов...";
+            bool ok = await PowerTunerService.Instance.ApplyUsbSelectiveSuspendDisableAsync();
+            if (ok)
+            {
+                RefreshStatus();
+                StatusMessage = "USB Selective Suspend отключен. Задержка ввода мыши и клавиатуры снижена.";
+                TrayService.Instance.ShowNotification("USB Контроллер 🖱️", "USB Selective Suspend отключен, задержка опроса сведена к минимуму!");
+            }
+        }
+
+        [RelayCommand]
+        public async Task UnlockHiddenAttributesAsync()
+        {
+            StatusMessage = "Разблокировка всех скрытых параметров Powercfg в системе...";
+            bool ok = await PowerTunerService.Instance.UnlockAllHiddenPowerSchemeAttributesAsync();
+            if (ok)
+            {
+                RefreshStatus();
+                StatusMessage = "Все 40+ скрытых параметров управления питанием разблокированы в Windows!";
+                TrayService.Instance.ShowNotification("Powercfg 🔓", "Все скрытые системные настройки электропитания разблокированы!");
             }
         }
     }

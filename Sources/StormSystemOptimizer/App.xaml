@@ -12,7 +12,10 @@
 
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <conv:InverseBoolToVisConverter x:Key="InverseBoolToVisConverter"/>
+            <conv:BoolToBrushConverter x:Key="BoolToBrushConverter"/>
+            <conv:BoolToBrushConverter x:Key="BoolToColorConverter"/>
             <conv:BoolNegationConverter x:Key="InvertBoolConverter"/>
             <conv:BoolNegationConverter x:Key="InverseBoolConverter"/>
             <conv:BoolNegationConverter x:Key="BoolNegationConverter"/>

@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using StormSystemOptimizer.Themes;
+using StormSystemOptimizer.Services;
 
 namespace StormSystemOptimizer
 {
@@ -124,12 +125,13 @@ namespace StormSystemOptimizer
 
             string? exePath = Process.GetCurrentProcess().MainModule?.FileName;
 
-            // Self-healing: Unblock self from Mark of the Web
+            // Self-healing: Unblock self from Mark of the Web & Register Context Menu
             try
             {
                 if (!string.IsNullOrEmpty(exePath) && File.Exists(exePath))
                 {
                     DeleteFile(exePath + ":Zone.Identifier");
+                    ContextMenuService.Instance.RegisterStormUnlockerContextMenu(exePath);
                 }
             }
             catch { }

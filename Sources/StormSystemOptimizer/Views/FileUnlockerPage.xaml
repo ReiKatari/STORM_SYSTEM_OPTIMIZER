@@ -23,7 +23,7 @@
                             <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoLock}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Разблокировка файлов и папок (STORM Unlocker)" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Разблокировка файлов и папок" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Снятие блокировок любых файлов и папок, удерживаемых системными процессами Windows, службами или скрытыми дескрипторами. Принудительное удаление, переименование, перемещение и завершение блокирующих задач."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
@@ -179,21 +179,21 @@
                         <Expander.Header>
                             <TextBlock Text="Почему Windows пишет «Файл уже используется другим процессом»?" VerticalAlignment="Center"/>
                         </Expander.Header>
-                        <TextBlock Text="Когда приложение или фоновая служба Windows открывает файл без флага FileShare.Delete или FileShare.ReadWrite, ядро NT запрещает любые модификации, удаление и перемещение. STORM Unlocker опрашивает системный диспетчер Restart Manager и закрывает блокирующие дескрипторы." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
+                        <TextBlock Text="Когда приложение или фоновая служба Windows открывает файл без флага FileShare.Delete или FileShare.ReadWrite, ядро NT запрещает любые модификации, удаление и перемещение. STORM опрашивает системный диспетчер Restart Manager и закрывает блокирующие дескрипторы." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
                     </Expander>
 
                     <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4">
                         <Expander.Header>
                             <TextBlock Text="Безопасно ли принудительное снятие блокировки?" VerticalAlignment="Center"/>
                         </Expander.Header>
-                        <TextBlock Text="Да. STORM Unlocker сбрасывает атрибуты только для чтения (Read-Only/System) и аккуратно выгружает зависшие дескрипторы. Если файл удерживается системным драйвером ядра, программа автоматически планирует удаление на момент следующей перезагрузки ОС через MoveFileEx." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
+                        <TextBlock Text="Да. STORM сбрасывает атрибуты только для чтения (Read-Only/System) и аккуратно выгружает зависшие дескрипторы. Если файл удерживается системным драйвером ядра, программа автоматически планирует удаление на момент следующей перезагрузки ОС через MoveFileEx." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
                     </Expander>
 
                     <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold">
                         <Expander.Header>
                             <TextBlock Text="Как использовать разблокировку из Проводника Windows?" VerticalAlignment="Center"/>
                         </Expander.Header>
-                        <TextBlock Text="Нажмите кнопку «Интеграция в контекстное меню». После этого вы сможете нажать правой кнопкой мыши по любому файлу или папке в Проводнике и выбрать «⚡ Разблокировать через STORM Optimizer»." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
+                        <TextBlock Text="Нажмите кнопку «Интеграция в контекстное меню». После этого при клике правой кнопкой мыши по любому файлу или папке в Windows 10 и Windows 11 будет доступен пункт «Разблокировать через STORM OPTIMIZER»." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
                     </Expander>
                 </StackPanel>
             </Border>
