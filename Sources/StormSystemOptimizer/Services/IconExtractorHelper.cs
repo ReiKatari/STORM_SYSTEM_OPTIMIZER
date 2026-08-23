@@ -174,14 +174,14 @@ namespace StormSystemOptimizer.Services
                 "epic" => (System.Windows.Media.Color.FromRgb(30, 41, 59), System.Windows.Media.Color.FromRgb(15, 23, 42), "⚡", System.Windows.Media.Color.FromRgb(241, 245, 249)),
                 "ea" => (System.Windows.Media.Color.FromRgb(225, 29, 72), System.Windows.Media.Color.FromRgb(159, 18, 57), "EA", System.Windows.Media.Color.FromRgb(255, 255, 255)),
                 "gog" => (System.Windows.Media.Color.FromRgb(124, 58, 237), System.Windows.Media.Color.FromRgb(76, 29, 149), "GOG", System.Windows.Media.Color.FromRgb(255, 255, 255)),
-                "battlenet" => (System.Windows.Media.Color.FromRgb(2, 132, 199), System.Windows.Media.Color.FromRgb(12, 74, 110), "⚔", System.Windows.Media.Color.FromRgb(255, 255, 255)),
-                "playnite" => (System.Windows.Media.Color.FromRgb(249, 115, 22), System.Windows.Media.Color.FromRgb(194, 65, 12), "🕹", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "battlenet" => (System.Windows.Media.Color.FromRgb(0, 116, 224), System.Windows.Media.Color.FromRgb(0, 59, 122), "BN", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "playnite" => (System.Windows.Media.Color.FromRgb(249, 115, 22), System.Windows.Media.Color.FromRgb(194, 65, 12), "PL", System.Windows.Media.Color.FromRgb(255, 255, 255)),
                 "retroarch" => (System.Windows.Media.Color.FromRgb(16, 185, 129), System.Windows.Media.Color.FromRgb(4, 120, 87), "👾", System.Windows.Media.Color.FromRgb(255, 255, 255)),
                 "discord" => (System.Windows.Media.Color.FromRgb(88, 101, 242), System.Windows.Media.Color.FromRgb(67, 76, 182), "💬", System.Windows.Media.Color.FromRgb(255, 255, 255)),
                 "ubisoft" => (System.Windows.Media.Color.FromRgb(6, 182, 212), System.Windows.Media.Color.FromRgb(14, 116, 144), "🌀", System.Windows.Media.Color.FromRgb(255, 255, 255)),
-                "vkplay" => (System.Windows.Media.Color.FromRgb(255, 51, 75), System.Windows.Media.Color.FromRgb(220, 20, 50), "▶", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "vkplay" => (System.Windows.Media.Color.FromRgb(255, 45, 85), System.Windows.Media.Color.FromRgb(217, 4, 41), "VK", System.Windows.Media.Color.FromRgb(255, 255, 255)),
                 "rockstar" => (System.Windows.Media.Color.FromRgb(245, 158, 11), System.Windows.Media.Color.FromRgb(180, 83, 9), "★", System.Windows.Media.Color.FromRgb(255, 255, 255)),
-                "launchbox" => (System.Windows.Media.Color.FromRgb(14, 165, 233), System.Windows.Media.Color.FromRgb(3, 105, 161), "📦", System.Windows.Media.Color.FromRgb(255, 255, 255)),
+                "launchbox" => (System.Windows.Media.Color.FromRgb(225, 29, 72), System.Windows.Media.Color.FromRgb(136, 19, 55), "LB", System.Windows.Media.Color.FromRgb(255, 255, 255)),
                 _ => (System.Windows.Media.Color.FromRgb(71, 85, 105), System.Windows.Media.Color.FromRgb(30, 41, 59), "🎮", System.Windows.Media.Color.FromRgb(255, 255, 255))
             };
 
