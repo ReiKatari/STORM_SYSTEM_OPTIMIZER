@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -19,7 +19,7 @@ namespace StormSystemOptimizer.Installer
         private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
-        private const string AppVersion = "1.0.7";
+        private const string AppVersion = "1.0.8";
         private const string DefaultInstallDir = @"C:\Program Files\StormSystemOptimizer";
         private const string ExeName = "StormSystemOptimizer.exe";
         private Button btnBrowse = null!;

