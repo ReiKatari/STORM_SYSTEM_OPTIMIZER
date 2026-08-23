@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>..\..\Files\AppIcon.ico</ApplicationIcon>
+    <AssemblyName>StormLauncher</AssemblyName>
+    <RootNamespace>StormLauncher</RootNamespace>
+    <Version>4.6.9</Version>
+    <AssemblyVersion>4.6.9.0</AssemblyVersion>
+    <FileVersion>4.6.9.0</FileVersion>
+    <Company>STORM TEAM</Company>
+    <Authors>STORM TEAM</Authors>
+    <Product>STORM SYSTEM OPTIMIZER</Product>
+    <Title>STORM SYSTEM OPTIMIZER</Title>
+    <Description>STORM SYSTEM OPTIMIZER Zero-UAC Fast Launcher</Description>
+    <Copyright>Copyright В© 2026 STORM TEAM</Copyright>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\Files\AppIcon.ico" Link="AppIcon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+</Project>
