@@ -264,13 +264,24 @@ namespace StormSystemOptimizer.Services
             try
             {
                 var dir = new DirectoryInfo(path);
-                foreach (var file in dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+                IEnumerable<FileInfo>? files = null;
+                try { files = dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly); } catch { }
+                if (files != null)
                 {
-                    try { size += file.Length; } catch { }
+                    foreach (var file in files)
+                    {
+                        try { size += file.Length; } catch { }
+                    }
                 }
-                foreach (var subDir in dir.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+
+                IEnumerable<DirectoryInfo>? subDirs = null;
+                try { subDirs = dir.EnumerateDirectories("*", SearchOption.TopDirectoryOnly); } catch { }
+                if (subDirs != null)
                 {
-                    size += SafeGetDirectorySize(subDir.FullName);
+                    foreach (var subDir in subDirs)
+                    {
+                        size += SafeGetDirectorySize(subDir.FullName);
+                    }
                 }
             }
             catch { }
@@ -284,19 +295,31 @@ namespace StormSystemOptimizer.Services
             try
             {
                 var dir = new DirectoryInfo(path);
-                foreach (var file in dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly))
+                IEnumerable<FileInfo>? files = null;
+                try { files = dir.EnumerateFiles("*", SearchOption.TopDirectoryOnly); } catch { }
+                if (files != null)
                 {
-                    try
+                    foreach (var file in files)
                     {
-                        file.Delete();
-                        count++;
+                        try
+                        {
+                            file.Attributes = FileAttributes.Normal;
+                            file.Delete();
+                            count++;
+                        }
+                        catch { }
                     }
-                    catch { }
                 }
-                foreach (var subDir in dir.EnumerateDirectories("*", SearchOption.TopDirectoryOnly))
+
+                IEnumerable<DirectoryInfo>? subDirs = null;
+                try { subDirs = dir.EnumerateDirectories("*", SearchOption.TopDirectoryOnly); } catch { }
+                if (subDirs != null)
                 {
-                    count += SafeCleanDirectory(subDir.FullName);
-                    try { subDir.Delete(false); } catch { }
+                    foreach (var subDir in subDirs)
+                    {
+                        count += SafeCleanDirectory(subDir.FullName);
+                        try { subDir.Delete(false); } catch { }
+                    }
                 }
             }
             catch { }
@@ -621,26 +644,64 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                item.CacheDirectories.Add(Path.Combine(root, "ShaderCache"));
-                item.CacheDirectories.Add(Path.Combine(root, "GrShaderCache"));
-                item.CacheDirectories.Add(Path.Combine(root, "DawnCache"));
-                item.CacheDirectories.Add(Path.Combine(root, "GraphiteDawnCache"));
+                string[] rootCaches = new[]
+                {
+                    "component_crx_cache",
+                    "extensions_crx_cache",
+                    "Crashpad",
+                    "BrowserMetrics",
+                    "DeferredBrowserMetrics",
+                    "ShaderCache",
+                    "GrShaderCache",
+                    "DawnCache",
+                    "GraphiteDawnCache"
+                };
+
+                foreach (var rc in rootCaches)
+                {
+                    string full = Path.Combine(root, rc);
+                    if (Directory.Exists(full)) item.CacheDirectories.Add(full);
+                }
 
                 foreach (var dir in Directory.EnumerateDirectories(root))
                 {
                     string dirName = Path.GetFileName(dir);
                     if (dirName.Equals("Default", StringComparison.OrdinalIgnoreCase) ||
                         dirName.StartsWith("Profile", StringComparison.OrdinalIgnoreCase) ||
-                        dirName.Equals("System Profile", StringComparison.OrdinalIgnoreCase))
+                        dirName.Equals("System Profile", StringComparison.OrdinalIgnoreCase) ||
+                        dirName.Equals("Guest Profile", StringComparison.OrdinalIgnoreCase))
                     {
                         item.ProfileCount++;
-                        item.CacheDirectories.Add(Path.Combine(dir, "Cache"));
-                        item.CacheDirectories.Add(Path.Combine(dir, @"Cache\Cache_Data"));
-                        item.CacheDirectories.Add(Path.Combine(dir, "GPUCache"));
-                        item.CacheDirectories.Add(Path.Combine(dir, "Code Cache"));
-                        item.CacheDirectories.Add(Path.Combine(dir, "DawnCache"));
-                        item.CacheDirectories.Add(Path.Combine(dir, @"Service Worker\CacheStorage"));
-                        item.CacheDirectories.Add(Path.Combine(dir, @"Service Worker\ScriptCache"));
+                        string[] profileCaches = new[]
+                        {
+                            "Cache",
+                            @"Cache\Cache_Data",
+                            "Code Cache",
+                            @"Code Cache\js",
+                            @"Code Cache\wasm",
+                            "GPUCache",
+                            "DawnCache",
+                            "DawnGraphiteCache",
+                            "DawnWebGPUCache",
+                            "Service Worker",
+                            @"Service Worker\CacheStorage",
+                            @"Service Worker\ScriptCache",
+                            "Storage",
+                            @"Storage\ext",
+                            "Shared Dictionary",
+                            @"Shared Dictionary\cache",
+                            "optimization_guide_hint_cache_store",
+                            "AutofillAiModelCache",
+                            "Media Cache",
+                            "Application Cache",
+                            "blob_storage"
+                        };
+
+                        foreach (var pc in profileCaches)
+                        {
+                            string full = Path.Combine(dir, pc);
+                            if (Directory.Exists(full)) item.CacheDirectories.Add(full);
+                        }
 
                         item.SqliteDatabases.Add(Path.Combine(dir, "History"));
                         item.SqliteDatabases.Add(Path.Combine(dir, "Web Data"));
@@ -903,11 +964,11 @@ namespace StormSystemOptimizer.Services
             string progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
             string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
-            // 1. LaunchBox & BigBox
+            // 1. LaunchBox
             var lb = new GameLauncherDetail
             {
                 Id = "launchbox",
-                Name = "LaunchBox и BigBox",
+                Name = "LaunchBox",
                 Category = "Медиатека игр и эмуляторов",
                 IconEmoji = "📦",
                 Description = "Фронтенд и медиатека ретро-игр, эмуляторов и ПК-коллекций. Поддержка BigBox 60+ FPS.",
@@ -924,13 +985,15 @@ namespace StormSystemOptimizer.Services
             }
             if (string.IsNullOrEmpty(lb.Path) && Directory.Exists(System.IO.Path.Combine(userProfile, "LaunchBox")))
                 lb.Path = System.IO.Path.Combine(userProfile, "LaunchBox");
+            if (string.IsNullOrEmpty(lb.Path) && Directory.Exists(System.IO.Path.Combine(appData, "LaunchBox")))
+                lb.Path = System.IO.Path.Combine(appData, "LaunchBox");
 
             if (!string.IsNullOrEmpty(lb.Path))
             {
                 lb.IsInstalled = true;
-                string exe1 = System.IO.Path.Combine(lb.Path, "BigBox.exe");
-                string exe2 = System.IO.Path.Combine(lb.Path, "LaunchBox.exe");
-                lb.ExePath = File.Exists(exe1) ? exe1 : exe2;
+                string exe1 = System.IO.Path.Combine(lb.Path, "LaunchBox.exe");
+                string exe2 = System.IO.Path.Combine(lb.Path, "BigBox.exe");
+                lb.ExePath = File.Exists(exe1) ? exe1 : (File.Exists(exe2) ? exe2 : "");
                 lb.CacheDirectories.AddRange(new[]
                 {
                     System.IO.Path.Combine(lb.Path, @"Images\Cache-3D"),
@@ -1074,11 +1137,11 @@ namespace StormSystemOptimizer.Services
                 });
             }
 
-            // 6. Battle.net (Blizzard)
+            // 6. Battle.net
             var bnet = new GameLauncherDetail
             {
                 Id = "battlenet",
-                Name = "Battle.net (Blizzard)",
+                Name = "Battle.net",
                 Category = "Игровая платформа",
                 IconEmoji = "⚔️",
                 Description = "Клиент Blizzard Activision. Очистка кэша браузера и дампов Agent.exe.",
@@ -1088,13 +1151,17 @@ namespace StormSystemOptimizer.Services
             {
                 string p1 = System.IO.Path.Combine(d, "Battle.net");
                 string p2 = System.IO.Path.Combine(d, "Program Files (x86)", "Battle.net");
+                string p3 = System.IO.Path.Combine(d, "Games", "Battle.net");
                 if (Directory.Exists(p1)) { bnet.Path = p1; break; }
                 if (Directory.Exists(p2)) { bnet.Path = p2; break; }
+                if (Directory.Exists(p3)) { bnet.Path = p3; break; }
             }
             if (!string.IsNullOrEmpty(bnet.Path))
             {
                 bnet.IsInstalled = true;
-                bnet.ExePath = System.IO.Path.Combine(bnet.Path, "Battle.net.exe");
+                string b1 = System.IO.Path.Combine(bnet.Path, "Battle.net Launcher.exe");
+                string b2 = System.IO.Path.Combine(bnet.Path, "Battle.net.exe");
+                bnet.ExePath = File.Exists(b1) ? b1 : (File.Exists(b2) ? b2 : "");
                 bnet.CacheDirectories.AddRange(new[]
                 {
                     System.IO.Path.Combine(localApp, @"Battle.net\Browser\Cache"),
@@ -1111,19 +1178,29 @@ namespace StormSystemOptimizer.Services
                 Category = "Игровой менеджер",
                 IconEmoji = "🕹️",
                 Description = "Универсальный менеджер видеоигр с поддержкой плагинов и эмуляторов.",
-                ProcessNames = new List<string> { "Playnite.DesktopApp", "Playnite.FullscreenApp" }
+                ProcessNames = new List<string> { "Playnite.DesktopApp", "Playnite.FullscreenApp", "Playnite" }
             };
             foreach (var d in drives)
             {
                 string p1 = System.IO.Path.Combine(d, "Playnite");
+                string p2 = System.IO.Path.Combine(d, "Games", "Playnite");
                 if (Directory.Exists(p1)) { playnite.Path = p1; break; }
+                if (Directory.Exists(p2)) { playnite.Path = p2; break; }
             }
             if (string.IsNullOrEmpty(playnite.Path) && Directory.Exists(System.IO.Path.Combine(localApp, "Playnite")))
                 playnite.Path = System.IO.Path.Combine(localApp, "Playnite");
+            if (string.IsNullOrEmpty(playnite.Path) && Directory.Exists(System.IO.Path.Combine(appData, "Playnite")))
+                playnite.Path = System.IO.Path.Combine(appData, "Playnite");
+            if (string.IsNullOrEmpty(playnite.Path) && Directory.Exists(System.IO.Path.Combine(progFiles, "Playnite")))
+                playnite.Path = System.IO.Path.Combine(progFiles, "Playnite");
+
             if (!string.IsNullOrEmpty(playnite.Path))
             {
                 playnite.IsInstalled = true;
-                playnite.ExePath = System.IO.Path.Combine(playnite.Path, "Playnite.DesktopApp.exe");
+                string pl1 = System.IO.Path.Combine(playnite.Path, "Playnite.DesktopApp.exe");
+                string pl2 = System.IO.Path.Combine(playnite.Path, "Playnite.FullscreenApp.exe");
+                string pl3 = System.IO.Path.Combine(playnite.Path, "Playnite.exe");
+                playnite.ExePath = File.Exists(pl1) ? pl1 : (File.Exists(pl2) ? pl2 : (File.Exists(pl3) ? pl3 : ""));
                 playnite.CacheDirectories.Add(System.IO.Path.Combine(localApp, @"Playnite\cache"));
             }
 

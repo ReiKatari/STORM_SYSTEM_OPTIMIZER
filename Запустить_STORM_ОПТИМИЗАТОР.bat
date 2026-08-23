@@ -1,6 +1,6 @@
-@echo off
+п»ї@echo off
 chcp 65001 >nul
-title STORM SYSTEM OPTIMIZER - Быстрый запуск
+title STORM SYSTEM OPTIMIZER - пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 
 net session >nul 2>&1
 if %errorLevel% neq 0 (
@@ -10,18 +10,18 @@ if %errorLevel% neq 0 (
 
 set "SCRIPT_DIR=%~dp0"
 
-:: Быстрое снятие меток блокировки
+:: пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '%SCRIPT_DIR%' -Recurse -Include *.exe,*.dll | ForEach-Object { Unblock-File -Path $_.FullName -ErrorAction SilentlyContinue }" >nul 2>&1
 
-:: Запуск установленной программы, установщика или портативной версии
+:: пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 if exist "C:\Program Files\StormSystemOptimizer\StormSystemOptimizer.exe" (
     start "" "C:\Program Files\StormSystemOptimizer\StormSystemOptimizer.exe"
-) else if exist "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe" (
-    start "" "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.7_Setup.exe"
+) else if exist "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.8_Setup.exe" (
+    start "" "%SCRIPT_DIR%Files\STORM_SYSTEM_OPTIMIZER_1.0.8_Setup.exe"
 ) else if exist "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe" (
     start "" "%SCRIPT_DIR%Assembling\StormSystemOptimizer.exe"
 ) else (
-    echo [!] Исполняемый файл не найден.
+    echo [!] пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.
     pause
 )
 
