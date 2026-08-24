@@ -288,7 +288,9 @@ namespace StormSystemOptimizer.ViewModels
             IsBusy = true;
             StatusText = "Экспорт всех установленных пакетов драйверов в бэкап...";
 
-            string backupDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "STORM_Drivers_Backup");
+            string baseBackupFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "STORM_OPTIMIZER", "Backups", "Drivers");
+            if (!Directory.Exists(baseBackupFolder)) Directory.CreateDirectory(baseBackupFolder);
+            string backupDir = Path.Combine(baseBackupFolder, $"STORM_Drivers_Backup_{DateTime.Now:yyyyMMdd_HHmmss}");
             var (success, msg) = await DriverUpdaterService.Instance.ExportAllDriversBackupAsync(backupDir);
 
             StatusText = msg;
