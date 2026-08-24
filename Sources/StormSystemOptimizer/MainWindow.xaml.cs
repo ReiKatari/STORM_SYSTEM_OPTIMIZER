@@ -165,69 +165,158 @@ namespace StormSystemOptimizer
 
         private void NavButton_Click(object sender, RoutedEventArgs e)
         {
-            if (MainContentFrame == null) return;
-
             if (sender is RadioButton rb && rb.Tag is string tag)
+            {
+                NavigateToTag(tag);
+            }
+        }
+
+        public void NavigateToTag(string tag)
+        {
+            if (MainContentFrame == null || string.IsNullOrEmpty(tag)) return;
+
+            try
             {
                 if (!_pageCache.TryGetValue(tag, out var page) || page == null)
                 {
-                    page = tag switch
-                    {
-                        "QuickMaintenance" => new QuickMaintenancePage(),
-                        "Dashboard" => new DashboardPage(),
-                        "Processes" => new ProcessesPage(),
-                        "Disks" => new DisksPage(),
-                        "Benchmarks" => new BenchmarksPage(),
-                        "Scanner" => new ScannerPage(),
-                        "Startup" => new StartupPage(),
-                        "Services" => new ServicesPage(),
-                        "Network" => new NetworkPage(),
-                        "Privacy" => new PrivacyPage(),
-                        "Uninstaller" => new UninstallerPage(),
-                        "FolderProtection" => new FolderProtectionPage(),
-                        "Drivers" => new DriverUpdaterPage(),
-                        "SoftwareUpdater" => new SoftwareUpdaterPage(),
-                        "SystemInfo" => new SystemInfoPage(),
-                        "BiosOptimizer" => new BiosOptimizerPage(),
-                        "SystemTools" => new SystemToolsPage(),
-                        "PowerTuning" => new PowerTuningPage(),
-                        "InputLag" => new InputLagPage(),
-                        "ContextMenu" => new ContextMenuPage(),
-                        "BackupVault" => new BackupVaultPage(),
-                        "ExplorerTweaks" => new ExplorerTweaksPage(),
-                        "BrowserTurbo" => new BrowserTurboPage(),
-                        "GameLaunchers" => new GameLaunchersPage(),
-                        "DefenderTweaker" => new DefenderTweakerPage(),
-                        "MemoryMaster" => new MemoryMasterPage(),
-                        "AudioLatency" => new AudioLatencyPage(),
-                        "UsbPolling" => new UsbPollingPage(),
-                        "UpdateComponent" => new UpdateComponentPage(),
-                        "VisualPerformance" => new VisualPerformancePage(),
-                        "BootProfiler" => new BootProfilerPage(),
-                        "FileUnlocker" => new FileUnlockerPage(),
-                        "Settings" => new SettingsPage(),
-                        _ => new DashboardPage()
-                    };
+                    page = CreatePageForTag(tag);
                     _pageCache[tag] = page;
                 }
 
                 MainContentFrame.Navigate(page);
+                SyncSidebarRadio(tag);
 
                 if (page is DisksPage dp && dp.DataContext is DisksViewModel dvm)
                 {
                     _ = dvm.LoadDrivesAsync();
                 }
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Не удалось открыть раздел: {ex.Message}", "Навигация", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private Page CreatePageForTag(string tag)
+        {
+            return tag switch
+            {
+                "QuickMaintenance" => new QuickMaintenancePage(),
+                "Dashboard" => new DashboardPage(),
+                "Processes" => new ProcessesPage(),
+                "Disks" => new DisksPage(),
+                "Benchmarks" => new BenchmarksPage(),
+                "Scanner" => new ScannerPage(),
+                "Startup" => new StartupPage(),
+                "Services" => new ServicesPage(),
+                "Network" => new NetworkPage(),
+                "Privacy" => new PrivacyPage(),
+                "Uninstaller" => new UninstallerPage(),
+                "FolderProtection" => new FolderProtectionPage(),
+                "Drivers" => new DriverUpdaterPage(),
+                "SoftwareUpdater" => new SoftwareUpdaterPage(),
+                "SystemInfo" => new SystemInfoPage(),
+                "BiosOptimizer" => new BiosOptimizerPage(),
+                "SystemTools" => new SystemToolsPage(),
+                "PowerTuning" => new PowerTuningPage(),
+                "InputLag" => new InputLagPage(),
+                "ContextMenu" => new ContextMenuPage(),
+                "BackupVault" => new BackupVaultPage(),
+                "ExplorerTweaks" => new ExplorerTweaksPage(),
+                "BrowserTurbo" => new BrowserTurboPage(),
+                "GameLaunchers" => new GameLaunchersPage(),
+                "DefenderTweaker" => new DefenderTweakerPage(),
+                "MemoryMaster" => new MemoryMasterPage(),
+                "AudioLatency" => new AudioLatencyPage(),
+                "UsbPolling" => new UsbPollingPage(),
+                "UpdateComponent" => new UpdateComponentPage(),
+                "VisualPerformance" => new VisualPerformancePage(),
+                "BootProfiler" => new BootProfilerPage(),
+                "FileUnlocker" => new FileUnlockerPage(),
+                "Settings" => new SettingsPage(),
+                _ => new DashboardPage()
+            };
+        }
+
+        private void SyncSidebarRadio(string tag)
+        {
+            try
+            {
+                foreach (var rb in FindVisualChildren<RadioButton>(this))
+                {
+                    if (rb.Tag is string rTag && rTag.Equals(tag, StringComparison.OrdinalIgnoreCase))
+                    {
+                        rb.IsChecked = true;
+                        break;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private static System.Collections.Generic.IEnumerable<T> FindVisualChildren<T>(System.Windows.DependencyObject depObj) where T : System.Windows.DependencyObject
+        {
+            if (depObj == null) yield break;
+            for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(depObj); i++)
+            {
+                var child = System.Windows.Media.VisualTreeHelper.GetChild(depObj, i);
+                if (child is T t) yield return t;
+                foreach (var childOfChild in FindVisualChildren<T>(child))
+                {
+                    yield return childOfChild;
+                }
+            }
+        }
+
+        private void TxtGlobalSearch_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            string q = TxtGlobalSearch.Text.Trim();
+            TxtSearchWatermark.Visibility = string.IsNullOrEmpty(q) ? Visibility.Visible : Visibility.Collapsed;
+            BtnClearSearch.Visibility = string.IsNullOrEmpty(q) ? Visibility.Collapsed : Visibility.Visible;
+
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                PopupSearchResults.IsOpen = false;
+                return;
+            }
+
+            var results = SearchIndexService.Instance.Search(q);
+            ListSearchResults.ItemsSource = results;
+            PopupSearchResults.IsOpen = results.Count > 0;
+        }
+
+        private void BtnClearSearch_Click(object sender, RoutedEventArgs e)
+        {
+            TxtGlobalSearch.Text = string.Empty;
+            PopupSearchResults.IsOpen = false;
+        }
+
+        private void TxtGlobalSearch_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == System.Windows.Input.Key.Escape)
+            {
+                TxtGlobalSearch.Text = string.Empty;
+                PopupSearchResults.IsOpen = false;
+            }
+        }
+
+        private void ListSearchResults_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ListSearchResults.SelectedItem is SearchResultItem item)
+            {
+                PopupSearchResults.IsOpen = false;
+                TxtGlobalSearch.Text = string.Empty;
+                NavigateToTag(item.TargetTag);
+            }
         }
 
         private void BtnCheckUpdates_Click(object sender, RoutedEventArgs e)
         {
-            MainContentFrame.Navigate(new SettingsPage());
+            NavigateToTag("Settings");
         }
 
         private void BtnMinimize_Click(object sender, RoutedEventArgs e)
         {
-            // Minimize to taskbar (normal minimize behavior)
             WindowState = WindowState.Minimized;
         }
 
@@ -238,8 +327,6 @@ namespace StormSystemOptimizer
 
         private void BtnClose_Click(object sender, RoutedEventArgs e)
         {
-            // This triggers the Closing event handler which will minimize to tray
-            // unless _isRealExit is true
             Close();
         }
     }

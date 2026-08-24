@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -23,7 +23,7 @@ namespace StormUniversal.Installer
         private PictureBox picHeaderLogo = null!;
         private Panel headerPanel = null!;
 
-        private const string AppVersion = "1.1.0";
+        private const string AppVersion = "1.1.1";
         private const string AppDisplayName = "STORM SYSTEM OPTIMIZER";
         private const string AppFolderName = "STORM SYSTEM OPTIMIZER";
         private const string ExeName = "StormSystemOptimizer.exe";

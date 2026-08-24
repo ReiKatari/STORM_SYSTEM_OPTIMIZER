@@ -98,7 +98,19 @@ namespace StormSystemOptimizer.Services
                     }
                     catch { }
 
-                    // 3. System Responsiveness (Multimedia Scheduling = 0 for 100% CPU to Games/Input)
+                    // 3. Port Queue Sizes (MouseDataQueueSize & KeyboardDataQueueSize)
+                    try
+                    {
+                        using var mouKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Services\mouclass\Parameters");
+                        mouKey?.SetValue("MouseDataQueueSize", 100, RegistryValueKind.DWord);
+
+                        using var kbdKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Services\kbdclass\Parameters");
+                        kbdKey?.SetValue("KeyboardDataQueueSize", 100, RegistryValueKind.DWord);
+                        appliedCount++;
+                    }
+                    catch { }
+
+                    // 4. System Responsiveness & Network Throttling
                     try
                     {
                         using var sysRespKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile");
@@ -111,7 +123,7 @@ namespace StormSystemOptimizer.Services
                     }
                     catch { }
 
-                    // 4. Windows Gaming Tasks Priority (GPU/Audio priority = High)
+                    // 5. Windows Gaming Tasks Priority
                     try
                     {
                         using var gameKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games");
@@ -126,7 +138,7 @@ namespace StormSystemOptimizer.Services
                     }
                     catch { }
 
-                    // 5. Disable Cursor Suppression
+                    // 6. Disable Cursor Suppression
                     try
                     {
                         using var winlogonKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon");
@@ -138,7 +150,7 @@ namespace StormSystemOptimizer.Services
                     }
                     catch { }
 
-                    // 6. USB Low Latency & Disable Selective Suspend
+                    // 7. USB Low Latency & Disable Selective Suspend
                     try
                     {
                         using var usbKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Services\USB");

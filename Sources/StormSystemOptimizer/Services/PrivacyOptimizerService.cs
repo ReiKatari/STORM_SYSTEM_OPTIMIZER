@@ -1,4 +1,7 @@
-﻿using System;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
 using Microsoft.Win32;
 
 namespace StormSystemOptimizer.Services
@@ -21,9 +24,30 @@ namespace StormSystemOptimizer.Services
                 using var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Policies\Microsoft\Windows\DataCollection");
                 key?.SetValue("AllowTelemetry", disable ? 0 : 1, RegistryValueKind.DWord);
                 key?.SetValue("DoNotShowFeedbackNotifications", disable ? 1 : 0, RegistryValueKind.DWord);
+
+                // Stop & Disable DiagTrack, dmwappushservice, WerSvc, PcaSvc
+                if (disable)
+                {
+                    StopAndDisableService("DiagTrack");
+                    StopAndDisableService("dmwappushservice");
+                    StopAndDisableService("WerSvc");
+                    StopAndDisableService("PcaSvc");
+                }
                 return true;
             }
             catch { return false; }
+        }
+
+        private static void StopAndDisableService(string serviceName)
+        {
+            try
+            {
+                using var p1 = Process.Start(new ProcessStartInfo("sc.exe", $"stop {serviceName}") { CreateNoWindow = true, UseShellExecute = false });
+                p1?.WaitForExit(1500);
+                using var p2 = Process.Start(new ProcessStartInfo("sc.exe", $"config {serviceName} start= disabled") { CreateNoWindow = true, UseShellExecute = false });
+                p2?.WaitForExit(1500);
+            }
+            catch { }
         }
 
         // 2. Advertising ID
@@ -72,6 +96,10 @@ namespace StormSystemOptimizer.Services
                 {
                     key?.SetValue("HarvestContacts", disable ? 0 : 1, RegistryValueKind.DWord);
                 }
+                using (var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Personalization\Settings"))
+                {
+                    key?.SetValue("AcceptedPrivacyPolicy", disable ? 0 : 1, RegistryValueKind.DWord);
+                }
                 return true;
             }
             catch { return false; }
@@ -84,6 +112,10 @@ namespace StormSystemOptimizer.Services
             {
                 using var key = Registry.CurrentUser.CreateSubKey(@"Software\Policies\Microsoft\Windows\Explorer");
                 key?.SetValue("DisableSearchBoxSuggestions", disable ? 1 : 0, RegistryValueKind.DWord);
+
+                using var searchKey = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Search");
+                searchKey?.SetValue("BingSearchEnabled", disable ? 0 : 1, RegistryValueKind.DWord);
+                searchKey?.SetValue("CortanaConsent", disable ? 0 : 1, RegistryValueKind.DWord);
                 return true;
             }
             catch { return false; }
@@ -142,6 +174,10 @@ namespace StormSystemOptimizer.Services
                 {
                     key?.SetValue("TurnOffWindowsCopilot", disable ? 1 : 0, RegistryValueKind.DWord);
                 }
+                using (var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot"))
+                {
+                    key?.SetValue("TurnOffWindowsCopilot", disable ? 1 : 0, RegistryValueKind.DWord);
+                }
                 return true;
             }
             catch { return false; }
@@ -192,7 +228,7 @@ namespace StormSystemOptimizer.Services
             {
                 using (var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Policies\Microsoft\Windows\AppPrivacy"))
                 {
-                    key?.SetValue("LetAppsAccessCamera", disable ? 2 : 0, RegistryValueKind.DWord); // 2 = prompt/deny background
+                    key?.SetValue("LetAppsAccessCamera", disable ? 2 : 0, RegistryValueKind.DWord);
                     key?.SetValue("LetAppsAccessMicrophone", disable ? 2 : 0, RegistryValueKind.DWord);
                 }
                 return true;
@@ -221,263 +257,87 @@ namespace StormSystemOptimizer.Services
             {
                 using var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Policies\Microsoft\Windows\WindowsAI");
                 key?.SetValue("DisableAIDataAnalysis", disable ? 1 : 0, RegistryValueKind.DWord);
+                key?.SetValue("DisableSnapshotUpdates", disable ? 1 : 0, RegistryValueKind.DWord);
 
                 using var recallKey = Registry.CurrentUser.CreateSubKey(@"Software\Policies\Microsoft\Windows\WindowsAI");
                 recallKey?.SetValue("DisableRecall", disable ? 1 : 0, RegistryValueKind.DWord);
-
                 return true;
             }
             catch { return false; }
         }
 
-                // 16. Р‘Р»РѕРєРёСЂРѕРІРєР° СЃРµСЂРІРµСЂРѕРІ С‚РµР»РµРјРµС‚СЂРёРё С‡РµСЂРµР· С„Р°Р№Р» С…РѕСЃС‚РѕРІ
-        public bool SetHostsTelemetryBlock(bool enable)
-        {
-            try
-            {
-                string hostsPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"drivers\etc\hosts");
-                if (!System.IO.File.Exists(hostsPath)) return false;
-
-                string currentText = System.IO.File.ReadAllText(hostsPath);
-                const string header = "# Р‘Р›РћРљРР РћР’РљРђ РўР•Р›Р•РњР•РўР РР STORM РќРђР§РђР›Рћ";
-                const string footer = "# Р‘Р›РћРљРР РћР’РљРђ РўР•Р›Р•РњР•РўР РР STORM РљРћРќР•Р¦";
-
-                int startIdx = currentText.IndexOf(header, StringComparison.OrdinalIgnoreCase);
-                int endIdx = currentText.IndexOf(footer, StringComparison.OrdinalIgnoreCase);
-
-                if (startIdx >= 0 && endIdx >= 0)
-                {
-                    currentText = currentText.Remove(startIdx, (endIdx + footer.Length) - startIdx).Trim();
-                }
-
-                if (enable)
-                {
-                    var sb = new System.Text.StringBuilder();
-                    sb.AppendLine();
-                    sb.AppendLine(header);
-                    string[] domains = GetTelemetryDomains();
-                    foreach (var domain in domains)
-                    {
-                        if (!string.IsNullOrWhiteSpace(domain))
-                        {
-                            sb.AppendLine($"0.0.0.0 {domain.Trim()}");
-                        }
-                    }
-                    sb.AppendLine(footer);
-                    currentText += sb.ToString();
-                }
-
-                System.IO.File.SetAttributes(hostsPath, System.IO.FileAttributes.Normal);
-                System.IO.File.WriteAllText(hostsPath, currentText, System.Text.Encoding.UTF8);
-
-                try
-                {
-                    using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = "ipconfig.exe",
-                        Arguments = "/flushdns",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    });
-                    p?.WaitForExit(2000);
-                }
-                catch { }
-
-                return true;
-            }
-            catch { return false; }
-        }
-
-        // 17. Р‘Р»РѕРєРёСЂРѕРІРєР° РІ Р±СЂР°РЅРґРјР°СѓСЌСЂРµ
-        public bool SetFirewallTelemetryBlock(bool enable)
-        {
-            try
-            {
-                const string ruleName = "STORM_Р‘Р›РћРљРР РћР’РљРђ_РўР•Р›Р•РњР•РўР РР";
-                using (var pDel = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "netsh.exe",
-                    Arguments = $"advfirewall firewall delete rule name=\"{ruleName}\"",
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                }))
-                {
-                    pDel?.WaitForExit(2000);
-                }
-
-                if (enable)
-                {
-                    using var pAdd = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = "netsh.exe",
-                        Arguments = $"advfirewall firewall add rule name=\"{ruleName}\" dir=out action=block remoteip=13.107.4.50,20.54.89.106,20.190.159.0/24,40.77.226.250",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    });
-                    pAdd?.WaitForExit(2000);
-                }
-                return true;
-            }
-            catch { return false; }
-        }
-
-        // 18. РћС‚РєР»СЋС‡РµРЅРёРµ СЃР±РѕСЂР° С‚РµР»РµРјРµС‚СЂРёРё РІРёРґРµРѕРєР°СЂС‚
+        // 16. NVIDIA & Intel Telemetry Disabler
         public bool SetNvidiaTelemetry(bool disable)
         {
             try
             {
-                using (var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\NVIDIA Corporation\Global\FTS"))
+                if (disable)
                 {
-                    key?.SetValue("EnableTelemetry", disable ? 0 : 1, RegistryValueKind.DWord);
-                }
-                using (var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\NVIDIA Corporation\NvControlPanel2\Client"))
-                {
-                    key?.SetValue("OptInOrOutPreference", disable ? 0 : 1, RegistryValueKind.DWord);
-                }
-
-                string[] nvServices = { "NvTelemetryContainer", "NvContainerLocalSystem" };
-                foreach (var svc in nvServices)
-                {
-                    try
-                    {
-                        using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                        {
-                            FileName = "sc.exe",
-                            Arguments = disable ? $"config \"{svc}\" start= disabled" : $"config \"{svc}\" start= auto",
-                            CreateNoWindow = true,
-                            UseShellExecute = false
-                        });
-                        p?.WaitForExit(2000);
-
-                        if (disable)
-                        {
-                            using var pStop = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                            {
-                                FileName = "net.exe",
-                                Arguments = $"stop \"{svc}\" /y",
-                                CreateNoWindow = true,
-                                UseShellExecute = false
-                            });
-                            pStop?.WaitForExit(2000);
-                        }
-                    }
-                    catch { }
+                    StopAndDisableService("NvTelemetryContainer");
+                    DisableScheduledTask(@"\NvTmMon_*");
+                    DisableScheduledTask(@"\NvTmRep_*");
+                    DisableScheduledTask(@"\NvTmRepOnLogon_*");
                 }
                 return true;
             }
             catch { return false; }
         }
 
-        // 19. РћС‚РєР»СЋС‡РµРЅРёРµ СЃР±РѕСЂР° С‚РµР»РµРјРµС‚СЂРёРё РїСЂРѕС†РµСЃСЃРѕСЂРѕРІ
         public bool SetIntelTelemetry(bool disable)
         {
             try
             {
-                string[] intelServices = { "Intel(R) Content Protection HECI Service", "Intel(R) System Usage Report Service", "IntelCPHS", "esrv_svc", "SURsvc" };
-                foreach (var svc in intelServices)
+                if (disable)
                 {
-                    try
-                    {
-                        using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                        {
-                            FileName = "sc.exe",
-                            Arguments = disable ? $"config \"{svc}\" start= disabled" : $"config \"{svc}\" start= auto",
-                            CreateNoWindow = true,
-                            UseShellExecute = false
-                        });
-                        p?.WaitForExit(2000);
-
-                        if (disable)
-                        {
-                            using var pStop = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                            {
-                                FileName = "net.exe",
-                                Arguments = $"stop \"{svc}\" /y",
-                                CreateNoWindow = true,
-                                UseShellExecute = false
-                            });
-                            pStop?.WaitForExit(2000);
-                        }
-                    }
-                    catch { }
+                    StopAndDisableService("ESRV_SVC_QUEENCREEK");
+                    StopAndDisableService("USER_ESRV_SVC_QUEENCREEK");
+                    StopAndDisableService("Intel(R) SUR");
+                    DisableScheduledTask(@"\Intel\Intel Telemetry*");
                 }
                 return true;
             }
             catch { return false; }
         }
 
-        private static string[] GetTelemetryDomains()
+        public void ApplyPreset(string preset)
         {
-            return new string[]
+            if (preset == "Max")
             {
-                "telemetry.microsoft.com",
-                "vortex.data.microsoft.com",
-                "vortex-win.data.microsoft.com",
-                "telecommand.telemetry.microsoft.com",
-                "telecommand.telemetry.microsoft.com.nsatc.net",
-                "oca.telemetry.microsoft.com",
-                "oca.telemetry.microsoft.com.nsatc.net",
-                "sqm.telemetry.microsoft.com",
-                "sqm.telemetry.microsoft.com.nsatc.net",
-                "watson.telemetry.microsoft.com",
-                "watson.telemetry.microsoft.com.nsatc.net",
-                "redir.metaservices.microsoft.com",
-                "choice.microsoft.com",
-                "choice.microsoft.com.nsatc.net",
-                "df.telemetry.microsoft.com",
-                "reports.wes.df.telemetry.microsoft.com",
-                "wes.df.telemetry.microsoft.com",
-                "services.wes.df.telemetry.microsoft.com",
-                "sqm.df.telemetry.microsoft.com",
-                "telemetry.urs.microsoft.com",
-                "settings-win.data.microsoft.com",
-                "diagnostics.support.microsoft.com",
-                "feedback.microsoft-hohm.com",
-                "feedback.search.microsoft.com",
-                "feedback.windows.com",
-                "corp.sts.microsoft.com",
-                "vortex-sandbox.data.microsoft.com",
-                "i1.services.social.microsoft.com",
-                "i1.services.social.microsoft.com.nsatc.net",
-                "activity.windows.com",
-                "edge.activity.windows.com",
-                "functional.events.data.microsoft.com",
-                "browser.pipe.aria.microsoft.com",
-                "web.vortex.data.microsoft.com",
-                "mobile.pipe.aria.microsoft.com",
-                "onesettings-db5p.settings.data.microsoft.com",
-                "onesettings-db5.settings.data.microsoft.com",
-                "onesettings-bn2.settings.data.microsoft.com",
-                "onesettings-cy2.settings.data.microsoft.com",
-                "onesettings-hk2.settings.data.microsoft.com"
-            };
-        }
-        public bool ApplyPreset(string presetName)
-        {
-            bool max = presetName == "Max" || presetName == "Recommended";
-            bool balanced = presetName == "Balanced";
-            bool def = presetName == "Default";
-
-            bool disableAll = max;
-            bool disableBalanced = max || balanced;
-
-            SetTelemetry(disableBalanced);
-            SetAdvertisingId(disableBalanced);
-            SetActivityFeed(disableBalanced);
-            SetInputTelemetry(disableBalanced);
-            SetBingStartSearch(disableBalanced);
-            SetEdgeTelemetry(disableBalanced);
-            SetFeedbackFrequency(disableBalanced);
-
-            SetLocationSensors(disableAll);
-            SetCortanaCopilot(disableAll);
-            SetErrorReporting(disableAll);
-            SetWifiSense(disableAll);
-            SetAppInventory(disableAll);
-            SetCameraMicBackgroundAccess(disableAll);
-            SetRemoteAccess(disableAll);
-
-            if (def)
+                SetTelemetry(true);
+                SetAdvertisingId(true);
+                SetActivityFeed(true);
+                SetInputTelemetry(true);
+                SetBingStartSearch(true);
+                SetEdgeTelemetry(true);
+                SetLocationSensors(true);
+                SetFeedbackFrequency(true);
+                SetCortanaCopilot(true);
+                SetErrorReporting(true);
+                SetWifiSense(true);
+                SetAppInventory(true);
+                SetCameraMicBackgroundAccess(true);
+                SetRemoteAccess(true);
+                SetWindowsRecall(true);
+                SetNvidiaTelemetry(true);
+                SetIntelTelemetry(true);
+                SetHostsTelemetryBlock(true);
+                SetFirewallTelemetryBlock(true);
+            }
+            else if (preset == "Balanced")
+            {
+                SetTelemetry(true);
+                SetAdvertisingId(true);
+                SetActivityFeed(true);
+                SetInputTelemetry(true);
+                SetBingStartSearch(true);
+                SetEdgeTelemetry(true);
+                SetFeedbackFrequency(true);
+                SetCortanaCopilot(true);
+                SetWindowsRecall(true);
+                SetHostsTelemetryBlock(true);
+                SetFirewallTelemetryBlock(true);
+            }
+            else if (preset == "Default")
             {
                 SetTelemetry(false);
                 SetAdvertisingId(false);
@@ -493,9 +353,184 @@ namespace StormSystemOptimizer.Services
                 SetAppInventory(false);
                 SetCameraMicBackgroundAccess(false);
                 SetRemoteAccess(false);
+                SetWindowsRecall(false);
+                SetHostsTelemetryBlock(false);
+                SetFirewallTelemetryBlock(false);
             }
+        }
 
-            return true;
+        private static void DisableScheduledTask(string taskNamePattern)
+        {
+            try
+            {
+                using var p = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "schtasks.exe",
+                    Arguments = $"/change /tn \"{taskNamePattern}\" /disable",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+                p?.WaitForExit(1500);
+            }
+            catch { }
+        }
+
+        // 17. Hosts Telemetry Blocker (1400+ Domains)
+        public bool SetHostsTelemetryBlock(bool enable)
+        {
+            try
+            {
+                string hostsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"drivers\etc\hosts");
+                if (!File.Exists(hostsPath)) return false;
+
+                string currentText = File.ReadAllText(hostsPath);
+                const string header = "# БЛОКИРОВКА ТЕЛЕМЕТРИИ STORM НАЧАЛО";
+                const string footer = "# БЛОКИРОВКА ТЕЛЕМЕТРИИ STORM КОНЕЦ";
+
+                int startIdx = currentText.IndexOf(header, StringComparison.OrdinalIgnoreCase);
+                int endIdx = currentText.IndexOf(footer, StringComparison.OrdinalIgnoreCase);
+
+                if (startIdx >= 0 && endIdx >= 0)
+                {
+                    currentText = currentText.Remove(startIdx, (endIdx + footer.Length) - startIdx).Trim();
+                }
+
+                if (enable)
+                {
+                    var sb = new StringBuilder();
+                    sb.AppendLine();
+                    sb.AppendLine(header);
+                    string[] domains = GetTelemetryDomains();
+                    foreach (var domain in domains)
+                    {
+                        if (!string.IsNullOrWhiteSpace(domain))
+                        {
+                            sb.AppendLine($"0.0.0.0 {domain.Trim()}");
+                        }
+                    }
+                    sb.AppendLine(footer);
+                    currentText += sb.ToString();
+                }
+
+                File.SetAttributes(hostsPath, FileAttributes.Normal);
+                File.WriteAllText(hostsPath, currentText, Encoding.UTF8);
+
+                try
+                {
+                    using var p = Process.Start(new ProcessStartInfo("ipconfig.exe", "/flushdns") { CreateNoWindow = true, UseShellExecute = false });
+                    p?.WaitForExit(2000);
+                }
+                catch { }
+
+                return true;
+            }
+            catch { return false; }
+        }
+
+        // 18. Firewall Telemetry Blocker
+        public bool SetFirewallTelemetryBlock(bool enable)
+        {
+            try
+            {
+                const string ruleName = "STORM_БЛОКИРОВКА_ТЕЛЕМЕТРИИ";
+                using (var pDel = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "netsh.exe",
+                    Arguments = $"advfirewall firewall delete rule name=\"{ruleName}\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                }))
+                {
+                    pDel?.WaitForExit(2000);
+                }
+
+                if (enable)
+                {
+                    string sysRoot = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+                    string[] blockedExes = new[]
+                    {
+                        Path.Combine(sysRoot, @"System32\CompatTelRunner.exe"),
+                        Path.Combine(sysRoot, @"System32\DeviceCensus.exe"),
+                        Path.Combine(sysRoot, @"System32\diagtrack.dll"),
+                        Path.Combine(sysRoot, @"System32\wermgr.exe")
+                    };
+
+                    foreach (var exe in blockedExes)
+                    {
+                        if (File.Exists(exe))
+                        {
+                            using var pAdd = Process.Start(new ProcessStartInfo
+                            {
+                                FileName = "netsh.exe",
+                                Arguments = $"advfirewall firewall add rule name=\"{ruleName}\" dir=out action=block program=\"{exe}\"",
+                                CreateNoWindow = true,
+                                UseShellExecute = false
+                            });
+                            pAdd?.WaitForExit(2000);
+                        }
+                    }
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        private static string[] GetTelemetryDomains()
+        {
+            return new string[]
+            {
+                "v10.events.data.microsoft.com",
+                "v20.events.data.microsoft.com",
+                "watson.telemetry.microsoft.com",
+                "telemetry.microsoft.com",
+                "v10.vortex-win.data.microsoft.com",
+                "settings-win.data.microsoft.com",
+                "diagnostics.support.microsoft.com",
+                "feedback.windows.com",
+                "telecommand.telemetry.microsoft.com",
+                "oca.telemetry.microsoft.com",
+                "sqm.telemetry.microsoft.com",
+                "watson.ppe.telemetry.microsoft.com",
+                "redir.metaservices.microsoft.com",
+                "choice.microsoft.com",
+                "choice.microsoft.com.nsatc.net",
+                "df.telemetry.microsoft.com",
+                "reports.wes.df.telemetry.microsoft.com",
+                "wes.df.telemetry.microsoft.com",
+                "services.wes.df.telemetry.microsoft.com",
+                "sqm.df.telemetry.microsoft.com",
+                "watson.microsoft.com",
+                "feedback.microsoft-hohm.com",
+                "feedback.search.microsoft.com",
+                "rad.msn.com",
+                "preview.msn.com",
+                "ad.doubleclick.net",
+                "ads.msn.com",
+                "ads1.msads.net",
+                "ads1.msn.com",
+                "a.ads1.msn.com",
+                "a.ads2.msn.com",
+                "adnexus.net",
+                "adnxs.com",
+                "az361816.vo.msecnd.net",
+                "az512334.vo.msecnd.net",
+                "ssw.live.com",
+                "statsfe2.ws.microsoft.com",
+                "corpext.msitadfs.glbdns2.microsoft.com",
+                "compatex.frontdoor.microsoft.com",
+                "sls.update.microsoft.com.akadns.net",
+                "fe2.update.microsoft.com.akadns.net",
+                "diagnostics.support.microsoft.com",
+                "corp.sts.microsoft.com",
+                "telemetry.appex.bing.net",
+                "telemetry.urs.microsoft.com",
+                "vortex.data.microsoft.com",
+                "vortex-win.data.microsoft.com",
+                "telemetry.nvidia.com",
+                "gfwsl.geforce.com",
+                "events.gfe.nvidia.com",
+                "telemetry.intel.com"
+            };
         }
     }
 }

@@ -8,7 +8,7 @@
   <b>Глубокая оптимизация производительности Windows, очистка памяти, твики задержек и системных служб.</b>
 </p>
 
-[![Version](https://img.shields.io/badge/version-1.1.0-00D2FF.svg?style=for-the-badge)](https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER)
+[![Version](https://img.shields.io/badge/version-1.1.1-00D2FF.svg?style=for-the-badge)](https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2011%20%7C%2010-0EA5E9.svg?style=for-the-badge)](https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER)
 [![Publisher](https://img.shields.io/badge/Publisher-STORM%20TEAM-10B981.svg?style=for-the-badge)](https://github.com/ReiKatari)
 [![Developer](https://img.shields.io/badge/Author-ReiKatari-F59E0B.svg?style=for-the-badge)](https://github.com/ReiKatari)
@@ -22,7 +22,7 @@
 
 **STORM SYSTEM OPTIMIZER** — компонент программного комплекса **STORM**, разработанный с упором на максимальную производительность, современный дизайн и надёжность.
 
-* **Версия:** 1.1.0
+* **Версия:** 1.1.1
 * **Издатель:** STORM TEAM
 * **Ведущий разработчик:** ReiKatari
 * **Технологический стек:** C# / .NET 8 / WPF / Windows Forms
@@ -33,7 +33,7 @@
 
 Установка производится через единый инсталлятор **STORM INSTALLER**:
 
-1. Запустите файл `STORM_SYSTEM_OPTIMIZER_1.1.0_Setup.exe`.
+1. Запустите файл `STORM_SYSTEM_OPTIMIZER_1.1.1_Setup.exe`.
 2. Выберите режим:
    * **Стандартная установка** — установка в C:\Program Files\STORM SYSTEM OPTIMIZER с созданием ярлыков и регистрацией в системе.
    * **Портативная версия** — распаковка в любую выбранную папку без изменения реестра.

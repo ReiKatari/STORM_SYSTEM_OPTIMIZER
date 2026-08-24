@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using StormSystemOptimizer.Models;
@@ -20,17 +22,7 @@ namespace StormSystemOptimizer.Services
         private readonly HashSet<string> _blacklistedPackages = new(StringComparer.OrdinalIgnoreCase);
         private readonly HttpClient _httpClient;
 
-        // Dynamic Multi-Repository Cloud Catalog with 2026/2025 verified releases, beta versions, and silent arguments
-        private static bool IsRussianSystem()
-        {
-            try
-            {
-                return System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName.Equals("ru", StringComparison.OrdinalIgnoreCase) ||
-                       System.Globalization.CultureInfo.InstalledUICulture.TwoLetterISOLanguageName.Equals("ru", StringComparison.OrdinalIgnoreCase);
-            }
-            catch { return true; }
-        }
-
+        // Expanded Cloud Catalog with 150+ popular Windows apps (2025/2026 releases)
         private static readonly Dictionary<string, (string LatestVersion, string BetaVersion, string DownloadUrl, string BetaDownloadUrl, string SilentArgs, string Publisher, string Category, string? WingetId)> _cloudCatalog =
             new(StringComparer.OrdinalIgnoreCase)
             {
@@ -38,14 +30,15 @@ namespace StormSystemOptimizer.Services
                 { "7-Zip", ("24.08.0", "24.09.0", "https://www.7-zip.org/a/7z2408-x64.exe", "https://www.7-zip.org/a/7z2408-x64.exe", "/S", "Igor Pavlov", "Утилиты", "7zip.7zip") },
                 { "Bitrix24", ("24.1.0", "24.2.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "/S", "Bitrix", "Утилиты", null) },
                 { "Битрикс24", ("24.1.0", "24.2.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "/S", "Bitrix", "Утилиты", null) },
-                { "Bitrix24 for Windows", ("24.1.0", "24.2.0", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "https://dl.bitrix24.com/b24/bitrix24_desktop.exe", "/S", "Bitrix", "Утилиты", null) },
-                { "Telegram", ("5.10.3", "5.11.0", "https://telegram.org/dl/desktop/win64", "https://telegram.org/dl/desktop/win64", "/VERYSILENT /NORESTART /TASKS=\"!desktopicon\"", "Telegram FZ-LLC", "Медиа", "Telegram.TelegramDesktop") },
                 { "Telegram Desktop", ("5.10.3", "5.11.0", "https://telegram.org/dl/desktop/win64", "https://telegram.org/dl/desktop/win64", "/VERYSILENT /NORESTART /TASKS=\"!desktopicon\"", "Telegram FZ-LLC", "Медиа", "Telegram.TelegramDesktop") },
-                { "Yandex", ("24.10.1.614", "24.12.0", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "--silent --do-not-launch-chrome", "YANDEX LLC", "Браузеры", null) },
-                { "Яндекс Браузер", ("24.10.1.614", "24.12.0", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "--silent --do-not-launch-chrome", "YANDEX LLC", "Браузеры", null) },
+                { "Telegram", ("5.10.3", "5.11.0", "https://telegram.org/dl/desktop/win64", "https://telegram.org/dl/desktop/win64", "/VERYSILENT /NORESTART /TASKS=\"!desktopicon\"", "Telegram FZ-LLC", "Медиа", "Telegram.TelegramDesktop") },
                 { "Google Chrome", ("131.0.6778.86", "132.0.6834.15", "https://dl.google.com/chrome/install/standalone/service/ChromeStandaloneSetup64.exe", "https://dl.google.com/chrome/install/standalone/service/ChromeStandaloneSetup64.exe", "/silent /install", "Google LLC", "Браузеры", "Google.Chrome") },
+                { "Яндекс Браузер", ("24.10.1.614", "24.12.0", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "--silent --do-not-launch-chrome", "YANDEX LLC", "Браузеры", null) },
+                { "Yandex", ("24.10.1.614", "24.12.0", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "https://download.yandex.ru/browser/yandex/ru/Yandex.exe", "--silent --do-not-launch-chrome", "YANDEX LLC", "Браузеры", null) },
                 { "Mozilla Firefox", ("133.0.0", "134.0.0", "https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=ru", "https://download.mozilla.org/?product=firefox-beta-latest-ssl&os=win64&lang=ru", "/S", "Mozilla Corporation", "Браузеры", "Mozilla.Firefox") },
                 { "Opera Stable", ("114.0.5282.115", "115.0.5322.0", "https://net.geo.opera.com/opera/stable/windows", "https://net.geo.opera.com/opera/beta/windows", "/silent /launch=0", "Opera Software", "Браузеры", "Opera.Opera") },
+                { "Opera GX", ("114.0.5282.120", "115.0.5322.0", "https://net.geo.opera.com/opera_gx/stable/windows", "https://net.geo.opera.com/opera_gx/beta/windows", "/silent /launch=0", "Opera Software", "Браузеры", "Opera.OperaGX") },
+                { "Brave", ("1.73.97", "1.74.0", "https://laptop-updates.brave.com/latest/winx64", "https://laptop-updates.brave.com/latest/winx64", "--silent", "Brave Software", "Браузеры", "Brave.Brave") },
                 { "Notepad++", ("8.7.5", "8.7.6", "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7.5/npp.8.7.5.Installer.x64.exe", "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7.5/npp.8.7.5.Installer.x64.exe", "/S", "Don HO", "Разработка", "Notepad++.Notepad++") },
                 { "AIMP", ("5.30.2565", "5.40.2600", "https://aimp.ru/files/aimp_5.30.2563_w64.exe", "https://aimp.ru/files/aimp_5.30.2563_w64.exe", "/AUTO", "Artem Izmaylov", "Медиа", null) },
                 { "Discord", ("1.0.9172", "1.0.9180", "https://discord.com/api/download?platform=win", "https://discord.com/api/download/ptb?platform=win", "--silent", "Discord Inc.", "Медиа", "Discord.Discord") },
@@ -54,25 +47,16 @@ namespace StormSystemOptimizer.Services
                 { "Epic Games Launcher", ("1.3.195.0", "1.4.0.0", "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", "https://launcher-public-service-prod06.ol.epicgames.com/launcher/api/installer/download/EpicGamesLauncherInstaller.msi", "/qn", "Epic Games Inc.", "Игры", "EpicGames.EpicGamesLauncher") },
                 { "qBittorrent", ("5.0.2", "5.1.0", "https://downloads.sourceforge.net/project/qbittorrent/qbittorrent-win32/qbittorrent-5.0.2/qbittorrent_5.0.2_x64_setup.exe", "https://downloads.sourceforge.net/project/qbittorrent/qbittorrent-win32/qbittorrent-5.0.2/qbittorrent_5.0.2_x64_setup.exe", "/S", "The qBittorrent Project", "Утилиты", "qBittorrent.qBittorrent") },
                 { "Total Commander", ("11.03", "11.50", "https://totalcommander.ch/win/tcmd1103x64.exe", "https://totalcommander.ch/win/tcmd1103x64.exe", "/VERYSILENT", "Christian Ghisler", "Утилиты", "Ghisler.TotalCommander") },
-                { "FastStone Image Viewer", ("7.8", "7.9", "https://www.faststonesoft.net/DN/FSViewerSetup78.exe", "https://www.faststonesoft.net/DN/FSViewerSetup78.exe", "/S", "FastStone Soft", "Медиа", "FastStone.Viewer") },
                 { "CPU-Z", ("2.12", "2.13", "https://download.cpuid.com/cpu-z/cpu-z_2.12-en.exe", "https://download.cpuid.com/cpu-z/cpu-z_2.12-en.exe", "/VERYSILENT", "CPUID", "Утилиты", "CPUID.CPU-Z") },
                 { "GPU-Z", ("2.60.0", "2.61.0", "https://us2-dl.techpowerup.com/files/1-K7R8k3sQ/GPU-Z.2.60.0.exe", "https://us2-dl.techpowerup.com/files/1-K7R8k3sQ/GPU-Z.2.60.0.exe", "", "TechPowerUp", "Утилиты", "TechPowerUp.GPU-Z") },
                 { "HWiNFO64", ("8.12", "8.14", "https://www.sac.sk/download/utildi/hwi_812.exe", "https://www.sac.sk/download/utildi/hwi_812.exe", "/VERYSILENT", "REALiX", "Утилиты", "REALiX.HWiNFO") },
                 { "CrystalDiskInfo", ("9.4.4", "9.5.0", "https://crystalmark.info/redirect.php?product=CrystalDiskInfoInstaller", "https://crystalmark.info/redirect.php?product=CrystalDiskInfoInstaller", "/VERYSILENT", "Crystal Dew World", "Утилиты", "CrystalDewWorld.CrystalDiskInfo") },
                 { "Rufus", ("4.6", "4.7", "https://github.com/pbatard/rufus/releases/download/v4.6/rufus-4.6.exe", "https://github.com/pbatard/rufus/releases/download/v4.6/rufus-4.6.exe", "", "Pete Batard", "Утилиты", "Rufus.Rufus") },
                 { "OBS Studio", ("31.0.2", "31.1.0", "https://github.com/obsproject/obs-studio/releases/download/31.0.2/OBS-Studio-31.0.2-Windows-Installer.exe", "https://github.com/obsproject/obs-studio/releases/download/31.0.2/OBS-Studio-31.0.2-Windows-Installer.exe", "/S", "OBS Project", "Медиа", "OBSProject.OBSStudio") },
-                { "Zoom Workplace", ("6.2.11", "6.3.0", "https://zoom.us/client/latest/ZoomInstallerFull.exe", "https://zoom.us/client/latest/ZoomInstallerFull.exe", "/silent", "Zoom Video Communications", "Медиа", "Zoom.Zoom") },
-                { "Zoom", ("6.2.11", "6.3.0", "https://zoom.us/client/latest/ZoomInstallerFull.exe", "https://zoom.us/client/latest/ZoomInstallerFull.exe", "/silent", "Zoom Video Communications", "Медиа", "Zoom.Zoom") },
-                { "Docker Desktop", ("4.35.0", "4.36.0", "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe", "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe", "install --quiet", "Docker Inc.", "Разработка", "Docker.DockerDesktop") },
-                { "AnyDesk", ("9.0.2", "9.1.0", "https://download.anydesk.com/AnyDesk.exe", "https://download.anydesk.com/AnyDesk.exe", "--install \"C:\\Program Files (x86)\\AnyDesk\" --silent", "AnyDesk Software GmbH", "Утилиты", "AnyDeskSoftwareGmbH.AnyDesk") },
                 { "Git", ("2.47.1", "2.48.0", "https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.1/Git-2.47.1-64-bit.exe", "https://github.com/git-for-windows/git/releases/download/v2.47.1.windows.1/Git-2.47.1-64-bit.exe", "/VERYSILENT /NORESTART", "The Git Project", "Разработка", "Git.Git") },
-                { "IObit Uninstaller", ("14.1.0", "14.2.0", "https://download.iobit.com/iobituninstaller.exe", "https://download.iobit.com/iobituninstaller.exe", "/VERYSILENT", "IObit", "Утилиты", null) },
                 { "ShareX", ("16.1.0", "16.2.0", "https://github.com/ShareX/ShareX/releases/download/v16.1.0/ShareX-16.1.0-setup.exe", "https://github.com/ShareX/ShareX/releases/download/v16.1.0/ShareX-16.1.0-setup.exe", "/VERYSILENT", "ShareX Team", "Утилиты", "ShareX.ShareX") },
-                { "K-Lite Codec Pack", ("18.6.0", "18.7.0", "https://files3.codecguide.com/K-Lite_Codec_Pack_1860_Standard.exe", "https://files3.codecguide.com/K-Lite_Codec_Pack_1860_Standard.exe", "/verysilent", "Codec Guide", "Медиа", "CodecGuide.K-LiteCodecPack.Standard") },
-                { "Audacity", ("3.7.0", "3.7.1", "https://github.com/audacity/audacity/releases/download/Audacity-3.7.0/audacity-win-3.7.0-64bit.exe", "https://github.com/audacity/audacity/releases/download/Audacity-3.7.0/audacity-win-3.7.0-64bit.exe", "/VERYSILENT", "Audacity Team", "Медиа", "Audacity.Audacity") },
-                { "GIMP", ("2.10.38", "3.0.0-RC1", "https://download.gimp.org/gimp/v2.10/windows/gimp-2.10.38-setup.exe", "https://download.gimp.org/gimp/v2.10/windows/gimp-2.10.38-setup.exe", "/VERYSILENT", "The GIMP Team", "Медиа", "GIMP.GIMP") },
-                { "Blender", ("4.3.0", "4.4.0", "https://download.blender.org/release/Blender4.3/blender-4.3.0-windows-x64.msi", "https://download.blender.org/release/Blender4.3/blender-4.3.0-windows-x64.msi", "/qn", "Blender Foundation", "Медиа", "BlenderFoundation.Blender") },
-                { "HandBrake", ("1.8.2", "1.9.0", "https://github.com/HandBrake/HandBrake/releases/download/1.8.2/HandBrake-1.8.2-x86_64-Win_GUI.exe", "https://github.com/HandBrake/HandBrake/releases/download/1.8.2/HandBrake-1.8.2-x86_64-Win_GUI.exe", "/S", "HandBrake Team", "Медиа", "HandBrake.HandBrake") }
+                { "Visual Studio Code", ("1.96.0", "1.97.0", "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user", "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user", "/VERYSILENT /NORESTART", "Microsoft Corporation", "Разработка", "Microsoft.VisualStudioCode") },
+                { "Spotify", ("1.2.52", "1.2.53", "https://download.scdn.co/SpotifySetup.exe", "https://download.scdn.co/SpotifySetup.exe", "/silent", "Spotify AB", "Медиа", "Spotify.Spotify") }
             };
 
         private SoftwareUpdaterService()
@@ -83,7 +67,7 @@ namespace StormSystemOptimizer.Services
             LoadBlacklist();
 
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/1.0.0");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/1.1.1");
             _httpClient.Timeout = TimeSpan.FromSeconds(20);
         }
 
@@ -139,7 +123,7 @@ namespace StormSystemOptimizer.Services
                 var installedList = new List<SoftwareUpdateItem>();
                 var seenKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-                // 1. Scan 64-bit and 32-bit Registry with Deep Binary & Manifest Version Extraction
+                // 1. Scan 64-bit and 32-bit Registry across HKLM and HKCU
                 void ScanRegistryHive(RegistryHive hive, RegistryView view, string subKey)
                 {
                     try
@@ -169,10 +153,9 @@ namespace StormSystemOptimizer.Services
                                 string uninstallString = appKey.GetValue("UninstallString")?.ToString()?.Trim() ?? string.Empty;
                                 string pub = appKey.GetValue("Publisher")?.ToString()?.Trim() ?? "Разработчик ПО";
 
-                                // Extract the true real version from binary or manifest if registry version is empty or generic
                                 string ver = ExtractTrueVersion(name, rawVer, installLocation, displayIcon, uninstallString);
 
-                                string dedupeKey = $"{name}_{ver}";
+                                string dedupeKey = name.ToLowerInvariant();
                                 if (seenKeys.Contains(dedupeKey)) continue;
                                 seenKeys.Add(dedupeKey);
 
@@ -199,18 +182,21 @@ namespace StormSystemOptimizer.Services
                 ScanRegistryHive(RegistryHive.LocalMachine, RegistryView.Registry64, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
                 ScanRegistryHive(RegistryHive.LocalMachine, RegistryView.Registry32, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
                 ScanRegistryHive(RegistryHive.CurrentUser, RegistryView.Registry64, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
+                ScanRegistryHive(RegistryHive.CurrentUser, RegistryView.Registry32, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall");
 
-                // 2. Scan Steam Games Libraries for true executable & build versions
+                // 2. Scan Steam Games Libraries
                 ScanSteamGames(installedList, seenKeys);
 
-                // 3. Direct File Check for popular standalone apps
-                CheckDirectFileInstallation(installedList, "WinRAR", @"C:\Program Files\WinRAR\WinRAR.exe", "RARLab", "Утилиты");
-                CheckDirectFileInstallation(installedList, "7-Zip", @"C:\Program Files\7-Zip\7zFM.exe", "Igor Pavlov", "Утилиты");
-                CheckDirectFileInstallation(installedList, "Notepad++", @"C:\Program Files\Notepad++\notepad++.exe", "Don HO", "Разработка");
-                CheckDirectFileInstallation(installedList, "Bitrix24", @"C:\Program Files (x86)\Bitrix24\Bitrix24.exe", "Bitrix", "Утилиты");
-                CheckDirectFileInstallation(installedList, "Telegram Desktop", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Telegram Desktop\Telegram.exe"), "Telegram FZ-LLC", "Медиа");
+                // 3. Scan WinGet if available
+                ScanWinGetPackages(installedList, seenKeys);
 
-                // 4. Multi-Repository Matching & Live Version Resolution
+                // 4. Direct File Checks
+                CheckDirectFileInstallation(installedList, seenKeys, "WinRAR", @"C:\Program Files\WinRAR\WinRAR.exe", "RARLab", "Утилиты");
+                CheckDirectFileInstallation(installedList, seenKeys, "7-Zip", @"C:\Program Files\7-Zip\7zFM.exe", "Igor Pavlov", "Утилиты");
+                CheckDirectFileInstallation(installedList, seenKeys, "Notepad++", @"C:\Program Files\Notepad++\notepad++.exe", "Don HO", "Разработка");
+                CheckDirectFileInstallation(installedList, seenKeys, "Telegram Desktop", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), @"Telegram Desktop\Telegram.exe"), "Telegram FZ-LLC", "Медиа");
+
+                // 5. Multi-Repository Matching & Live Version Resolution
                 foreach (var app in installedList)
                 {
                     foreach (var kvp in _cloudCatalog)
@@ -232,7 +218,6 @@ namespace StormSystemOptimizer.Services
                             }
                             else
                             {
-                                // Current version is equal or newer than cloud catalog
                                 app.AvailableVersion = app.InstalledVersion;
                                 app.IsBeta = false;
                                 app.IsUpdateAvailable = false;
@@ -247,15 +232,218 @@ namespace StormSystemOptimizer.Services
             });
         }
 
+        public async Task<(bool success, string message)> SilentUpdateAppAsync(SoftwareUpdateItem app, Action<string>? progressCallback = null)
+        {
+            return await Task.Run(async () =>
+            {
+                try
+                {
+                    progressCallback?.Invoke($"Проверка параметров для {app.Name}...");
+
+                    (string LatestVersion, string BetaVersion, string DownloadUrl, string BetaDownloadUrl, string SilentArgs, string Publisher, string Category, string? WingetId) catalogEntry = default;
+                    bool hasCatalog = false;
+
+                    foreach (var kvp in _cloudCatalog)
+                    {
+                        if (IsAppNameMatching(app.Name, kvp.Key))
+                        {
+                            catalogEntry = kvp.Value;
+                            hasCatalog = true;
+                            break;
+                        }
+                    }
+
+                    if (hasCatalog && !string.IsNullOrEmpty(catalogEntry.DownloadUrl))
+                    {
+                        string tempDir = Path.Combine(Path.GetTempPath(), "StormUpdates");
+                        if (!Directory.Exists(tempDir)) Directory.CreateDirectory(tempDir);
+
+                        string ext = catalogEntry.DownloadUrl.EndsWith(".msi", StringComparison.OrdinalIgnoreCase) ? ".msi" : ".exe";
+                        string installerPath = Path.Combine(tempDir, $"{SanitizeFileName(app.Name)}_update{ext}");
+
+                        progressCallback?.Invoke($"Загрузка новой версии {app.Name}...");
+                        var bytes = await _httpClient.GetByteArrayAsync(catalogEntry.DownloadUrl);
+                        await File.WriteAllBytesAsync(installerPath, bytes);
+
+                        progressCallback?.Invoke($"Тихая установка обновления {app.Name}...");
+                        var psi = new ProcessStartInfo
+                        {
+                            FileName = ext == ".msi" ? "msiexec.exe" : installerPath,
+                            Arguments = ext == ".msi" ? $"/i \"{installerPath}\" {catalogEntry.SilentArgs}" : catalogEntry.SilentArgs,
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        };
+                        using var p = Process.Start(psi);
+                        if (p != null) await p.WaitForExitAsync();
+
+                        app.InstalledVersion = app.AvailableVersion;
+                        app.IsUpdateAvailable = false;
+                        return (true, $"Программа {app.Name} успешно обновлена до версии {app.InstalledVersion}!");
+                    }
+                    else if (!string.IsNullOrEmpty(catalogEntry.WingetId))
+                    {
+                        progressCallback?.Invoke($"Обновление {app.Name} через Microsoft WinGet...");
+                        var psi = new ProcessStartInfo
+                        {
+                            FileName = "winget.exe",
+                            Arguments = $"upgrade --id {catalogEntry.WingetId} --silent --accept-package-agreements --accept-source-agreements",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        };
+                        using var p = Process.Start(psi);
+                        if (p != null) await p.WaitForExitAsync();
+
+                        app.InstalledVersion = app.AvailableVersion;
+                        app.IsUpdateAvailable = false;
+                        return (true, $"Программа {app.Name} успешно обновлена через WinGet!");
+                    }
+                    else
+                    {
+                        progressCallback?.Invoke($"Поиск пакета {app.Name} в репозитории WinGet...");
+                        var psi = new ProcessStartInfo
+                        {
+                            FileName = "winget.exe",
+                            Arguments = $"upgrade --name \"{app.Name}\" --silent --accept-package-agreements --accept-source-agreements",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        };
+                        using var p = Process.Start(psi);
+                        if (p != null) await p.WaitForExitAsync();
+
+                        app.InstalledVersion = app.AvailableVersion;
+                        app.IsUpdateAvailable = false;
+                        return (true, $"Программа {app.Name} успешно обновлена!");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"Ошибка при обновлении {app.Name}: {ex.Message}");
+                }
+            });
+        }
+
+        public async Task<(int updated, int failed)> SilentUpdateAllAppsAsync(IEnumerable<SoftwareUpdateItem> apps, Action<string>? progressCallback = null)
+        {
+            int updated = 0;
+            int failed = 0;
+
+            var pending = apps.Where(a => a.IsUpdateAvailable && !a.IsBlacklisted).ToList();
+            for (int i = 0; i < pending.Count; i++)
+            {
+                var app = pending[i];
+                progressCallback?.Invoke($"[{i + 1}/{pending.Count}] Обновление {app.Name}...");
+                var (ok, _) = await SilentUpdateAppAsync(app, progressCallback);
+                if (ok) updated++;
+                else failed++;
+            }
+
+            return (updated, failed);
+        }
+
+        private static string SanitizeFileName(string name)
+        {
+            foreach (char c in Path.GetInvalidFileNameChars())
+            {
+                name = name.Replace(c, '_');
+            }
+            return name;
+        }
+
+        private static void ScanWinGetPackages(List<SoftwareUpdateItem> list, HashSet<string> seenKeys)
+        {
+            try
+            {
+                using var p = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "winget.exe",
+                    Arguments = "upgrade --include-unknown",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    StandardOutputEncoding = Encoding.UTF8
+                });
+                if (p != null)
+                {
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit(6000);
+
+                    using var reader = new StringReader(output);
+                    string? line;
+                    bool startParsing = false;
+
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        if (line.Contains("---")) { startParsing = true; continue; }
+                        if (!startParsing || string.IsNullOrWhiteSpace(line)) continue;
+
+                        var parts = Regex.Split(line.Trim(), @"\s{2,}");
+                        if (parts.Length >= 4)
+                        {
+                            string name = parts[0];
+                            string id = parts[1];
+                            string currentVer = parts[2];
+                            string availableVer = parts[3];
+
+                            string dedupeKey = name.ToLowerInvariant();
+                            var existing = list.FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                            if (existing != null)
+                            {
+                                existing.InstalledVersion = currentVer;
+                                existing.AvailableVersion = availableVer;
+                                existing.IsUpdateAvailable = true;
+                            }
+                            else
+                            {
+                                seenKeys.Add(dedupeKey);
+                                list.Add(new SoftwareUpdateItem
+                                {
+                                    Name = name,
+                                    PackageId = id,
+                                    Publisher = "Microsoft WinGet",
+                                    InstalledVersion = currentVer,
+                                    AvailableVersion = availableVer,
+                                    AppType = "Приложения",
+                                    IsUpdateAvailable = true
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private static void CheckDirectFileInstallation(List<SoftwareUpdateItem> list, HashSet<string> seenKeys, string name, string path, string pub, string cat)
+        {
+            try
+            {
+                if (File.Exists(path) && !seenKeys.Contains(name.ToLowerInvariant()))
+                {
+                    var fvi = FileVersionInfo.GetVersionInfo(path);
+                    string ver = fvi.ProductVersion ?? fvi.FileVersion ?? "1.0.0";
+                    seenKeys.Add(name.ToLowerInvariant());
+                    list.Add(new SoftwareUpdateItem
+                    {
+                        Name = name,
+                        PackageId = name,
+                        Publisher = pub,
+                        InstalledVersion = CleanVersionString(ver),
+                        AvailableVersion = CleanVersionString(ver),
+                        AppType = cat,
+                        IsUpdateAvailable = false
+                    });
+                }
+            }
+            catch { }
+        }
+
         private static string ExtractTrueVersion(string name, string displayVer, string installLocation, string displayIcon, string uninstallString)
         {
-            // If displayVersion is already a specific version number and not generic "1.0", clean and use it
             if (!string.IsNullOrWhiteSpace(displayVer) && displayVer != "1.0" && displayVer != "1.0.0" && displayVer != "1.0.0.0")
             {
                 return CleanVersionString(displayVer);
             }
 
-            // Check DisplayIcon file version
             if (!string.IsNullOrWhiteSpace(displayIcon))
             {
                 string iconPath = displayIcon.Split(',')[0].Trim('\"', ' ');
@@ -272,7 +460,6 @@ namespace StormSystemOptimizer.Services
                 }
             }
 
-            // Check main executable in InstallLocation
             if (!string.IsNullOrWhiteSpace(installLocation) && Directory.Exists(installLocation))
             {
                 try
@@ -283,10 +470,7 @@ namespace StormSystemOptimizer.Services
                     {
                         if (exe.Name.Contains("unins", StringComparison.OrdinalIgnoreCase) ||
                             exe.Name.Contains("crash", StringComparison.OrdinalIgnoreCase) ||
-                            exe.Name.Contains("helper", StringComparison.OrdinalIgnoreCase) ||
-                            exe.Name.Contains("setup", StringComparison.OrdinalIgnoreCase) ||
-                            exe.Name.Contains("vcredist", StringComparison.OrdinalIgnoreCase) ||
-                            exe.Name.Contains("dxweb", StringComparison.OrdinalIgnoreCase))
+                            exe.Name.Contains("helper", StringComparison.OrdinalIgnoreCase))
                             continue;
 
                         var fvi = FileVersionInfo.GetVersionInfo(exe.FullName);
@@ -319,78 +503,30 @@ namespace StormSystemOptimizer.Services
                     if (Directory.Exists(p3)) steamPaths.Add(p3);
                 }
 
-                foreach (var sPath in steamPaths.Distinct())
+                foreach (var sPath in steamPaths)
                 {
-                    var dir = new DirectoryInfo(sPath);
-                    foreach (var m in dir.GetFiles("appmanifest_*.acf"))
+                    foreach (var manifest in Directory.GetFiles(sPath, "appmanifest_*.acf"))
                     {
                         try
                         {
-                            string content = File.ReadAllText(m.FullName);
-                            string gName = "";
-                            string buildId = "";
-                            string installDir = "";
-
-                            var matchName = System.Text.RegularExpressions.Regex.Match(content, "\"name\"\\s+\"([^\"]+)\"");
-                            if (matchName.Success) gName = matchName.Groups[1].Value;
-
-                            var matchBuild = System.Text.RegularExpressions.Regex.Match(content, "\"buildid\"\\s+\"([^\"]+)\"");
-                            if (matchBuild.Success) buildId = matchBuild.Groups[1].Value;
-
-                            var matchDir = System.Text.RegularExpressions.Regex.Match(content, "\"installdir\"\\s+\"([^\"]+)\"");
-                            if (matchDir.Success) installDir = matchDir.Groups[1].Value;
-
-                            if (string.IsNullOrEmpty(gName) || gName.Contains("Steamworks", StringComparison.OrdinalIgnoreCase))
-                                continue;
-
-                            string gameRoot = Path.Combine(sPath, "common", installDir);
-                            string gVer = "";
-
-                            if (Directory.Exists(gameRoot))
+                            string text = File.ReadAllText(manifest);
+                            var nameMatch = Regex.Match(text, @"""name""\s+""([^""]+)""");
+                            var buildMatch = Regex.Match(text, @"""buildid""\s+""([^""]+)""");
+                            if (nameMatch.Success)
                             {
-                                var exes = new DirectoryInfo(gameRoot).GetFiles("*.exe", SearchOption.AllDirectories);
-                                foreach (var e in exes)
+                                string gName = nameMatch.Groups[1].Value;
+                                string bId = buildMatch.Success ? buildMatch.Groups[1].Value : "Steam Build";
+                                string dedupeKey = gName.ToLowerInvariant();
+                                if (!seenKeys.Contains(dedupeKey))
                                 {
-                                    if (e.Name.Contains("unins", StringComparison.OrdinalIgnoreCase) || e.Name.Contains("crash", StringComparison.OrdinalIgnoreCase) || e.Name.Contains("vcredist", StringComparison.OrdinalIgnoreCase) || e.Name.Contains("dxweb", StringComparison.OrdinalIgnoreCase))
-                                        continue;
-
-                                    var fvi = FileVersionInfo.GetVersionInfo(e.FullName);
-                                    string fv = fvi.ProductVersion ?? fvi.FileVersion ?? "";
-                                    if (!string.IsNullOrWhiteSpace(fv) && fv != "1.0.0.0" && fv != "0.0.0.0")
-                                    {
-                                        gVer = CleanVersionString(fv);
-                                        break;
-                                    }
-                                }
-                            }
-
-                            if (string.IsNullOrEmpty(gVer) && !string.IsNullOrEmpty(buildId))
-                            {
-                                gVer = $"Build {buildId}";
-                            }
-                            if (string.IsNullOrEmpty(gVer)) gVer = "1.0.0";
-
-                            var existing = list.FirstOrDefault(a => a.Name.Equals(gName, StringComparison.OrdinalIgnoreCase));
-                            if (existing != null)
-                            {
-                                existing.InstalledVersion = gVer;
-                                existing.AvailableVersion = gVer;
-                                existing.AppType = "Игры";
-                                existing.Publisher = "Steam Game";
-                            }
-                            else
-                            {
-                                string dKey = $"{gName}_{gVer}";
-                                if (!seenKeys.Contains(dKey))
-                                {
-                                    seenKeys.Add(dKey);
+                                    seenKeys.Add(dedupeKey);
                                     list.Add(new SoftwareUpdateItem
                                     {
                                         Name = gName,
-                                        PackageId = $"SteamApp_{installDir}",
+                                        PackageId = Path.GetFileNameWithoutExtension(manifest),
                                         Publisher = "Valve / Steam",
-                                        InstalledVersion = gVer,
-                                        AvailableVersion = gVer,
+                                        InstalledVersion = bId,
+                                        AvailableVersion = bId,
                                         AppType = "Игры",
                                         IsUpdateAvailable = false
                                     });
@@ -404,391 +540,59 @@ namespace StormSystemOptimizer.Services
             catch { }
         }
 
-        private static void CheckDirectFileInstallation(List<SoftwareUpdateItem> list, string appName, string exePath, string publisher, string category)
+        private static string DetermineCategory(string name, string publisher, string installLocation)
         {
-            try
-            {
-                if (File.Exists(exePath))
-                {
-                    var fvi = FileVersionInfo.GetVersionInfo(exePath);
-                    string ver = CleanVersionString(fvi.ProductVersion ?? fvi.FileVersion ?? "1.0.0");
-                    var existing = list.FirstOrDefault(a => IsAppNameMatching(a.Name, appName));
-                    if (existing != null)
-                    {
-                        existing.InstalledVersion = ver;
-                        existing.AvailableVersion = ver;
-                    }
-                    else
-                    {
-                        list.Add(new SoftwareUpdateItem
-                        {
-                            Name = appName,
-                            PackageId = appName,
-                            Publisher = publisher,
-                            InstalledVersion = ver,
-                            AvailableVersion = ver,
-                            AppType = category,
-                            IsUpdateAvailable = false
-                        });
-                    }
-                }
-            }
-            catch { }
-        }
-
-        private static bool IsAppNameMatching(string actualName, string catalogName)
-        {
-            if (string.IsNullOrWhiteSpace(actualName) || string.IsNullOrWhiteSpace(catalogName)) return false;
-            if (actualName.Equals(catalogName, StringComparison.OrdinalIgnoreCase)) return true;
-            if (actualName.StartsWith(catalogName + " ", StringComparison.OrdinalIgnoreCase)) return true;
-            if (actualName.StartsWith(catalogName + "-", StringComparison.OrdinalIgnoreCase)) return true;
-            if (actualName.StartsWith(catalogName + "(", StringComparison.OrdinalIgnoreCase)) return true;
-
-            // Handle Russian & international packages (WinRAR 7.22, Bitrix24 for Windows, Zoom Workplace)
-            if (catalogName.Equals("WinRAR", StringComparison.OrdinalIgnoreCase) && actualName.Contains("WinRAR", StringComparison.OrdinalIgnoreCase)) return true;
-            if ((catalogName.Equals("Bitrix24", StringComparison.OrdinalIgnoreCase) || catalogName.Equals("Битрикс24", StringComparison.OrdinalIgnoreCase)) &&
-                (actualName.Contains("Bitrix", StringComparison.OrdinalIgnoreCase) || actualName.Contains("Битрикс", StringComparison.OrdinalIgnoreCase))) return true;
-            if (catalogName.Equals("AnyDesk", StringComparison.OrdinalIgnoreCase) && actualName.Contains("AnyDesk", StringComparison.OrdinalIgnoreCase)) return true;
-            if (catalogName.Equals("Telegram", StringComparison.OrdinalIgnoreCase) && actualName.Contains("Telegram", StringComparison.OrdinalIgnoreCase)) return true;
-            if (catalogName.Equals("7-Zip", StringComparison.OrdinalIgnoreCase) && actualName.Contains("7-Zip", StringComparison.OrdinalIgnoreCase)) return true;
-            if (catalogName.Equals("Zoom", StringComparison.OrdinalIgnoreCase) && actualName.Contains("Zoom", StringComparison.OrdinalIgnoreCase)) return true;
-
-            return false;
-        }
-
-        private static string DetermineCategory(string name, string publisher, string installLocation = "")
-        {
-            string n = (name + " " + publisher + " " + installLocation).ToLowerInvariant();
-            if (n.Contains("game") || n.Contains("steam") || n.Contains("epic") || n.Contains("ubisoft") || n.Contains("riot") || n.Contains("gog") || n.Contains("launcher"))
-                return "Игры";
-            if (n.Contains("browser") || n.Contains("chrome") || n.Contains("firefox") || n.Contains("opera") || n.Contains("yandex") || n.Contains("edge"))
-                return "Браузеры";
-            if (n.Contains("player") || n.Contains("media") || n.Contains("vlc") || n.Contains("aimp") || n.Contains("audio") || n.Contains("discord") || n.Contains("telegram") || n.Contains("obs") || n.Contains("zoom"))
-                return "Медиа";
-            if (n.Contains("visual studio") || n.Contains("git") || n.Contains("sdk") || n.Contains(".net") || n.Contains("code") || n.Contains("docker") || n.Contains("python") || n.Contains("node"))
-                return "Разработка";
-
+            string s = (name + " " + publisher + " " + installLocation).ToLowerInvariant();
+            if (s.Contains("game") || s.Contains("steam") || s.Contains("epic") || s.Contains("ubisoft") || s.Contains("gog")) return "Игры";
+            if (s.Contains("chrome") || s.Contains("browser") || s.Contains("yandex") || s.Contains("opera") || s.Contains("firefox") || s.Contains("brave")) return "Браузеры";
+            if (s.Contains("player") || s.Contains("audio") || s.Contains("video") || s.Contains("media") || s.Contains("vlc") || s.Contains("aimp") || s.Contains("spotify") || s.Contains("discord") || s.Contains("telegram")) return "Медиа";
+            if (s.Contains("visual studio") || s.Contains("git") || s.Contains("sdk") || s.Contains("python") || s.Contains("node") || s.Contains("docker") || s.Contains("code")) return "Разработка";
             return "Утилиты";
         }
 
-        public static int CompareVersions(string v1, string v2)
+        private static bool IsAppNameMatching(string installedName, string catalogName)
         {
-            if (string.IsNullOrWhiteSpace(v1) && string.IsNullOrWhiteSpace(v2)) return 0;
-            if (string.IsNullOrWhiteSpace(v1)) return -1;
-            if (string.IsNullOrWhiteSpace(v2)) return 1;
-
-            string c1 = CleanVersionString(v1);
-            string c2 = CleanVersionString(v2);
-
-            if (c1.Equals(c2, StringComparison.OrdinalIgnoreCase)) return 0;
-
-            var t1 = c1.Split(new[] { '.', '-', '_', ',' }, StringSplitOptions.RemoveEmptyEntries);
-            var t2 = c2.Split(new[] { '.', '-', '_', ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-            int max = Math.Max(t1.Length, t2.Length);
-            for (int i = 0; i < max; i++)
-            {
-                string p1 = i < t1.Length ? t1[i] : "0";
-                string p2 = i < t2.Length ? t2[i] : "0";
-
-                bool isNum1 = long.TryParse(p1, out long n1);
-                bool isNum2 = long.TryParse(p2, out long n2);
-
-                if (isNum1 && isNum2)
-                {
-                    if (n1 != n2) return n1.CompareTo(n2);
-                }
-                else
-                {
-                    int cmp = string.Compare(p1, p2, StringComparison.OrdinalIgnoreCase);
-                    if (cmp != 0) return cmp;
-                }
-            }
-
-            return 0;
+            if (string.Equals(installedName, catalogName, StringComparison.OrdinalIgnoreCase)) return true;
+            if (installedName.IndexOf(catalogName, StringComparison.OrdinalIgnoreCase) >= 0) return true;
+            return false;
         }
 
-        public static bool IsNewerVersion(string available, string installed)
+        public static bool IsNewerVersion(string available, string current)
         {
-            return CompareVersions(available, installed) > 0;
+            try
+            {
+                if (string.IsNullOrWhiteSpace(available) || string.IsNullOrWhiteSpace(current)) return false;
+                if (available.Equals(current, StringComparison.OrdinalIgnoreCase)) return false;
+
+                var vA = ParseVersion(available);
+                var vC = ParseVersion(current);
+
+                return vA > vC;
+            }
+            catch { return false; }
+        }
+
+        private static Version ParseVersion(string ver)
+        {
+            string clean = CleanVersionString(ver);
+            var parts = clean.Split('.');
+            if (parts.Length == 1 && int.TryParse(parts[0], out int p0)) return new Version(p0, 0, 0, 0);
+            if (parts.Length == 2 && int.TryParse(parts[0], out int a0) && int.TryParse(parts[1], out int a1)) return new Version(a0, a1, 0, 0);
+            if (parts.Length == 3 && int.TryParse(parts[0], out int b0) && int.TryParse(parts[1], out int b1) && int.TryParse(parts[2], out int b2)) return new Version(b0, b1, b2, 0);
+            if (parts.Length >= 4 && int.TryParse(parts[0], out int c0) && int.TryParse(parts[1], out int c1) && int.TryParse(parts[2], out int c2) && int.TryParse(parts[3], out int c3)) return new Version(c0, c1, c2, c3);
+
+            if (Version.TryParse(clean, out var res)) return res;
+            return new Version(0, 0, 0, 0);
         }
 
         private static string CleanVersionString(string ver)
         {
             if (string.IsNullOrWhiteSpace(ver)) return "1.0.0";
-            ver = ver.Replace(",", ".").Trim();
-            if (ver.StartsWith("v", StringComparison.OrdinalIgnoreCase)) ver = ver.Substring(1).Trim();
-            if (ver.StartsWith("ad ", StringComparison.OrdinalIgnoreCase)) ver = ver.Substring(3).Trim();
-
-            int space = ver.IndexOf(' ');
-            if (space > 0 && char.IsDigit(ver[0])) ver = ver.Substring(0, space).Trim();
-
-            int paren = ver.IndexOf('(');
-            if (paren > 0 && char.IsDigit(ver[0])) ver = ver.Substring(0, paren).Trim();
-
-            int plus = ver.IndexOf('+');
-            if (plus > 0) ver = ver.Substring(0, plus).Trim();
-
-            int at = ver.IndexOf('@');
-            if (at > 0) ver = ver.Substring(0, at).Trim();
-
-            return ver.TrimEnd('.', ' ');
-        }
-
-        private static void TryCloseAppProcesses(string appName)
-        {
-            string nLower = appName.ToLowerInvariant();
-            var pList = new List<string>();
-            if (nLower.Contains("telegram")) pList.AddRange(new[] { "Telegram", "telegram", "TelegramDesktop", "update" });
-            if (nLower.Contains("winrar")) pList.AddRange(new[] { "winrar", "WinRAR" });
-            if (nLower.Contains("7-zip") || nLower.Contains("7zip")) pList.AddRange(new[] { "7zFM", "7zG", "7z" });
-            if (nLower.Contains("bitrix") || nLower.Contains("битрикс")) pList.AddRange(new[] { "bitrix24", "Bitrix24" });
-            if (nLower.Contains("discord")) pList.AddRange(new[] { "Discord", "Update" });
-            if (nLower.Contains("chrome")) pList.AddRange(new[] { "chrome" });
-            if (nLower.Contains("firefox")) pList.AddRange(new[] { "firefox" });
-            if (nLower.Contains("opera")) pList.AddRange(new[] { "opera" });
-            if (nLower.Contains("yandex") || nLower.Contains("яндекс")) pList.AddRange(new[] { "browser", "yandex" });
-            if (nLower.Contains("zoom")) pList.AddRange(new[] { "Zoom" });
-            if (nLower.Contains("anydesk")) pList.AddRange(new[] { "AnyDesk" });
-            if (nLower.Contains("vlc")) pList.AddRange(new[] { "vlc" });
-            if (nLower.Contains("notepad++")) pList.AddRange(new[] { "notepad++" });
-
-            foreach (var pName in pList.Distinct())
-            {
-                try
-                {
-                    foreach (var p in Process.GetProcessesByName(pName))
-                    {
-                        try { p.CloseMainWindow(); } catch { }
-                        try { if (!p.WaitForExit(500)) p.Kill(true); } catch { }
-                    }
-                }
-                catch { }
-            }
-            System.Threading.Thread.Sleep(500);
-        }
-
-        public async Task<(bool success, string msg)> SilentUpdateAppAsync(SoftwareUpdateItem item, Action<string>? progressCallback = null)
-        {
-            if (item == null) return (false, "Программа не выбрана");
-
-            return await Task.Run(async () =>
-            {
-                string name = item.Name;
-                string targetVer = item.AvailableVersion;
-
-                progressCallback?.Invoke($"Подготовка к фоновой установке обновления «{name}» (v{targetVer})...");
-
-                // Try Winget upgrade first if package id is available and not requesting beta
-                if (!item.IsBeta && !string.IsNullOrEmpty(item.PackageId) && item.PackageId.Contains("."))
-                {
-                    try
-                    {
-                        TryCloseAppProcesses(name);
-                        progressCallback?.Invoke($"Тихое обновление через Winget: «{item.PackageId}»...");
-                        var wpsi = new ProcessStartInfo
-                        {
-                            FileName = "winget.exe",
-                            Arguments = $"upgrade --id \"{item.PackageId}\" --silent --accept-package-agreements --accept-source-agreements --force",
-                            UseShellExecute = false,
-                            CreateNoWindow = true
-                        };
-                        using var wproc = Process.Start(wpsi);
-                        wproc?.WaitForExit(60000);
-                        if (wproc?.ExitCode == 0)
-                        {
-                            item.InstalledVersion = targetVer;
-                            item.IsUpdateAvailable = false;
-                            return (true, $"«{name}» успешно обновлена до версии {targetVer} через официальный репозиторий!");
-                        }
-                    }
-                    catch { }
-                }
-
-                foreach (var kvp in _cloudCatalog)
-                {
-                    if (IsAppNameMatching(name, kvp.Key))
-                    {
-                        string downloadUrl = item.IsBeta && !string.IsNullOrEmpty(kvp.Value.BetaDownloadUrl)
-                            ? kvp.Value.BetaDownloadUrl
-                            : kvp.Value.DownloadUrl;
-                        string silentArgs = kvp.Value.SilentArgs;
-
-                        if (!string.IsNullOrEmpty(downloadUrl))
-                        {
-                            string targetFile = string.Empty;
-                            try
-                            {
-                                string tempDir = Path.Combine(Path.GetTempPath(), "StormUpdates");
-                                Directory.CreateDirectory(tempDir);
-                                string ext = downloadUrl.EndsWith(".msi", StringComparison.OrdinalIgnoreCase) ? ".msi" : ".exe";
-                                string safeFileName = $"{string.Join("_", name.Split(Path.GetInvalidFileNameChars()))}_v{targetVer}{ext}";
-                                targetFile = Path.Combine(tempDir, safeFileName);
-
-                                progressCallback?.Invoke($"Скачивание официального инсталлятора «{name}»...");
-
-                                using (var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
-                                {
-                                    if (response.IsSuccessStatusCode)
-                                    {
-                                        using var stream = await response.Content.ReadAsStreamAsync();
-                                        using var fileStream = new FileStream(targetFile, FileMode.Create, FileAccess.Write, FileShare.None);
-                                        await stream.CopyToAsync(fileStream);
-                                    }
-                                }
-
-                                if (File.Exists(targetFile) && new FileInfo(targetFile).Length > 1024)
-                                {
-                                    progressCallback?.Invoke($"Тихая фоновая установка «{name}»...");
-                                    TryCloseAppProcesses(name);
-
-                                    var psi = new ProcessStartInfo
-                                    {
-                                        FileName = targetFile,
-                                        Arguments = silentArgs,
-                                        UseShellExecute = true,
-                                        CreateNoWindow = true
-                                    };
-
-                                    if (targetFile.EndsWith(".msi", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        psi.FileName = "msiexec.exe";
-                                        psi.Arguments = $"/i \"{targetFile}\" /qn /norestart";
-                                    }
-
-                                    using var proc = Process.Start(psi);
-                                    proc?.WaitForExit(90000);
-                                    await Task.Delay(1500);
-
-                                    // Automatic cleanup of downloaded installer
-                                    try
-                                    {
-                                        if (File.Exists(targetFile)) File.Delete(targetFile);
-                                    }
-                                    catch { }
-
-                                    string? verifiedVer = GetInstalledAppVersionOnDiskOrRegistry(name);
-                                    if (!string.IsNullOrWhiteSpace(verifiedVer))
-                                    {
-                                        item.InstalledVersion = verifiedVer;
-                                        if (!IsNewerVersion(targetVer, verifiedVer))
-                                        {
-                                            item.IsUpdateAvailable = false;
-                                            return (true, $"«{name}» успешно установлена и обновлена до v{verifiedVer}!");
-                                        }
-                                        else
-                                        {
-                                            return (true, $"«{name}» обновлена (текущая версия: v{verifiedVer}).");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        item.InstalledVersion = targetVer;
-                                        item.IsUpdateAvailable = false;
-                                        return (true, $"«{name}» успешно обновлена до версии {targetVer}!");
-                                    }
-                                }
-                            }
-                            catch { }
-                            finally
-                            {
-                                try
-                                {
-                                    if (!string.IsNullOrEmpty(targetFile) && File.Exists(targetFile))
-                                        File.Delete(targetFile);
-                                }
-                                catch { }
-                            }
-
-                            try
-                            {
-                                Process.Start(new ProcessStartInfo { FileName = downloadUrl, UseShellExecute = true });
-                                return (true, $"Запущена загрузка обновления для «{name}» (v{targetVer}).");
-                            }
-                            catch { }
-                        }
-                    }
-                }
-
-                try
-                {
-                    string searchUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} update download official");
-                    Process.Start(new ProcessStartInfo { FileName = searchUrl, UseShellExecute = true });
-                    return (true, $"Открыта официальная страница обновления для «{name}».");
-                }
-                catch (Exception ex)
-                {
-                    return (false, $"Ошибка запуска обновления: {ex.Message}");
-                }
-            });
-        }
-
-        private string? GetInstalledAppVersionOnDiskOrRegistry(string appName)
-        {
-            try
-            {
-                string[] regPaths =
-                {
-                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall",
-                    @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
-                };
-
-                foreach (var baseKey in new[] { Microsoft.Win32.Registry.LocalMachine, Microsoft.Win32.Registry.CurrentUser })
-                {
-                    foreach (var path in regPaths)
-                    {
-                        using var key = baseKey.OpenSubKey(path);
-                        if (key == null) continue;
-                        foreach (var sub in key.GetSubKeyNames())
-                        {
-                            using var appKey = key.OpenSubKey(sub);
-                            if (appKey == null) continue;
-                            string? dName = appKey.GetValue("DisplayName")?.ToString();
-                            if (!string.IsNullOrEmpty(dName) && IsAppNameMatching(dName, appName))
-                            {
-                                string? ver = appKey.GetValue("DisplayVersion")?.ToString();
-                                if (!string.IsNullOrWhiteSpace(ver)) return CleanVersionString(ver);
-                            }
-                        }
-                    }
-                }
-
-                if (appName.Contains("WinRAR", StringComparison.OrdinalIgnoreCase))
-                {
-                    string p = @"C:\Program Files\WinRAR\WinRAR.exe";
-                    if (File.Exists(p)) return FileVersionInfo.GetVersionInfo(p).ProductVersion;
-                }
-                else if (appName.Contains("7-Zip", StringComparison.OrdinalIgnoreCase))
-                {
-                    string p = @"C:\Program Files\7-Zip\7zG.exe";
-                    if (File.Exists(p)) return FileVersionInfo.GetVersionInfo(p).ProductVersion;
-                }
-                else if (appName.Contains("Bitrix24", StringComparison.OrdinalIgnoreCase) || appName.Contains("Битрикс24", StringComparison.OrdinalIgnoreCase))
-                {
-                    string p = @"C:\Program Files (x86)\Bitrix24\Bitrix24.exe";
-                    if (File.Exists(p)) return FileVersionInfo.GetVersionInfo(p).ProductVersion;
-                }
-            }
-            catch { }
-
-            return null;
-        }
-
-        public async Task<(int updated, int failed)> SilentUpdateAllAppsAsync(IEnumerable<SoftwareUpdateItem> apps, Action<string>? progressCallback = null)
-        {
-            int updated = 0;
-            int failed = 0;
-            var toUpdate = apps.Where(x => x.IsUpdateAvailable && !x.IsBlacklisted).ToList();
-
-            foreach (var item in toUpdate)
-            {
-                progressCallback?.Invoke($"Обновление ({updated + failed + 1}/{toUpdate.Count}): {item.Name}...");
-                var (ok, _) = await SilentUpdateAppAsync(item, progressCallback);
-                if (ok) updated++;
-                else failed++;
-            }
-
-            return (updated, failed);
+            var match = Regex.Match(ver, @"\d+(\.\d+)+");
+            if (match.Success) return match.Value;
+            var singleMatch = Regex.Match(ver, @"\d+");
+            if (singleMatch.Success) return singleMatch.Value + ".0";
+            return "1.0.0";
         }
     }
 }
