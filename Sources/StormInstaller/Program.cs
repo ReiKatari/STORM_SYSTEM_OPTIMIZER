@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -19,7 +19,7 @@ namespace StormSystemOptimizer.Installer
         private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
-        private const string AppVersion = "1.0.9";
+        private const string AppVersion = "1.1.0";
         private const string DefaultInstallDir = @"C:\Program Files\STORM SYSTEM OPTIMIZER";
         private const string ExeName = "StormSystemOptimizer.exe";
         private Button btnBrowse = null!;
@@ -102,8 +102,42 @@ namespace StormSystemOptimizer.Installer
                 Location = new Point(22, 48)
             };
 
+            var pbLogo = new PictureBox
+            {
+                Size = new Size(58, 58),
+                Location = new Point(534, 14),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = Color.Transparent
+            };
+            try
+            {
+                var asm = Assembly.GetExecutingAssembly();
+                foreach (var name in asm.GetManifestResourceNames())
+                {
+                    if (name.EndsWith("logo.png", StringComparison.OrdinalIgnoreCase) || name.EndsWith("AppIcon.ico", StringComparison.OrdinalIgnoreCase))
+                    {
+                        using var s = asm.GetManifestResourceStream(name);
+                        if (s != null)
+                        {
+                            if (name.EndsWith(".ico", StringComparison.OrdinalIgnoreCase))
+                            {
+                                using var ico = new Icon(s, 64, 64);
+                                pbLogo.Image = ico.ToBitmap();
+                            }
+                            else
+                            {
+                                pbLogo.Image = Image.FromStream(s);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            catch { }
+
             headerPanel.Controls.Add(lblTitle);
             headerPanel.Controls.Add(lblSubtitle);
+            headerPanel.Controls.Add(pbLogo);
             this.Controls.Add(headerPanel);
 
             var bodyPanel = new Panel
@@ -281,8 +315,8 @@ namespace StormSystemOptimizer.Installer
             btnCancel = new Button
             {
                 Text = "Отмена",
-                Size = new Size(110, 34),
-                Location = new Point(360, 13),
+                Size = new Size(110, 36),
+                Location = new Point(346, 12),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(30, 41, 59),
                 ForeColor = Color.FromArgb(226, 232, 240),
@@ -294,9 +328,9 @@ namespace StormSystemOptimizer.Installer
 
             btnInstall = new Button
             {
-                Text = "Установить ⚡",
-                Size = new Size(120, 34),
-                Location = new Point(480, 13),
+                Text = "Установить",
+                Size = new Size(130, 36),
+                Location = new Point(466, 12),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(14, 165, 233),
                 ForeColor = Color.White,

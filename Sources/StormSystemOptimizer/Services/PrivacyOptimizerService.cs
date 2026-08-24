@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.Win32;
 
 namespace StormSystemOptimizer.Services
@@ -230,6 +230,228 @@ namespace StormSystemOptimizer.Services
             catch { return false; }
         }
 
+                // 16. Р‘Р»РѕРєРёСЂРѕРІРєР° СЃРµСЂРІРµСЂРѕРІ С‚РµР»РµРјРµС‚СЂРёРё С‡РµСЂРµР· С„Р°Р№Р» С…РѕСЃС‚РѕРІ
+        public bool SetHostsTelemetryBlock(bool enable)
+        {
+            try
+            {
+                string hostsPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"drivers\etc\hosts");
+                if (!System.IO.File.Exists(hostsPath)) return false;
+
+                string currentText = System.IO.File.ReadAllText(hostsPath);
+                const string header = "# Р‘Р›РћРљРР РћР’РљРђ РўР•Р›Р•РњР•РўР РР STORM РќРђР§РђР›Рћ";
+                const string footer = "# Р‘Р›РћРљРР РћР’РљРђ РўР•Р›Р•РњР•РўР РР STORM РљРћРќР•Р¦";
+
+                int startIdx = currentText.IndexOf(header, StringComparison.OrdinalIgnoreCase);
+                int endIdx = currentText.IndexOf(footer, StringComparison.OrdinalIgnoreCase);
+
+                if (startIdx >= 0 && endIdx >= 0)
+                {
+                    currentText = currentText.Remove(startIdx, (endIdx + footer.Length) - startIdx).Trim();
+                }
+
+                if (enable)
+                {
+                    var sb = new System.Text.StringBuilder();
+                    sb.AppendLine();
+                    sb.AppendLine(header);
+                    string[] domains = GetTelemetryDomains();
+                    foreach (var domain in domains)
+                    {
+                        if (!string.IsNullOrWhiteSpace(domain))
+                        {
+                            sb.AppendLine($"0.0.0.0 {domain.Trim()}");
+                        }
+                    }
+                    sb.AppendLine(footer);
+                    currentText += sb.ToString();
+                }
+
+                System.IO.File.SetAttributes(hostsPath, System.IO.FileAttributes.Normal);
+                System.IO.File.WriteAllText(hostsPath, currentText, System.Text.Encoding.UTF8);
+
+                try
+                {
+                    using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "ipconfig.exe",
+                        Arguments = "/flushdns",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    });
+                    p?.WaitForExit(2000);
+                }
+                catch { }
+
+                return true;
+            }
+            catch { return false; }
+        }
+
+        // 17. Р‘Р»РѕРєРёСЂРѕРІРєР° РІ Р±СЂР°РЅРґРјР°СѓСЌСЂРµ
+        public bool SetFirewallTelemetryBlock(bool enable)
+        {
+            try
+            {
+                const string ruleName = "STORM_Р‘Р›РћРљРР РћР’РљРђ_РўР•Р›Р•РњР•РўР РР";
+                using (var pDel = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "netsh.exe",
+                    Arguments = $"advfirewall firewall delete rule name=\"{ruleName}\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                }))
+                {
+                    pDel?.WaitForExit(2000);
+                }
+
+                if (enable)
+                {
+                    using var pAdd = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "netsh.exe",
+                        Arguments = $"advfirewall firewall add rule name=\"{ruleName}\" dir=out action=block remoteip=13.107.4.50,20.54.89.106,20.190.159.0/24,40.77.226.250",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    });
+                    pAdd?.WaitForExit(2000);
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        // 18. РћС‚РєР»СЋС‡РµРЅРёРµ СЃР±РѕСЂР° С‚РµР»РµРјРµС‚СЂРёРё РІРёРґРµРѕРєР°СЂС‚
+        public bool SetNvidiaTelemetry(bool disable)
+        {
+            try
+            {
+                using (var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\NVIDIA Corporation\Global\FTS"))
+                {
+                    key?.SetValue("EnableTelemetry", disable ? 0 : 1, RegistryValueKind.DWord);
+                }
+                using (var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\NVIDIA Corporation\NvControlPanel2\Client"))
+                {
+                    key?.SetValue("OptInOrOutPreference", disable ? 0 : 1, RegistryValueKind.DWord);
+                }
+
+                string[] nvServices = { "NvTelemetryContainer", "NvContainerLocalSystem" };
+                foreach (var svc in nvServices)
+                {
+                    try
+                    {
+                        using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = "sc.exe",
+                            Arguments = disable ? $"config \"{svc}\" start= disabled" : $"config \"{svc}\" start= auto",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        });
+                        p?.WaitForExit(2000);
+
+                        if (disable)
+                        {
+                            using var pStop = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = "net.exe",
+                                Arguments = $"stop \"{svc}\" /y",
+                                CreateNoWindow = true,
+                                UseShellExecute = false
+                            });
+                            pStop?.WaitForExit(2000);
+                        }
+                    }
+                    catch { }
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        // 19. РћС‚РєР»СЋС‡РµРЅРёРµ СЃР±РѕСЂР° С‚РµР»РµРјРµС‚СЂРёРё РїСЂРѕС†РµСЃСЃРѕСЂРѕРІ
+        public bool SetIntelTelemetry(bool disable)
+        {
+            try
+            {
+                string[] intelServices = { "Intel(R) Content Protection HECI Service", "Intel(R) System Usage Report Service", "IntelCPHS", "esrv_svc", "SURsvc" };
+                foreach (var svc in intelServices)
+                {
+                    try
+                    {
+                        using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = "sc.exe",
+                            Arguments = disable ? $"config \"{svc}\" start= disabled" : $"config \"{svc}\" start= auto",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        });
+                        p?.WaitForExit(2000);
+
+                        if (disable)
+                        {
+                            using var pStop = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = "net.exe",
+                                Arguments = $"stop \"{svc}\" /y",
+                                CreateNoWindow = true,
+                                UseShellExecute = false
+                            });
+                            pStop?.WaitForExit(2000);
+                        }
+                    }
+                    catch { }
+                }
+                return true;
+            }
+            catch { return false; }
+        }
+
+        private static string[] GetTelemetryDomains()
+        {
+            return new string[]
+            {
+                "telemetry.microsoft.com",
+                "vortex.data.microsoft.com",
+                "vortex-win.data.microsoft.com",
+                "telecommand.telemetry.microsoft.com",
+                "telecommand.telemetry.microsoft.com.nsatc.net",
+                "oca.telemetry.microsoft.com",
+                "oca.telemetry.microsoft.com.nsatc.net",
+                "sqm.telemetry.microsoft.com",
+                "sqm.telemetry.microsoft.com.nsatc.net",
+                "watson.telemetry.microsoft.com",
+                "watson.telemetry.microsoft.com.nsatc.net",
+                "redir.metaservices.microsoft.com",
+                "choice.microsoft.com",
+                "choice.microsoft.com.nsatc.net",
+                "df.telemetry.microsoft.com",
+                "reports.wes.df.telemetry.microsoft.com",
+                "wes.df.telemetry.microsoft.com",
+                "services.wes.df.telemetry.microsoft.com",
+                "sqm.df.telemetry.microsoft.com",
+                "telemetry.urs.microsoft.com",
+                "settings-win.data.microsoft.com",
+                "diagnostics.support.microsoft.com",
+                "feedback.microsoft-hohm.com",
+                "feedback.search.microsoft.com",
+                "feedback.windows.com",
+                "corp.sts.microsoft.com",
+                "vortex-sandbox.data.microsoft.com",
+                "i1.services.social.microsoft.com",
+                "i1.services.social.microsoft.com.nsatc.net",
+                "activity.windows.com",
+                "edge.activity.windows.com",
+                "functional.events.data.microsoft.com",
+                "browser.pipe.aria.microsoft.com",
+                "web.vortex.data.microsoft.com",
+                "mobile.pipe.aria.microsoft.com",
+                "onesettings-db5p.settings.data.microsoft.com",
+                "onesettings-db5.settings.data.microsoft.com",
+                "onesettings-bn2.settings.data.microsoft.com",
+                "onesettings-cy2.settings.data.microsoft.com",
+                "onesettings-hk2.settings.data.microsoft.com"
+            };
+        }
         public bool ApplyPreset(string presetName)
         {
             bool max = presetName == "Max" || presetName == "Recommended";

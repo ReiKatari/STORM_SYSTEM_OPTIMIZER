@@ -1077,6 +1077,82 @@
                 </StackPanel>
             </Border>
 
+            <!-- 5. Продвинутые системные инструменты: Доверенный установщик и Центр библиотек -->
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,10">
+                <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradRose}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Доверенный установщик и центр системных библиотек" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Grid Margin="0,0,0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Card 1: Доверенный установщик -->
+                <Border Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,6,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Background="#1AFB7185" CornerRadius="4" Padding="4" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradRose}" Width="12" Height="12" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="Запуск от имени Доверенного установщика" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Запуск любых файлов, утилит и скриптов с наивысшими правами операционной системы для обхода системных блокировок и редактирования защищенных веток."
+                                   FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,14"/>
+
+                        <Button Command="{Binding LaunchTrustedInstallerCommand}"
+                                Style="{StaticResource StormHeroButton}"
+                                HorizontalAlignment="Left"
+                                Padding="16,8">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeoDisks}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="Выбрать и запустить файл с наивысшими правами" FontWeight="Bold" FontSize="11.5" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Card 2: Центр системных библиотек и компонентов -->
+                <Border Grid.Column="1" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="6,0,0,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Background="#1A00D2FF" CornerRadius="4" Padding="4" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoUpdate}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform"/>
+                            </Border>
+                            <TextBlock Text="Центр системных библиотек и компонентов" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Автоматическая фоновая установка недостающих библиотек времени выполнения для стабильной работы всех игр и программ."
+                                   FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+
+                        <WrapPanel Orientation="Horizontal">
+                            <Button Command="{Binding InstallVCRedistCommand}"
+                                    IsEnabled="{Binding IsNotBusy}"
+                                    Style="{StaticResource StormSecondaryButton}"
+                                    Padding="10,6" Margin="0,0,6,6">
+                                <TextBlock Text="Пакеты Visual C++" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+
+                            <Button Command="{Binding InstallDirectXCommand}"
+                                    IsEnabled="{Binding IsNotBusy}"
+                                    Style="{StaticResource StormSecondaryButton}"
+                                    Padding="10,6" Margin="0,0,6,6">
+                                <TextBlock Text="Среда DirectX" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+
+                            <Button Command="{Binding InstallDotNetCommand}"
+                                    IsEnabled="{Binding IsNotBusy}"
+                                    Style="{StaticResource StormSecondaryButton}"
+                                    Padding="10,6" Margin="0,0,6,6">
+                                <TextBlock Text="Среда .NET" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
             <!-- FAQ Section with Gradient Vector Icons -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,12,0,10">
                 <StackPanel>
