@@ -630,7 +630,7 @@
                     <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="10" Width="12" Height="12" Margin="0,0,8,0" VerticalAlignment="Center">
                         <Ellipse Width="6" Height="6" Fill="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
-                    <TextBlock Text="STORM Engine 1.1.0 готов • Система оптимизирована и стабильна" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    <TextBlock Text="STORM Engine 1.1.1 готов • Система оптимизирована и стабильна" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                 </StackPanel>
                 <TextBlock Grid.Column="1" Text="100% Безопасная Оптимизация • WPF .NET 8" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
             </Grid>
