@@ -454,28 +454,22 @@ namespace StormUniversal.Installer
 
                 Directory.CreateDirectory(targetDir);
 
-                // Terminate running instances
-                lblStatus.Text = "\u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u0435 \u043F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0445 \u043F\u0440\u043E\u0446\u0435\u0441\u0441\u043E\u0432 \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u044B...";
+                // Terminate running instances strictly
+                lblStatus.Text = "Завершение предыдущих процессов программы...";
                 progressBar.Value = 10;
                 await Task.Delay(150);
 
-                string[] procNames = { "StormSystemOptimizer", "STORM_SYSTEM_OPTIMIZER" };
-                foreach (var pName in procNames)
-                {
-                    foreach (var p in Process.GetProcessesByName(pName))
-                    {
-                        try { p.Kill(); p.WaitForExit(1500); } catch { }
-                    }
-                }
+                KillRunningProcesses();
 
                 string targetExe = Path.Combine(targetDir, ExeName);
+                string targetLauncher = Path.Combine(targetDir, "StormLauncher.exe");
                 string targetCer = Path.Combine(targetDir, "STORM_Certificate.cer");
                 string targetIco = Path.Combine(targetDir, IcoName);
                 string targetLogo = Path.Combine(targetDir, "logo.png");
 
                 if (chkInstallCert.Checked)
                 {
-                    lblStatus.Text = "\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u0434\u043E\u0432\u0435\u0440\u0435\u043D\u043D\u043E\u0433\u043E \u0441\u0435\u0440\u0442\u0438\u0444\u0438\u043A\u0430\u0442\u0430...";
+                    lblStatus.Text = "Регистрация доверенного сертификата...";
                     progressBar.Value = 25;
                     await Task.Delay(150);
 
@@ -486,21 +480,23 @@ namespace StormUniversal.Installer
                     }
                 }
 
-                lblStatus.Text = $"\u0420\u0430\u0441\u043F\u0430\u043A\u043E\u0432\u043A\u0430 \u043F\u0430\u043A\u0435\u0442\u0430 {AppDisplayName} (v{AppVersion})...";
+                lblStatus.Text = $"Распаковка пакета {AppDisplayName} (v{AppVersion})...";
                 progressBar.Value = 45;
                 await Task.Delay(100);
 
-                // Extract primary files
+                // Extract primary files with strict validation
                 ExtractResource(ExeName, targetExe);
+                try { ExtractResource("StormLauncher.exe", targetLauncher); } catch { }
                 ExtractResource(IcoName, targetIco);
-                ExtractResource("logo.png", targetLogo);
+                try { ExtractResource("logo.png", targetLogo); } catch { }
                 ExtractResource("STORM_Certificate.cer", targetCer);
 
                 progressBar.Value = 75;
-                lblStatus.Text = "\u0421\u043D\u044F\u0442\u0438\u0435 \u043C\u0435\u0442\u043E\u043A \u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u043A\u0438 \u0438 \u043E\u043F\u0442\u0438\u043C\u0438\u0437\u0430\u0446\u0438\u044F \u0431\u0435\u0437\u043E\u043F\u0430\u0441\u043D\u043E\u0441\u0442\u0438...";
+                lblStatus.Text = "Снятие меток блокировки и оптимизация безопасности...";
                 await Task.Delay(150);
 
                 UnblockFile(targetExe);
+                UnblockFile(targetLauncher);
                 UnblockFile(targetCer);
                 UnblockFile(targetIco);
                 UnblockFile(targetLogo);
@@ -508,7 +504,7 @@ namespace StormUniversal.Installer
 
                 if (rbStandard.Checked)
                 {
-                    lblStatus.Text = "\u0421\u043E\u0437\u0434\u0430\u043D\u0438\u0435 \u0441\u0438\u0441\u0442\u0435\u043C\u043D\u044B\u0445 \u044F\u0440\u043B\u044B\u043A\u043E\u0432 \u0438 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u0432 Windows...";
+                    lblStatus.Text = "Создание системных ярлыков и регистрация в Windows...";
                     progressBar.Value = 88;
                     await Task.Delay(150);
 
@@ -521,7 +517,7 @@ namespace StormUniversal.Installer
                 }
 
                 progressBar.Value = 100;
-                lblStatus.Text = rbPortable.Checked ? "\u041F\u043E\u0440\u0442\u0430\u0442\u0438\u0432\u043D\u0430\u044F \u0432\u0435\u0440\u0441\u0438\u044F \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u0440\u0430\u0441\u043F\u0430\u043A\u043E\u0432\u0430\u043D\u0430!" : "\u0423\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043A! \u0421\u0438\u0441\u0442\u0435\u043C\u0430 \u043F\u043E\u043B\u043D\u043E\u0441\u0442\u044C\u044E \u0433\u043E\u0442\u043E\u0432\u0430.";
+                lblStatus.Text = rbPortable.Checked ? "Портативная версия успешно распакована!" : "Установка успешно завершена! Система полностью готова.";
                 lblStatus.ForeColor = Color.FromArgb(16, 185, 129);
                 await Task.Delay(500);
 
@@ -534,7 +530,7 @@ namespace StormUniversal.Installer
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"\u041E\u0448\u0438\u0431\u043A\u0430 \u0432\u043E \u0432\u044F\u0440\u0435\u043C\u044F \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438:\n{ex.Message}", "\u041E\u0448\u0438\u0431\u043A\u0430 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Ошибка во время установки:\n{ex.Message}", "Ошибка установки", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 btnInstall.Enabled = true;
                 btnCancel.Enabled = true;
                 btnBrowse.Enabled = true;
@@ -643,31 +639,84 @@ namespace StormUniversal.Installer
             catch { }
         }
 
+        private static void KillRunningProcesses()
+        {
+            string[] procNames = { "StormSystemOptimizer", "STORM_SYSTEM_OPTIMIZER", "StormLauncher" };
+            foreach (var pName in procNames)
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo("taskkill.exe", $"/F /T /IM {pName}.exe")
+                    {
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(2000);
+                }
+                catch { }
+            }
+        }
+
         private void ExtractResource(string resNameEnding, string targetPath)
         {
-            try
+            string? dir = Path.GetDirectoryName(targetPath);
+            if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             {
-                string? dir = Path.GetDirectoryName(targetPath);
-                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            }
+
+            var asm = Assembly.GetExecutingAssembly();
+            string? foundResource = null;
+            foreach (var name in asm.GetManifestResourceNames())
+            {
+                if (name.EndsWith(resNameEnding, StringComparison.OrdinalIgnoreCase))
                 {
-                    Directory.CreateDirectory(dir);
+                    foundResource = name;
+                    break;
                 }
-                var asm = Assembly.GetExecutingAssembly();
-                foreach (var name in asm.GetManifestResourceNames())
+            }
+
+            if (foundResource == null)
+            {
+                throw new FileNotFoundException($"Встроенный ресурс {resNameEnding} не найден в пакете установщика!");
+            }
+
+            if (File.Exists(targetPath))
+            {
+                try
                 {
-                    if (name.EndsWith(resNameEnding, StringComparison.OrdinalIgnoreCase))
+                    File.SetAttributes(targetPath, FileAttributes.Normal);
+                    File.Delete(targetPath);
+                }
+                catch
+                {
+                    try
                     {
-                        using var inStream = asm.GetManifestResourceStream(name);
-                        if (inStream != null)
-                        {
-                            using var outStream = File.Create(targetPath);
-                            inStream.CopyTo(outStream);
-                        }
-                        return;
+                        string oldPath = targetPath + ".old." + Guid.NewGuid().ToString("N");
+                        File.Move(targetPath, oldPath);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new IOException($"Не удалось обновить файл {Path.GetFileName(targetPath)}: {ex.Message}");
                     }
                 }
             }
-            catch { }
+
+            using (var inStream = asm.GetManifestResourceStream(foundResource))
+            {
+                if (inStream == null) throw new InvalidOperationException($"Не удалось прочитать ресурс {foundResource}");
+                using (var outStream = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None))
+                {
+                    inStream.CopyTo(outStream);
+                    outStream.Flush(true);
+                }
+            }
+
+            if (!File.Exists(targetPath) || new FileInfo(targetPath).Length == 0)
+            {
+                throw new IOException($"Ошибка распаковки: файл {Path.GetFileName(targetPath)} пуст.");
+            }
         }
 
         private void CreateShortcuts(string targetDir, string targetExe, string targetIco, bool desktopShortcut, bool startMenuShortcut)
@@ -722,6 +771,17 @@ namespace StormUniversal.Installer
             catch { }
         }
 
+        private static bool IsAdministrator()
+        {
+            try
+            {
+                using var identity = System.Security.Principal.WindowsIdentity.GetCurrent();
+                var principal = new System.Security.Principal.WindowsPrincipal(identity);
+                return principal.IsInRole(System.Security.Principal.WindowsBuiltInRole.Administrator);
+            }
+            catch { return false; }
+        }
+
         [STAThread]
         public static void Main()
         {
@@ -731,6 +791,18 @@ namespace StormUniversal.Installer
                 if (!string.IsNullOrEmpty(selfExe))
                 {
                     UnblockFile(selfExe);
+                }
+
+                if (!IsAdministrator())
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = selfExe,
+                        UseShellExecute = true,
+                        Verb = "runas"
+                    };
+                    Process.Start(psi);
+                    return;
                 }
             }
             catch { }
