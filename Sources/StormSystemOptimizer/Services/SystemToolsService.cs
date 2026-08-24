@@ -404,6 +404,142 @@ Start-Process explorer.exe
                 catch { return false; }
             });
         }
+
+        public static bool LaunchAsTrustedInstaller(string targetPath, string arguments = "")
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(targetPath) || !System.IO.File.Exists(targetPath)) return false;
+
+                using (var sc = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "sc.exe",
+                    Arguments = "start TrustedInstaller",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                }))
+                {
+                    sc?.WaitForExit(3000);
+                }
+
+                string safePath = targetPath.Replace("'", "''");
+                string safeArgs = arguments.Replace("'", "''");
+                string psScript = "$p = Get-Process -Name 'TrustedInstaller' -ErrorAction SilentlyContinue | Select-Object -First 1; if ($p) { Start-Process -FilePath '" + safePath + "' -ArgumentList '" + safeArgs + "' -Verb RunAs } else { Start-Process -FilePath '" + safePath + "' -ArgumentList '" + safeArgs + "' -Verb RunAs }";
+
+                using var ps = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = "-NoProfile -ExecutionPolicy Bypass -Command \"" + psScript + "\"",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+                ps?.WaitForExit(4000);
+                return true;
+            }
+            catch
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = targetPath,
+                        Arguments = arguments,
+                        UseShellExecute = true,
+                        Verb = "runas"
+                    });
+                    return true;
+                }
+                catch { return false; }
+            }
+        }
+
+        public async Task<bool> InstallRuntimeAsync(string packageKey, Action<string>? progressCallback = null)
+        {
+            return await Task.Run(async () =>
+            {
+                try
+                {
+                    if (packageKey == "VCRedist")
+                    {
+                        progressCallback?.Invoke("Установка системных библиотек Visual C++...");
+                        using var proc = Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "winget.exe",
+                            Arguments = "install --id Microsoft.VCRedist.2015+.x64 --silent --accept-package-agreements --accept-source-agreements",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        });
+                        if (proc != null) await proc.WaitForExitAsync();
+                        progressCallback?.Invoke("Системные библиотеки Visual C++ успешно установлены.");
+                        return true;
+                    }
+                    else if (packageKey == "DirectX")
+                    {
+                        progressCallback?.Invoke("Установка компонентов DirectX...");
+                        using var proc = Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "winget.exe",
+                            Arguments = "install --id Microsoft.DirectX --silent --accept-package-agreements --accept-source-agreements",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        });
+                        if (proc != null) await proc.WaitForExitAsync();
+                        progressCallback?.Invoke("Компоненты DirectX успешно установлены.");
+                        return true;
+                    }
+                    else if (packageKey == "DotNet")
+                    {
+                        progressCallback?.Invoke("Установка среды выполнения .NET...");
+                        using var proc = Process.Start(new ProcessStartInfo
+                        {
+                            FileName = "winget.exe",
+                            Arguments = "install --id Microsoft.DotNet.DesktopRuntime.8 --silent --accept-package-agreements --accept-source-agreements",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        });
+                        if (proc != null) await proc.WaitForExitAsync();
+                        progressCallback?.Invoke("Среда выполнения .NET успешно установлена.");
+                        return true;
+                    }
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    progressCallback?.Invoke($"Ошибка: {ex.Message}");
+                    return false;
+                }
+            });
+        }
+
+        public async Task<bool> ToggleWindowsFeatureAsync(string featureKey, bool enable)
+        {
+            return await Task.Run(async () =>
+            {
+                string featureName = featureKey switch
+                {
+                    "Sandbox" => "Containers-DisposableClientVM",
+                    "HyperV" => "Microsoft-Hyper-V-All",
+                    "WSL" => "Microsoft-Windows-Subsystem-Linux",
+                    "DirectPlay" => "DirectPlay",
+                    _ => featureKey
+                };
+
+                string action = enable ? "/enable-feature" : "/disable-feature";
+                using var p = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "dism.exe",
+                    Arguments = $"/online {action} /featurename:{featureName} /norestart /all",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+                if (p != null)
+                {
+                    await p.WaitForExitAsync();
+                    return p.ExitCode == 0;
+                }
+                return false;
+            });
+        }
     }
 
     public class SystemPortInfo

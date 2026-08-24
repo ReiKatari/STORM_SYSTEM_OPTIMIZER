@@ -180,5 +180,38 @@ namespace StormSystemOptimizer.ViewModels
 
             IsBusy = false;
         }
+
+        [RelayCommand]
+        public async Task RemoveEdgeAsync()
+        {
+            IsBusy = true;
+            StatusText = "Удаление встроенного браузера...";
+            bool ok = await SoftwareUninstallerService.Instance.RemoveMicrosoftEdgeAsync();
+            StatusText = ok ? "Встроенный браузер успешно удален!" : "Операция завершена";
+            TrayService.Instance.ShowNotification("Удаление компонентов", StatusText);
+            IsBusy = false;
+        }
+
+        [RelayCommand]
+        public async Task RemoveOneDriveAsync()
+        {
+            IsBusy = true;
+            StatusText = "Удаление облачного хранилища...";
+            bool ok = await SoftwareUninstallerService.Instance.RemoveOneDriveAsync();
+            StatusText = ok ? "Облачное хранилище успешно удалено!" : "Операция завершена";
+            TrayService.Instance.ShowNotification("Удаление компонентов", StatusText);
+            IsBusy = false;
+        }
+
+        [RelayCommand]
+        public async Task CleanComponentStoreAsync()
+        {
+            IsBusy = true;
+            StatusText = "Очистка хранилища системных компонентов...";
+            bool ok = await SoftwareUninstallerService.Instance.CleanComponentStoreAsync();
+            StatusText = ok ? "Хранилище компонентов успешно очищено!" : "Операция завершена";
+            TrayService.Instance.ShowNotification("Очистка компонентов", StatusText);
+            IsBusy = false;
+        }
     }
 }
