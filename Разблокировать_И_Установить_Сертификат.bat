@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 chcp 65001 >nul
 title STORM SYSTEM OPTIMIZER - Разблокировка Smart App Control и доверие сертификату
 
@@ -13,7 +13,7 @@ if %errorLevel% neq 0 (
 )
 
 echo ============================================================
-echo   STORM SYSTEM OPTIMIZER v1.0.9 - СНЯТИЕ ВСЕХ БЛОКИРОВОК
+echo   STORM SYSTEM OPTIMIZER v1.1.0 - СНЯТИЕ ВСЕХ БЛОКИРОВОК
 echo   (Smart App Control, SmartScreen, Mark-of-the-Web, Defender)
 echo ============================================================
 echo.

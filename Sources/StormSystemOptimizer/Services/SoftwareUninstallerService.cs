@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -915,6 +915,114 @@ namespace StormSystemOptimizer.Services
                 }
             }
             catch { }
+        }
+            public async System.Threading.Tasks.Task<bool> RemoveMicrosoftEdgeAsync()
+        {
+            return await System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    string setupPath = @"C:\Program Files (x86)\Microsoft\Edge\Application";
+                    if (System.IO.Directory.Exists(setupPath))
+                    {
+                        var dirs = System.IO.Directory.GetDirectories(setupPath);
+                        foreach (var dir in dirs)
+                        {
+                            string installer = System.IO.Path.Combine(dir, "Installer", "setup.exe");
+                            if (System.IO.File.Exists(installer))
+                            {
+                                using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                                {
+                                    FileName = installer,
+                                    Arguments = "--uninstall --system-level --verbose-logging --force-uninstall",
+                                    CreateNoWindow = true,
+                                    UseShellExecute = false
+                                });
+                                p?.WaitForExit(15000);
+                            }
+                        }
+                    }
+
+                    string[] edgeServices = { "edgeupdate", "edgeupdatem", "MicrosoftEdgeElevationService" };
+                    foreach (var s in edgeServices)
+                    {
+                        try
+                        {
+                            using var sc = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = "sc.exe",
+                                Arguments = $"config \"{s}\" start= disabled",
+                                CreateNoWindow = true,
+                                UseShellExecute = false
+                            });
+                            sc?.WaitForExit(2000);
+                        }
+                        catch { }
+                    }
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async System.Threading.Tasks.Task<bool> RemoveOneDriveAsync()
+        {
+            return await System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    foreach (var proc in System.Diagnostics.Process.GetProcessesByName("OneDrive"))
+                    {
+                        try { proc.Kill(); } catch { }
+                    }
+
+                    string sysRoot = Environment.GetFolderPath(Environment.SpecialFolder.System);
+                    string sys64 = Environment.GetFolderPath(Environment.SpecialFolder.Windows) + @"\SysWOW64";
+                    string uninstaller = System.IO.Path.Combine(sys64, "OneDriveSetup.exe");
+                    if (!System.IO.File.Exists(uninstaller))
+                    {
+                        uninstaller = System.IO.Path.Combine(sysRoot, "OneDriveSetup.exe");
+                    }
+
+                    if (System.IO.File.Exists(uninstaller))
+                    {
+                        using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = uninstaller,
+                            Arguments = "/uninstall",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        });
+                        p?.WaitForExit(20000);
+                    }
+
+                    using var key = Registry.ClassesRoot.CreateSubKey(@"CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}");
+                    key?.SetValue("System.IsPinnedToNameSpaceTree", 0, RegistryValueKind.DWord);
+
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async System.Threading.Tasks.Task<bool> CleanComponentStoreAsync()
+        {
+            return await System.Threading.Tasks.Task.Run(() =>
+            {
+                try
+                {
+                    using var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "dism.exe",
+                        Arguments = "/Online /Cleanup-Image /StartComponentCleanup /ResetBase",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    });
+                    p?.WaitForExit(120000);
+                    return p?.ExitCode == 0;
+                }
+                catch { return false; }
+            });
         }
     }
 }

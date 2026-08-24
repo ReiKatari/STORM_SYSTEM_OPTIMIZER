@@ -532,7 +532,22 @@ namespace StormSystemOptimizer.ViewModels
         private bool _isRemoteAccessDisabled = true;
 
         [ObservableProperty]
-        private string _statusMessage = "Защита приватности активна • 14 уровней безопасности";
+        private bool _isNvidiaTelemetryDisabled = true;
+
+        [ObservableProperty]
+        private bool _isIntelTelemetryDisabled = true;
+
+        [ObservableProperty]
+        private bool _isHostsBlockEnabled = true;
+
+        [ObservableProperty]
+        private bool _isFirewallBlockEnabled = true;
+
+        [ObservableProperty]
+        private bool _isRecallDisabled = true;
+
+        [ObservableProperty]
+        private string _statusMessage = "Защита приватности активна • 19 уровней безопасности";
 
         public PrivacyViewModel()
         {
@@ -580,6 +595,11 @@ namespace StormSystemOptimizer.ViewModels
             IsAppInventoryDisabled = state;
             IsCameraMicBackgroundDisabled = state;
             IsRemoteAccessDisabled = state;
+            IsNvidiaTelemetryDisabled = state;
+            IsIntelTelemetryDisabled = state;
+            IsHostsBlockEnabled = state;
+            IsFirewallBlockEnabled = state;
+            IsRecallDisabled = state;
         }
 
         [RelayCommand]
@@ -601,6 +621,8 @@ namespace StormSystemOptimizer.ViewModels
                 IsBingSearchDisabled = true;
                 IsEdgeTelemetryDisabled = true;
                 IsFeedbackFrequencyDisabled = true;
+                IsHostsBlockEnabled = true;
+                IsFirewallBlockEnabled = true;
                 PrivacyOptimizerService.Instance.ApplyPreset("Balanced");
                 StatusMessage = "Сбалансированный профиль приватности успешно применен!";
             }
@@ -630,6 +652,11 @@ namespace StormSystemOptimizer.ViewModels
             PrivacyOptimizerService.Instance.SetAppInventory(IsAppInventoryDisabled);
             PrivacyOptimizerService.Instance.SetCameraMicBackgroundAccess(IsCameraMicBackgroundDisabled);
             PrivacyOptimizerService.Instance.SetRemoteAccess(IsRemoteAccessDisabled);
+            PrivacyOptimizerService.Instance.SetNvidiaTelemetry(IsNvidiaTelemetryDisabled);
+            PrivacyOptimizerService.Instance.SetIntelTelemetry(IsIntelTelemetryDisabled);
+            PrivacyOptimizerService.Instance.SetHostsTelemetryBlock(IsHostsBlockEnabled);
+            PrivacyOptimizerService.Instance.SetFirewallTelemetryBlock(IsFirewallBlockEnabled);
+            PrivacyOptimizerService.Instance.SetWindowsRecall(IsRecallDisabled);
 
             StatusMessage = "Все выбранные правила приватности и блокировки успешно применены!";
             TrayService.Instance.ShowNotification("Приватность", StatusMessage);
@@ -639,6 +666,70 @@ namespace StormSystemOptimizer.ViewModels
     // --- System Tools View Model with Advanced Tweaks ---
     public partial class SystemToolsViewModel : ObservableObject
     {
+        [RelayCommand]
+        public void LaunchTrustedInstaller()
+        {
+            try
+            {
+                var dialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Title = "Выберите файл для запуска от имени Доверенного установщика",
+                    Filter = "Исполняемые файлы и скрипты (*.exe;*.bat;*.cmd;*.ps1;*.reg)|*.exe;*.bat;*.cmd;*.ps1;*.reg|Все файлы (*.*)|*.*"
+                };
+                if (dialog.ShowDialog() == true)
+                {
+                    bool ok = SystemToolsService.LaunchAsTrustedInstaller(dialog.FileName);
+                    ToolStatus = ok ? $"Файл {Path.GetFileName(dialog.FileName)} запущен с наивысшими правами!" : "Не удалось запустить файл";
+                    TrayService.Instance.ShowNotification("Доверенный установщик", ToolStatus);
+                }
+            }
+            catch (Exception ex)
+            {
+                ToolStatus = $"Ошибка: {ex.Message}";
+            }
+        }
+
+        [RelayCommand]
+        public async Task InstallVCRedist()
+        {
+            IsBusy = true;
+            ToolStatus = "Установка системных пакетов Visual C++...";
+            await SystemToolsService.Instance.InstallRuntimeAsync("VCRedist", msg => ToolStatus = msg);
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Центр библиотек", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task InstallDirectX()
+        {
+            IsBusy = true;
+            ToolStatus = "Установка компонентов DirectX...";
+            await SystemToolsService.Instance.InstallRuntimeAsync("DirectX", msg => ToolStatus = msg);
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Центр библиотек", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task InstallDotNet()
+        {
+            IsBusy = true;
+            ToolStatus = "Установка среды выполнения .NET...";
+            await SystemToolsService.Instance.InstallRuntimeAsync("DotNet", msg => ToolStatus = msg);
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Центр библиотек", ToolStatus);
+        }
+
+        [RelayCommand]
+        public async Task ToggleWindowsFeature(string featureKey)
+        {
+            IsBusy = true;
+            ToolStatus = "Настройка компонента Windows...";
+            bool ok = await SystemToolsService.Instance.ToggleWindowsFeatureAsync(featureKey, true);
+            ToolStatus = ok ? "Компонент успешно настроен!" : "Операция завершена";
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Компоненты Windows", ToolStatus);
+        }
+
         private readonly string _stateFilePath;
 
         [ObservableProperty]
