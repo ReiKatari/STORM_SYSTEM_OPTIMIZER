@@ -1,58 +1,64 @@
-# STORM SYSTEM OPTIMIZER — Исходный код решения
+<div align="center">
+
+# ⚡ STORM SYSTEM OPTIMIZER
 
 <p align="center">
-  <img src="../Files/StormLogo.png" alt="STORM SYSTEM OPTIMIZER Logo" width="220" />
+  <b>Глубокая оптимизация производительности Windows, очистка памяти, твики задержек и системных служб.</b>
 </p>
 
-<p align="center">
-  <b>Архитектура решения C# WPF .NET 8 LTS, структура сервисов, ViewModels и сборка.</b>
-</p>
+[![Version](https://img.shields.io/badge/version-1.0.9-00D2FF.svg?style=for-the-badge)](https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER)
+[![Platform](https://img.shields.io/badge/Platform-Windows%2011%20%7C%2010-0EA5E9.svg?style=for-the-badge)](https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER)
+[![Tech](https://img.shields.io/badge/Tech-.NET+10+%2f+WPF+%2f+Win32+API-6366F1.svg?style=for-the-badge)](https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER)
+[![Publisher](https://img.shields.io/badge/Publisher-STORM%20TEAM-10B981.svg?style=for-the-badge)](https://github.com/ReiKatari)
+[![Developer](https://img.shields.io/badge/Author-ReiKatari-F59E0B.svg?style=for-the-badge)](https://github.com/ReiKatari)
+[![Signed](https://img.shields.io/badge/Security-SHA256%20Signed-10B981.svg?style=for-the-badge)](https://github.com/ReiKatari)
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%20Windows%2011-0078D4?style=for-the-badge&logo=windows" />
-  <img src="https://img.shields.io/badge/Framework-WPF%20%2F%20.NET%208%20LTS-00D2FF?style=for-the-badge&logo=windows-terminal" />
-  <img src="https://img.shields.io/badge/Publisher-STORM%20TEAM-orange?style=for-the-badge" />
-</p>
-
----
-
-## ⚡ О проекте
-
-**STORM SYSTEM OPTIMIZER** — системный оптимизатор нового поколения от команды **STORM TEAM**, разработанный на нативном высокопроизводительном движке **WPF (.NET 8 LTS)**. Программа предоставляет комплексный набор из 34 специализированных разделов для глубокой настройки, ускорения игр, освобождения оперативной памяти ядра, устранения системных задержек, разблокировки файлов и поддержания максимальной стабильности ПК.
+</div>
 
 ---
 
-## 🔒 Автоматическая цифровая подпись
-Все релизные сборки автоматически подписываются сертификатом Authenticode SHA-256 (`CN=STORM TEAM`).
+## 🌟 О проекте / Overview
 
-Скрипт `build.ps1` производит:
-  - Компиляцию проекта `StormSystemOptimizer.csproj` в единый исполняемый файл `.exe` (Single-File).
-  - Сборку инсталлятора `StormInstaller.exe` и его упаковку в установочный пакет `Setup.exe`.
-  - Автоматическую подпись SHA-256 цифровым сертификатом Authenticode (`CN=STORM TEAM`).
-  - Установку доверенного сертификата `STORM TEAM` в хранилища Windows.
+**STORM SYSTEM OPTIMIZER** — компонент экосистемы **STORM**, разработанный с упором на максимальную производительность, современный дизайн и надёжность.
+
+* **Версия:** $(System.Collections.Hashtable.Ver)
+* **Издатель:** STORM TEAM
+* **Ведущий разработчик:** ReiKatari
+* **Технологический стек:** $(System.Collections.Hashtable.Tech)
+
+---
+
+## 🚀 Установка / Installation
+
+Установка производится через единый инсталлятор **STORM INSTALLER**:
+
+1. Запустите файл STORM_STORM_SYSTEM_OPTIMIZER_1.0.9_Setup.exe.
+2. Выберите режим:
+   * **Стандартная установка** — установка в C:\Program Files\STORM SYSTEM OPTIMIZER с созданием ярлыков и регистрацией в системе.
+   * **Портативная версия** — распаковка в любую выбранную папку без изменения реестра.
+3. Опция автоматической регистрации доверенного сертификата STORM TEAM позволяет навсегда исключить предупреждения SmartScreen и Smart App Control.
 
 ---
 
-## 🏛️ Архитектура проектов
+## 🛡️ Безопасность и Цифровая подпись / Code Signing
 
-### 1. `StormSystemOptimizer` (Главное приложение)
-- **Фреймворк**: WPF (.NET 8.0 LTS, C# 12, `net8.0-windows`)
-- **Паттерн**: MVVM (Model-View-ViewModel) с использованием `CommunityToolkit.Mvvm` (Source Generators, `[ObservableProperty]`, `[RelayCommand]`)
-- **Основные слои**:
-  - `Assets/` — Иконки, шрифты и растровые логотипы.
-  - `Controls/` — Интерактивный STORM HUD Overlay (`HudWindow.xaml`), кастомные диалоги `StormMessageBox`.
-  - `Themes/` — 8 динамических XAML словарей тем (`StormDark`, `StormNight`, `StormDay`, `StormMidnight`, `StormCyberpunk`, `StormMatrix`, `StormFantasy`, `StormWarhammer`) + векторная библиотека иконок `StormIcons.xaml`.
-  - `Models/` — Структуры данных и модели процессов, дисков, обновлений, служб, лаунчеров, активных портов и дескрипторов блокировки.
-  - `Services/` — Ядро сервисов (Win32 API, `IOCTL_STORAGE_GET_DEVICE_NUMBER`, `NtSetTimerResolution`, `NtSetSystemInformation`, Restart Manager `rstrtmgr.dll`, WMI, драйверы, DNS, Winget).
-  - `ViewModels/` — Реактивные модели представления (Dashboard, ProcessManager, Disks, Network, PowerTuning, InputLag, ContextMenu, BackupVault, QuickMaintenance, MemoryMaster, GameLaunchers, FileUnlocker и др.).
-  - `Views/` — 34 XAML страницы пользовательского интерфейса.
+Все исполняемые файлы и инсталляторы подписаны сертификатом **STORM TEAM** с использованием хэширования SHA-256 и RFC 3161 Timestamping.
 
-### 2. `StormInstaller` (Автономный установщик)
-- **Фреймворк**: Windows Forms (.NET 8.0 LTS Single-File)
-- **Функционал**:
-  - Распаковка и установка исполняемых файлов в `Program Files\StormSystemOptimizer` или портативную папку.
-  - Автоматическая установка цифрового сертификата `STORM TEAM`.
-  - Создание ярлыков на Рабочем столе и в меню Пуск.
-  - Регистрация в реестре Windows «Установка и удаление программ».
+* Для ручной установки сертификата в хранилище доверенных корневых центров запустите:
+  Files\Разблокировать_И_Установить_Сертификат.bat от имени Администратора.
 
 ---
+
+## 📁 Структура репозитория / Structure
+
+* Assembling/ — скомпилированные релизные бинарные файлы и зависимости программы.
+* Files/ — инсталлятор, сертификат STORM_Certificate.cer и сервисные скрипты.
+* Sources/ — исходный код решения.
+
+---
+
+## 👥 Авторы и Лицензия / Credits
+
+* **Разработчик:** [ReiKatari](https://github.com/ReiKatari)
+* **Издатель:** **STORM TEAM**
+* © 2026 STORM TEAM. Все права защищены.
