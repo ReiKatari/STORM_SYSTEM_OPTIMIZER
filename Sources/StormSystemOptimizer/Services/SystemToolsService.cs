@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 
@@ -30,10 +32,7 @@ namespace StormSystemOptimizer.Services
                     p?.WaitForExit(15000);
                     return true;
                 }
-                catch
-                {
-                    return false;
-                }
+                catch { return false; }
             });
         }
 
@@ -120,21 +119,25 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                string script = @"
-Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
-Start-Sleep -Seconds 1
-Remove-Item -Force ""$env:LOCALAPPDATA\IconCache.db"" -ErrorAction SilentlyContinue
-Remove-Item -Force ""$env:LOCALAPPDATA\Microsoft\Windows\Explorer\iconcache*"" -ErrorAction SilentlyContinue
-Remove-Item -Force ""$env:LOCALAPPDATA\Microsoft\Windows\Explorer\thumbcache*"" -ErrorAction SilentlyContinue
-Start-Process explorer.exe
-";
-                var psi = new ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"{script}\"")
+                foreach (var p in Process.GetProcessesByName("explorer"))
                 {
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                };
-                using var p = Process.Start(psi);
-                p?.WaitForExit(5000);
+                    try { p.Kill(); p.WaitForExit(1000); } catch { }
+                }
+
+                string localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string iconDb = Path.Combine(localApp, "IconCache.db");
+                if (File.Exists(iconDb)) File.Delete(iconDb);
+
+                string explorerCache = Path.Combine(localApp, @"Microsoft\Windows\Explorer");
+                if (Directory.Exists(explorerCache))
+                {
+                    foreach (var f in Directory.GetFiles(explorerCache, "iconcache_*.db"))
+                    {
+                        try { File.Delete(f); } catch { }
+                    }
+                }
+
+                Process.Start(new ProcessStartInfo("explorer.exe") { UseShellExecute = true });
                 return true;
             }
             catch { return false; }
@@ -144,14 +147,9 @@ Start-Process explorer.exe
         {
             try
             {
-                var psi = new ProcessStartInfo("netsh.exe", "winsock reset")
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                };
-                using var p = Process.Start(psi);
+                using var p = Process.Start(new ProcessStartInfo("netsh.exe", "winsock reset") { CreateNoWindow = true, UseShellExecute = false });
                 p?.WaitForExit(3000);
-                return true;
+                return p?.ExitCode == 0;
             }
             catch { return false; }
         }
@@ -160,141 +158,50 @@ Start-Process explorer.exe
         {
             try
             {
-                Process.Start(new ProcessStartInfo("wsreset.exe") { CreateNoWindow = true, UseShellExecute = true });
+                Process.Start(new ProcessStartInfo("wsreset.exe") { UseShellExecute = true });
                 return true;
             }
             catch { return false; }
         }
 
-        public void LaunchSnapin(string command, string? args = null)
-        {
-            try
-            {
-                Process.Start(new ProcessStartInfo(command, args ?? "") { UseShellExecute = true });
-            }
-            catch { }
-        }
-
-        public async Task<bool> RunSsdTrimAsync(string driveLetter = "C:")
+        public async Task<List<SystemPortInfo>> GetActivePortsAsync()
         {
             return await Task.Run(() =>
             {
+                var list = new List<SystemPortInfo>();
                 try
                 {
-                    var psi = new ProcessStartInfo
-                    {
-                        FileName = "defrag.exe",
-                        Arguments = $"{driveLetter} /O /U",
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    };
-                    using var p = Process.Start(psi);
-                    p?.WaitForExit(30000);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            });
-        }
-
-        public bool ActivateUltimatePerformancePlan()
-        {
-            try
-            {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "powercfg.exe",
-                    Arguments = "-duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61",
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                };
-                using var p = Process.Start(psi);
-                p?.WaitForExit(3000);
-
-                var setPsi = new ProcessStartInfo
-                {
-                    FileName = "powercfg.exe",
-                    Arguments = "-setactive e9a42b02-d5df-448d-aa00-03f14749eb61",
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                };
-                using var setP = Process.Start(setPsi);
-                setP?.WaitForExit(3000);
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public bool OptimizeMenuDelay()
-        {
-            try
-            {
-                using var key = Registry.CurrentUser.CreateSubKey(@"Control Panel\Desktop");
-                if (key != null)
-                {
-                    key.SetValue("MenuShowDelay", "10", RegistryValueKind.String);
-                    key.SetValue("WaitToKillAppTimeout", "2000", RegistryValueKind.String);
-                    key.SetValue("HungAppTimeout", "1000", RegistryValueKind.String);
-                }
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public async Task<System.Collections.Generic.List<SystemPortInfo>> GetActivePortsAsync()
-        {
-            return await Task.Run(() =>
-            {
-                var list = new System.Collections.Generic.List<SystemPortInfo>();
-                try
-                {
-                    var psi = new ProcessStartInfo
+                    using var p = Process.Start(new ProcessStartInfo
                     {
                         FileName = "netstat.exe",
                         Arguments = "-ano",
                         CreateNoWindow = true,
                         UseShellExecute = false,
                         RedirectStandardOutput = true
-                    };
-                    using var p = Process.Start(psi);
+                    });
+
                     if (p != null)
                     {
-                        string output = p.StandardOutput.ReadToEnd();
+                        string outStr = p.StandardOutput.ReadToEnd();
                         p.WaitForExit(3000);
 
-                        var procCache = new System.Collections.Generic.Dictionary<int, string>();
+                        using var reader = new StringReader(outStr);
+                        string? line;
+                        var procCache = new Dictionary<int, string>();
 
-                        foreach (var line in output.Split('\n'))
+                        while ((line = reader.ReadLine()) != null)
                         {
-                            var trimmed = line.Trim();
-                            if (string.IsNullOrEmpty(trimmed)) continue;
-                            if (trimmed.StartsWith("Proto", StringComparison.OrdinalIgnoreCase)) continue;
-                            if (trimmed.StartsWith("Active", StringComparison.OrdinalIgnoreCase)) continue;
+                            line = line.Trim();
+                            if (string.IsNullOrEmpty(line)) continue;
 
-                            var parts = System.Text.RegularExpressions.Regex.Split(trimmed, @"\s+");
-                            if (parts.Length >= 4)
+                            var tokens = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (tokens.Length >= 4 && (tokens[0] == "TCP" || tokens[0] == "UDP"))
                             {
-                                string proto = parts[0].ToUpperInvariant();
-                                string local = parts[1];
-                                string foreign = parts[2];
-                                string state = parts.Length >= 5 ? parts[3] : "LISTENING";
-                                string pidStr = parts.Length >= 5 ? parts[4] : parts[3];
-
-                                int port = 0;
-                                int lastColon = local.LastIndexOf(':');
-                                if (lastColon >= 0 && int.TryParse(local.Substring(lastColon + 1), out int parsedPort))
-                                {
-                                    port = parsedPort;
-                                }
+                                string proto = tokens[0];
+                                string local = tokens[1];
+                                string foreign = tokens[2];
+                                string state = proto == "TCP" && tokens.Length >= 5 ? tokens[3] : "LISTENING";
+                                string pidStr = proto == "TCP" && tokens.Length >= 5 ? tokens[4] : tokens[3];
 
                                 if (int.TryParse(pidStr, out int pid))
                                 {
@@ -302,8 +209,8 @@ Start-Process explorer.exe
                                     {
                                         try
                                         {
-                                            if (pid == 0) pName = "System Idle";
-                                            else if (pid == 4) pName = "System Kernel";
+                                            if (pid == 0) pName = "Системный простой";
+                                            else if (pid == 4) pName = "Ядро Windows (System)";
                                             else pName = Process.GetProcessById(pid).ProcessName;
                                         }
                                         catch
@@ -317,7 +224,6 @@ Start-Process explorer.exe
                                     {
                                         Protocol = proto,
                                         LocalAddress = local,
-                                        LocalPort = port,
                                         ForeignAddress = foreign,
                                         State = state,
                                         ProcessId = pid,
@@ -409,9 +315,9 @@ Start-Process explorer.exe
         {
             try
             {
-                if (string.IsNullOrEmpty(targetPath) || !System.IO.File.Exists(targetPath)) return false;
+                if (string.IsNullOrEmpty(targetPath) || !File.Exists(targetPath)) return false;
 
-                using (var sc = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                using (var sc = Process.Start(new ProcessStartInfo
                 {
                     FileName = "sc.exe",
                     Arguments = "start TrustedInstaller",
@@ -424,9 +330,9 @@ Start-Process explorer.exe
 
                 string safePath = targetPath.Replace("'", "''");
                 string safeArgs = arguments.Replace("'", "''");
-                string psScript = "$p = Get-Process -Name 'TrustedInstaller' -ErrorAction SilentlyContinue | Select-Object -First 1; if ($p) { Start-Process -FilePath '" + safePath + "' -ArgumentList '" + safeArgs + "' -Verb RunAs } else { Start-Process -FilePath '" + safePath + "' -ArgumentList '" + safeArgs + "' -Verb RunAs }";
+                string psScript = "$p = Get-Process -Name 'TrustedInstaller' -ErrorAction SilentlyContinue | Select-Object -First 1; Start-Process -FilePath '" + safePath + "' -ArgumentList '" + safeArgs + "' -Verb RunAs";
 
-                using var ps = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                using var ps = Process.Start(new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
                     Arguments = "-NoProfile -ExecutionPolicy Bypass -Command \"" + psScript + "\"",
@@ -440,7 +346,7 @@ Start-Process explorer.exe
             {
                 try
                 {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    Process.Start(new ProcessStartInfo
                     {
                         FileName = targetPath,
                         Arguments = arguments,
@@ -459,53 +365,60 @@ Start-Process explorer.exe
             {
                 try
                 {
+                    string tempDir = Path.Combine(Path.GetTempPath(), "StormRuntimes");
+                    if (!Directory.Exists(tempDir)) Directory.CreateDirectory(tempDir);
+
+                    using var http = new HttpClient();
+                    http.Timeout = TimeSpan.FromMinutes(3);
+
                     if (packageKey == "VCRedist")
                     {
-                        progressCallback?.Invoke("Установка системных библиотек Visual C++...");
-                        using var proc = Process.Start(new ProcessStartInfo
-                        {
-                            FileName = "winget.exe",
-                            Arguments = "install --id Microsoft.VCRedist.2015+.x64 --silent --accept-package-agreements --accept-source-agreements",
-                            CreateNoWindow = true,
-                            UseShellExecute = false
-                        });
-                        if (proc != null) await proc.WaitForExitAsync();
-                        progressCallback?.Invoke("Системные библиотеки Visual C++ успешно установлены.");
+                        progressCallback?.Invoke("Скачивание Visual C++ 2015-2022 Redistributable...");
+                        string installer = Path.Combine(tempDir, "VC_redist.x64.exe");
+                        var data = await http.GetByteArrayAsync("https://aka.ms/vs/17/release/vc_redist.x64.exe");
+                        await File.WriteAllBytesAsync(installer, data);
+
+                        progressCallback?.Invoke("Тихая установка Visual C++...");
+                        using var p = Process.Start(new ProcessStartInfo(installer, "/quiet /norestart") { CreateNoWindow = true, UseShellExecute = false });
+                        if (p != null) await p.WaitForExitAsync();
+
+                        progressCallback?.Invoke("Пакеты Visual C++ успешно установлены!");
                         return true;
                     }
                     else if (packageKey == "DirectX")
                     {
-                        progressCallback?.Invoke("Установка компонентов DirectX...");
-                        using var proc = Process.Start(new ProcessStartInfo
-                        {
-                            FileName = "winget.exe",
-                            Arguments = "install --id Microsoft.DirectX --silent --accept-package-agreements --accept-source-agreements",
-                            CreateNoWindow = true,
-                            UseShellExecute = false
-                        });
-                        if (proc != null) await proc.WaitForExitAsync();
-                        progressCallback?.Invoke("Компоненты DirectX успешно установлены.");
+                        progressCallback?.Invoke("Скачивание среды выполнения DirectX...");
+                        string installer = Path.Combine(tempDir, "dxwebsetup.exe");
+                        var data = await http.GetByteArrayAsync("https://download.microsoft.com/download/1/7/1/1718CCC4-6315-4D8E-9543-8E28A4E18C4C/dxwebsetup.exe");
+                        await File.WriteAllBytesAsync(installer, data);
+
+                        progressCallback?.Invoke("Тихая установка компонентов DirectX...");
+                        using var p = Process.Start(new ProcessStartInfo(installer, "/Q") { CreateNoWindow = true, UseShellExecute = false });
+                        if (p != null) await p.WaitForExitAsync();
+
+                        progressCallback?.Invoke("Среда DirectX успешно обновлена!");
                         return true;
                     }
                     else if (packageKey == "DotNet")
                     {
-                        progressCallback?.Invoke("Установка среды выполнения .NET...");
-                        using var proc = Process.Start(new ProcessStartInfo
+                        progressCallback?.Invoke("Установка среды выполнения .NET 8...");
+                        using var p = Process.Start(new ProcessStartInfo
                         {
                             FileName = "winget.exe",
                             Arguments = "install --id Microsoft.DotNet.DesktopRuntime.8 --silent --accept-package-agreements --accept-source-agreements",
                             CreateNoWindow = true,
                             UseShellExecute = false
                         });
-                        if (proc != null) await proc.WaitForExitAsync();
-                        progressCallback?.Invoke("Среда выполнения .NET успешно установлена.");
+                        if (p != null) await p.WaitForExitAsync();
+
+                        progressCallback?.Invoke("Среда выполнения .NET успешно установлена!");
                         return true;
                     }
                     return false;
                 }
                 catch (Exception ex)
                 {
-                    progressCallback?.Invoke($"Ошибка: {ex.Message}");
+                    progressCallback?.Invoke($"Ошибка установки: {ex.Message}");
                     return false;
                 }
             });
@@ -540,13 +453,79 @@ Start-Process explorer.exe
                 return false;
             });
         }
+
+        public void LaunchSnapin(string snapinOrTool)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo(snapinOrTool) { UseShellExecute = true });
+            }
+            catch { }
+        }
+
+        public async Task<bool> RunSsdTrimAsync(string driveLetter = "C:")
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    string drive = (string.IsNullOrWhiteSpace(driveLetter) ? "C" : driveLetter).TrimEnd('\\', ':') + ":";
+                    using var p = Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "defrag.exe",
+                        Arguments = $"{drive} /L /O",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    });
+                    p?.WaitForExit(30000);
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public bool ActivateUltimatePerformancePlan()
+        {
+            try
+            {
+                using var p = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "powercfg.exe",
+                    Arguments = "-duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+                p?.WaitForExit(3000);
+
+                using var pSet = Process.Start(new ProcessStartInfo
+                {
+                    FileName = "powercfg.exe",
+                    Arguments = "/setactive e9a42b02-d5df-448d-aa00-03f14749eb61",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                });
+                pSet?.WaitForExit(3000);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool OptimizeMenuDelay()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(@"Control Panel\Desktop");
+                key?.SetValue("MenuShowDelay", "0", RegistryValueKind.String);
+                return true;
+            }
+            catch { return false; }
+        }
     }
 
     public class SystemPortInfo
     {
         public string Protocol { get; set; } = "TCP";
         public string LocalAddress { get; set; } = "0.0.0.0";
-        public int LocalPort { get; set; }
         public string ForeignAddress { get; set; } = "*:*";
         public string State { get; set; } = "LISTENING";
         public int ProcessId { get; set; }
