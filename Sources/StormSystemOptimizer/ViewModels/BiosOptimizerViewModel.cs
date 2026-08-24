@@ -35,6 +35,18 @@ namespace StormSystemOptimizer.ViewModels
         private string _statusSummary = "Загрузка рекомендаций BIOS...";
 
         [ObservableProperty]
+        private string _cpuSummary = "Intel Core Processor";
+
+        [ObservableProperty]
+        private string _ramSummary = "32 GB DDR4";
+
+        [ObservableProperty]
+        private string _gpuSummary = "NVIDIA GeForce";
+
+        [ObservableProperty]
+        private string _telemetrySummary = "CPU 40°C • GPU 42°C";
+
+        [ObservableProperty]
         private string _selectedFilter = "Все настройки";
 
         [ObservableProperty]
@@ -65,13 +77,17 @@ namespace StormSystemOptimizer.ViewModels
             BiosDate = $"Дата: {info.BiosReleaseDate}";
             UefiStatus = info.IsUefiBoot ? "Режим UEFI GOP: Активен" : "Режим Legacy: Не рекомендуется";
             SecureBootStatus = info.IsSecureBootEnabled ? "Secure Boot: Включен" : "Secure Boot: Отключен";
+            CpuSummary = $"{info.CpuName} ({info.CpuCores}C / {info.CpuThreads}T)";
+            RamSummary = $"{info.RamModulesCount} мод. • {info.RamTotalCapacityGB} ГБ ({info.RamConfiguredClockSpeed} МГц)";
+            GpuSummary = info.GpuName;
+            TelemetrySummary = $"🌡️ CPU {info.CpuTemperatureC:F0}°C • GPU {info.GpuTemperatureC:F0}°C • Плата {info.MotherboardTemperatureC:F0}°C";
 
             var settings = await BiosOptimizerService.Instance.GetRecommendedSettingsAsync();
             _allSettings.Clear();
             foreach (var item in settings) _allSettings.Add(item);
 
             ApplyFilter(SelectedFilter);
-            StatusSummary = $"Найдено безопасных рекомендаций для платы {MotherboardManufacturer}: {_allSettings.Count}";
+            StatusSummary = $"Сформировано {settings.Count} аппаратных рекомендаций для платы {MotherboardManufacturer} ({MotherboardModel})";
             IsBusy = false;
         }
 
