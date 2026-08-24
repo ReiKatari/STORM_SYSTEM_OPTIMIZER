@@ -51,7 +51,7 @@ namespace StormUniversal.Installer
                 var asm = Assembly.GetExecutingAssembly();
                 foreach (var name in asm.GetManifestResourceNames())
                 {
-                    if (name.EndsWith("AppIcon.ico", StringComparison.OrdinalIgnoreCase) || name.EndsWith("app.ico", StringComparison.OrdinalIgnoreCase))
+                    if (name.EndsWith(IcoName, StringComparison.OrdinalIgnoreCase) || name.EndsWith("app.ico", StringComparison.OrdinalIgnoreCase))
                     {
                         using var s = asm.GetManifestResourceStream(name);
                         if (s != null)
@@ -89,7 +89,7 @@ namespace StormUniversal.Installer
 
         private void InitializeComponent()
         {
-            this.Text = $"{AppDisplayName} вЂ” STORM INSTALLER";
+            this.Text = $"{AppDisplayName} \u2014 STORM INSTALLER";
             this.Size = new Size(640, 540);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -123,14 +123,14 @@ namespace StormUniversal.Installer
 
             lblSubtitle = new Label
             {
-                Text = $"РњР°СЃС‚РµСЂ СѓСЃС‚Р°РЅРѕРІРєРё вЂў Р’РµСЂСЃРёСЏ {AppVersion} вЂў STORM TEAM",
+                Text = $"\u041C\u0430\u0441\u0442\u0435\u0440 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438 \u2022 \u0412\u0435\u0440\u0441\u0438\u044F {AppVersion} \u2022 STORM TEAM",
                 Font = new Font("Segoe UI", 9.2f, FontStyle.Regular),
                 ForeColor = Color.FromArgb(156, 163, 175),
                 AutoSize = true,
                 Location = new Point(24, 49)
             };
 
-            // Top-Right Header Icon Container Badge
+            // Top-Right Header Icon Container Badge (Preserved Red-Black Logo)
             var logoContainer = new Panel
             {
                 Location = new Point(546, 12),
@@ -142,7 +142,7 @@ namespace StormUniversal.Installer
                 e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
                 using var path = GetRoundedRectPath(new Rectangle(0, 0, 61, 61), 10);
                 using var brush = new SolidBrush(Color.FromArgb(20, 10, 15));
-                using var pen = new Pen(Color.FromArgb(225, 29, 72), 1.5f); // Crimson glow border
+                using var pen = new Pen(Color.FromArgb(225, 29, 72), 1.5f);
                 e.Graphics.FillPath(brush, path);
                 e.Graphics.DrawPath(pen, path);
             };
@@ -201,7 +201,7 @@ namespace StormUniversal.Installer
 
             var lblMode = new Label
             {
-                Text = "Р’С‹Р±РµСЂРёС‚Рµ С‚РёРї СѓСЃС‚Р°РЅРѕРІРєРё РїСЂРѕРіСЂР°РјРјС‹:",
+                Text = "\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0442\u0438\u043F \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438 \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u044B:",
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(226, 232, 240),
                 Location = new Point(0, 0),
@@ -211,7 +211,7 @@ namespace StormUniversal.Installer
 
             rbStandard = new RadioButton
             {
-                Text = "РЎС‚Р°РЅРґР°СЂС‚РЅР°СЏ СѓСЃС‚Р°РЅРѕРІРєР° РІ Program Files (СЂРµРєРѕРјРµРЅРґСѓРµС‚СЃСЏ)",
+                Text = "\u0421\u0442\u0430\u043D\u0434\u0430\u0440\u0442\u043D\u0430\u044F \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430 \u0432 Program Files (\u0440\u0435\u043A\u043E\u043C\u0435\u043D\u0434\u0443\u0435\u0442\u0441\u044F)",
                 Checked = true,
                 Location = new Point(10, 25),
                 AutoSize = true,
@@ -223,7 +223,7 @@ namespace StormUniversal.Installer
 
             rbPortable = new RadioButton
             {
-                Text = "РџРѕСЂС‚Р°С‚РёРІРЅР°СЏ РІРµСЂСЃРёСЏ (РІ РІС‹Р±СЂР°РЅРЅСѓСЋ РІР°РјРё РїР°РїРєСѓ, Р±РµР· СЂРµРµСЃС‚СЂР°)",
+                Text = "\u041F\u043E\u0440\u0442\u0430\u0442\u0438\u0432\u043D\u0430\u044F \u0432\u0435\u0440\u0441\u0438\u044F (\u0432 \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u0443\u044E \u0432\u0430\u043C\u0438 \u043F\u0430\u043F\u043A\u0443, \u0431\u0435\u0437 \u0440\u0435\u0435\u0441\u0442\u0440\u0430)",
                 Checked = false,
                 Location = new Point(10, 50),
                 AutoSize = true,
@@ -235,7 +235,7 @@ namespace StormUniversal.Installer
 
             var lblPath = new Label
             {
-                Text = "РџР°РїРєР° РЅР°Р·РЅР°С‡РµРЅРёСЏ:",
+                Text = "\u041F\u0430\u043F\u043A\u0430 \u043D\u0430\u0437\u043D\u0430\u0447\u0435\u043D\u0438\u044F:",
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(226, 232, 240),
                 Location = new Point(0, 82),
@@ -257,7 +257,7 @@ namespace StormUniversal.Installer
 
             btnBrowse = new Button
             {
-                Text = "РћР±Р·РѕСЂ...",
+                Text = "\u041E\u0431\u0437\u043E\u0440...",
                 Location = new Point(475, 104),
                 Size = new Size(95, 28),
                 FlatStyle = FlatStyle.Flat,
@@ -271,7 +271,7 @@ namespace StormUniversal.Installer
 
             var lblOptions = new Label
             {
-                Text = "Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹ Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё Рё РёРЅС‚РµРіСЂР°С†РёРё:",
+                Text = "\u0414\u043E\u043F\u043E\u043B\u043D\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0435 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440\u044B \u0431\u0435\u0437\u043E\u043F\u0430\u0441\u043D\u043E\u0441\u0442\u0438 \u0438 \u0438\u043D\u0442\u0435\u0433\u0440\u0430\u0446\u0438\u0438:",
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(226, 232, 240),
                 Location = new Point(0, 142),
@@ -281,7 +281,7 @@ namespace StormUniversal.Installer
 
             chkDesktop = new CheckBox
             {
-                Text = "РЎРѕР·РґР°С‚СЊ СЏСЂР»С‹Рє РЅР° Р Р°Р±РѕС‡РµРј СЃС‚РѕР»Рµ",
+                Text = "\u0421\u043E\u0437\u0434\u0430\u0442\u044C \u044F\u0440\u043B\u044B\u043A \u043D\u0430 \u0420\u0430\u0431\u043E\u0447\u0435\u043C \u0441\u0442\u043E\u043B\u0435",
                 Checked = true,
                 Location = new Point(10, 166),
                 AutoSize = true,
@@ -291,7 +291,7 @@ namespace StormUniversal.Installer
 
             chkStartMenu = new CheckBox
             {
-                Text = "РЎРѕР·РґР°С‚СЊ СЏСЂР»С‹Рє РІ РјРµРЅСЋ В«РџСѓСЃРєВ»",
+                Text = "\u0421\u043E\u0437\u0434\u0430\u0442\u044C \u044F\u0440\u043B\u044B\u043A \u0432 \u043C\u0435\u043D\u044E \u00AB\u041F\u0443\u0441\u043A\u00BB",
                 Checked = true,
                 Location = new Point(10, 191),
                 AutoSize = true,
@@ -301,7 +301,7 @@ namespace StormUniversal.Installer
 
             chkInstallCert = new CheckBox
             {
-                Text = "Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊ СЃРµСЂС‚РёС„РёРєР°С‚ STORM TEAM (Р·Р°С‰РёС‚Р° РѕС‚ SmartScreen / SAC)",
+                Text = "\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0441\u0435\u0440\u0442\u0438\u0444\u0438\u043A\u0430\u0442 STORM TEAM (\u0437\u0430\u0449\u0438\u0442\u0430 \u043E\u0442 SmartScreen / SAC)",
                 Checked = true,
                 Location = new Point(10, 216),
                 AutoSize = true,
@@ -311,7 +311,7 @@ namespace StormUniversal.Installer
 
             chkRegister = new CheckBox
             {
-                Text = "Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°С‚СЊ РІ СЃРїРёСЃРєРµ В«РЈСЃС‚Р°РЅРѕРІРєР° Рё СѓРґР°Р»РµРЅРёРµ РїСЂРѕРіСЂР°РјРјВ»",
+                Text = "\u0417\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0432 \u0441\u043F\u0438\u0441\u043A\u0435 \u00AB\u0423\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430 \u0438 \u0443\u0434\u0430\u043B\u0435\u043D\u0438\u0435 \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u00BB",
                 Checked = true,
                 Location = new Point(10, 241),
                 AutoSize = true,
@@ -321,7 +321,7 @@ namespace StormUniversal.Installer
 
             chkRunAfter = new CheckBox
             {
-                Text = $"Р—Р°РїСѓСЃС‚РёС‚СЊ {AppDisplayName} СЃСЂР°Р·Сѓ РїРѕСЃР»Рµ СѓСЃС‚Р°РЅРѕРІРєРё",
+                Text = $"\u0417\u0430\u043F\u0443\u0441\u0442\u0438\u0442\u044C {AppDisplayName} \u0441\u0440\u0430\u0437\u0443 \u043F\u043E\u0441\u043B\u0435 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438",
                 Checked = true,
                 Location = new Point(10, 266),
                 AutoSize = true,
@@ -363,12 +363,13 @@ namespace StormUniversal.Installer
 
             btnCancel = new Button
             {
-                Text = "РћС‚РјРµРЅР°",
+                Text = "\u041E\u0442\u043C\u0435\u043D\u0430",
                 Size = new Size(110, 36),
                 Location = new Point(365, 12),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(30, 41, 59),
                 ForeColor = Color.FromArgb(226, 232, 240),
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
                 Cursor = Cursors.Hand
             };
             btnCancel.FlatAppearance.BorderColor = Color.FromArgb(51, 65, 85);
@@ -377,7 +378,7 @@ namespace StormUniversal.Installer
 
             btnInstall = new Button
             {
-                Text = "рџ“¦  РЈСЃС‚Р°РЅРѕРІРёС‚СЊ",
+                Text = "\uD83D\uDCE6  \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C",
                 Size = new Size(135, 36),
                 Location = new Point(485, 12),
                 FlatStyle = FlatStyle.Flat,
@@ -404,7 +405,7 @@ namespace StormUniversal.Installer
                 chkStartMenu.Enabled = false;
                 chkRegister.Checked = false;
                 chkRegister.Enabled = false;
-                btnInstall.Text = "рџ“¦  Р Р°СЃРїР°РєРѕРІР°С‚СЊ";
+                btnInstall.Text = "\uD83D\uDCE6  \u0420\u0430\u0441\u043F\u0430\u043A\u043E\u0432\u0430\u0442\u044C";
             }
             else
             {
@@ -415,14 +416,14 @@ namespace StormUniversal.Installer
                 chkStartMenu.Enabled = true;
                 chkRegister.Checked = true;
                 chkRegister.Enabled = true;
-                btnInstall.Text = "рџ“¦  РЈСЃС‚Р°РЅРѕРІРёС‚СЊ";
+                btnInstall.Text = "\uD83D\uDCE6  \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C";
             }
         }
 
         private void BtnBrowse_Click(object? sender, EventArgs e)
         {
             using var fbd = new FolderBrowserDialog();
-            fbd.Description = $"Р’С‹Р±РµСЂРёС‚Рµ РїР°РїРєСѓ РґР»СЏ СѓСЃС‚Р°РЅРѕРІРєРё {AppDisplayName}:";
+            fbd.Description = $"\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u043F\u0430\u043F\u043A\u0443 \u0434\u043B\u044F \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438 {AppDisplayName}:";
             fbd.UseDescriptionForTitle = true;
             if (fbd.ShowDialog() == DialogResult.OK)
             {
@@ -453,8 +454,8 @@ namespace StormUniversal.Installer
 
                 Directory.CreateDirectory(targetDir);
 
-                // Terminate any running instances
-                lblStatus.Text = "Р—Р°РІРµСЂС€РµРЅРёРµ РїСЂРµРґС‹РґСѓС‰РёС… РїСЂРѕС†РµСЃСЃРѕРІ РїСЂРѕРіСЂР°РјРјС‹...";
+                // Terminate running instances
+                lblStatus.Text = "\u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u0438\u0435 \u043F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0438\u0445 \u043F\u0440\u043E\u0446\u0435\u0441\u0441\u043E\u0432 \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u044B...";
                 progressBar.Value = 10;
                 await Task.Delay(150);
 
@@ -474,7 +475,7 @@ namespace StormUniversal.Installer
 
                 if (chkInstallCert.Checked)
                 {
-                    lblStatus.Text = "Р РµРіРёСЃС‚СЂР°С†РёСЏ РґРѕРІРµСЂРµРЅРЅРѕРіРѕ СЃРµСЂС‚РёС„РёРєР°С‚Р° (Root & Publisher)...";
+                    lblStatus.Text = "\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u0434\u043E\u0432\u0435\u0440\u0435\u043D\u043D\u043E\u0433\u043E \u0441\u0435\u0440\u0442\u0438\u0444\u0438\u043A\u0430\u0442\u0430...";
                     progressBar.Value = 25;
                     await Task.Delay(150);
 
@@ -485,18 +486,18 @@ namespace StormUniversal.Installer
                     }
                 }
 
-                lblStatus.Text = $"Р Р°СЃРїР°РєРѕРІРєР° РїР°РєРµС‚Р° {AppDisplayName} (v{AppVersion})...";
+                lblStatus.Text = $"\u0420\u0430\u0441\u043F\u0430\u043A\u043E\u0432\u043A\u0430 \u043F\u0430\u043A\u0435\u0442\u0430 {AppDisplayName} (v{AppVersion})...";
                 progressBar.Value = 45;
                 await Task.Delay(100);
 
-                // Extract primary executables
+                // Extract primary files
                 ExtractResource(ExeName, targetExe);
                 ExtractResource(IcoName, targetIco);
                 ExtractResource("logo.png", targetLogo);
                 ExtractResource("STORM_Certificate.cer", targetCer);
 
                 progressBar.Value = 75;
-                lblStatus.Text = "РЎРЅСЏС‚РёРµ РјРµС‚РѕРє Р±Р»РѕРєРёСЂРѕРІРєРё Рё РѕРїС‚РёРјРёР·Р°С†РёСЏ Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё...";
+                lblStatus.Text = "\u0421\u043D\u044F\u0442\u0438\u0435 \u043C\u0435\u0442\u043E\u043A \u0431\u043B\u043E\u043A\u0438\u0440\u043E\u0432\u043A\u0438 \u0438 \u043E\u043F\u0442\u0438\u043C\u0438\u0437\u0430\u0446\u0438\u044F \u0431\u0435\u0437\u043E\u043F\u0430\u0441\u043D\u043E\u0441\u0442\u0438...";
                 await Task.Delay(150);
 
                 UnblockFile(targetExe);
@@ -507,7 +508,7 @@ namespace StormUniversal.Installer
 
                 if (rbStandard.Checked)
                 {
-                    lblStatus.Text = "РЎРѕР·РґР°РЅРёРµ СЃРёСЃС‚РµРјРЅС‹С… СЏСЂР»С‹РєРѕРІ Рё СЂРµРіРёСЃС‚СЂР°С†РёСЏ РІ Windows...";
+                    lblStatus.Text = "\u0421\u043E\u0437\u0434\u0430\u043D\u0438\u0435 \u0441\u0438\u0441\u0442\u0435\u043C\u043D\u044B\u0445 \u044F\u0440\u043B\u044B\u043A\u043E\u0432 \u0438 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044F \u0432 Windows...";
                     progressBar.Value = 88;
                     await Task.Delay(150);
 
@@ -520,7 +521,7 @@ namespace StormUniversal.Installer
                 }
 
                 progressBar.Value = 100;
-                lblStatus.Text = rbPortable.Checked ? "РџРѕСЂС‚Р°С‚РёРІРЅР°СЏ РІРµСЂСЃРёСЏ СѓСЃРїРµС€РЅРѕ СЂР°СЃРїР°РєРѕРІР°РЅР° Рё СЂР°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅР°!" : "РЈСЃС‚Р°РЅРѕРІРєР° СѓСЃРїРµС€РЅРѕ Р·Р°РІРµСЂС€РµРЅР°! РЎРёСЃС‚РµРјР° РїРѕР»РЅРѕСЃС‚СЊСЋ РіРѕС‚РѕРІР°.";
+                lblStatus.Text = rbPortable.Checked ? "\u041F\u043E\u0440\u0442\u0430\u0442\u0438\u0432\u043D\u0430\u044F \u0432\u0435\u0440\u0441\u0438\u044F \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u0440\u0430\u0441\u043F\u0430\u043A\u043E\u0432\u0430\u043D\u0430!" : "\u0423\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0430 \u0443\u0441\u043F\u0435\u0448\u043D\u043E \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043D\u043A! \u0421\u0438\u0441\u0442\u0435\u043C\u0430 \u043F\u043E\u043B\u043D\u043E\u0441\u0442\u044C\u044E \u0433\u043E\u0442\u043E\u0432\u0430.";
                 lblStatus.ForeColor = Color.FromArgb(16, 185, 129);
                 await Task.Delay(500);
 
@@ -533,7 +534,7 @@ namespace StormUniversal.Installer
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"РћС€РёР±РєР° РІРѕ РІСЂРµРјСЏ СѓСЃС‚Р°РЅРѕРІРєРё:\n{ex.Message}", "РћС€РёР±РєР° СѓСЃС‚Р°РЅРѕРІРєРё", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"\u041E\u0448\u0438\u0431\u043A\u0430 \u0432\u043E \u0432\u044F\u0440\u0435\u043C\u044F \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438:\n{ex.Message}", "\u041E\u0448\u0438\u0431\u043A\u0430 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 btnInstall.Enabled = true;
                 btnCancel.Enabled = true;
                 btnBrowse.Enabled = true;
@@ -605,67 +606,6 @@ namespace StormUniversal.Installer
             {
                 if (!File.Exists(cerPath)) return;
 
-                // 1. Direct certutil commands
-                try
-                {
-                    var psiRoot = new ProcessStartInfo
-                    {
-                        FileName = "certutil.exe",
-                        Arguments = $"-addstore -f \"Root\" \"{cerPath}\"",
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-                    using var p1 = Process.Start(psiRoot);
-                    p1?.WaitForExit(5000);
-
-                    var psiPub = new ProcessStartInfo
-                    {
-                        FileName = "certutil.exe",
-                        Arguments = $"-addstore -f \"TrustedPublisher\" \"{cerPath}\"",
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-                    using var p2 = Process.Start(psiPub);
-                    p2?.WaitForExit(5000);
-
-                    var psiAuth = new ProcessStartInfo
-                    {
-                        FileName = "certutil.exe",
-                        Arguments = $"-addstore -f \"AuthRoot\" \"{cerPath}\"",
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-                    using var p3 = Process.Start(psiAuth);
-                    p3?.WaitForExit(5000);
-
-                    var psiUserRoot = new ProcessStartInfo
-                    {
-                        FileName = "certutil.exe",
-                        Arguments = $"-user -addstore -f \"Root\" \"{cerPath}\"",
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-                    using var p4 = Process.Start(psiUserRoot);
-                    p4?.WaitForExit(5000);
-
-                    var psiUserPub = new ProcessStartInfo
-                    {
-                        FileName = "certutil.exe",
-                        Arguments = $"-user -addstore -f \"TrustedPublisher\" \"{cerPath}\"",
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden
-                    };
-                    using var p5 = Process.Start(psiUserPub);
-                    p5?.WaitForExit(5000);
-                }
-                catch { }
-
-                // 2. .NET X509Store
                 try
                 {
                     var cert = new X509Certificate2(cerPath);
@@ -686,7 +626,6 @@ namespace StormUniversal.Installer
                 }
                 catch { }
 
-                // 3. Relax SAC/SmartScreen block policies for installed app
                 try
                 {
                     using var keyCi = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\CI\Policy");

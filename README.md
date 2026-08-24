@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="logo.png" width="128" height="128" alt="STORM SYSTEM OPTIMIZER Logo" />
+<img src="Files/StormAppIcon.png" width="128" height="128" alt="STORM SYSTEM OPTIMIZER Logo" />
 
 # ⚡ STORM SYSTEM OPTIMIZER
 
