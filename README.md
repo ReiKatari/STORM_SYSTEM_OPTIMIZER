@@ -1,65 +1,39 @@
-<div align="center">
+# STORM SYSTEM OPTIMIZER
 
-<img src="Files/StormAppIcon.png" width="128" height="128" alt="STORM SYSTEM OPTIMIZER Logo" />
+## **О проекте**
+STORM SYSTEM OPTIMIZER — программный комплекс для тонкой настройки, оптимизации задержек (DPC Latency), очистки и ускорения операционной системы Windows 10 и 11. Включает готовые профили твиков под процессоры Intel и AMD, оптимизацию оперативной памяти (4-DIMM / 2-DIMM), видеокарт NVIDIA GeForce (GTX/RTX) и AMD Radeon, отключение телеметрии и фоновых служб без повреждения системных компонентов.
 
-# ⚡ STORM SYSTEM OPTIMIZER
+## **Происхождение и форки**
+Оригинальная разработка ReiKatari, включающая авторские алгоритмы оптимизации Windows и интеграцию набора системных твиков GTweak.
 
-<p align="center">
-  <b>Глубокая оптимизация производительности Windows, очистка памяти, твики задержек и системных служб.</b>
-</p>
+## **Технологический стек**
+- **Языки программирования**: C# (.NET 9.0), PowerShell, C++
+- **Интерфейс**: WPF, XAML, Модульная структура с категоризацией настроек
+- **Системные API**: Windows Registry, Service Control Manager (SCM), Windows Task Scheduler API, WMI, BCDEDIT, Powercfg, DirectX/NVIDIA Driver API
 
-[![Version](https://img.shields.io/badge/version-1.1.2-00D2FF.svg?style=for-the-badge)](https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER)
-[![Platform](https://img.shields.io/badge/Platform-Windows%2011%20%7C%2010-0EA5E9.svg?style=for-the-badge)](https://github.com/ReiKatari/STORM_SYSTEM_OPTIMIZER)
-[![Publisher](https://img.shields.io/badge/Publisher-STORM%20TEAM-10B981.svg?style=for-the-badge)](https://github.com/ReiKatari)
-[![Developer](https://img.shields.io/badge/Author-ReiKatari-F59E0B.svg?style=for-the-badge)](https://github.com/ReiKatari)
-[![Signed](https://img.shields.io/badge/Security-SHA256%20Signed-10B981.svg?style=for-the-badge)](https://github.com/ReiKatari)
+## **Ключевые возможности**
+- **Профили под конкретное железо**: Персонализированные профили оптимизации (Intel CPU + 4-DIMM RAM + NVIDIA GTX 1080Ti / RTX) с тонкой настройкой таймеров и очередей прерываний.
+- **Оптимизация DPC Latency и таймеров**: Включение High Precision Event Timer (HPET) тюнинга, настройка Platform Clock и планировщика потоков Windows для минимального input lag в соревновательных играх.
+- **Управление службами и телеметрией**: Безопасное отключение диагностических служб, сборщиков логов, Cortana, Xbox Live (с возможностью обратного включения в один клик).
+- **Резервное копирование и точки восстановления**: Автоматическое создание точек восстановления Windows и резервных копий реестра перед применением любых твиков.
+- **Очистка системы и кэшей**: Удаление мусорных временных файлов, кэшей шейдеров DirectX/Vulkan и старых версий драйверов.
 
-</div>
+## **Поддерживаемые платформы и эмуляторы**
+- **Операционные системы**: Windows 10 (20H2–22H2), Windows 11 (21H2–24H2) x64
 
----
+## **Установка и запуск**
+1. Скачайте инсталлятор из секции **Releases** на GitHub.
+2. Запустите приложение от имени Администратора.
+3. Создайте точку восстановления через меню программы и примените желаемые профили оптимизации.
+4. Перезагрузите компьютер для вступления изменений в силу.
 
-## 🌟 О проекте / Overview
+## **Безопасность и цифровые подписи**
+Исполняемые файлы подписаны доверенным сертификатом **CN=STORM SOFT, O=STORM EDEN** (SHA-256 Authenticode). Программа содержит механизмы отката всех примененных изменений.
 
-**STORM SYSTEM OPTIMIZER** — компонент программного комплекса **STORM**, разработанный с упором на максимальную производительность, современный дизайн и надёжность.
+## **Авторы и лицензия**
+- **Автор проекта**: ReiKatari
+- **Лицензия**: GPLv3 / Proprietary Tweak Engine
 
-* **Версия:** 1.1.2
-* **Издатель:** STORM TEAM
-* **Ведущий разработчик:** ReiKatari
-* **Технологический стек:** C# / .NET 8 / WPF / Windows Forms
-
----
-
-## 🚀 Установка / Installation
-
-Установка производится через единый инсталлятор **STORM INSTALLER**:
-
-1. Запустите файл `STORM_SYSTEM_OPTIMIZER_1.1.2_Setup.exe`.
-2. Выберите режим:
-   * **Стандартная установка** — установка в C:\Program Files\STORM SYSTEM OPTIMIZER с созданием ярлыков и регистрацией в системе.
-   * **Портативная версия** — распаковка в любую выбранную папку без изменения реестра.
-3. Опция автоматической регистрации доверенного сертификата STORM TEAM исключает предупреждения SmartScreen и Smart App Control.
-
----
-
-## 🛡️ Безопасность и Цифровая подпись / Code Signing
-
-Все исполняемые файлы и инсталляторы подписаны сертификатом **STORM TEAM** с использованием хэширования SHA-256 и RFC 3161 Timestamping.
-
-* Для ручной установки сертификата в хранилище доверенных корневых центров запустите:
-  Files\Разблокировать_И_Установить_Сертификат.bat от имени Администратора.
-
----
-
-## 📁 Структура репозитория / Structure
-
-* Assembling/ — скомпилированные релизные бинарные файлы и зависимости программы.
-* Files/ — инсталлятор, сертификат STORM_Certificate.cer и сервисные скрипты.
-* Sources/ — исходный код решения.
-
----
-
-## 👥 Авторы и Лицензия / Credits
-
-* **Разработчик:** [ReiKatari](https://github.com/ReiKatari)
-* **Издатель:** **STORM TEAM**
-* © 2026 STORM TEAM. Все права защищены.
+## **Благодарности**
+- **Разработчики утилит GTweak и Sophia Script** — за систематизацию методов оптимизации Windows.
+- **Сообщество оверклокеров и геймеров** — за тестирование задержек DPC и стабильности системных твиков.
