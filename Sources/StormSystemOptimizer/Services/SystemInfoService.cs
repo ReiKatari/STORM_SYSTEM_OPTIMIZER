@@ -596,8 +596,33 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine v1.1.2 • 100% Safe Optimization        ");
+            sb.AppendLine("         Сформировано через STORM Engine v2.0.0 • 100% Safe Optimization        ");
             sb.AppendLine("================================================================================");
+            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.0                        ");
+            sb.AppendLine("================================================================================");
+            return sb.ToString();
+        }
+
+        public async Task<string> ExportHtmlReportAsync()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("<!DOCTYPE html>");
+            sb.AppendLine("<html lang='ru'>");
+            sb.AppendLine("<head>");
+            sb.AppendLine("<meta charset='utf-8'/>");
+            sb.AppendLine("<title>STORM SYSTEM OPTIMIZER - Системный отчет</title>");
+            sb.AppendLine("<style>");
+            sb.AppendLine("body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0F172A; color: #F8FAFC; margin: 0; padding: 24px; }");
+            sb.AppendLine(".container { max-width: 900px; margin: 0 auto; background: #1E293B; border-radius: 12px; padding: 32px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border: 1px solid #334155; }");
+            sb.AppendLine("h1 { color: #38BDF8; font-size: 24px; margin-top: 0; border-bottom: 2px solid #0284C7; padding-bottom: 12px; }");
+            sb.AppendLine("pre { background: #090D16; padding: 16px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.5; color: #E2E8F0; overflow-x: auto; border: 1px solid #1E293B; white-space: pre-wrap; }");
+            sb.AppendLine(".footer { margin-top: 24px; font-size: 12px; color: #94A3B8; text-align: center; border-top: 1px solid #334155; padding-top: 16px; }");
+            sb.AppendLine("</style>");
+            sb.AppendLine("</head>");
+            sb.AppendLine("<body>");
+            sb.AppendLine("<div class='container'>");
+            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.0 — Диагностический отчет</h1>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v2.0.0</p>");
             return sb.ToString();
         }
 

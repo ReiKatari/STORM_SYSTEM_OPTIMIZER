@@ -39,6 +39,7 @@ namespace StormSystemOptimizer.Services
             // 2. Накопители и очистка
             AddItem("Диски и SMART накопители", "Состояние здоровья SSD/HDD, температура, ресурс перезаписи и дефрагментация", "Диски", "Disks", "GeoDisks", "диски smart ssd hdd здоровье накопителей ресурс дефрагментация trim");
             AddItem("Глубокая очистка дисков", "Очистка системного кэша, дампов, временных файлов, логов и кэша DirectX", "Очистка", "Scanner", "GeoScanner", "глубокая очистка дисков сканер мусор temp кэш логи directx winsxs дампы");
+            AddItem("Оптимизация баз данных SQLite", "Дефрагментация и компактизация баз данных браузеров, Telegram, Discord, Steam (VACUUM & REINDEX)", "Базы данных", "DatabaseOptimizer", "GeoDatabase", "sqlite базы данных vacuum reindex дефрагментация chrome edge firefox telegram discord steam");
             AddItem("Защита личных папок", "Блокировка и скрытие конфиденциальных каталогов и файлов", "Безопасность", "FolderProtection", "GeoFolderLock", "защита папок блокировка пароль скрыть конфиденциальность");
 
             // 3. Производительность и игры
@@ -48,6 +49,7 @@ namespace StormSystemOptimizer.Services
             AddItem("Оптимизация задержки ввода", "Снижение Input Lag мыши и клавиатуры, отключение акселерации, MarkC Fix, размер очередей", "Input Lag", "InputLag", "GeoDashboard", "input lag задержка ввода мышь клавиатура markc акселерация mousedataqueuesize keyboarddataqueuesize отклик");
             AddItem("Задержки аудио и MMCSS", "Тюнинг приоритетов звукового стека Windows, устранение треска и щелчков звука", "Аудио", "AudioLatency", "GeoAudio", "задержки аудио mmcss звук dpc latency задержка звуковой карты треск щелчки");
             AddItem("Питание USB и отклик", "Отключение энергосбережения контроллеров USB и ускорение опроса портов", "Оборудование", "UsbPolling", "GeoUsb", "питание usb usb polling selective suspend частота опроса мыши отклик");
+            AddItem("Ядра и прерывания DPC/ISR", "Изоляция прерываний GPU/NIC/USB по ядрам CPU, модерация XHCI IMOD, сетевой приоритет QoS DSCP 46", "Прерывания", "InterruptAffinity", "GeoInterrupts", "прерывания dpc isr affinity core cpu mask gpu nic usb xhci imod qos dscp 46 latency микрофризы");
 
             // 4. Сеть и интернет
             AddItem("Ускорение интернета и DNS", "Тюнинг сетевого стека TCP/IP, DNS-бенчмарк, защита от телеметрии Blackhole", "Сеть", "Network", "GeoNetwork", "ускорение интернета dns tcpip nagle blackhole ping пинг замер скорости");
@@ -66,8 +68,10 @@ namespace StormSystemOptimizer.Services
             AddItem("Службы Windows", "Управление системными службами, готовые безопасные и игровые профили", "Службы", "Services", "GeoServices", "службы windows services diagtrack профили отключение служб оптимизация");
             AddItem("Менеджер обновлений и компонентов", "Управление центром обновлений Windows, компонентами Windows Sandbox, Hyper-V, WSL", "Компоненты", "UpdateComponent", "GeoComponent", "обновления windows update компоненты sandbox hyper-v wsl directplay net framework");
             AddItem("Тюнинг питания и ядер", "Схема «Максимальная производительность» (Ultimate Performance), парковка ядер, HAGS, GameDVR", "Питание", "PowerTuning", "GeoPower", "питание тюнинг ядер ultimate performance максимальная производительность hags gamedvr парковка ядер");
+            AddItem("Безопасность и аудит", "Сканер скрытых майнеров, аудит правил Брандмауэра и безвозвратный шредер файлов DoD 5220.22-M", "Безопасность", "SecurityAudit", "GeoSecurityAudit", "майнеры вирусы шредер файлов уничтожить файл брандмауэр firewall audit hosts wmi инжекты");
 
             // 7. Обслуживание и утилиты
+            AddItem("Центр Microsoft Office", "Выборочная C2R-установка Office 2016-2024, KMS-активатор, GVLK лицензии и глубокая зачистка", "Office", "OfficeDeployer", "GeoOffice", "office ворд эксель поверпоинт word excel powerpoint visio project c2r kms активация лицензия gvlk удалить офис");
             AddItem("Обновление программ", "Сканирование установленного софта (реестр 32/64-bit, WinGet, AppX) и обновление в 1 клик", "Обновление", "SoftwareUpdater", "GeoAppUpdate", "обновление программ software updater winget софт апдейтер новые версии");
             AddItem("Удаление программ", "Глубокое удаление приложений, вырезание Edge, OneDrive, UWP-хлама с очисткой хвостов", "Удаление", "Uninstaller", "GeoUninstaller", "удаление программ деинсталлятор uninstaller edge onedrive uwp debloat вырезание");
             AddItem("Обновление драйверов и BIOS", "Анализ версий установленных драйверов устройств и поиск актуальных обновлений", "Драйверы", "Drivers", "GeoDrivers", "драйверы обновление драйверов bios видеокарта чипсет звук сеть");
