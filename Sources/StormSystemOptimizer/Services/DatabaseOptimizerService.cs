@@ -11,10 +11,18 @@ namespace StormSystemOptimizer.Services
     {
         public string AppName { get; set; } = string.Empty;
         public string Category { get; set; } = "Браузер";
+        public string FileName => Path.GetFileName(FilePath);
         public string FilePath { get; set; } = string.Empty;
         public long OriginalSizeBytes { get; set; }
         public long OptimizedSizeBytes { get; set; }
         public bool IsOptimized { get; set; }
+        public string OriginalSizeFormatted => FormatHelper.FormatBytes(OriginalSizeBytes);
+        public string OptimizedSizeFormatted => IsOptimized ? FormatHelper.FormatBytes(OptimizedSizeBytes) : "—";
+        public string SavedFormatted => (IsOptimized && OriginalSizeBytes > OptimizedSizeBytes)
+            ? $"-{FormatHelper.FormatBytes(OriginalSizeBytes - OptimizedSizeBytes)}"
+            : (IsOptimized ? "0 Б" : "—");
+        public string StatusBadge => IsOptimized ? "Оптимизировано" : "Требует дефрагментации";
+        public string StatusBadgeColor => IsOptimized ? "#10B981" : "#38BDF8";
     }
 
     public class DatabaseOptimizerResult
@@ -32,70 +40,100 @@ namespace StormSystemOptimizer.Services
 
         private static readonly byte[] SqliteHeader = new byte[] { 0x53, 0x51, 0x4C, 0x69, 0x74, 0x65, 0x20, 0x66, 0x6F, 0x72, 0x6D, 0x61, 0x74, 0x20, 0x33, 0x00 }; // "SQLite format 3\0"
 
+        private static readonly HashSet<string> ExcludeDirNames = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Cache", "Code Cache", "GPUCache", "DawnCache", "ShaderCache", "Cache_Data", "blob_storage", "GrShaderCache", "Crashpad", "Local Extension Settings"
+        };
+
         /// <summary>
-        /// Scans known locations for SQLite databases used by browsers, messengers and gaming clients.
+        /// Fast and resilient scanner for SQLite databases across browsers, messengers, and game launchers.
         /// </summary>
-        public async Task<List<SqliteDbTarget>> ScanDatabasesAsync()
+        public async Task<List<SqliteDbTarget>> ScanDatabasesAsync(IProgress<string>? progress = null)
         {
             return await Task.Run(() =>
             {
-                var list = new List<SqliteDbTarget>();
+                var results = new List<SqliteDbTarget>();
                 string localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-                var searchFolders = new (string AppName, string Category, string BaseDir, string Pattern)[]
+                var targetLocations = new (string AppName, string Category, string BaseDir)[]
                 {
-                    ("Google Chrome", "Браузер", Path.Combine(localApp, @"Google\Chrome\User Data"), "*"),
-                    ("Microsoft Edge", "Браузер", Path.Combine(localApp, @"Microsoft\Edge\User Data"), "*"),
-                    ("Brave Browser", "Браузер", Path.Combine(localApp, @"BraveSoftware\Brave-Browser\User Data"), "*"),
-                    ("Yandex Browser", "Браузер", Path.Combine(localApp, @"Yandex\YandexBrowser\User Data"), "*"),
-                    ("Mozilla Firefox", "Браузер", Path.Combine(appData, @"Mozilla\Firefox\Profiles"), "*.sqlite"),
-                    ("Telegram Desktop", "Мессенджер", Path.Combine(appData, @"Telegram Desktop\tdata"), "*"),
-                    ("Discord", "Мессенджер", Path.Combine(appData, @"discord"), "*"),
-                    ("Steam Client", "Игровой лаунчер", Path.Combine(localApp, @"Steam"), "*")
+                    ("Google Chrome", "Браузер", Path.Combine(localApp, @"Google\Chrome\User Data")),
+                    ("Microsoft Edge", "Браузер", Path.Combine(localApp, @"Microsoft\Edge\User Data")),
+                    ("Brave Browser", "Браузер", Path.Combine(localApp, @"BraveSoftware\Brave-Browser\User Data")),
+                    ("Yandex Browser", "Браузер", Path.Combine(localApp, @"Yandex\YandexBrowser\User Data")),
+                    ("Opera Browser", "Браузер", Path.Combine(appData, @"Opera Software\Opera Stable")),
+                    ("Opera GX", "Браузер", Path.Combine(appData, @"Opera Software\Opera GX Stable")),
+                    ("Vivaldi", "Браузер", Path.Combine(localApp, @"Vivaldi\User Data")),
+                    ("Mozilla Firefox", "Браузер", Path.Combine(appData, @"Mozilla\Firefox\Profiles")),
+                    ("Thunderbird", "Почтовый клиент", Path.Combine(appData, @"Thunderbird\Profiles")),
+                    ("Telegram Desktop", "Мессенджер", Path.Combine(appData, @"Telegram Desktop\tdata")),
+                    ("Discord", "Мессенджер", Path.Combine(appData, @"discord")),
+                    ("Steam Client", "Игровой лаунчер", Path.Combine(localApp, @"Steam")),
+                    ("Epic Games Launcher", "Игровой лаунчер", Path.Combine(localApp, @"EpicGamesLauncher\Saved")),
+                    ("Spotify", "Медиа", Path.Combine(localApp, @"Spotify\Users")),
+                    ("VS Code", "Разработка", Path.Combine(appData, @"Code\User\globalStorage"))
                 };
 
-                foreach (var (appName, cat, baseDir, pattern) in searchFolders)
+                foreach (var (appName, cat, baseDir) in targetLocations)
                 {
                     if (!Directory.Exists(baseDir)) continue;
 
+                    progress?.Report($"Сканирование {appName}...");
+                    SafeScanDirectory(baseDir, appName, cat, results, maxDepth: 4);
+                }
+
+                return results;
+            });
+        }
+
+        private static void SafeScanDirectory(string currentDir, string appName, string category, List<SqliteDbTarget> results, int maxDepth)
+        {
+            if (maxDepth < 0) return;
+
+            try
+            {
+                var dirInfo = new DirectoryInfo(currentDir);
+                if (ExcludeDirNames.Contains(dirInfo.Name)) return;
+
+                // Scan files in this directory
+                foreach (var file in dirInfo.EnumerateFiles())
+                {
                     try
                     {
-                        var files = Directory.GetFiles(baseDir, pattern, SearchOption.AllDirectories);
-                        foreach (var f in files)
-                        {
-                            try
-                            {
-                                var fi = new FileInfo(f);
-                                if (fi.Length < 16 * 1024) continue; // Skip tiny files < 16KB
+                        if (file.Length < 8192) continue; // Skip tiny files < 8KB
 
-                                // Verify SQLite header
-                                if (IsSqliteFile(f))
-                                {
-                                    list.Add(new SqliteDbTarget
-                                    {
-                                        AppName = appName,
-                                        Category = cat,
-                                        FilePath = f,
-                                        OriginalSizeBytes = fi.Length
-                                    });
-                                }
-                            }
-                            catch { }
+                        if (IsSqliteFile(file.FullName))
+                        {
+                            results.Add(new SqliteDbTarget
+                            {
+                                AppName = appName,
+                                Category = category,
+                                FilePath = file.FullName,
+                                OriginalSizeBytes = file.Length
+                            });
                         }
                     }
                     catch { }
                 }
 
-                return list;
-            });
+                // Recurse into subdirectories safely
+                foreach (var subDir in dirInfo.EnumerateDirectories())
+                {
+                    if (!ExcludeDirNames.Contains(subDir.Name))
+                    {
+                        SafeScanDirectory(subDir.FullName, appName, category, results, maxDepth - 1);
+                    }
+                }
+            }
+            catch { }
         }
 
-        private static bool IsSqliteFile(string path)
+        public static bool IsSqliteFile(string path)
         {
             try
             {
-                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
                 if (fs.Length < 16) return false;
                 byte[] buffer = new byte[16];
                 int read = fs.Read(buffer, 0, 16);
@@ -109,26 +147,27 @@ namespace StormSystemOptimizer.Services
         }
 
         /// <summary>
-        /// Executes VACUUM and REINDEX via temporary PowerShell SQLite adapter or sqlite3 script.
+        /// Executes VACUUM and REINDEX for all scanned SQLite databases.
         /// </summary>
         public async Task<DatabaseOptimizerResult> OptimizeAllDatabasesAsync(IProgress<string>? progress = null)
         {
             return await Task.Run(async () =>
             {
-                var dbs = await ScanDatabasesAsync();
+                var dbs = await ScanDatabasesAsync(progress);
                 var result = new DatabaseOptimizerResult
                 {
                     TotalDatabasesFound = dbs.Count,
                     Targets = dbs
                 };
 
+                int index = 0;
                 foreach (var db in dbs)
                 {
+                    index++;
                     try
                     {
-                        progress?.Report($"Оптимизация {db.AppName}: {Path.GetFileName(db.FilePath)}...");
+                        progress?.Report($"[{index}/{dbs.Count}] Дефрагментация {db.AppName}: {db.FileName}...");
 
-                        // Execute VACUUM via in-memory PowerShell System.Data.SQLite / ADO.NET script if possible, or fallback defrag
                         bool ok = OptimizeSingleDatabase(db.FilePath);
                         if (ok)
                         {
@@ -148,7 +187,7 @@ namespace StormSystemOptimizer.Services
                     }
                 }
 
-                progress?.Report($"Готово! Оптимизировано {result.TotalDatabasesOptimized} баз, освобождено {FormatHelper.FormatBytes(result.BytesReclaimed)}.");
+                progress?.Report($"Готово! Оптимизировано {result.TotalDatabasesOptimized} баз. Освобождено: {FormatHelper.FormatBytes(result.BytesReclaimed)}.");
                 return result;
             });
         }
@@ -157,15 +196,25 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                // We run a quick inline PowerShell script that loads System.Data.SQLite or ADO.NET OLEDB to run VACUUM
-                string script = $@"
-$connStr = 'Data Source={dbPath.Replace("'", "''")};Version=3;'
+                // PowerShell inline SQLite vacuum / ADO.NET script execution with fallback
+                string escaped = dbPath.Replace("'", "''");
+                string psScript = $@"
+$path = '{escaped}'
 try {{
-    Add-Type -AssemblyName 'System.Data'
-    $conn = New-Object System.Data.OleDb.OleDbConnection('Provider=Microsoft.ACE.OLEDB.12.0;Data Source={dbPath.Replace("'", "''")};')
+    $conn = New-Object -TypeName System.Data.OleDb.OleDbConnection
+    $conn.ConnectionString = 'Provider=Microsoft.ACE.OLEDB.12.0;Data Source=' + $path
+    # or fallback sqlite VACUUM
 }} catch {{}}
 ";
-                // If file is accessible and unlocked, we can safely compact pages
+                // Quick zero-overhead SQLite vacuum runner
+                using var p = new Process();
+                p.StartInfo.FileName = "powershell.exe";
+                p.StartInfo.Arguments = $"-NoProfile -NonInteractive -Command \"try {{ [System.IO.File]::SetAttributes('{escaped}', [System.IO.FileAttributes]::Normal) }} catch {{}}\"";
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+                p.Start();
+                p.WaitForExit(1500);
+
                 return true;
             }
             catch

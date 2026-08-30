@@ -596,9 +596,9 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine v2.0.0 • 100% Safe Optimization        ");
+            sb.AppendLine("         Сформировано через STORM Engine v2.0.1 • 100% Safe Optimization        ");
             sb.AppendLine("================================================================================");
-            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.0                        ");
+            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.1                        ");
             sb.AppendLine("================================================================================");
             return sb.ToString();
         }
@@ -621,8 +621,8 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
             sb.AppendLine("<div class='container'>");
-            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.0 — Диагностический отчет</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v2.0.0</p>");
+            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.1 — Диагностический отчет</h1>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v2.0.1</p>");
             return sb.ToString();
         }
 

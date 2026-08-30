@@ -15,9 +15,10 @@ namespace StormSystemOptimizer.Services
         public string Name { get; set; } = string.Empty;
         public string Category { get; set; } = "Устройство";
         public string Driver { get; set; } = string.Empty;
-        public int Irq { get; set; } = 0;
         public bool IsMsiSupported { get; set; }
         public bool IsMsiEnabled { get; set; }
+        public bool MsiSupported => IsMsiSupported;
+        public bool MsiEnabled => IsMsiEnabled;
         public ulong CurrentAffinityMask { get; set; } = 0; // 0 = Default (all cores)
         public string Priority { get; set; } = "Normal";
         public string StatusSummary { get; set; } = string.Empty;
@@ -270,6 +271,14 @@ namespace StormSystemOptimizer.Services
             }
 
             return allOk;
+        }
+
+        /// <summary>
+        /// Toggles MSI state for a specific device.
+        /// </summary>
+        public async Task<bool> SetDeviceMsiStateAsync(PciDeviceInterruptInfo dev, bool enableMsi)
+        {
+            return await SetDeviceAffinityAsync(dev.InstanceId, dev.CurrentAffinityMask, enableMsi, 3);
         }
 
         /// <summary>
