@@ -233,6 +233,10 @@ namespace StormSystemOptimizer
                 "VisualPerformance" => new VisualPerformancePage(),
                 "BootProfiler" => new BootProfilerPage(),
                 "FileUnlocker" => new FileUnlockerPage(),
+                "InterruptAffinity" => new InterruptAffinityPage(),
+                "OfficeDeployer" => new OfficeDeployerPage(),
+                "DatabaseOptimizer" => new DatabaseOptimizerPage(),
+                "SecurityAudit" => new SecurityAuditPage(),
                 "Settings" => new SettingsPage(),
                 _ => new DashboardPage()
             };

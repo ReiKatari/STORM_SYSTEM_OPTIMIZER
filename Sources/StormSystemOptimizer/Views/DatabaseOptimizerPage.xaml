@@ -1,0 +1,64 @@
+<Page x:Class="StormSystemOptimizer.Views.DatabaseOptimizerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
+      Title="Database Optimizer">
+
+    <Page.DataContext>
+        <vm:DatabaseOptimizerViewModel/>
+    </Page.DataContext>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel>
+            <!-- Header Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoDatabase}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Оптимизация и дефрагментация баз данных SQLite" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Компактизация (VACUUM) и перестроение индексов (REINDEX) для баз данных Chromium, Firefox, Telegram, Discord и Steam для мгновенного отклика."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
+                            <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding ScanCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="12,10" Margin="0,0,8,0">
+                            <TextBlock Text="🔄 Сканировать" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                        <Button Command="{Binding OptimizeAllCommand}" Style="{DynamicResource StormHeroButton}" Padding="14,10">
+                            <TextBlock Text="⚡ ОПТИМИЗИРОВАТЬ ВСЕ БАЗЫ" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Databases List Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="Обнаруженные базы данных SQLite в системе" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+
+                    <DataGrid ItemsSource="{Binding Databases}" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" BorderThickness="0" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource CardBorderBrush}" RowBackground="Transparent" HeadersVisibility="Column">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Приложение" Binding="{Binding AppName}" Width="160"/>
+                            <DataGridTextColumn Header="Категория" Binding="{Binding Category}" Width="120"/>
+                            <DataGridTextColumn Header="Файл базы данных" Binding="{Binding FilePath}" Width="3*"/>
+                            <DataGridTextColumn Header="Размер (байт)" Binding="{Binding OriginalSizeBytes}" Width="120"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

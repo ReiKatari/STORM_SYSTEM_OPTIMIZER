@@ -150,24 +150,67 @@ namespace StormSystemOptimizer.Services
                     }
                     catch { }
 
-                    // 7. USB Low Latency & Disable Selective Suspend
+                    // 8. BCD Timers (Disabledynamictick, TscSyncPolicy)
                     try
                     {
-                        using var usbKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Services\USB");
-                        if (usbKey != null)
+                        Process.Start(new ProcessStartInfo("bcdedit.exe", "/set disabledynamictick yes") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit();
+                        Process.Start(new ProcessStartInfo("bcdedit.exe", "/set useplatformclock no") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit();
+                        Process.Start(new ProcessStartInfo("bcdedit.exe", "/set tscsyncpolicy enhanced") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit();
+                        appliedCount++;
+                    }
+                    catch { }
+
+                    // 9. Win32PrioritySeparation (Short, Variable, 3:1 Foreground Boost = 0x26 / 38 decimal)
+                    try
+                    {
+                        using var prioKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\PriorityControl");
+                        if (prioKey != null)
                         {
-                            usbKey.SetValue("DisableSelectiveSuspend", 1, RegistryValueKind.DWord);
+                            prioKey.SetValue("Win32PrioritySeparation", 0x26, RegistryValueKind.DWord);
                             appliedCount++;
                         }
                     }
                     catch { }
 
-                    return (true, "⚡ Режим минимальной задержки ввода (1:1 Raw Input) успешно применен!");
+                    return (true, "⚡ Режим минимальной задержки ввода (1:1 Raw Input, BCD Timers, 0x26 Priority) успешно применен!");
                 }
                 catch (Exception ex)
                 {
                     return (false, $"Ошибка применения твиков: {ex.Message}");
                 }
+            });
+        }
+
+        public async Task<bool> SetWin32PrioritySeparationAsync(int val)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    using var prioKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\PriorityControl");
+                    prioKey?.SetValue("Win32PrioritySeparation", val, RegistryValueKind.DWord);
+                    return true;
+                }
+                catch { return false; }
+            });
+        }
+
+        public async Task<bool> SetCudaPState0LockAsync(bool lockPState0)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // NVIDIA CUDA Force P2 State toggle in registry
+                    using var nvKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000");
+                    if (nvKey != null)
+                    {
+                        nvKey.SetValue("DisableCudaP2State", lockPState0 ? 1 : 0, RegistryValueKind.DWord);
+                        return true;
+                    }
+                }
+                catch { }
+                return false;
             });
         }
     }

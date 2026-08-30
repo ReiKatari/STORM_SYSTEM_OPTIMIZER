@@ -101,6 +101,13 @@
     <PathGeometry x:Key="GeoQuickMaintenance" Figures="M19.36 2.72l1.92 1.92-3.8 3.8-1.92-1.92 3.8-3.8zM14.12 7.08l1.92 1.92-8.48 8.48c-.37.37-.88.58-1.41.58H3v-3.13c0-.53.21-1.04.58-1.41l8.48-8.48zM3 21h18v2H3v-2z M12 2l-1 5h4l-5 7 1-4H7l5-8z"/>
     <PathGeometry x:Key="GeoGameBoost" Figures="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3-3c-.83 0-1.5-.67-1.5-1.5S17.67 9 18.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
 
+    <!-- New 2.0 Feature Geometries -->
+    <PathGeometry x:Key="GeoOffice" Figures="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H6v-2h6v2zm4-4H6v-2h10v2zm0-4H6V7h10v2z M10 4L2 8v8l8 4V4z"/>
+    <PathGeometry x:Key="GeoInterrupts" Figures="M15 9H9v6h6V9zm-2 4h-2v-2h2v2zm8-2V9h-2V7a2 2 0 0 0-2-2h-2V3h-2v2h-2V3H9v2H7a2 2 0 0 0-2 2v2H3v2h2v2H3v2h2v2a2 2 0 0 0 2 2h2v2h2v-2h2v2h2v-2h2a2 2 0 0 0 2-2v-2h2v-2h-2v-2h2zm-4 6H7V7h10v10z"/>
+    <PathGeometry x:Key="GeoDatabase" Figures="M12 2C6.48 2 2 4.02 2 6.5v11C2 19.98 6.48 22 12 22s10-2.02 10-4.5v-11C22 4.02 17.52 2 12 2zm0 2c4.42 0 8 1.57 8 2.5S16.42 9 12 9 4 7.43 4 6.5 7.58 4 12 4zm8 13.5c0 .93-3.58 2.5-8 2.5s-8-1.57-8-2.5V14.3c1.78 1.06 4.7 1.7 8 1.7s6.22-.64 8-1.7v3.2zm0-5.5c0 .93-3.58 2.5-8 2.5s-8-1.57-8-2.5V8.8c1.78 1.06 4.7 1.7 8 1.7s6.22-.64 8-1.7V12z"/>
+    <PathGeometry x:Key="GeoShredder" Figures="M6 2h12v4H6V2zm14 6H4c-1.1 0-2 .9-2 2v6h4v6h2v-6h2v6h2v-6h2v6h2v-6h4v-6c0-1.1-.9-2-2-2zm-2 5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+    <PathGeometry x:Key="GeoSecurityAudit" Figures="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+
     <LinearGradientBrush x:Key="IconGradCoral" StartPoint="0,0" EndPoint="1,1">
         <GradientStop Color="#FF6B6B" Offset="0.0"/>
         <GradientStop Color="#EE5253" Offset="1.0"/>
