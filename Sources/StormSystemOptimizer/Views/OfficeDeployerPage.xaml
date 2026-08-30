@@ -20,28 +20,37 @@
 
                     <StackPanel Grid.Column="0">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoOffice}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <TextBlock Text="Центр развертывания и лицензий Microsoft Office" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Выборочная установка Microsoft Office 2016-2024 / 365 с официальных серверов CDN Microsoft, исключение телеметрии Teams/OneDrive, KMS/GVLK менеджер и глубокая очистка."
+                        <TextBlock Text="Выборочная C2R-установка Microsoft Office 2016-2024 / 365 с официальных серверов CDN Microsoft, исключение телеметрии Teams/OneDrive, KMS/GVLK менеджер и глубокая очистка."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
-                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="Текущий статус в системе: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                <TextBlock Text="{Binding InstalledOfficeInfo}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                            </StackPanel>
-                        </Border>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" Margin="0,0,8,0" VerticalAlignment="Center">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <TextBlock Text="Установлено: " FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="{Binding InstalledOfficeInfo}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding UpdateStatusText}" FontSize="12" FontWeight="SemiBold" Foreground="#10B981"/>
+                            </Border>
+                        </StackPanel>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding RefreshStatusCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
-                            <TextBlock Text="🔄 Обновить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Button Command="{Binding CheckUpdateCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
+                            <TextBlock Text="🔍 Проверить обновления" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding ForceRemoveCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="12,8">
-                            <TextBlock Text="🧹 Полная зачистка (Force)" FontSize="11" FontWeight="Bold" Foreground="#EF4444"/>
+                        <Button Command="{Binding TriggerUpdateCommand}" Style="{DynamicResource StormPrimaryButton}" Padding="12,8" Margin="0,0,8,0">
+                            <TextBlock Text="⚡ Обновить сейчас" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </Button>
+                        <Button Command="{Binding ForceRemoveCommand}" Style="{DynamicResource StormDangerButton}" Padding="12,8">
+                            <TextBlock Text="🧹 Зачистка (Force)" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -61,7 +70,15 @@
 
                         <!-- Edition Selector -->
                         <TextBlock Text="Редакция пакета Microsoft Office:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                        <ComboBox ItemsSource="{Binding Editions}" SelectedItem="{Binding SelectedEdition}" DisplayMemberPath="DisplayName" Margin="0,0,0,12" Height="32"/>
+                        <ComboBox ItemsSource="{Binding Editions}" SelectedItem="{Binding SelectedEdition}" DisplayMemberPath="DisplayName" Margin="0,0,0,8" Height="34"/>
+
+                        <!-- Edition Version & Desc Banner -->
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,14">
+                            <StackPanel>
+                                <TextBlock Text="{Binding SelectedEditionVersionText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                <TextBlock Text="{Binding SelectedEditionDesc}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </Border>
 
                         <!-- Architecture & Language -->
                         <Grid Margin="0,0,0,14">
@@ -87,30 +104,44 @@
                             </StackPanel>
                         </Grid>
 
-                        <TextBlock Text="2. Выбор приложений для установки" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,6,0,10"/>
+                        <Grid Margin="0,6,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="2. Выбор приложений для установки" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Command="{Binding SelectAllAppsCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="8,4" Margin="0,0,6,0">
+                                    <TextBlock Text="Все" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </Button>
+                                <Button Command="{Binding SelectBasicAppsCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="8,4">
+                                    <TextBlock Text="Базовые" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
 
                         <!-- Applications Checkbox Matrix -->
                         <UniformGrid Columns="3" Margin="0,0,0,12">
-                            <CheckBox Content="Word" IsChecked="{Binding InstallWord}" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <CheckBox Content="Excel" IsChecked="{Binding InstallExcel}" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <CheckBox Content="PowerPoint" IsChecked="{Binding InstallPowerPoint}" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <CheckBox Content="Access" IsChecked="{Binding InstallAccess}" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <CheckBox Content="Outlook" IsChecked="{Binding InstallOutlook}" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <CheckBox Content="OneNote" IsChecked="{Binding InstallOneNote}" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <CheckBox Content="Publisher" IsChecked="{Binding InstallPublisher}" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <CheckBox Content="Visio Pro" IsChecked="{Binding InstallVisio}" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <CheckBox Content="Project Pro" IsChecked="{Binding InstallProject}" Margin="0,0,0,8" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <CheckBox Content="Word" IsChecked="{Binding InstallWord}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Excel" IsChecked="{Binding InstallExcel}" Margin="0,0,0,8"/>
+                            <CheckBox Content="PowerPoint" IsChecked="{Binding InstallPowerPoint}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Access" IsChecked="{Binding InstallAccess}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Outlook" IsChecked="{Binding InstallOutlook}" Margin="0,0,0,8"/>
+                            <CheckBox Content="OneNote" IsChecked="{Binding InstallOneNote}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Publisher" IsChecked="{Binding InstallPublisher}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Visio Pro" IsChecked="{Binding InstallVisio}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Project Pro" IsChecked="{Binding InstallProject}" Margin="0,0,0,8"/>
                         </UniformGrid>
 
                         <TextBlock Text="3. Исключение мусора и телеметрии" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,6,0,8"/>
                         <StackPanel Margin="0,0,0,16">
-                            <CheckBox Content="Исключить Microsoft Teams (автозагрузка и фон)" IsChecked="{Binding ExcludeTeams}" Margin="0,0,0,6" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <CheckBox Content="Исключить OneDrive и синхронизацию" IsChecked="{Binding ExcludeOneDrive}" Margin="0,0,0,6" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <CheckBox Content="Исключить Bing Search и телеметрию поиска" IsChecked="{Binding ExcludeBing}" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <CheckBox Content="Исключить Microsoft Teams (автозагрузка и фон)" IsChecked="{Binding ExcludeTeams}" Margin="0,0,0,6"/>
+                            <CheckBox Content="Исключить OneDrive и синхронизацию" IsChecked="{Binding ExcludeOneDrive}" Margin="0,0,0,6"/>
+                            <CheckBox Content="Исключить Bing Search и телеметрию поиска" IsChecked="{Binding ExcludeBing}"/>
                         </StackPanel>
 
                         <!-- Main Install Button -->
-                        <Button Command="{Binding InstallCommand}" Style="{DynamicResource StormHeroButton}" Height="42">
+                        <Button Command="{Binding InstallCommand}" Style="{DynamicResource StormHeroButton}" Height="44">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Path Data="{StaticResource GeoOffice}" Fill="#FFFFFF" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="🚀 СКАЧАТЬ И УСТАНОВИТЬ MICROSOFT OFFICE" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center"/>
@@ -127,10 +158,10 @@
                         <TextBlock Text="Онлайн KMS-сервер:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                         <ComboBox ItemsSource="{Binding KmsServers}" SelectedItem="{Binding SelectedKmsServer}" Height="32" Margin="0,0,0,12"/>
 
-                        <CheckBox Content="Автоматически активировать после установки" IsChecked="{Binding AutoActivate}" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                        <CheckBox Content="Автоматически активировать после установки" IsChecked="{Binding AutoActivate}" Margin="0,0,0,12"/>
 
                         <UniformGrid Columns="2" Margin="0,0,0,16">
-                            <Button Command="{Binding ActivateCommand}" Style="{DynamicResource StormPrimaryButton}" Padding="10,8" Margin="0,0,6,0">
+                            <Button Command="{Binding ActivateCommand}" Style="{DynamicResource StormHeroButton}" Padding="10,8" Margin="0,0,6,0">
                                 <TextBlock Text="🔑 Активировать KMS" FontWeight="Bold" FontSize="11" Foreground="#FFFFFF"/>
                             </Button>
                             <Button Command="{Binding CleanKeysCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="10,8" Margin="6,0,0,0">
@@ -139,7 +170,7 @@
                         </UniformGrid>
 
                         <TextBlock Text="Лог выполнения и консоль" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,6,0,8"/>
-                        <Border Background="#0D1117" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Height="230" Padding="10">
+                        <Border Background="#0D1117" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Height="250" Padding="10">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <TextBlock Text="{Binding StatusLog}" FontFamily="Consolas" FontSize="11" Foreground="#38BDF8" TextWrapping="Wrap"/>
                             </ScrollViewer>

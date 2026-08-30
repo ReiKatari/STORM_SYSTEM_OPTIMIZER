@@ -20,7 +20,7 @@
 
                     <StackPanel Grid.Column="0">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                            <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoSecurityAudit}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
                             <TextBlock Text="Центр безопасности, аудита и гарантированного удаления" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -34,17 +34,39 @@
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding ScanThreatsCommand}" Style="{DynamicResource StormHeroButton}" Padding="14,10" Margin="0,0,8,0">
-                            <TextBlock Text="🛡️ СКАНИРОВАТЬ СИСТЕМУ" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <Button Command="{Binding ScanThreatsCommand}" Style="{DynamicResource StormHeroButton}" Padding="16,10">
+                            <TextBlock Text="🛡️ СКАНИРОВАТЬ СИСТЕМУ" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                     </StackPanel>
                 </Grid>
             </Border>
 
+            <!-- Metrics Summary Grid -->
+            <UniformGrid Columns="3" Margin="0,0,0,16">
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,6,0">
+                    <StackPanel>
+                        <TextBlock Text="ОБНАРУЖЕНО УГРОЗ / АНОМАЛИЙ" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="{Binding TotalThreatsCount}" FontSize="18" FontWeight="Bold" Foreground="#EF4444" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="3,0,3,0">
+                    <StackPanel>
+                        <TextBlock Text="ПРАВИЛ БРАНДМАУЭРА WINDOWS" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="{Binding FirewallRulesCount}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="6,0,0,0">
+                    <StackPanel>
+                        <TextBlock Text="СИРОТСКИХ ПРАВИЛ К УДАЛЕНИЮ" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="{Binding OrphanedRulesCount}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
             <!-- Threats Section -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Обнаруженные угрозы и аномалии (Майнеры, HOSTS, WMI)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                    <TextBlock Text="Обнаруженные угрозы и аномалии (Майнеры, HOSTS, WMI, Автозагрузка)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
                     <ItemsControl ItemsSource="{Binding Threats}">
                         <ItemsControl.ItemTemplate>
@@ -67,7 +89,7 @@
                                             <TextBlock Text="{Binding TargetPath}" FontSize="10.5" Foreground="#6B7280" Margin="0,2,0,0"/>
                                         </StackPanel>
 
-                                        <Button Grid.Column="2" Command="{Binding DataContext.ResolveThreatCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{DynamicResource StormPrimaryButton}" Padding="12,6" VerticalAlignment="Center">
+                                        <Button Grid.Column="2" Command="{Binding DataContext.ResolveThreatCommand, RelativeSource={RelativeSource AncestorType=Page}}" CommandParameter="{Binding}" Style="{DynamicResource StormDangerButton}" Padding="14,6" VerticalAlignment="Center">
                                             <TextBlock Text="Устранить" FontWeight="Bold" FontSize="11" Foreground="#FFFFFF"/>
                                         </Button>
                                     </Grid>
@@ -76,7 +98,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <TextBlock Text="Угроз не обнаружено. Система чиста." FontSize="13" Foreground="#10B981" FontWeight="SemiBold" Margin="0,4,0,0">
+                    <TextBlock Text="Угроз и скрытых майнеров не обнаружено. Система чиста и безопасна." FontSize="13" Foreground="#10B981" FontWeight="SemiBold" Margin="0,4,0,0">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed"/>
@@ -107,10 +129,10 @@
 
                         <UniformGrid Columns="2">
                             <Button Command="{Binding ScanFirewallCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="10,8" Margin="0,0,6,0">
-                                <TextBlock Text="Анализ правил" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="🔄 Анализ правил" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
-                            <Button Command="{Binding PurgeOrphanedFirewallCommand}" Style="{DynamicResource StormPrimaryButton}" Padding="10,8" Margin="6,0,0,0">
-                                <TextBlock Text="Очистить сиротские" FontWeight="Bold" FontSize="11" Foreground="#FFFFFF"/>
+                            <Button Command="{Binding PurgeOrphanedFirewallCommand}" Style="{DynamicResource StormHeroButton}" Padding="10,8" Margin="6,0,0,0">
+                                <TextBlock Text="🧹 Очистить сиротские" FontWeight="Bold" FontSize="11" Foreground="#FFFFFF"/>
                             </Button>
                         </UniformGrid>
                     </StackPanel>
@@ -133,13 +155,15 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Text="{Binding ShredFilePath, UpdateSourceTrigger=PropertyChanged}" Height="30" FontSize="11" VerticalContentAlignment="Center" Background="{DynamicResource AppBackgroundBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource CardBorderBrush}"/>
-                            <Button Grid.Column="1" Command="{Binding BrowseShredFileCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="8,4" Margin="6,0,0,0">
-                                <TextBlock Text="Обзор..." FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4">
+                                <TextBox Text="{Binding ShredFilePath, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Background="Transparent" Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0" VerticalAlignment="Center"/>
+                            </Border>
+                            <Button Grid.Column="1" Command="{Binding BrowseShredFileCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="10,6" Margin="6,0,0,0">
+                                <TextBlock Text="📁 Обзор..." FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
                         </Grid>
 
-                        <Button Command="{Binding ShredFileCommand}" Style="{DynamicResource StormHeroButton}" Height="34">
+                        <Button Command="{Binding ShredFileCommand}" Style="{DynamicResource StormHeroButton}" Height="36">
                             <TextBlock Text="🗑️ УНИЧТОЖИТЬ ФАЙЛ БЕЗ ВОЗВРАТА" FontWeight="Bold" FontSize="11" Foreground="#FFFFFF"/>
                         </Button>
                     </StackPanel>

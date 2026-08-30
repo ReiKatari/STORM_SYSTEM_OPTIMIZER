@@ -23,41 +23,77 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private PciDeviceInterruptInfo? _selectedDevice;
 
+        [ObservableProperty]
+        private string _totalDevicesCount = "0";
+
+        [ObservableProperty]
+        private string _totalMsiEnabledCount = "0";
+
         public ObservableCollection<PciDeviceInterruptInfo> Devices { get; } = new();
         public ObservableCollection<GameQosProfile> QosProfiles { get; } = new();
 
         public ICommand RefreshCommand { get; }
         public ICommand ApplyEsportsPresetCommand { get; }
+        public ICommand ApplyBalancedMsiPresetCommand { get; }
         public ICommand ResetDefaultsCommand { get; }
         public ICommand ApplyImodCommand { get; }
         public ICommand ApplyQosCommand { get; }
+        public ICommand ToggleDeviceMsiCommand { get; }
 
         public InterruptAffinityViewModel()
         {
             RefreshCommand = new RelayCommand(async () => await LoadDataAsync());
             ApplyEsportsPresetCommand = new RelayCommand(async () => await ExecuteEsportsPresetAsync());
+            ApplyBalancedMsiPresetCommand = new RelayCommand(async () => await ExecuteBalancedMsiPresetAsync());
             ResetDefaultsCommand = new RelayCommand(async () => await ExecuteResetDefaultsAsync());
             ApplyImodCommand = new RelayCommand(async () => await ExecuteApplyImodAsync());
             ApplyQosCommand = new RelayCommand(async () => await ExecuteApplyQosAsync());
+            ToggleDeviceMsiCommand = new RelayCommand<PciDeviceInterruptInfo>(async dev =>
+            {
+                if (dev != null) await ExecuteToggleMsiAsync(dev);
+            });
 
             _ = LoadDataAsync();
         }
 
         public async Task LoadDataAsync()
         {
+            if (IsBusy) return;
             IsBusy = true;
-            Devices.Clear();
-            QosProfiles.Clear();
 
             var devs = await InterruptAffinityService.Instance.GetInterruptDevicesAsync();
-            foreach (var d in devs) Devices.Add(d);
-
             var qos = await QosTrafficService.Instance.GetGameQosProfilesAsync();
-            foreach (var q in qos) QosProfiles.Add(q);
+            int imod = XhciImodService.Instance.GetCurrentImodInterval();
 
-            CurrentImodInterval = XhciImodService.Instance.GetCurrentImodInterval();
+            Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                Devices.Clear();
+                int msiCount = 0;
+                foreach (var d in devs)
+                {
+                    Devices.Add(d);
+                    if (d.MsiSupported && d.MsiEnabled) msiCount++;
+                }
 
-            StatusMessage = $"Загружено устройств: {Devices.Count} | Логических ядер CPU: {InterruptAffinityService.Instance.LogicalCoreCount}";
+                QosProfiles.Clear();
+                foreach (var q in qos) QosProfiles.Add(q);
+
+                CurrentImodInterval = imod;
+                TotalDevicesCount = Devices.Count.ToString();
+                TotalMsiEnabledCount = msiCount.ToString();
+                StatusMessage = $"Загружено устройств: {Devices.Count} (MSI активно: {msiCount}) | CPU: {InterruptAffinityService.Instance.LogicalCoreCount} логических ядер";
+                IsBusy = false;
+            });
+        }
+
+        private async Task ExecuteToggleMsiAsync(PciDeviceInterruptInfo dev)
+        {
+            IsBusy = true;
+            bool newState = !dev.MsiEnabled;
+            StatusMessage = $"Переключение MSI для {dev.Name}...";
+            bool ok = await InterruptAffinityService.Instance.SetDeviceMsiStateAsync(dev, newState);
+            await LoadDataAsync();
+            StatusMessage = ok ? $"Режим MSI для {dev.Name} успешно изменен!" : "Ошибка изменения режима MSI";
             IsBusy = false;
         }
 
@@ -68,6 +104,23 @@ namespace StormSystemOptimizer.ViewModels
             bool ok = await InterruptAffinityService.Instance.ApplyEsportsAffinityPresetAsync();
             await LoadDataAsync();
             StatusMessage = ok ? "⚡ Киберспортивный профиль прерываний успешно активирован!" : "Ошибка применения некоторых масок прерываний";
+            IsBusy = false;
+        }
+
+        private async Task ExecuteBalancedMsiPresetAsync()
+        {
+            IsBusy = true;
+            StatusMessage = "Активация сбалансированного MSI-режима для всех поддерживаемых PCI устройств...";
+            bool ok = true;
+            foreach (var d in Devices)
+            {
+                if (d.MsiSupported && !d.MsiEnabled)
+                {
+                    ok &= await InterruptAffinityService.Instance.SetDeviceMsiStateAsync(d, true);
+                }
+            }
+            await LoadDataAsync();
+            StatusMessage = ok ? "✅ Сбалансированный MSI режим включен для всех контроллеров!" : "Частично применен MSI";
             IsBusy = false;
         }
 
@@ -84,9 +137,9 @@ namespace StormSystemOptimizer.ViewModels
         private async Task ExecuteApplyImodAsync()
         {
             IsBusy = true;
-            StatusMessage = $"Установка XHCI IMOD интервала: {CurrentImodInterval} µs...";
+            StatusMessage = $"Установка XHCI IMOD интервала: {CurrentImodInterval} мкс...";
             bool ok = await XhciImodService.Instance.SetImodIntervalAsync(CurrentImodInterval);
-            StatusMessage = ok ? $"✅ USB IMOD интервал установлен на {CurrentImodInterval} мкс (Перезагрузите ПК для полного эффекта)" : "Ошибка записи IMOD";
+            StatusMessage = ok ? $"✅ USB IMOD интервал установлен на {CurrentImodInterval} мкс (Перезагрузите ПК для эффекта)" : "Ошибка записи IMOD";
             IsBusy = false;
         }
 

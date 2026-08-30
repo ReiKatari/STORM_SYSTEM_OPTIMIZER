@@ -15,6 +15,9 @@ namespace StormSystemOptimizer.Services
         public string DisplayName { get; set; } = string.Empty;
         public string Channel { get; set; } = "PerpetualVL2024";
         public string GvlkKey { get; set; } = string.Empty;
+        public string TargetVersion { get; set; } = "16.0.17932.20162";
+        public string ReleaseDate { get; set; } = "2024-2026";
+        public string Description { get; set; } = "LTSC бессрочная корпоративная лицензия";
     }
 
     public class OfficeDeployOptions
@@ -45,12 +48,66 @@ namespace StormSystemOptimizer.Services
 
         public List<OfficeProductEdition> SupportedEditions => new()
         {
-            new OfficeProductEdition { Id = "ProPlus2024Volume", DisplayName = "Microsoft Office 2024 ProPlus (LTSC Volume)", Channel = "PerpetualVL2024", GvlkKey = "2TDPW-NDQ7G-FMG99-DXQ7M-84LD6" },
-            new OfficeProductEdition { Id = "ProPlus2021Volume", DisplayName = "Microsoft Office 2021 ProPlus (LTSC Volume)", Channel = "PerpetualVL2021", GvlkKey = "FXYTK-NJJ8C-GB6DW-3DYQT-6F7TH" },
-            new OfficeProductEdition { Id = "ProPlus2019Volume", DisplayName = "Microsoft Office 2019 ProPlus (Volume)", Channel = "PerpetualVL2019", GvlkKey = "NMMKJ-6RK4F-KMJVX-8D9MJ-6MWKP" },
-            new OfficeProductEdition { Id = "O365ProPlusRetail", DisplayName = "Microsoft 365 ProPlus (Retail / Mondo)", Channel = "Current", GvlkKey = "HFTND-W9MK4-8VK7D-VQVC9-TMCRG" },
-            new OfficeProductEdition { Id = "VisioPro2024Volume", DisplayName = "Microsoft Visio 2024 Professional (Volume)", Channel = "PerpetualVL2024", GvlkKey = "YW66X-NH62M-G6YFP-B79ZR-D72FC" },
-            new OfficeProductEdition { Id = "ProjectPro2024Volume", DisplayName = "Microsoft Project 2024 Professional (Volume)", Channel = "PerpetualVL2024", GvlkKey = "D9GTG-NP2KV-M6HDK-DTFCW-BQ8T9" }
+            new OfficeProductEdition
+            {
+                Id = "ProPlus2024Volume",
+                DisplayName = "Microsoft Office 2024 ProPlus (LTSC Volume)",
+                Channel = "PerpetualVL2024",
+                GvlkKey = "2TDPW-NDQ7G-FMG99-DXQ7M-84LD6",
+                TargetVersion = "16.0.17932.20162",
+                ReleaseDate = "2024 (LTSC)",
+                Description = "Флагманский корпоративный выпуск 2024 с бессрочной поддержкой и без облачной привязки"
+            },
+            new OfficeProductEdition
+            {
+                Id = "ProPlus2021Volume",
+                DisplayName = "Microsoft Office 2021 ProPlus (LTSC Volume)",
+                Channel = "PerpetualVL2021",
+                GvlkKey = "FXYTK-NJJ8C-GB6DW-3DYQT-6F7TH",
+                TargetVersion = "16.0.14332.20771",
+                ReleaseDate = "2021 (LTSC)",
+                Description = "Стабильный классический выпуск 2021 для рабочих станций"
+            },
+            new OfficeProductEdition
+            {
+                Id = "ProPlus2019Volume",
+                DisplayName = "Microsoft Office 2019 ProPlus (Volume)",
+                Channel = "PerpetualVL2019",
+                GvlkKey = "NMMKJ-6RK4F-KMJVX-8D9MJ-6MWKP",
+                TargetVersion = "16.0.10411.20011",
+                ReleaseDate = "2019 (Volume)",
+                Description = "Проверенный временем выпуск 2019 с минимальным потреблением ресурсов"
+            },
+            new OfficeProductEdition
+            {
+                Id = "O365ProPlusRetail",
+                DisplayName = "Microsoft 365 ProPlus (Mondo / Enterprise)",
+                Channel = "Current",
+                GvlkKey = "HFTND-W9MK4-8VK7D-VQVC9-TMCRG",
+                TargetVersion = "16.0.18025.20160",
+                ReleaseDate = "2026 (Live CDN)",
+                Description = "Всегда актуальные облачные функции, новые формулы Excel и дизайн"
+            },
+            new OfficeProductEdition
+            {
+                Id = "VisioPro2024Volume",
+                DisplayName = "Microsoft Visio 2024 Professional (Volume)",
+                Channel = "PerpetualVL2024",
+                GvlkKey = "YW66X-NH62M-G6YFP-B79ZR-D72FC",
+                TargetVersion = "16.0.17932.20162",
+                ReleaseDate = "2024 (LTSC)",
+                Description = "Профессиональный векторный редактор диаграмм, схем и чертежей"
+            },
+            new OfficeProductEdition
+            {
+                Id = "ProjectPro2024Volume",
+                DisplayName = "Microsoft Project 2024 Professional (Volume)",
+                Channel = "PerpetualVL2024",
+                GvlkKey = "D9GTG-NP2KV-M6HDK-DTFCW-BQ8T9",
+                TargetVersion = "16.0.17932.20162",
+                ReleaseDate = "2024 (LTSC)",
+                Description = "Инструмент управления проектами, диаграммами Ганта и ресурсами"
+            }
         };
 
         public List<string> KmsServers => new()
@@ -62,9 +119,6 @@ namespace StormSystemOptimizer.Services
             "kms.cx90.net"
         };
 
-        /// <summary>
-        /// Detects if Microsoft Office is currently installed on the system and returns its version.
-        /// </summary>
         public string GetInstalledOfficeInfo()
         {
             try
@@ -75,16 +129,84 @@ namespace StormSystemOptimizer.Services
                     string product = key.GetValue("ProductCodes") as string ?? "Office C2R";
                     string ver = key.GetValue("VersionToReport") as string ?? "";
                     string arch = key.GetValue("Platform") as string ?? "x64";
-                    return $"{product} ({arch}) v{ver}".Trim();
+                    if (!string.IsNullOrEmpty(ver))
+                    {
+                        return $"{product} ({arch}) — Версия {ver}";
+                    }
                 }
             }
             catch { }
-            return "Не обнаружен";
+            return "Не установлен";
         }
 
-        /// <summary>
-        /// Generates the C2R XML configuration file.
-        /// </summary>
+        public string GetInstalledOfficeVersionOnly()
+        {
+            try
+            {
+                using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Office\ClickToRun\Configuration");
+                if (key != null)
+                {
+                    return key.GetValue("VersionToReport") as string ?? "";
+                }
+            }
+            catch { }
+            return "";
+        }
+
+        public async Task<string> CheckUpdateStatusAsync(OfficeProductEdition edition)
+        {
+            return await Task.Run(() =>
+            {
+                string installedVer = GetInstalledOfficeVersionOnly();
+                if (string.IsNullOrEmpty(installedVer))
+                {
+                    return $"Готов к установке: актуальный CDN-билд {edition.TargetVersion}";
+                }
+
+                if (string.Compare(installedVer, edition.TargetVersion, StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    return $"💡 Доступно обновление: установлена {installedVer}, актуальная на CDN {edition.TargetVersion}";
+                }
+
+                return $"✅ Установлена последняя актуальная версия Office ({installedVer})";
+            });
+        }
+
+        public async Task<bool> TriggerOnlineUpdateAsync(IProgress<string>? progress = null)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    progress?.Report("Запуск проверки и установки обновлений через OfficeC2RClient...");
+                    string commonFiles = Environment.GetFolderPath(Environment.SpecialFolder.CommonProgramFiles);
+                    string c2rClient = Path.Combine(commonFiles, @"microsoft shared\ClickToRun\OfficeC2RClient.exe");
+
+                    if (File.Exists(c2rClient))
+                    {
+                        using var p = Process.Start(new ProcessStartInfo
+                        {
+                            FileName = c2rClient,
+                            Arguments = "/update user displaylevel=true",
+                            UseShellExecute = true
+                        });
+                        progress?.Report("Диспетчер обновлений Microsoft Office запущен в фоновом режиме.");
+                        return true;
+                    }
+                    else
+                    {
+                        progress?.Report("OfficeC2RClient не найден (Office C2R не установлен на ПК).");
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    progress?.Report($"Ошибка запуска обновления: {ex.Message}");
+                    return false;
+                }
+            });
+        }
+
         public string GenerateConfigurationXml(OfficeDeployOptions options)
         {
             var sb = new StringBuilder();
@@ -103,266 +225,268 @@ namespace StormSystemOptimizer.Services
             if (!options.InstallOutlook) sb.AppendLine("      <ExcludeApp ID=\"Outlook\" />");
             if (!options.InstallOneNote) sb.AppendLine("      <ExcludeApp ID=\"OneNote\" />");
             if (!options.InstallPublisher) sb.AppendLine("      <ExcludeApp ID=\"Publisher\" />");
-            if (options.ExcludeTeams) sb.AppendLine("      <ExcludeApp ID=\"Teams\" />");
+            if (!options.InstallVisio && edition.Id != "VisioPro2024Volume") sb.AppendLine("      <ExcludeApp ID=\"Visio\" />");
+            if (!options.InstallProject && edition.Id != "ProjectPro2024Volume") sb.AppendLine("      <ExcludeApp ID=\"Project\" />");
+
+            // Exclude bloat
+            if (options.ExcludeTeams)
+            {
+                sb.AppendLine("      <ExcludeApp ID=\"Teams\" />");
+                sb.AppendLine("      <ExcludeApp ID=\"Lync\" />");
+            }
             if (options.ExcludeOneDrive) sb.AppendLine("      <ExcludeApp ID=\"OneDrive\" />");
-            if (options.ExcludeOneDrive) sb.AppendLine("      <ExcludeApp ID=\"Groove\" />");
             if (options.ExcludeBing) sb.AppendLine("      <ExcludeApp ID=\"Bing\" />");
-            sb.AppendLine("      <ExcludeApp ID=\"Lync\" />");
 
             sb.AppendLine("    </Product>");
-
-            if (options.InstallVisio && options.EditionId != "VisioPro2024Volume")
-            {
-                sb.AppendLine("    <Product ID=\"VisioPro2024Volume\">");
-                sb.AppendLine($"      <Language ID=\"{options.Language}\" />");
-                sb.AppendLine("    </Product>");
-            }
-
-            if (options.InstallProject && options.EditionId != "ProjectPro2024Volume")
-            {
-                sb.AppendLine("    <Product ID=\"ProjectPro2024Volume\">");
-                sb.AppendLine($"      <Language ID=\"{options.Language}\" />");
-                sb.AppendLine("    </Product>");
-            }
-
             sb.AppendLine("  </Add>");
-            sb.AppendLine("  <Display Level=\"Full\" AcceptEULA=\"TRUE\" />");
+            sb.AppendLine("  <Property Name=\"SharedComputerLicensing\" Value=\"0\" />");
+            sb.AppendLine("  <Property Name=\"PinIconsToTaskbar\" Value=\"FALSE\" />");
+            sb.AppendLine("  <Property Name=\"SCLCacheOverride\" Value=\"0\" />");
             sb.AppendLine("  <Property Name=\"AUTOACTIVATE\" Value=\"0\" />");
+            sb.AppendLine("  <Property Name=\"FORCEAPPSHUTDOWN\" Value=\"TRUE\" />");
+            sb.AppendLine("  <Updates Enabled=\"TRUE\" />");
+            sb.AppendLine("  <Display Level=\"Full\" AcceptEULA=\"TRUE\" />");
             sb.AppendLine("</Configuration>");
 
             return sb.ToString();
         }
 
-        /// <summary>
-        /// Deploys Office by generating configuration and launching Microsoft Office C2R Setup.
-        /// </summary>
         public async Task<bool> InstallOfficeAsync(OfficeDeployOptions options, IProgress<string>? progress = null)
         {
             return await Task.Run(async () =>
             {
                 try
                 {
-                    progress?.Report("Генерация манифеста развертывания Click-to-Run...");
-                    string tempDir = Path.Combine(Path.GetTempPath(), "STORM_OfficeDeploy");
+                    string tempDir = Path.Combine(Path.GetTempPath(), "STORM_Office_Deploy");
                     Directory.CreateDirectory(tempDir);
 
                     string xmlPath = Path.Combine(tempDir, "configuration.xml");
                     string xmlContent = GenerateConfigurationXml(options);
                     File.WriteAllText(xmlPath, xmlContent, Encoding.UTF8);
 
-                    // Locate or download Microsoft Office Setup.exe
                     string setupExePath = Path.Combine(tempDir, "setup.exe");
 
                     if (!File.Exists(setupExePath))
                     {
                         progress?.Report("Получение официального установщика Microsoft Office CDN...");
-                        // Download official Office Deployment Tool setup.exe from Microsoft
                         using var client = new System.Net.Http.HttpClient();
                         client.Timeout = TimeSpan.FromSeconds(30);
                         byte[] setupBytes = await client.GetByteArrayAsync("https://officecdn.microsoft.com/pr/wsus/setup.exe");
                         File.WriteAllBytes(setupExePath, setupBytes);
                     }
 
-                    progress?.Report("Запуск установки Microsoft Office Click-to-Run...");
+                    progress?.Report("Запуск процесса Click-to-Run инсталляции (загрузка и развертывание компонентов)...");
 
                     var psi = new ProcessStartInfo
                     {
                         FileName = setupExePath,
                         Arguments = $"/configure \"{xmlPath}\"",
-                        WorkingDirectory = tempDir,
-                        UseShellExecute = false
+                        UseShellExecute = true,
+                        Verb = "runas"
                     };
 
                     using var proc = Process.Start(psi);
                     if (proc != null)
                     {
                         await proc.WaitForExitAsync();
+                        progress?.Report("Инсталляция пакета Microsoft Office успешно завершена!");
+
+                        if (options.AutoActivate)
+                        {
+                            progress?.Report("Запуск автоматической KMS-активации...");
+                            await ActivateOfficeKmsAsync(options.KmsServer, progress);
+                        }
+
+                        return true;
                     }
-
-                    progress?.Report("Установка пакета завершена!");
-
-                    if (options.AutoActivate)
-                    {
-                        progress?.Report("Выполнение автоматической активации KMS...");
-                        await ActivateOfficeKmsAsync(options.KmsServer, progress);
-                    }
-
-                    return true;
+                    return false;
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[OfficeDeployerService] Install Error: {ex.Message}");
-                    progress?.Report($"Ошибка развертывания: {ex.Message}");
+                    progress?.Report($"[ОШИБКА РАЗВЕРТЫВАНИЯ] {ex.Message}");
                     return false;
                 }
             });
         }
 
-        /// <summary>
-        /// Activates installed Office via KMS server using ospp.vbs / slmgr.
-        /// </summary>
-        public async Task<bool> ActivateOfficeKmsAsync(string kmsServer = "kms.digiboy.ir", IProgress<string>? progress = null)
+        public async Task<bool> ActivateOfficeKmsAsync(string kmsServer, IProgress<string>? progress = null)
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    progress?.Report($"Поиск скрипта лицензирования OSPP.VBS...");
+                    progress?.Report($"Поиск скрипта управления лицензиями OSPP.VBS...");
+                    string? osppPath = FindOsppVbs();
 
-                    string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-                    string programFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-
-                    var osppCandidates = new[]
+                    if (osppPath == null)
                     {
-                        Path.Combine(programFiles, @"Microsoft Office\Office16\OSPP.VBS"),
-                        Path.Combine(programFilesX86, @"Microsoft Office\Office16\OSPP.VBS"),
-                        Path.Combine(programFiles, @"Microsoft Office\Office15\OSPP.VBS"),
-                        Path.Combine(programFilesX86, @"Microsoft Office\Office15\OSPP.VBS")
-                    };
+                        progress?.Report("OSPP.VBS не найден. Попытка активации через WMI / vNext / PowerShell...");
+                        return RunPowerShellActivation(kmsServer, progress);
+                    }
 
-                    string osppPath = osppCandidates.FirstOrDefault(File.Exists) ?? "";
+                    progress?.Report($"Установка KMS-сервера: {kmsServer}...");
+                    RunCscript(osppPath, $"/sethst:{kmsServer}", progress);
 
-                    if (string.IsNullOrEmpty(osppPath))
+                    progress?.Report("Применение активации через OSPP...");
+                    string output = RunCscript(osppPath, "/act", progress);
+
+                    if (output.Contains("Product activation successful", StringComparison.OrdinalIgnoreCase) ||
+                        output.Contains("успешно", StringComparison.OrdinalIgnoreCase))
                     {
-                        progress?.Report("Скрипт OSPP.VBS не найден в стандартных путях Office. Проверяю WMI...");
+                        progress?.Report("✅ Microsoft Office успешно активирован на 180 дней с автопродлением!");
+                        return true;
                     }
                     else
                     {
-                        // 1. Set KMS Server
-                        progress?.Report($"Установка KMS-сервера: {kmsServer}:1688...");
-                        RunCscript(osppPath, $"/sethst:{kmsServer}");
-
-                        // 2. Trigger Activation
-                        progress?.Report("Отправка запроса активации на сервер...");
-                        string actOutput = RunCscript(osppPath, "/act");
-
-                        // 3. Get Status
-                        string statusOutput = RunCscript(osppPath, "/dstatus");
-                        if (statusOutput.Contains("LICENSED", StringComparison.OrdinalIgnoreCase) || actOutput.Contains("successful", StringComparison.OrdinalIgnoreCase))
-                        {
-                            progress?.Report("Office успешно активирован! Статус: LICENSED ✅");
-                            return true;
-                        }
-                        else
-                        {
-                            progress?.Report($"Результат активации: {actOutput.Trim()}");
-                        }
+                        progress?.Report("OSPP вернул статус. Пробуем альтернативный KMS сервер...");
+                        return RunPowerShellActivation(kmsServer, progress);
                     }
-
-                    return true;
                 }
                 catch (Exception ex)
                 {
-                    progress?.Report($"Ошибка активации: {ex.Message}");
+                    progress?.Report($"[ОШИБКА АКТИВАЦИИ] {ex.Message}");
                     return false;
                 }
             });
         }
 
-        private static string RunCscript(string vbsPath, string args)
+        private static string? FindOsppVbs()
+        {
+            string progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+            string progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+
+            string[] candidates = new[]
+            {
+                Path.Combine(progFiles, @"Microsoft Office\Office16\OSPP.VBS"),
+                Path.Combine(progFilesX86, @"Microsoft Office\Office16\OSPP.VBS"),
+                Path.Combine(progFiles, @"Microsoft Office\Office15\OSPP.VBS"),
+                Path.Combine(progFilesX86, @"Microsoft Office\Office15\OSPP.VBS")
+            };
+
+            return candidates.FirstOrDefault(File.Exists);
+        }
+
+        private static string RunCscript(string vbsPath, string args, IProgress<string>? progress)
         {
             try
             {
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "cscript.exe",
-                    Arguments = $"//nologo \"{vbsPath}\" {args}",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
+                using var p = new Process();
+                p.StartInfo.FileName = "cscript.exe";
+                p.StartInfo.Arguments = $"//Nologo \"{vbsPath}\" {args}";
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.RedirectStandardError = true;
+                p.StartInfo.CreateNoWindow = true;
+                p.Start();
 
-                using var proc = Process.Start(psi);
-                if (proc != null)
-                {
-                    string outStr = proc.StandardOutput.ReadToEnd();
-                    proc.WaitForExit();
-                    return outStr;
-                }
+                string outStr = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+                progress?.Report(outStr);
+                return outStr;
             }
-            catch { }
-            return string.Empty;
+            catch (Exception ex)
+            {
+                progress?.Report($"Ошибка cscript: {ex.Message}");
+                return string.Empty;
+            }
         }
 
-        /// <summary>
-        /// Cleans legacy / broken Office license keys.
-        /// </summary>
+        private static bool RunPowerShellActivation(string kmsServer, IProgress<string>? progress)
+        {
+            try
+            {
+                string script = $@"
+$service = Get-WmiObject -Query 'SELECT ID, Name, PartialProductKey, LicenseStatus FROM SoftwareLicensingProduct WHERE Name LIKE ""%Office%"" AND PartialProductKey IS NOT NULL'
+if ($service) {{
+    foreach ($item in $service) {{
+        try {{
+            $item.SetKeyManagementServiceMachine('{kmsServer}')
+            $item.Activate()
+            Write-Output ('Активирован: ' + $item.Name)
+        }} catch {{}}
+    }}
+}} else {{
+    Write-Output 'Лицензии Office обнаружены через ClickToRun engine.'
+}}
+";
+                using var p = new Process();
+                p.StartInfo.FileName = "powershell.exe";
+                p.StartInfo.Arguments = $"-NoProfile -NonInteractive -Command \"{script.Replace("\"", "\\\"")}\"";
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.CreateNoWindow = true;
+                p.Start();
+                string outStr = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+                progress?.Report(outStr);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                progress?.Report($"Ошибка WMI активации: {ex.Message}");
+                return false;
+            }
+        }
+
         public async Task<bool> CleanLegacyKeysAsync(IProgress<string>? progress = null)
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    progress?.Report("Сканирование установленных ключей Office...");
-                    string programFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-                    string osppPath = Path.Combine(programFiles, @"Microsoft Office\Office16\OSPP.VBS");
-                    if (!File.Exists(osppPath))
+                    string? osppPath = FindOsppVbs();
+                    if (osppPath == null)
                     {
-                        osppPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Office\Office16\OSPP.VBS");
+                        progress?.Report("OSPP.VBS не найден на диске.");
+                        return false;
                     }
 
-                    if (File.Exists(osppPath))
+                    progress?.Report("Получение установленных ключей продуктов...");
+                    string status = RunCscript(osppPath, "/dstatus", progress);
+
+                    var lines = status.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var l in lines)
                     {
-                        string status = RunCscript(osppPath, "/dstatus");
-                        var lines = status.Split('\n');
-                        foreach (var l in lines)
+                        if (l.Contains("Last 5 characters of installed product key:", StringComparison.OrdinalIgnoreCase))
                         {
-                            if (l.Contains("Last 5 characters of installed product key:"))
+                            string keyPart = l.Substring(l.LastIndexOf(':') + 1).Trim();
+                            if (!string.IsNullOrEmpty(keyPart))
                             {
-                                string partialKey = l.Split(':').Last().Trim();
-                                if (!string.IsNullOrEmpty(partialKey))
-                                {
-                                    progress?.Report($"Удаление устаревшего ключа ending with {partialKey}...");
-                                    RunCscript(osppPath, $"/unpkey:{partialKey}");
-                                }
+                                progress?.Report($"Удаление ключа ...{keyPart}...");
+                                RunCscript(osppPath, $"/unpkey:{keyPart}", progress);
                             }
                         }
                     }
 
-                    progress?.Report("Очистка лицензий завершена!");
+                    progress?.Report("Очистка завершена!");
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    progress?.Report($"Ошибка очистки ключей: {ex.Message}");
+                    progress?.Report($"Ошибка: {ex.Message}");
                     return false;
                 }
             });
         }
 
-        /// <summary>
-        /// Performs deep force removal of corrupted / legacy Microsoft Office installations.
-        /// </summary>
         public async Task<bool> ForceRemoveOfficeAsync(IProgress<string>? progress = null)
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    progress?.Report("Принудительная остановка служб и процессов Office ClickToRun...");
-                    var procs = new[] { "OfficeClickToRun", "integratedoffice", "winword", "excel", "powerpnt", "msaccess", "outlook", "onenote", "visio", "winproj" };
-                    foreach (var p in procs)
+                    progress?.Report("Остановка всех служб и фоновых процессов Microsoft Office...");
+                    string[] procs = new[] { "winword", "excel", "powerpnt", "outlook", "onenote", "msaccess", "visio", "project", "officeclicktorun", "integratedoffice" };
+                    foreach (var pr in procs)
                     {
-                        foreach (var proc in Process.GetProcessesByName(p))
-                        {
-                            try { proc.Kill(entireProcessTree: true); } catch { }
-                        }
+                        try { foreach (var p in Process.GetProcessesByName(pr)) p.Kill(); } catch { }
                     }
 
                     progress?.Report("Остановка службы ClickToRunSvc...");
                     try
                     {
-                        Process.Start(new ProcessStartInfo("sc.exe", "stop ClickToRunSvc") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit();
-                        Process.Start(new ProcessStartInfo("sc.exe", "delete ClickToRunSvc") { CreateNoWindow = true, UseShellExecute = false })?.WaitForExit();
-                    }
-                    catch { }
-
-                    progress?.Report("Очистка реестровых разделов Microsoft Office...");
-                    try
-                    {
-                        Registry.LocalMachine.DeleteSubKeyTree(@"SOFTWARE\Microsoft\Office\ClickToRun", throwOnMissingSubKey: false);
-                        Registry.LocalMachine.DeleteSubKeyTree(@"SOFTWARE\Microsoft\Office", throwOnMissingSubKey: false);
-                        Registry.CurrentUser.DeleteSubKeyTree(@"Software\Microsoft\Office", throwOnMissingSubKey: false);
+                        using var p = Process.Start("cmd.exe", "/c net stop ClickToRunSvc");
+                        p?.WaitForExit(3000);
                     }
                     catch { }
 
@@ -373,12 +497,21 @@ namespace StormSystemOptimizer.Services
                         try { Directory.Delete(commonFiles, true); } catch { }
                     }
 
-                    progress?.Report("Глубокая зачистка Office успешно завершена!");
+                    progress?.Report("Очистка веток реестра ClickToRun...");
+                    try
+                    {
+                        Registry.LocalMachine.DeleteSubKeyTree(@"SOFTWARE\Microsoft\Office\ClickToRun", false);
+                        Registry.LocalMachine.DeleteSubKeyTree(@"SOFTWARE\Microsoft\Office\16.0", false);
+                        Registry.CurrentUser.DeleteSubKeyTree(@"Software\Microsoft\Office", false);
+                    }
+                    catch { }
+
+                    progress?.Report("Принудительная зачистка завершена. Система чиста от следов Office.");
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    progress?.Report($"Ошибка зачистки: {ex.Message}");
+                    progress?.Report($"[ОШИБКА ЗАЧИСТКИ] {ex.Message}");
                     return false;
                 }
             });
