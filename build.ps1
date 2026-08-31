@@ -137,9 +137,19 @@ if ($cert) {
     Write-Host "Code signing certificate not found in CurrentUser\My." -ForegroundColor DarkYellow
 }
 
-# Step 6: Unblock Files and apply Smart App Control / Defender exclusions
-Write-Host "[6/6] Unblocking all output and project files and configuring trust..." -ForegroundColor Yellow
-Get-ChildItem -Path $baseDir -Recurse -Include *.exe, *.dll, *.bat, *.ps1, *.cer -ErrorAction SilentlyContinue | ForEach-Object {
+# Step 6: Create ZIP archive for Portable distribution
+$zipPath = Join-Path $filesDir "STORM_SYSTEM_OPTIMIZER_${appVersion}.zip"
+if (Test-Path $zipPath) { Remove-Item $zipPath -Force -ErrorAction SilentlyContinue }
+try {
+    Compress-Archive -Path "$assemblingDir\*" -DestinationPath $zipPath -Force
+    Write-Host "Portable ZIP archive created: $zipPath" -ForegroundColor Green
+} catch {
+    Write-Host "Warning: Could not create ZIP: $_" -ForegroundColor DarkYellow
+}
+
+# Step 7: Unblock Files and apply Smart App Control / Defender exclusions
+Write-Host "[7/7] Unblocking all output and project files and configuring trust..." -ForegroundColor Yellow
+Get-ChildItem -Path $baseDir -Recurse -Include *.exe, *.dll, *.bat, *.ps1, *.cer, *.zip -ErrorAction SilentlyContinue | ForEach-Object {
     Unblock-File -Path $_.FullName -ErrorAction SilentlyContinue
 }
 
@@ -165,4 +175,5 @@ Write-Host " RELEASE v$appVersion SUCCESSFULLY BUILT AND PACKAGED! " -Foreground
 Write-Host "============================================================" -ForegroundColor Green
 Write-Host " 1. Portable EXE: $assemblingDir\StormSystemOptimizer.exe" -ForegroundColor Cyan
 Write-Host " 2. Installer:    $setupExePath" -ForegroundColor Cyan
+Write-Host " 3. Portable ZIP: $zipPath" -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Green

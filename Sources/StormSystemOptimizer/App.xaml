@@ -87,6 +87,7 @@
             </Style>
 
             <!-- Global Default Button Style with 3D Volumetric Elevation & Tactile Press -->
+            <!-- Global Default Button Style with 3D Volumetric Elevation & Tactile Press -->
             <Style TargetType="Button">
                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                 <Setter Property="Cursor" Value="Hand"/>
@@ -97,6 +98,8 @@
                 <Setter Property="Padding" Value="14,8"/>
                 <Setter Property="FontSize" Value="12"/>
                 <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
@@ -110,10 +113,9 @@
                                 <Border.Effect>
                                     <DropShadowEffect Color="#000000" BlurRadius="8" ShadowDepth="2" Direction="270" Opacity="0.35"/>
                                 </Border.Effect>
-                                <Grid>
-                                    <Border VerticalAlignment="Top" Height="1" CornerRadius="1" Background="#25FFFFFF" Margin="2,0,2,0"/>
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  RecognizesAccessKey="True"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -162,7 +164,7 @@
                 <Setter Property="Foreground" Value="#FFFFFF"/>
                 <Setter Property="FontWeight" Value="Bold"/>
                 <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Padding" Value="20,12"/>
+                <Setter Property="Padding" Value="16,10"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="Button">
@@ -176,10 +178,9 @@
                                 <Border.Effect>
                                     <DropShadowEffect Color="#00D2FF" BlurRadius="12" ShadowDepth="3" Direction="270" Opacity="0.4"/>
                                 </Border.Effect>
-                                <Grid>
-                                    <Border VerticalAlignment="Top" Height="1" CornerRadius="1" Background="#70FFFFFF" Margin="2,0,2,0"/>
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  RecognizesAccessKey="True"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -240,10 +241,9 @@
                                 <Border.Effect>
                                     <DropShadowEffect Color="#00D2FF" BlurRadius="10" ShadowDepth="2.5" Direction="270" Opacity="0.38"/>
                                 </Border.Effect>
-                                <Grid>
-                                    <Border VerticalAlignment="Top" Height="1" CornerRadius="1" Background="#60FFFFFF" Margin="2,0,2,0"/>
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  RecognizesAccessKey="True"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -305,10 +305,9 @@
                                 <Border.Effect>
                                     <DropShadowEffect Color="#000000" BlurRadius="8" ShadowDepth="2" Direction="270" Opacity="0.32"/>
                                 </Border.Effect>
-                                <Grid>
-                                    <Border VerticalAlignment="Top" Height="1" CornerRadius="1" Background="#20FFFFFF" Margin="2,0,2,0"/>
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  RecognizesAccessKey="True"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -371,10 +370,9 @@
                                 <Border.Effect>
                                     <DropShadowEffect Color="#EF4444" BlurRadius="10" ShadowDepth="2.5" Direction="270" Opacity="0.4"/>
                                 </Border.Effect>
-                                <Grid>
-                                    <Border VerticalAlignment="Top" Height="1" CornerRadius="1" Background="#60FFFFFF" Margin="2,0,2,0"/>
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Grid>
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                  RecognizesAccessKey="True"/>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -890,12 +888,16 @@
 
             <Style TargetType="{x:Type DataGridCell}">
                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="BorderThickness" Value="0,0,1,0"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
                 <Setter Property="Padding" Value="8,6"/>
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type DataGridCell}">
-                            <Border Background="Transparent" Padding="{TemplateBinding Padding}">
+                            <Border Background="Transparent"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    Padding="{TemplateBinding Padding}">
                                 <ContentPresenter VerticalAlignment="Center"/>
                             </Border>
                         </ControlTemplate>
@@ -905,12 +907,13 @@
 
             <Style TargetType="{x:Type DataGrid}">
                 <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
                 <Setter Property="RowBackground" Value="Transparent"/>
                 <Setter Property="AlternatingRowBackground" Value="Transparent"/>
                 <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource CardBorderBrush}"/>
-                <Setter Property="VerticalGridLinesBrush" Value="Transparent"/>
-                <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+                <Setter Property="VerticalGridLinesBrush" Value="{DynamicResource CardBorderBrush}"/>
+                <Setter Property="GridLinesVisibility" Value="All"/>
                 <Setter Property="HeadersVisibility" Value="Column"/>
                 <Setter Property="AutoGenerateColumns" Value="False"/>
                 <Setter Property="IsReadOnly" Value="True"/>

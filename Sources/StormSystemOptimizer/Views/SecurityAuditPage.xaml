@@ -163,8 +163,8 @@
                             </Button>
                         </Grid>
 
-                        <Button Command="{Binding ShredFileCommand}" Style="{DynamicResource StormHeroButton}" Height="36">
-                            <TextBlock Text="🗑️ УНИЧТОЖИТЬ ФАЙЛ БЕЗ ВОЗВРАТА" FontWeight="Bold" FontSize="11" Foreground="#FFFFFF"/>
+                        <Button Command="{Binding ShredFileCommand}" Style="{DynamicResource StormHeroButton}" Padding="14,10" MinHeight="38">
+                            <TextBlock Text="🗑️ УНИЧТОЖИТЬ ФАЙЛ БЕЗ ВОЗВРАТА" FontWeight="Bold" FontSize="11" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
                     </StackPanel>
                 </Border>

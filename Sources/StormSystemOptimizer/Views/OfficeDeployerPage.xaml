@@ -72,11 +72,16 @@
                         <TextBlock Text="Редакция пакета Microsoft Office:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                         <ComboBox ItemsSource="{Binding Editions}" SelectedItem="{Binding SelectedEdition}" DisplayMemberPath="DisplayName" Margin="0,0,0,8" Height="34"/>
 
+                        <!-- CDN Server Selector -->
+                        <TextBlock Text="Сервер загрузки и репозиторий CDN:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding CdnServers}" SelectedItem="{Binding SelectedCdnServer}" DisplayMemberPath="DisplayName" Margin="0,0,0,8" Height="34"/>
+
                         <!-- Edition Version & Desc Banner -->
                         <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,14">
                             <StackPanel>
                                 <TextBlock Text="{Binding SelectedEditionVersionText}" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                                 <TextBlock Text="{Binding SelectedEditionDesc}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding SelectedCdnServer.Description, StringFormat='Сервер CDN: {0}'}" FontSize="11" Foreground="#38BDF8" Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
 
@@ -141,7 +146,7 @@
                         </StackPanel>
 
                         <!-- Main Install Button -->
-                        <Button Command="{Binding InstallCommand}" Style="{DynamicResource StormHeroButton}" Height="44">
+                        <Button Command="{Binding InstallCommand}" Style="{DynamicResource StormHeroButton}" Padding="16,10" MinHeight="44">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                 <Path Data="{StaticResource GeoOffice}" Fill="#FFFFFF" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="🚀 СКАЧАТЬ И УСТАНОВИТЬ MICROSOFT OFFICE" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" VerticalAlignment="Center"/>

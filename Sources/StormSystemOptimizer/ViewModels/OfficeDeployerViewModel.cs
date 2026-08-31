@@ -75,12 +75,16 @@ namespace StormSystemOptimizer.ViewModels
         private string _selectedKmsServer = "kms.digiboy.ir";
 
         [ObservableProperty]
+        private OfficeCdnServer? _selectedCdnServer;
+
+        [ObservableProperty]
         private string _statusLog = string.Empty;
 
         [ObservableProperty]
         private bool _isBusy;
 
         public ObservableCollection<OfficeProductEdition> Editions { get; } = new();
+        public ObservableCollection<OfficeCdnServer> CdnServers { get; } = new();
         public ObservableCollection<string> KmsServers { get; } = new();
 
         public ICommand InstallCommand { get; }
@@ -100,6 +104,12 @@ namespace StormSystemOptimizer.ViewModels
             {
                 SelectedEdition = Editions[0];
                 UpdateEditionDetails(SelectedEdition);
+            }
+
+            foreach (var cdn in OfficeDeployerService.Instance.SupportedCdnServers) CdnServers.Add(cdn);
+            if (CdnServers.Count > 0)
+            {
+                SelectedCdnServer = CdnServers[0];
             }
 
             foreach (var s in OfficeDeployerService.Instance.KmsServers) KmsServers.Add(s);
@@ -202,6 +212,7 @@ namespace StormSystemOptimizer.ViewModels
             var options = new OfficeDeployOptions
             {
                 EditionId = SelectedEdition?.Id ?? "ProPlus2024Volume",
+                CdnServer = SelectedCdnServer?.ServerHost ?? "officecdn.microsoft.com",
                 Architecture = SelectedArchitecture,
                 Language = SelectedLanguage,
                 InstallWord = InstallWord,
