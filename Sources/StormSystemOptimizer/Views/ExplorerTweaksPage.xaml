@@ -32,10 +32,10 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding RestartExplorerCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,0">
-                            <TextBlock Text="🔄 Перезапустить explorer.exe" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Перезапустить explorer.exe" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <Button Command="{Binding ApplyTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10">
-                            <TextBlock Text="⚡ Применить оптимизацию" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="Применить оптимизацию" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                     </StackPanel>
                 </Grid>

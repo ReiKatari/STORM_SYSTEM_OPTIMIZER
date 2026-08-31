@@ -59,9 +59,9 @@
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,0,0,16">
                 <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Все" Content="Все пункты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Инструменты" Content="⭐ Инструменты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Очистка" Content="🧹 Очистка меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Сторонние" Content="⚙️ Сторонние меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Инструменты" Content="Инструменты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Очистка" Content="Очистка меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Сторонние" Content="Сторонние меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" FontSize="11.5" FontWeight="Bold"/>
                 </WrapPanel>
             </Border>
 

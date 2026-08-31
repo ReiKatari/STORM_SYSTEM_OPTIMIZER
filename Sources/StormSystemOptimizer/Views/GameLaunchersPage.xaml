@@ -32,14 +32,14 @@
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <Button Command="{Binding ApplyLauncherTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" Margin="0,0,0,8">
-                            <TextBlock Text="⚡ Оптимизировать все лаунчеры" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="Оптимизировать все лаунчеры" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                         <StackPanel Orientation="Horizontal">
                             <Button Command="{Binding CleanAllLauncherCachesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,0">
-                                <TextBlock Text="🧹 Очистить весь кэш" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Очистить весь кэш" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
                             <Button Command="{Binding KillAllRunningLaunchersCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8">
-                                <TextBlock Text="🛑 Выгрузить всё" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444"/>
+                                <TextBlock Text="Выгрузить всё" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444"/>
                             </Button>
                         </StackPanel>
                     </StackPanel>
@@ -142,50 +142,35 @@
                                             <Button Command="{Binding DataContext.CleanLauncherCacheCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,0" ToolTip="Очистить временные файлы и кэш этого лаунчера">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="🧹 " FontSize="11"/>
-                                                    <TextBlock Text="Кэш" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                </StackPanel>
+                                                <TextBlock Text="Кэш" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </Button>
 
                                             <!-- Optimize Launcher -->
                                             <Button Command="{Binding DataContext.OptimizeLauncherCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,0" ToolTip="Применить твики производительности для этого лаунчера">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="⚡ " FontSize="11"/>
-                                                    <TextBlock Text="Твики" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                </StackPanel>
+                                                <TextBlock Text="Твики" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </Button>
 
                                             <!-- Open Folder -->
                                             <Button Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,0" ToolTip="Открыть папку установки и библиотеку игр">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="📁 " FontSize="11"/>
-                                                    <TextBlock Text="Папка" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                </StackPanel>
+                                                <TextBlock Text="Папка" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </Button>
 
                                             <!-- Launch App -->
                                             <Button Command="{Binding DataContext.LaunchAppCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,0" ToolTip="Запустить клиент">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="🚀 " FontSize="11"/>
-                                                    <TextBlock Text="Запуск" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                                </StackPanel>
+                                                <TextBlock Text="Запуск" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </Button>
 
                                             <!-- Kill Process (if running) -->
                                             <Button Command="{Binding DataContext.KillLauncherCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormSecondaryButton}" Padding="10,6" ToolTip="Выгрузить фоновые процессы из памяти">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="🛑 " FontSize="11"/>
-                                                    <TextBlock Text="Выгрузить" FontSize="11" FontWeight="SemiBold" Foreground="#EF4444"/>
-                                                </StackPanel>
+                                                <TextBlock Text="Выгрузить" FontSize="11" FontWeight="SemiBold" Foreground="#EF4444"/>
                                             </Button>
                                         </StackPanel>
                                     </Grid>

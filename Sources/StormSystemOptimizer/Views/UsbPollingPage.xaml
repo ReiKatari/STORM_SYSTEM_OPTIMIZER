@@ -31,7 +31,7 @@
                     </StackPanel>
 
                     <Button Grid.Column="1" Command="{Binding ApplyUsbTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" VerticalAlignment="Center">
-                        <TextBlock Text="⚡ Стабилизировать USB" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="Стабилизировать USB" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                     </Button>
                 </Grid>
             </Border>

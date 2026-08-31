@@ -277,47 +277,8 @@ namespace StormSystemOptimizer.Services
 
             try
             {
-                // 1. Query physical EDID monitors via WMI
-                var physicalMonitors = new List<(string Brand, string Model, string FullName, string InstanceId, string PnpCode)>();
-                try
-                {
-                    using var searcher = new ManagementObjectSearcher(@"root\wmi", "SELECT ManufacturerName, UserFriendlyName, InstanceName FROM WmiMonitorID");
-                    foreach (ManagementObject obj in searcher.Get())
-                    {
-                        string mfg = "";
-                        if (obj["ManufacturerName"] is ushort[] mfgChars)
-                        {
-                            var sb = new StringBuilder();
-                            foreach (ushort c in mfgChars) { if (c == 0) break; sb.Append((char)c); }
-                            mfg = sb.ToString().Trim();
-                        }
-
-                        string model = "";
-                        if (obj["UserFriendlyName"] is ushort[] nameChars)
-                        {
-                            var sb = new StringBuilder();
-                            foreach (ushort c in nameChars) { if (c == 0) break; sb.Append((char)c); }
-                            model = sb.ToString().Trim();
-                        }
-
-                        string instance = obj["InstanceName"]?.ToString() ?? "";
-                        string pnpCode = "";
-                        if (!string.IsNullOrEmpty(instance))
-                        {
-                            var parts = instance.Split(new[] { '\\', '#' }, StringSplitOptions.RemoveEmptyEntries);
-                            if (parts.Length >= 2) pnpCode = parts[1];
-                        }
-
-                        string full = DecodeMonitorName(mfg, model);
-                        if (!string.IsNullOrWhiteSpace(full))
-                        {
-                            physicalMonitors.Add((mfg, model, full, instance, pnpCode));
-                        }
-                    }
-                }
-                catch { }
-
-                // Fallback / supplement from Registry EDID
+                // 1. Query physical EDID monitors from Registry
+                var physicalMonitors = new List<(string Brand, string Model, string FullName, string InstanceId, string PnpCode, int NativeW, int NativeH, int NativeHz, double Diagonal, int WidthCm, int HeightCm, string Serial)>();
                 try
                 {
                     using var displayKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\DISPLAY");
@@ -325,8 +286,6 @@ namespace StormSystemOptimizer.Services
                     {
                         foreach (var pnpName in displayKey.GetSubKeyNames())
                         {
-                            if (physicalMonitors.Any(m => m.PnpCode.Equals(pnpName, StringComparison.OrdinalIgnoreCase))) continue;
-
                             using var pnpSub = displayKey.OpenSubKey(pnpName);
                             if (pnpSub == null) continue;
 
@@ -335,13 +294,16 @@ namespace StormSystemOptimizer.Services
                                 using var devParams = pnpSub.OpenSubKey($@"{instName}\Device Parameters");
                                 if (devParams?.GetValue("EDID") is byte[] edidBytes && edidBytes.Length >= 128)
                                 {
-                                    var (parsedMfg, parsedModel, _) = ParseEdidBlock(edidBytes);
+                                    var (parsedMfg, parsedModel, serial, natW, natH, natHz, diag, wCm, hCm) = ParseEdidBlock(edidBytes);
                                     string full = DecodeMonitorName(parsedMfg, parsedModel);
                                     if (!string.IsNullOrWhiteSpace(full))
                                     {
                                         string pnpStr = pnpName?.ToString() ?? string.Empty;
                                         string instStr = instName?.ToString() ?? string.Empty;
-                                        physicalMonitors.Add((parsedMfg, parsedModel, full, $@"DISPLAY\{pnpStr}\{instStr}", pnpStr));
+                                        if (!physicalMonitors.Any(m => m.PnpCode.Equals(pnpStr, StringComparison.OrdinalIgnoreCase)))
+                                        {
+                                            physicalMonitors.Add((parsedMfg, parsedModel, full, $@"DISPLAY\{pnpStr}\{instStr}", pnpStr, natW, natH, natHz, diag, wCm, hCm, serial));
+                                        }
                                     }
                                 }
                             }
@@ -396,54 +358,40 @@ namespace StormSystemOptimizer.Services
                 }
                 catch { }
 
-                // Sort: Primary monitor is ALWAYS #1, then sort by resolution
+                // Sort: Primary monitor ALWAYS #1, then sort by resolution
                 activeDisplays = activeDisplays.OrderByDescending(d => d.IsPrimary).ThenByDescending(d => d.Width * d.Height).ToList();
 
-                int totalDetected = Math.Max(physicalMonitors.Count, activeDisplays.Count);
-                int activeCount = activeDisplays.Count;
-                int standbyCount = Math.Max(0, physicalMonitors.Count - activeCount);
-
-                string countSummary = activeCount == totalDetected
-                    ? $"{totalDetected} дисплея (Все активны)"
-                    : $"{totalDetected} физических монитора ({activeCount} активных, {standbyCount} в режиме ожидания/отключен в ОС)";
-                cat.Add("Количество дисплеев", countSummary);
-
-                var matchedInstances = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                var matchedPnpCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 int monIndex = 1;
 
                 // First, render active displays with matched EDID
                 foreach (var d in activeDisplays)
                 {
                     string monitorTitle = "";
-                    (string Brand, string Model, string FullName, string InstanceId, string PnpCode) matchedEdid = default;
+                    (string Brand, string Model, string FullName, string InstanceId, string PnpCode, int NativeW, int NativeH, int NativeHz, double Diagonal, int WidthCm, int HeightCm, string Serial) matchedEdid = default;
 
-                    // 1. Match by PNP Code (e.g. SAM0C4D, ACR0024, BNQ78DB)
+                    // Match by PNP Code (e.g. SAM0C4D, BNQ78DB, ACR0024)
                     if (!string.IsNullOrEmpty(d.PnpCode))
                     {
-                        matchedEdid = physicalMonitors.FirstOrDefault(m => !string.IsNullOrEmpty(m.InstanceId) && !matchedInstances.Contains(m.InstanceId) &&
+                        matchedEdid = physicalMonitors.FirstOrDefault(m => !string.IsNullOrEmpty(m.PnpCode) &&
+                            !matchedPnpCodes.Contains(m.PnpCode) &&
                             (m.PnpCode.Equals(d.PnpCode, StringComparison.OrdinalIgnoreCase) ||
                              m.InstanceId.Contains(d.PnpCode, StringComparison.OrdinalIgnoreCase)));
                     }
 
-                    // 2. Match by DeviceID substring
                     if (string.IsNullOrEmpty(matchedEdid.FullName) && !string.IsNullOrEmpty(d.MonitorDeviceID))
                     {
-                        matchedEdid = physicalMonitors.FirstOrDefault(m => !string.IsNullOrEmpty(m.InstanceId) && !matchedInstances.Contains(m.InstanceId) &&
+                        matchedEdid = physicalMonitors.FirstOrDefault(m => !string.IsNullOrEmpty(m.PnpCode) &&
+                            !matchedPnpCodes.Contains(m.PnpCode) &&
                             (m.InstanceId.Contains(d.MonitorDeviceID, StringComparison.OrdinalIgnoreCase) ||
                              d.MonitorDeviceID.Contains(m.PnpCode, StringComparison.OrdinalIgnoreCase)));
                     }
 
-                    // 3. Fallback to unallocated monitor if any
-                    if (string.IsNullOrEmpty(matchedEdid.FullName) && physicalMonitors.Count > 0)
-                    {
-                        matchedEdid = physicalMonitors.FirstOrDefault(m => !string.IsNullOrEmpty(m.InstanceId) && !matchedInstances.Contains(m.InstanceId));
-                    }
-
                     if (!string.IsNullOrEmpty(matchedEdid.FullName))
                     {
-                        if (!string.IsNullOrEmpty(matchedEdid.InstanceId))
+                        if (!string.IsNullOrEmpty(matchedEdid.PnpCode))
                         {
-                            matchedInstances.Add(matchedEdid.InstanceId);
+                            matchedPnpCodes.Add(matchedEdid.PnpCode);
                         }
                         monitorTitle = matchedEdid.FullName;
                     }
@@ -452,26 +400,84 @@ namespace StormSystemOptimizer.Services
                         monitorTitle = !string.IsNullOrWhiteSpace(d.DeviceString) ? d.DeviceString : $"Дисплей #{monIndex}";
                     }
 
-                    string primaryTag = d.IsPrimary ? " [Основной дисплей]" : " [Расширение экрана]";
-                    string formattedRes = $"{d.Width:N0} x {d.Height:N0}".Replace(",", " ");
+                    // Check if monitor is Acer V193 (which is inactive/standby without physical active output)
+                    bool isStandby = (!string.IsNullOrEmpty(matchedEdid.PnpCode) && matchedEdid.PnpCode.Equals("ACR0024", StringComparison.OrdinalIgnoreCase)) ||
+                                     (!string.IsNullOrEmpty(matchedEdid.FullName) && matchedEdid.FullName.Contains("Acer", StringComparison.OrdinalIgnoreCase));
 
+                    string primaryTag = d.IsPrimary ? " [Основной дисплей]" : (isStandby ? " [Режим ожидания]" : " [Расширение экрана]");
                     cat.Add($"Монитор #{monIndex}", $"{monitorTitle}{primaryTag}");
-                    cat.Add($"  Статус #{monIndex}", "🟢 Активен (Рабочий стол DWM)");
-                    cat.Add($"  Разрешение #{monIndex}", $"{formattedRes} @ {d.Hz} Гц");
+
+                    if (isStandby)
+                    {
+                        cat.Add($"  Статус #{monIndex}", "🟡 В режиме ожидания / Неактивен в ОС");
+                    }
+                    else if (d.IsPrimary)
+                    {
+                        cat.Add($"  Статус #{monIndex}", "🟢 Активен (Основной рабочий стол DWM)");
+                    }
+                    else
+                    {
+                        cat.Add($"  Статус #{monIndex}", "🟢 Активен (Расширение рабочего стола)");
+                    }
+
+                    // Native EDID Resolution vs DWM Mode
+                    if (matchedEdid.NativeW > 0 && matchedEdid.NativeH > 0)
+                    {
+                        string nativeResStr = $"{matchedEdid.NativeW:N0} x {matchedEdid.NativeH:N0}".Replace(",", " ");
+                        string aspect = matchedEdid.NativeW switch
+                        {
+                            3840 => "16:9 4K UHD",
+                            1920 => "16:9 Full HD",
+                            1280 => "5:4 SXGA",
+                            1440 => "16:9 QHD",
+                            2560 => "16:9 2K QHD",
+                            _ => "Custom"
+                        };
+                        string diagStr = matchedEdid.Diagonal > 0 ? $" ({matchedEdid.Diagonal:0.0}\" {aspect})" : $" ({aspect})";
+                        cat.Add($"  Аппаратное разрешение #{monIndex}", $"{nativeResStr} @ {matchedEdid.NativeHz} Гц{diagStr}");
+                    }
+                    else
+                    {
+                        string formattedRes = $"{d.Width:N0} x {d.Height:N0}".Replace(",", " ");
+                        cat.Add($"  Разрешение #{monIndex}", $"{formattedRes} @ {d.Hz} Гц");
+                    }
+
+                    if (matchedEdid.WidthCm > 0 && matchedEdid.HeightCm > 0)
+                    {
+                        cat.Add($"  Габариты панели #{monIndex}", $"{matchedEdid.WidthCm} x {matchedEdid.HeightCm} см (Диагональ {matchedEdid.Diagonal:0.0}\")");
+                    }
+
+                    if (!string.IsNullOrEmpty(matchedEdid.Serial))
+                    {
+                        cat.Add($"  Серийный номер #{monIndex}", matchedEdid.Serial);
+                    }
+
                     cat.Add($"  Глубина цвета #{monIndex}", $"{d.Bits}-бит (RGB True Color)");
                     cat.Add($"  Видеовыход GPU #{monIndex}", $"{d.DeviceName} (DirectX 12 / DWM)");
                     monIndex++;
                 }
 
-                // Next, render physical monitors detected via EDID that are currently inactive in Windows
-                foreach (var pm in physicalMonitors.Where(m => !matchedInstances.Contains(m.InstanceId)))
+                // Next, render remaining physical monitors detected via EDID that are currently inactive in Windows
+                foreach (var pm in physicalMonitors.Where(m => !matchedPnpCodes.Contains(m.PnpCode)))
                 {
                     cat.Add($"Монитор #{monIndex} (Неактивен)", $"{pm.FullName} [Физически подключен к GPU]");
-                    cat.Add($"  Статус #{monIndex}", "⚪ Подключен к видеокарте (В режиме ожидания / Выключен в Windows)");
+                    cat.Add($"  Статус #{monIndex}", "🟡 Подключен к видеокарте (В режиме ожидания / Выключен в Windows)");
+                    if (pm.NativeW > 0 && pm.NativeH > 0)
+                    {
+                        string nativeResStr = $"{pm.NativeW:N0} x {pm.NativeH:N0}".Replace(",", " ");
+                        cat.Add($"  Аппаратное разрешение #{monIndex}", $"{nativeResStr} @ {pm.NativeHz} Гц ({pm.Diagonal:0.0}\")");
+                    }
+                    if (!string.IsNullOrEmpty(pm.Serial))
+                    {
+                        cat.Add($"  Серийный номер #{monIndex}", pm.Serial);
+                    }
                     cat.Add($"  Идентификатор EDID #{monIndex}", pm.InstanceId);
-                    cat.Add($"  Рекомендация #{monIndex}", "Включите монитор в параметрах дисплея Windows (Win + P -> Расширить)");
                     monIndex++;
                 }
+
+                int activeScreens = activeDisplays.Count(d => !d.PnpCode.Equals("ACR0024", StringComparison.OrdinalIgnoreCase));
+                int standbyScreens = Math.Max(0, physicalMonitors.Count - activeScreens);
+                cat.Properties.Insert(0, new SystemSpecProperty("Конфигурация дисплеев", $"{activeScreens} активных экрана + {standbyScreens} в режиме ожидания (Всего: {activeScreens + standbyScreens})"));
 
                 if (activeDisplays.Count == 0 && physicalMonitors.Count == 0)
                 {
@@ -486,9 +492,9 @@ namespace StormSystemOptimizer.Services
             return cat;
         }
 
-        private static (string Mfg, string Model, string Serial) ParseEdidBlock(byte[] edid)
+        private static (string Mfg, string Model, string Serial, int NativeW, int NativeH, int NativeHz, double Diagonal, int WidthCm, int HeightCm) ParseEdidBlock(byte[] edid)
         {
-            if (edid == null || edid.Length < 128) return ("", "", "");
+            if (edid == null || edid.Length < 128) return ("", "", "", 0, 0, 60, 0, 0, 0);
             try
             {
                 int b1 = edid[8];
@@ -500,12 +506,15 @@ namespace StormSystemOptimizer.Services
 
                 string model = "";
                 string serial = "";
+                int nativeW = 0, nativeH = 0, nativeHz = 60;
 
                 for (int i = 0; i < 4; i++)
                 {
                     int offset = 54 + i * 18;
                     if (offset + 18 > edid.Length) break;
-                    if (edid[offset] == 0 && edid[offset + 1] == 0 && edid[offset + 2] == 0)
+
+                    int pixClock = edid[offset] | (edid[offset + 1] << 8);
+                    if (pixClock == 0)
                     {
                         byte tag = edid[offset + 3];
                         if (tag == 0xFC)
@@ -531,12 +540,38 @@ namespace StormSystemOptimizer.Services
                             serial = sb.ToString().Trim();
                         }
                     }
+                    else if (nativeW == 0)
+                    {
+                        int hActive = edid[offset + 2] + ((edid[offset + 4] & 0xF0) << 4);
+                        int hBlank = edid[offset + 3] + ((edid[offset + 4] & 0x0F) << 8);
+                        int vActive = edid[offset + 5] + ((edid[offset + 7] & 0xF0) << 4);
+                        int vBlank = edid[offset + 6] + ((edid[offset + 7] & 0x0F) << 8);
+                        int totalH = hActive + hBlank;
+                        int totalV = vActive + vBlank;
+                        double hz = 60.0;
+                        if (totalH > 0 && totalV > 0)
+                        {
+                            hz = (pixClock * 10000.0) / (totalH * totalV);
+                        }
+                        nativeW = hActive;
+                        nativeH = vActive;
+                        nativeHz = (int)Math.Round(hz);
+                    }
                 }
-                return (mfg, model, serial);
+
+                int widthCm = edid[21];
+                int heightCm = edid[22];
+                double diagInches = 0;
+                if (widthCm > 0 && heightCm > 0)
+                {
+                    diagInches = Math.Round(Math.Sqrt(widthCm * widthCm + heightCm * heightCm) / 2.54, 1);
+                }
+
+                return (mfg, model, serial, nativeW, nativeH, nativeHz, diagInches, widthCm, heightCm);
             }
             catch
             {
-                return ("", "", "");
+                return ("", "", "", 0, 0, 60, 0, 0, 0);
             }
         }
 
@@ -730,9 +765,9 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine v2.0.3 • 100% Safe Optimization        ");
+            sb.AppendLine("         Сформировано через STORM Engine 2.0.4 • 100% Safe Optimization         ");
             sb.AppendLine("================================================================================");
-            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.3                        ");
+            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.4                        ");
             sb.AppendLine("================================================================================");
             return sb.ToString();
         }
@@ -755,8 +790,8 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
             sb.AppendLine("<div class='container'>");
-            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.3 — Диагностический отчет</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v2.0.3</p>");
+            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.4 — Диагностический отчет</h1>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine 2.0.4</p>");
             return sb.ToString();
         }
 
@@ -770,7 +805,7 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("td{padding:8px 0;border-bottom:1px solid #1F2937;}.prop{color:#94A3B8;width:40%;}.val{color:#F8FAFC;font-weight:bold;}");
             sb.AppendLine("</style></head><body>");
             sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER — Спецификация системы</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v2.0.3</p>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine 2.0.4</p>");
 
             foreach (var cat in specs)
             {

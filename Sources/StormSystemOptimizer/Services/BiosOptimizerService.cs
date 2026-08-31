@@ -487,6 +487,66 @@ namespace StormSystemOptimizer.Services
                     MenuPathAsrock = "Advanced ➔ CPU Configuration ➔ SVM Mode / Intel Virtualization [Enabled]"
                 });
 
+                // -------------------------------------------------------------
+                // 13. Memory Timings tRFC & Command Rate 1T
+                // -------------------------------------------------------------
+                list.Add(new BiosSettingItem
+                {
+                    Id = "bios_ram_trfc_tuning",
+                    Title = "Тайминги памяти tRFC и Command Rate (Снижение латентности ОЗУ)",
+                    Category = "Память (RAM)",
+                    RecommendedValue = "Command Rate [1T] / tRFC [Auto / Optimized 350-480]",
+                    CurrentStatus = $"Установлено {b.RamModulesCount} модуля ОЗУ ({b.RamConfiguredClockSpeed} МГц)",
+                    PerformanceImpact = "Снижение задержки памяти на 4–8 нс и рост 1% Low FPS на 8–12%",
+                    SafetyLevel = "Рекомендуется для игровых сборок с качественным охлаждением",
+                    Explanation = "Параметр tRFC (Refresh Cycle Time) определяет время перезарядки ячеек памяти. В профилях XMP он часто завышен для совместимости. Оптимизация tRFC и фиксация Command Rate 1T кардинально увеличивают пропускную способность шины памяти.",
+                    MenuPathAsus = "Ai Tweaker ➔ DRAM Timing Control ➔ Command Rate [1T] ➔ DRAM REF Cycle Time (tRFC) [Optimized]",
+                    MenuPathMsi = "OC ➔ Advanced DRAM Configuration ➔ Command Rate [1T] ➔ tRFC [Optimized]",
+                    MenuPathGigabyte = "Tweaker ➔ Advanced Memory Settings ➔ Memory Sub Timings ➔ tRFC",
+                    MenuPathAsrock = "OC Tweaker ➔ DRAM Timing Configuration ➔ Command Rate [1T] ➔ tRFC"
+                });
+
+                // -------------------------------------------------------------
+                // 14. ACPI HPET Timer Sync
+                // -------------------------------------------------------------
+                list.Add(new BiosSettingItem
+                {
+                    Id = "bios_hpet_sync",
+                    Title = "Синхронизация высокоточного таймера ACPI HPET",
+                    Category = "Процессор (CPU)",
+                    RecommendedValue = "High Precision Timer (HPET) [Enabled / Auto]",
+                    CurrentStatus = "Аппаратная синхронизация ядра NT с таймером TSC/HPET",
+                    PerformanceImpact = "Устранение рассинхронизации кадров и гладкий фреймтайм",
+                    SafetyLevel = "100% Безопасно (Стандарт ACPI)",
+                    Explanation = "Обеспечивает точную трансляцию аппаратных тиков таймера из чипсета материнской платы в высокоточный таймер Windows (0.500 мс), исключая разрывы кадров.",
+                    MenuPathAsus = "Advanced ➔ PCH Configuration ➔ High Precision Timer [Enabled]",
+                    MenuPathMsi = "Settings ➔ Advanced ➔ Integrated Peripherals ➔ HPET [Enabled]",
+                    MenuPathGigabyte = "Settings ➔ IO Ports ➔ High Precision Event Timer [Enabled]",
+                    MenuPathAsrock = "Advanced ➔ Chipset Configuration ➔ High Precision Timer [Enabled]"
+                });
+
+                // -------------------------------------------------------------
+                // 15. Turbo Boost Max 3.0 / AMD Precision Boost Overdrive 2 (PBO)
+                // -------------------------------------------------------------
+                string boostTech = isIntel ? "Intel Turbo Boost Max 3.0" : "AMD Precision Boost Overdrive 2 (PBO)";
+                list.Add(new BiosSettingItem
+                {
+                    Id = "bios_turbo_boost_pbo",
+                    Title = $"Автоматический буст частот ({boostTech})",
+                    Category = "Процессор (CPU)",
+                    RecommendedValue = isIntel ? "Intel Turbo Boost Max 3.0 [Enabled]" : "Precision Boost Overdrive [Advanced / Curve Optimizer -15...-25]",
+                    CurrentStatus = "Максимальный автоматический разгон лучших ядер CPU",
+                    PerformanceImpact = "+100–200 МГц на пиковых ядрах при более низком напряжении",
+                    SafetyLevel = "Заводской интеллектуальный алгоритм производителя CPU",
+                    Explanation = isIntel 
+                        ? "Направляет самые требовательные однопоточные задачи на два лучших физических ядра процессора с наивысшим качеством кремния для максимальной тактовой частоты."
+                        : "Curve Optimizer снижает подаваемое на ядра напряжение по кривой V/F, позволяя процессору Ryzen дольше удерживать максимальный буст при низких температурах.",
+                    MenuPathAsus = isIntel ? "Ai Tweaker ➔ Intel Turbo Boost Max Technology 3.0 [Enabled]" : "Ai Tweaker ➔ Precision Boost Overdrive [Enabled]",
+                    MenuPathMsi = isIntel ? "OC ➔ CPU Features ➔ Intel Turbo Boost Max 3.0 [Enabled]" : "OC ➔ Advanced CPU Configuration ➔ AMD Overclocking ➔ Precision Boost Overdrive",
+                    MenuPathGigabyte = isIntel ? "Tweaker ➔ Advanced CPU Settings ➔ Turbo Boost [Enabled]" : "Tweaker ➔ Precision Boost Overdrive (PBO)",
+                    MenuPathAsrock = isIntel ? "OC Tweaker ➔ CPU Configuration ➔ Intel Turbo Boost Max 3.0 [Enabled]" : "OC Tweaker ➔ AMD Overclocking ➔ Precision Boost Overdrive"
+                });
+
                 // Resolve matching paths
                 foreach (var item in list)
                 {

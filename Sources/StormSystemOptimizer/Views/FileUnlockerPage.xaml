@@ -84,31 +84,31 @@
                         </Border>
 
                         <Button Grid.Column="1" Command="{Binding BrowseFileCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,0">
-                            <TextBlock Text="📄 Выбрать файл" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Выбрать файл" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
 
                         <Button Grid.Column="2" Command="{Binding BrowseFolderCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,0">
-                            <TextBlock Text="📁 Выбрать папку" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Выбрать папку" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
 
                         <Button Grid.Column="3" Command="{Binding AnalyzeTargetCommand}" Style="{StaticResource StormHeroButton}" Padding="16,8">
-                            <TextBlock Text="🔍 Анализировать" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="Анализировать" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                     </Grid>
 
                     <!-- Action Bar -->
                     <WrapPanel Orientation="Horizontal" Margin="0,4,0,0">
                         <Button Command="{Binding UnlockCommand}" Style="{StaticResource StormHeroButton}" Padding="16,8" Margin="0,0,10,8">
-                            <TextBlock Text="⚡ Разблокировать" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="Разблокировать" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                         <Button Command="{Binding UnlockAndDeleteCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,8" Margin="0,0,10,8">
-                            <TextBlock Text="🗑️ Разблокировать и удалить" FontSize="12" FontWeight="Bold" Foreground="#EF4444"/>
+                            <TextBlock Text="Разблокировать и удалить" FontSize="12" FontWeight="Bold" Foreground="#EF4444"/>
                         </Button>
                         <Button Command="{Binding UnlockAndRenameCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,8" Margin="0,0,10,8">
-                            <TextBlock Text="✏️ Разблокировать и переименовать" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Разблокировать и переименовать" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <Button Command="{Binding UnlockAndMoveCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,8" Margin="0,0,10,8">
-                            <TextBlock Text="📦 Разблокировать и переместить" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Разблокировать и переместить" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                     </WrapPanel>
                 </StackPanel>

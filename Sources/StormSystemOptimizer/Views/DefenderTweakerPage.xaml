@@ -31,7 +31,7 @@
                     </StackPanel>
 
                     <Button Grid.Column="1" Command="{Binding ApplyDefenderSettingsCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" VerticalAlignment="Center">
-                        <TextBlock Text="⚡ Сохранить параметры Защитника" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="Сохранить параметры Защитника" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                     </Button>
                 </Grid>
             </Border>
@@ -54,11 +54,11 @@
                         </Border>
 
                         <Button Grid.Column="1" Command="{Binding AddExclusionCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,10,0">
-                            <TextBlock Text="➕ Добавить папку" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Добавить папку" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
 
                         <Button Grid.Column="2" Command="{Binding AddAllDrivesCommand}" Style="{StaticResource StormHeroButton}" Padding="14,8">
-                            <TextBlock Text="⚡ Исключить все диски" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="Исключить все диски" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                     </Grid>
 
