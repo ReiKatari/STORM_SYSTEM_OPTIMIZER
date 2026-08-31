@@ -23,6 +23,8 @@
             <conv:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
             <conv:NonNullToVisibilityConverter x:Key="NonNullToVisibilityConverter"/>
             <conv:BoolToContextMenuTextConverter x:Key="BoolToContextMenuTextConverter"/>
+            <conv:BoolToMsiButtonTextConverter x:Key="BoolToMsiButtonTextConverter"/>
+            <conv:BoolToMsiBrushConverter x:Key="BoolToMsiBrushConverter"/>
 
             <!-- Global TextBox Style with Vivid Caret & Selection -->
             <Style TargetType="TextBox">
@@ -84,7 +86,7 @@
                 </Setter>
             </Style>
 
-            <!-- Global Default Button Style with Smooth Click & Hover Animations -->
+            <!-- Global Default Button Style with 3D Volumetric Elevation & Tactile Press -->
             <Style TargetType="Button">
                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                 <Setter Property="Cursor" Value="Hand"/>
@@ -105,19 +107,43 @@
                                     CornerRadius="8"
                                     Padding="{TemplateBinding Padding}"
                                     RenderTransformOrigin="0.5,0.5">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#000000" BlurRadius="8" ShadowDepth="2" Direction="270" Opacity="0.35"/>
+                                </Border.Effect>
+                                <Grid>
+                                    <Border VerticalAlignment="Top" Height="1" CornerRadius="1" Background="#25FFFFFF" Margin="2,0,2,0"/>
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="RootBorder" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
                                     <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource CardHoverBrush}"/>
+                                    <Setter TargetName="RootBorder" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <TranslateTransform Y="-1"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="RootBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#000000" BlurRadius="12" ShadowDepth="3.5" Direction="270" Opacity="0.5"/>
+                                        </Setter.Value>
+                                    </Setter>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
                                     <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource AccentGlowBrush}"/>
                                     <Setter TargetName="RootBorder" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
                                     <Setter TargetName="RootBorder" Property="RenderTransform">
                                         <Setter.Value>
-                                            <ScaleTransform ScaleX="0.96" ScaleY="0.96"/>
+                                            <TransformGroup>
+                                                <TranslateTransform Y="1.5"/>
+                                                <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                            </TransformGroup>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="RootBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#000000" BlurRadius="3" ShadowDepth="1" Direction="270" Opacity="0.2"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
@@ -130,7 +156,7 @@
                 </Setter>
             </Style>
 
-            <!-- StormHeroButton Style -->
+            <!-- StormHeroButton Style (Volumetric 3D Neon Glass with Tactile Press Animation) -->
             <Style x:Key="StormHeroButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                 <Setter Property="Background" Value="{DynamicResource StormHeroGradient}"/>
                 <Setter Property="Foreground" Value="#FFFFFF"/>
@@ -142,20 +168,46 @@
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="HeroBorder"
                                     Background="{TemplateBinding Background}"
+                                    BorderBrush="#55FFFFFF"
+                                    BorderThickness="1"
                                     CornerRadius="8"
                                     Padding="{TemplateBinding Padding}"
                                     RenderTransformOrigin="0.5,0.5">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#00D2FF" BlurRadius="12" ShadowDepth="3" Direction="270" Opacity="0.4"/>
+                                </Border.Effect>
+                                <Grid>
+                                    <Border VerticalAlignment="Top" Height="1" CornerRadius="1" Background="#70FFFFFF" Margin="2,0,2,0"/>
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="HeroBorder" Property="Opacity" Value="0.92"/>
-                                </Trigger>
-                                <Trigger Property="IsPressed" Value="True">
-                                    <Setter TargetName="HeroBorder" Property="Opacity" Value="0.80"/>
+                                    <Setter TargetName="HeroBorder" Property="BorderBrush" Value="#90FFFFFF"/>
                                     <Setter TargetName="HeroBorder" Property="RenderTransform">
                                         <Setter.Value>
-                                            <ScaleTransform ScaleX="0.95" ScaleY="0.95"/>
+                                            <TranslateTransform Y="-1.5"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="HeroBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#00D2FF" BlurRadius="18" ShadowDepth="4.5" Direction="270" Opacity="0.65"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="HeroBorder" Property="Opacity" Value="0.9"/>
+                                    <Setter TargetName="HeroBorder" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <TransformGroup>
+                                                <TranslateTransform Y="2"/>
+                                                <ScaleTransform ScaleX="0.97" ScaleY="0.97"/>
+                                            </TransformGroup>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="HeroBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#00D2FF" BlurRadius="4" ShadowDepth="1" Direction="270" Opacity="0.2"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
@@ -168,7 +220,7 @@
                 </Setter>
             </Style>
 
-            <!-- StormPrimaryButton Style -->
+            <!-- StormPrimaryButton Style (Volumetric 3D Accent with Glow & Physical Click) -->
             <Style x:Key="StormPrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                 <Setter Property="Background" Value="{DynamicResource AccentPrimaryBrush}"/>
                 <Setter Property="Foreground" Value="#FFFFFF"/>
@@ -180,21 +232,47 @@
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="PriBorder"
                                     Background="{TemplateBinding Background}"
+                                    BorderBrush="#55FFFFFF"
+                                    BorderThickness="1"
                                     CornerRadius="6"
                                     Padding="{TemplateBinding Padding}"
                                     RenderTransformOrigin="0.5,0.5">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#00D2FF" BlurRadius="10" ShadowDepth="2.5" Direction="270" Opacity="0.38"/>
+                                </Border.Effect>
+                                <Grid>
+                                    <Border VerticalAlignment="Top" Height="1" CornerRadius="1" Background="#60FFFFFF" Margin="2,0,2,0"/>
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="PriBorder" Property="Background" Value="{DynamicResource AccentHoverBrush}"/>
-                                    <Setter TargetName="PriBorder" Property="Opacity" Value="0.92"/>
+                                    <Setter TargetName="PriBorder" Property="BorderBrush" Value="#80FFFFFF"/>
+                                    <Setter TargetName="PriBorder" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <TranslateTransform Y="-1.5"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="PriBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#00D2FF" BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.6"/>
+                                        </Setter.Value>
+                                    </Setter>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
                                     <Setter TargetName="PriBorder" Property="Background" Value="{DynamicResource AccentPressedBrush}"/>
                                     <Setter TargetName="PriBorder" Property="RenderTransform">
                                         <Setter.Value>
-                                            <ScaleTransform ScaleX="0.96" ScaleY="0.96"/>
+                                            <TransformGroup>
+                                                <TranslateTransform Y="2"/>
+                                                <ScaleTransform ScaleX="0.97" ScaleY="0.97"/>
+                                            </TransformGroup>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="PriBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#00D2FF" BlurRadius="3" ShadowDepth="1" Direction="270" Opacity="0.2"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
@@ -207,9 +285,9 @@
                 </Setter>
             </Style>
 
-            <!-- StormSecondaryButton Style -->
+            <!-- StormSecondaryButton Style (Volumetric Dark Glass with 3D Bevel) -->
             <Style x:Key="StormSecondaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                <Setter Property="Background" Value="{DynamicResource AppBackgroundBrush}"/>
+                <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
                 <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
                 <Setter Property="BorderThickness" Value="1"/>
@@ -224,19 +302,43 @@
                                     CornerRadius="6"
                                     Padding="{TemplateBinding Padding}"
                                     RenderTransformOrigin="0.5,0.5">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#000000" BlurRadius="8" ShadowDepth="2" Direction="270" Opacity="0.32"/>
+                                </Border.Effect>
+                                <Grid>
+                                    <Border VerticalAlignment="Top" Height="1" CornerRadius="1" Background="#20FFFFFF" Margin="2,0,2,0"/>
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter TargetName="SecBorder" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
                                     <Setter TargetName="SecBorder" Property="Background" Value="{DynamicResource CardHoverBrush}"/>
+                                    <Setter TargetName="SecBorder" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <TranslateTransform Y="-1"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="SecBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#000000" BlurRadius="12" ShadowDepth="3.5" Direction="270" Opacity="0.45"/>
+                                        </Setter.Value>
+                                    </Setter>
                                 </Trigger>
                                 <Trigger Property="IsPressed" Value="True">
                                     <Setter TargetName="SecBorder" Property="Background" Value="{DynamicResource AccentGlowBrush}"/>
                                     <Setter TargetName="SecBorder" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
                                     <Setter TargetName="SecBorder" Property="RenderTransform">
                                         <Setter.Value>
-                                            <ScaleTransform ScaleX="0.96" ScaleY="0.96"/>
+                                            <TransformGroup>
+                                                <TranslateTransform Y="1.5"/>
+                                                <ScaleTransform ScaleX="0.97" ScaleY="0.97"/>
+                                            </TransformGroup>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="SecBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#000000" BlurRadius="3" ShadowDepth="1" Direction="270" Opacity="0.2"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
@@ -249,7 +351,7 @@
                 </Setter>
             </Style>
 
-            <!-- StormDangerButton Style -->
+            <!-- StormDangerButton Style (Volumetric 3D Crimson with Red Glow) -->
             <Style x:Key="StormDangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                 <Setter Property="Background" Value="#EF4444"/>
                 <Setter Property="Foreground" Value="#FFFFFF"/>
@@ -261,20 +363,47 @@
                         <ControlTemplate TargetType="Button">
                             <Border x:Name="DangerBorder"
                                     Background="{TemplateBinding Background}"
+                                    BorderBrush="#55FFFFFF"
+                                    BorderThickness="1"
                                     CornerRadius="6"
                                     Padding="{TemplateBinding Padding}"
                                     RenderTransformOrigin="0.5,0.5">
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#EF4444" BlurRadius="10" ShadowDepth="2.5" Direction="270" Opacity="0.4"/>
+                                </Border.Effect>
+                                <Grid>
+                                    <Border VerticalAlignment="Top" Height="1" CornerRadius="1" Background="#60FFFFFF" Margin="2,0,2,0"/>
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="DangerBorder" Property="Opacity" Value="0.90"/>
-                                </Trigger>
-                                <Trigger Property="IsPressed" Value="True">
-                                    <Setter TargetName="DangerBorder" Property="Opacity" Value="0.75"/>
+                                    <Setter TargetName="DangerBorder" Property="Opacity" Value="0.92"/>
+                                    <Setter TargetName="DangerBorder" Property="BorderBrush" Value="#80FFFFFF"/>
                                     <Setter TargetName="DangerBorder" Property="RenderTransform">
                                         <Setter.Value>
-                                            <ScaleTransform ScaleX="0.96" ScaleY="0.96"/>
+                                            <TranslateTransform Y="-1.5"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="DangerBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#EF4444" BlurRadius="16" ShadowDepth="4" Direction="270" Opacity="0.6"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter TargetName="DangerBorder" Property="Opacity" Value="0.8"/>
+                                    <Setter TargetName="DangerBorder" Property="RenderTransform">
+                                        <Setter.Value>
+                                            <TransformGroup>
+                                                <TranslateTransform Y="2"/>
+                                                <ScaleTransform ScaleX="0.97" ScaleY="0.97"/>
+                                            </TransformGroup>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="DangerBorder" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect Color="#EF4444" BlurRadius="3" ShadowDepth="1" Direction="270" Opacity="0.2"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>

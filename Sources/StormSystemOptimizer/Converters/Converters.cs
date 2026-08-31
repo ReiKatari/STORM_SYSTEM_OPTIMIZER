@@ -104,4 +104,26 @@ namespace StormSystemOptimizer.Converters
 
         public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
     }
+
+    public class BoolToMsiButtonTextConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value is bool b && b) return "⚡ MSI Активен";
+            return "➕ Включить MSI";
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
+
+    public class BoolToMsiBrushConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value is bool b && b) return new SolidColorBrush(Color.FromRgb(16, 185, 129)); // Emerald
+            return new SolidColorBrush(Color.FromRgb(56, 189, 248)); // Sky/Cyan
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
+    }
 }
