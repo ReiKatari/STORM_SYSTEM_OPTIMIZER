@@ -32,10 +32,10 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding FlushMemoryCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,0">
-                            <TextBlock Text="🧹 Сбросить Standby List" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Сбросить Standby List" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <Button Command="{Binding ApplyMemoryTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10">
-                            <TextBlock Text="⚡ Применить тюнинг ОЗУ" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="Применить тюнинг ОЗУ" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -69,16 +69,16 @@
                     <TextBlock Text="Быстрые готовые конфигурации в один клик:" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
                     <WrapPanel Orientation="Horizontal" Margin="0,0,0,16">
                         <Button Command="{Binding SetPresetCommand}" CommandParameter="gaming" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,8,6">
-                            <TextBlock Text="⚡ Игровой (4 096 — 8 192 МБ)" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Игровой (4 096 — 8 192 МБ)" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <Button Command="{Binding SetPresetCommand}" CommandParameter="fixed8gb" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,8,6">
-                            <TextBlock Text="🚀 Киберспорт 8 ГБ (8 192 МБ фикс.)" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Киберспорт 8 ГБ (8 192 МБ фикс.)" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <Button Command="{Binding SetPresetCommand}" CommandParameter="auto" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,8,6">
-                            <TextBlock Text="🔄 Авто-выбор Windows" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Авто-выбор Windows" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <Button Command="{Binding SetPresetCommand}" CommandParameter="disable" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,8,6">
-                            <TextBlock Text="🚫 Отключить pagefile" FontSize="11.5" FontWeight="SemiBold" Foreground="#EF4444"/>
+                            <TextBlock Text="Отключить pagefile" FontSize="11.5" FontWeight="SemiBold" Foreground="#EF4444"/>
                         </Button>
                     </WrapPanel>
 

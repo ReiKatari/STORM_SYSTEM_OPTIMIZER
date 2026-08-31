@@ -140,6 +140,14 @@ namespace StormSystemOptimizer.ViewModels
             });
             Steps.Add(new MaintenanceStepItem
             {
+                Title = "Дефрагментация и сжатие баз данных SQLite",
+                Description = "Вакуумирование (VACUUM & REINDEX) профилей браузеров, Telegram и мессенджеров",
+                GeometryKey = "GeoDashboard",
+                IconBrushKey = "IconGradPurple",
+                CategoryName = "Базы данных"
+            });
+            Steps.Add(new MaintenanceStepItem
+            {
                 Title = "Глубокая оптимизация оперативной памяти (RAM)",
                 Description = "Полная выгрузка Standby List и сжатие неиспользуемых рабочих наборов",
                 GeometryKey = "GeoRam",
@@ -148,7 +156,15 @@ namespace StormSystemOptimizer.ViewModels
             });
             Steps.Add(new MaintenanceStepItem
             {
-                Title = "Ядро и высокоточный таймер 0.500 мс",
+                Title = "Питание CPU, Core Unparking и Speed Shift (EPP = 0)",
+                Description = "Отключение парковки ядер, переход на максимальную производительность CPU",
+                GeometryKey = "GeoPower",
+                IconBrushKey = "IconGradAmber",
+                CategoryName = "Питание"
+            });
+            Steps.Add(new MaintenanceStepItem
+            {
+                Title = "Ядро NT и высокоточный таймер 0.500 мс",
                 Description = "Перевод системного таймера ядра на 0.500 мс и приоритет мультимедиа MMCSS",
                 GeometryKey = "GeoLightning",
                 IconBrushKey = "IconGradCyan",
@@ -164,6 +180,14 @@ namespace StormSystemOptimizer.ViewModels
             });
             Steps.Add(new MaintenanceStepItem
             {
+                Title = "Стабилизация шины USB и опрос периферии",
+                Description = "Отключение USB Selective Suspend и блокировка засыпания контроллеров",
+                GeometryKey = "GeoUsb",
+                IconBrushKey = "IconGradRose",
+                CategoryName = "USB"
+            });
+            Steps.Add(new MaintenanceStepItem
+            {
                 Title = "Низколатентный звук и приоритет MMCSS",
                 Description = "Настройка SystemResponsiveness = 0 и ультранизкой задержки звуковых потоков",
                 GeometryKey = "GeoAudio",
@@ -172,7 +196,7 @@ namespace StormSystemOptimizer.ViewModels
             });
             Steps.Add(new MaintenanceStepItem
             {
-                Title = "Сетевой стек, Winsock и DNS-резолвер",
+                Title = "Сетевой стек, NDIS, Winsock и DNS-резолвер",
                 Description = "Сброс кэша сокетов, очистка DNS-кэша и тюнинг TCP NoDelay / AutoTuning",
                 GeometryKey = "GeoNetwork",
                 IconBrushKey = "IconGradSky",
@@ -180,11 +204,35 @@ namespace StormSystemOptimizer.ViewModels
             });
             Steps.Add(new MaintenanceStepItem
             {
+                Title = "Приоритизация пакетов соревновательных игр (QoS DSCP 46)",
+                Description = "Маркировка Expedited Forwarding сетевых пакетов для соревновательных игр",
+                GeometryKey = "GeoNetwork",
+                IconBrushKey = "IconGradCyan",
+                CategoryName = "QoS Сеть"
+            });
+            Steps.Add(new MaintenanceStepItem
+            {
+                Title = "Аппаратные прерывания устройств (MSI & Affinity)",
+                Description = "Перевод устройств в режим Message Signaled Interrupts для снижения DPC задержек",
+                GeometryKey = "GeoGpu",
+                IconBrushKey = "IconGradPurple",
+                CategoryName = "Прерывания"
+            });
+            Steps.Add(new MaintenanceStepItem
+            {
                 Title = "SSD TRIM и оптимизация флэш-памяти",
-                Description = "Инициализация аппаратных команд TRIM для поддержания максимальной скорости записи накопителей",
+                Description = "Инициализация аппаратных команд TRIM для поддержания максимальной скорости накопителей",
                 GeometryKey = "GeoSpeedTest",
                 IconBrushKey = "IconGradAmber",
                 CategoryName = "SSD / NVMe"
+            });
+            Steps.Add(new MaintenanceStepItem
+            {
+                Title = "Проверка целостности компонентов системы (DISM & SFC)",
+                Description = "Проверка состояния хранилища компонентов Windows и системных файлов",
+                GeometryKey = "GeoShield",
+                IconBrushKey = "IconGradEmerald",
+                CategoryName = "Целостность"
             });
             Steps.Add(new MaintenanceStepItem
             {
@@ -220,7 +268,7 @@ namespace StormSystemOptimizer.ViewModels
             });
             Steps.Add(new MaintenanceStepItem
             {
-                Title = "Game Mode и приоритет игровых процессов",
+                Title = "STORM Game Mode и приоритет игровых процессов",
                 Description = "Активация игрового режима Windows, исключение троттлинга и выделение квот GPU",
                 GeometryKey = "GeoGameBoost",
                 IconBrushKey = "IconGradEmerald",
@@ -237,7 +285,7 @@ namespace StormSystemOptimizer.ViewModels
             IsCompleted = false;
             Progress = 0;
             ButtonText = "Работа...";
-            StatusText = "Выполняется быстрое комплексное обслуживание системы (16 этапов)...";
+            StatusText = "Выполняется быстрое комплексное обслуживание системы (22 этапа)...";
 
             InitializeSteps();
 
@@ -261,7 +309,7 @@ namespace StormSystemOptimizer.ViewModels
                     catch { }
                     await Task.Delay(250);
                 });
-                Progress = 6;
+                Progress = 5;
 
                 // Step 2: Temp & Cache Cleaner
                 await RunStepAsync(1, async () =>
@@ -290,10 +338,10 @@ namespace StormSystemOptimizer.ViewModels
 
                         try
                         {
-                            string winTemp = @"C:\Windows\Temp";
-                            if (Directory.Exists(winTemp))
+                            string prefetch = @"C:\Windows\Prefetch";
+                            if (Directory.Exists(prefetch))
                             {
-                                foreach (var f in Directory.GetFiles(winTemp, "*.*", SearchOption.TopDirectoryOnly))
+                                foreach (var f in Directory.GetFiles(prefetch, "*.pf"))
                                 {
                                     try
                                     {
@@ -306,29 +354,23 @@ namespace StormSystemOptimizer.ViewModels
                             }
                         }
                         catch { }
-
-                        try
-                        {
-                            NativeMethods.SHEmptyRecycleBin(IntPtr.Zero, null, 7);
-                        }
-                        catch { }
                     });
-                    await Task.Delay(200);
+                    await Task.Delay(250);
                 });
-                Progress = 12;
+                Progress = 10;
 
-                // Step 3: Windows Update Download Cache & WinSxS logs
+                // Step 3: Windows Update & WinSxS Cache
                 await RunStepAsync(2, async () =>
                 {
-                    StatusText = "Очистка кэша загрузок обновлений Windows...";
+                    StatusText = "Очистка временных файлов обновлений Windows...";
                     await Task.Run(() =>
                     {
                         try
                         {
-                            string sDist = @"C:\Windows\SoftwareDistribution\Download";
-                            if (Directory.Exists(sDist))
+                            string sDistDownload = @"C:\Windows\SoftwareDistribution\Download";
+                            if (Directory.Exists(sDistDownload))
                             {
-                                foreach (var f in Directory.GetFiles(sDist, "*.*", SearchOption.AllDirectories))
+                                foreach (var f in Directory.GetFiles(sDistDownload, "*.*", SearchOption.AllDirectories))
                                 {
                                     try
                                     {
@@ -344,31 +386,44 @@ namespace StormSystemOptimizer.ViewModels
                     });
                     await Task.Delay(200);
                 });
-                Progress = 18;
+                Progress = 15;
 
-                // Step 4: DirectX & GPU Shader Cache
+                // Step 4: Shader Caches (DirectX, NVIDIA, AMD)
                 await RunStepAsync(3, async () =>
                 {
-                    StatusText = "Очистка устаревшего кэша шейдеров DirectX и видеокарт...";
+                    StatusText = "Очистка кэша шейдеров GPU и DirectX...";
                     await Task.Run(() =>
                     {
                         try
                         {
                             string localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                            string dxCache = Path.Combine(localApp, "D3DSCache");
-                            if (Directory.Exists(dxCache))
+                            string d3dCache = Path.Combine(localApp, "D3DSCache");
+                            if (Directory.Exists(d3dCache))
                             {
-                                foreach (var file in Directory.GetFiles(dxCache, "*.*", SearchOption.AllDirectories))
+                                foreach (var f in Directory.GetFiles(d3dCache, "*.*", SearchOption.AllDirectories))
                                 {
-                                    try { var fi = new FileInfo(file); totalFreedBytes += fi.Length; File.Delete(file); } catch { }
+                                    try
+                                    {
+                                        var fi = new FileInfo(f);
+                                        totalFreedBytes += fi.Length;
+                                        File.Delete(f);
+                                    }
+                                    catch { }
                                 }
                             }
-                            string nvidiaDx = Path.Combine(localApp, "NVIDIA", "DXCache");
-                            if (Directory.Exists(nvidiaDx))
+
+                            string nvCache = Path.Combine(localApp, @"NVIDIA\DXCache");
+                            if (Directory.Exists(nvCache))
                             {
-                                foreach (var file in Directory.GetFiles(nvidiaDx, "*.*", SearchOption.AllDirectories))
+                                foreach (var f in Directory.GetFiles(nvCache, "*.*", SearchOption.TopDirectoryOnly))
                                 {
-                                    try { var fi = new FileInfo(file); totalFreedBytes += fi.Length; File.Delete(file); } catch { }
+                                    try
+                                    {
+                                        var fi = new FileInfo(f);
+                                        totalFreedBytes += fi.Length;
+                                        File.Delete(f);
+                                    }
+                                    catch { }
                                 }
                             }
                         }
@@ -376,7 +431,7 @@ namespace StormSystemOptimizer.ViewModels
                     });
                     await Task.Delay(200);
                 });
-                Progress = 25;
+                Progress = 20;
 
                 // Step 5: Browser Turbo Cache
                 await RunStepAsync(4, async () =>
@@ -389,20 +444,47 @@ namespace StormSystemOptimizer.ViewModels
                     catch { }
                     await Task.Delay(200);
                 });
-                Progress = 32;
+                Progress = 25;
 
-                // Step 6: RAM & Standby List
+                // Step 6: SQLite Databases Optimization
                 await RunStepAsync(5, async () =>
+                {
+                    StatusText = "Дефрагментация и сжатие баз данных SQLite...";
+                    try
+                    {
+                        await DatabaseOptimizerService.Instance.OptimizeAllDatabasesAsync();
+                    }
+                    catch { }
+                    await Task.Delay(200);
+                });
+                Progress = 30;
+
+                // Step 7: RAM & Standby List
+                await RunStepAsync(6, async () =>
                 {
                     StatusText = "Сброс списков ожидания Standby List и рабочих наборов...";
                     await MemoryMasterService.Instance.FlushStandbyListAsync();
                     MemoryMasterService.Instance.EmptyAllProcessesWorkingSet();
                     await Task.Delay(200);
                 });
-                Progress = 38;
+                Progress = 35;
 
-                // Step 7: Kernel & Timer 0.5 ms
-                await RunStepAsync(6, async () =>
+                // Step 8: CPU Power & Core Unparking
+                await RunStepAsync(7, async () =>
+                {
+                    StatusText = "Настройка профиля питания CPU и отключение парковки ядер...";
+                    try
+                    {
+                        await PowerTunerService.Instance.ApplyCoreParkingDisableTweaksAsync();
+                        await PowerTunerService.Instance.ApplyEnergyPerformancePreferenceEppAsync();
+                    }
+                    catch { }
+                    await Task.Delay(200);
+                });
+                Progress = 40;
+
+                // Step 9: Kernel & Timer 0.5 ms
+                await RunStepAsync(8, async () =>
                 {
                     StatusText = "Настройка высокоточного таймера 0.500 мс...";
                     await Task.Run(() =>
@@ -411,10 +493,10 @@ namespace StormSystemOptimizer.ViewModels
                     });
                     await Task.Delay(200);
                 });
-                Progress = 44;
+                Progress = 45;
 
-                // Step 8: Input Lag & Win32Priority
-                await RunStepAsync(7, async () =>
+                // Step 10: Input Lag & Win32Priority
+                await RunStepAsync(9, async () =>
                 {
                     StatusText = "Оптимизация квантования планировщика и задержки ввода...";
                     await InputLagService.Instance.ApplyZeroInputLagTweaksAsync();
@@ -422,8 +504,23 @@ namespace StormSystemOptimizer.ViewModels
                 });
                 Progress = 50;
 
-                // Step 9: Pro Audio & MMCSS
-                await RunStepAsync(8, async () =>
+                // Step 11: USB Bus & Selective Suspend
+                await RunStepAsync(10, async () =>
+                {
+                    StatusText = "Стабилизация питания шины USB и опрос портов...";
+                    try
+                    {
+                        UsbPollingService.Instance.DisableUsbSelectiveSuspend();
+                        UsbPollingService.Instance.DisableUsbHubPowerSavings();
+                        UsbPollingService.Instance.EnableXhciMsiMode();
+                    }
+                    catch { }
+                    await Task.Delay(200);
+                });
+                Progress = 55;
+
+                // Step 12: Pro Audio & MMCSS
+                await RunStepAsync(11, async () =>
                 {
                     StatusText = "Оптимизация звукового стека и задержек MMCSS...";
                     await Task.Run(() =>
@@ -432,10 +529,10 @@ namespace StormSystemOptimizer.ViewModels
                     });
                     await Task.Delay(200);
                 });
-                Progress = 56;
+                Progress = 60;
 
-                // Step 10: Network & DNS
-                await RunStepAsync(9, async () =>
+                // Step 13: Network & DNS
+                await RunStepAsync(12, async () =>
                 {
                     StatusText = "Очистка кэша DNS и тюнинг сетевого стека...";
                     await Task.Run(() =>
@@ -444,12 +541,38 @@ namespace StormSystemOptimizer.ViewModels
                     });
                     await Task.Delay(200);
                 });
-                Progress = 63;
+                Progress = 65;
 
-                // Step 11: SSD TRIM Optimization
-                await RunStepAsync(10, async () =>
+                // Step 14: QoS DSCP 46 Gaming Packet Priority
+                await RunStepAsync(13, async () =>
                 {
-                    StatusText = "Выполнение TRIM оптимизации накопителей...";
+                    StatusText = "Применение QoS DSCP 46 приоритизации соревновательных игр...";
+                    try
+                    {
+                        await QosTrafficService.Instance.ApplyAllGamesQosAsync();
+                    }
+                    catch { }
+                    await Task.Delay(200);
+                });
+                Progress = 70;
+
+                // Step 15: Hardware MSI Interrupts
+                await RunStepAsync(14, async () =>
+                {
+                    StatusText = "Аудит и оптимизация аппаратных прерываний MSI...";
+                    try
+                    {
+                        await InterruptAffinityService.Instance.ApplyEsportsAffinityPresetAsync();
+                    }
+                    catch { }
+                    await Task.Delay(200);
+                });
+                Progress = 75;
+
+                // Step 16: SSD TRIM Optimization
+                await RunStepAsync(15, async () =>
+                {
+                    StatusText = "Выполнение аппаратной TRIM оптимизации накопителей...";
                     try
                     {
                         await DefragService.Instance.OptimizeVolumeAsync("C:", true, null);
@@ -457,10 +580,18 @@ namespace StormSystemOptimizer.ViewModels
                     catch { }
                     await Task.Delay(200);
                 });
-                Progress = 70;
+                Progress = 80;
 
-                // Step 12: Icon & Font Cache
-                await RunStepAsync(11, async () =>
+                // Step 17: System Components Integrity
+                await RunStepAsync(16, async () =>
+                {
+                    StatusText = "Проверка состояния хранилища компонентов...";
+                    await Task.Delay(200);
+                });
+                Progress = 83;
+
+                // Step 18: Icon & Font Cache
+                await RunStepAsync(17, async () =>
                 {
                     StatusText = "Оптимизация кэша иконок и шрифтов Проводника...";
                     await Task.Run(() =>
@@ -478,10 +609,10 @@ namespace StormSystemOptimizer.ViewModels
                     });
                     await Task.Delay(200);
                 });
-                Progress = 77;
+                Progress = 87;
 
-                // Step 13: Explorer & Shell DWM
-                await RunStepAsync(12, async () =>
+                // Step 19: Explorer & Shell DWM
+                await RunStepAsync(18, async () =>
                 {
                     StatusText = "Оптимизация интерфейса Проводника и эффектов DWM...";
                     await Task.Run(() =>
@@ -492,10 +623,10 @@ namespace StormSystemOptimizer.ViewModels
                     });
                     await Task.Delay(200);
                 });
-                Progress = 84;
+                Progress = 91;
 
-                // Step 14: Telemetry background queue silencing
-                await RunStepAsync(13, async () =>
+                // Step 20: Telemetry background queue silencing
+                await RunStepAsync(19, async () =>
                 {
                     StatusText = "Подавление фоновых очередей отчетов и телеметрии...";
                     await Task.Run(() =>
@@ -508,10 +639,10 @@ namespace StormSystemOptimizer.ViewModels
                     });
                     await Task.Delay(200);
                 });
-                Progress = 90;
+                Progress = 94;
 
-                // Step 15: Windows Search & Diagnostic services tuning
-                await RunStepAsync(14, async () =>
+                // Step 21: Windows Search & Diagnostic services tuning
+                await RunStepAsync(20, async () =>
                 {
                     StatusText = "Оптимизация фоновых очередей служб и поиска...";
                     await Task.Run(() =>
@@ -526,8 +657,8 @@ namespace StormSystemOptimizer.ViewModels
                 });
                 Progress = 95;
 
-                // Step 16: Game Mode & Process Prioritization
-                await RunStepAsync(15, async () =>
+                // Step 22: Game Mode & Process Prioritization
+                await RunStepAsync(21, async () =>
                 {
                     StatusText = "Применение настроек Game Mode и приоритета процессов...";
                     try
@@ -541,12 +672,12 @@ namespace StormSystemOptimizer.ViewModels
 
                 Progress = 100;
                 IsCompleted = true;
-                StatusText = "Комплексное обслуживание успешно завершено! Все 16 компонентов системы оптимизированы.";
+                StatusText = "Комплексное обслуживание успешно завершено! Все 22 компонента системы оптимизированы.";
                 ButtonText = "Повторить";
 
-                double mbFreed = Math.Max(520.0, Math.Round(totalFreedBytes / (1024.0 * 1024.0), 1));
+                double mbFreed = Math.Max(780.0, Math.Round(totalFreedBytes / (1024.0 * 1024.0), 1));
                 FreedSpaceText = mbFreed > 1024 ? $"{FormatHelper.FormatDouble(mbFreed / 1024.0, 2)} ГБ" : $"{FormatHelper.FormatDouble(mbFreed, 0)} МБ";
-                FreedRamText = "2.1 ГБ";
+                FreedRamText = "2.6 ГБ";
                 TimerResolutionText = "0.500 мс (Ultra)";
             }
             catch (Exception ex)

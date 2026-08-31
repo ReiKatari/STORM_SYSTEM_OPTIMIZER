@@ -77,7 +77,7 @@
                     </CheckBox>
 
                     <Button Command="{Binding ApplyHiberfileOptimizationCommand}" Style="{StaticResource StormSecondaryButton}" HorizontalAlignment="Left" Padding="14,8">
-                        <TextBlock Text="⚡ Применить оптимизацию гибернации" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Применить оптимизацию гибернации" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </Button>
                 </StackPanel>
             </Border>

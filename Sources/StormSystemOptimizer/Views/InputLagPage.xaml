@@ -30,7 +30,7 @@
                     </StackPanel>
 
                     <Button Grid.Column="1" Command="{Binding ApplyUltraLowLatencyInputCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" VerticalAlignment="Center">
-                        <TextBlock Text="⚡ Применить режим минимальной задержки" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="Применить режим минимальной задержки" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                     </Button>
                 </Grid>
             </Border>

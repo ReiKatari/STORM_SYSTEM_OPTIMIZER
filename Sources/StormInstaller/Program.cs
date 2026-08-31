@@ -23,7 +23,7 @@ namespace StormUniversal.Installer
         private PictureBox picHeaderLogo = null!;
         private Panel headerPanel = null!;
 
-        private const string AppVersion = "2.0.3";
+        private const string AppVersion = "2.0.4";
         private const string AppDisplayName = "STORM SYSTEM OPTIMIZER";
         private const string AppFolderName = "STORM SYSTEM OPTIMIZER";
         private const string ExeName = "StormSystemOptimizer.exe";

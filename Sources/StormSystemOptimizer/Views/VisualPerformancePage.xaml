@@ -31,7 +31,7 @@
                     </StackPanel>
 
                     <Button Grid.Column="1" Command="{Binding ApplyVisualTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" VerticalAlignment="Center">
-                        <TextBlock Text="⚡ Применить тюнинг DWM" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        <TextBlock Text="Применить тюнинг DWM" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                     </Button>
                 </Grid>
             </Border>

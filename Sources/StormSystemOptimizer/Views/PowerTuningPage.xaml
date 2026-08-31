@@ -38,7 +38,7 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding ActivateStormUltimatePlanCommand}" Style="{StaticResource StormHeroButton}" Padding="16,10" Margin="0,0,10,0">
-                            <TextBlock Text="⚡ Активировать STORM ULTIMATE PLAN" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="Активировать STORM ULTIMATE PLAN" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                         <Button Command="{Binding ActivateBalancedPlanCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,10">
                             <TextBlock Text="Сбалансированный" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -66,7 +66,7 @@
                         </Border>
 
                         <Button Command="{Binding ApplyCoreParkingTweaksCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
-                            <TextBlock Text="🚀 Отключить парковку ядер" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Отключить парковку ядер" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                     </StackPanel>
                 </Border>
@@ -88,7 +88,7 @@
                         </Border>
 
                         <Button Command="{Binding ApplyCStatesTweaksCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
-                            <TextBlock Text="⚡ Оптимизировать задержки C-States" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Оптимизировать задержки C-States" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                     </StackPanel>
                 </Border>
@@ -110,7 +110,7 @@
                         </Border>
 
                         <Button Command="{Binding ApplyEppTweaksCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
-                            <TextBlock Text="⚡ Задать EPP = 0% (Speed Shift)" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Задать EPP = 0% (Speed Shift)" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                     </StackPanel>
                 </Border>
@@ -181,7 +181,7 @@
                         </Border>
 
                         <Button Command="{Binding ApplyGpuMaxPerformanceCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" HorizontalAlignment="Left">
-                            <TextBlock Text="⚡ Форсировать GPU Max Performance" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Форсировать GPU Max Performance" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                     </StackPanel>
                 </Border>

@@ -37,10 +37,10 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding ScanCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="14,10" Margin="0,0,8,0">
-                            <TextBlock Text="🔄 Сканировать" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Сканировать" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <Button Command="{Binding OptimizeAllCommand}" Style="{DynamicResource StormHeroButton}" Padding="16,10">
-                            <TextBlock Text="⚡ ОПТИМИЗИРОВАТЬ ВСЕ БАЗЫ" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="ОПТИМИЗИРОВАТЬ ВСЕ БАЗЫ" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
                     </StackPanel>
                 </Grid>

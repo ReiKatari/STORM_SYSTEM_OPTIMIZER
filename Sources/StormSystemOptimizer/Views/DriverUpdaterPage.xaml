@@ -104,10 +104,10 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="10,0,0,0">
                         <Button Command="{Binding RefreshUsbDrivesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,0">
-                            <TextBlock Text="🔄 Обновить флешки" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Обновить список" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <Button Command="{Binding FormatUsbFat32Command}" Style="{StaticResource StormSecondaryButton}" Padding="10,6">
-                            <TextBlock Text="⚡ Форматировать в FAT32" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444"/>
+                            <TextBlock Text="Форматировать в FAT32" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444"/>
                         </Button>
                     </StackPanel>
                 </Grid>
