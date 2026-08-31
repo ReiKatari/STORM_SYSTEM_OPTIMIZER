@@ -29,7 +29,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1A34D399" BorderBrush="#3334D399" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoProcesses}" Fill="{StaticResource IconGradEmerald}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -40,8 +40,8 @@
                                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
 
                         <!-- Stats badges -->
-                        <StackPanel Orientation="Horizontal">
-                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,8,0">
+                        <WrapPanel Orientation="Horizontal">
+                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,8,4">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <Border Background="#1A00D2FF" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                         <Path Data="{StaticResource GeoProcesses}" Fill="{StaticResource IconGradCyan}" Width="10" Height="10" Stretch="Uniform"/>
@@ -51,7 +51,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,8,0">
+                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,8,4">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <Border Background="#1AC084FC" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                         <Path Data="{StaticResource GeoRam}" Fill="{StaticResource IconGradPurple}" Width="10" Height="10" Stretch="Uniform"/>
@@ -61,7 +61,7 @@
                                 </StackPanel>
                             </Border>
 
-                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,5">
+                            <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,0,4">
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                     <Border Background="#1A10B981" CornerRadius="3" Padding="2" Margin="0,0,6,0">
                                         <Path Data="{StaticResource GeoClean}" Fill="{StaticResource IconGradEmerald}" Width="10" Height="10" Stretch="Uniform"/>
@@ -70,7 +70,7 @@
                                     <TextBlock Text="{Binding SafeReclaimableText}" FontSize="11" FontWeight="Bold" Foreground="#10B981"/>
                                 </StackPanel>
                             </Border>
-                        </StackPanel>
+                        </WrapPanel>
                     </StackPanel>
 
                     <!-- Top Action Buttons -->
@@ -133,44 +133,44 @@
                     </Border>
 
                     <!-- Filter Category Buttons -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,10,0" VerticalAlignment="Center">
-                        <Button x:Name="BtnFilterAll" Click="BtnFilterAll_Click" Content="Все" Style="{StaticResource StormSecondaryButton}" Padding="10,5" Margin="0,0,4,0" FontWeight="Bold" FontSize="11"/>
-                        <Button x:Name="BtnFilterSafe" Click="BtnFilterSafe_Click" Style="{StaticResource StormSecondaryButton}" Padding="10,5" Margin="0,0,4,0">
+                    <WrapPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,10,0" VerticalAlignment="Center">
+                        <Button x:Name="BtnFilterAll" Click="BtnFilterAll_Click" Content="Все" Style="{StaticResource StormSecondaryButton}" Padding="10,5" Margin="0,0,4,2" FontWeight="Bold" FontSize="11"/>
+                        <Button x:Name="BtnFilterSafe" Click="BtnFilterSafe_Click" Style="{StaticResource StormSecondaryButton}" Padding="10,5" Margin="0,0,4,2">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Ellipse Width="6" Height="6" Fill="#10B981" Margin="0,0,4,0"/>
                                 <TextBlock Text="Безопасные" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="BtnFilterUser" Click="BtnFilterUser_Click" Style="{StaticResource StormSecondaryButton}" Padding="10,5" Margin="0,0,4,0">
+                        <Button x:Name="BtnFilterUser" Click="BtnFilterUser_Click" Style="{StaticResource StormSecondaryButton}" Padding="10,5" Margin="0,0,4,2">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Ellipse Width="6" Height="6" Fill="#F59E0B" Margin="0,0,4,0"/>
                                 <TextBlock Text="Пользовательские" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="BtnFilterSystem" Click="BtnFilterSystem_Click" Style="{StaticResource StormSecondaryButton}" Padding="10,5">
+                        <Button x:Name="BtnFilterSystem" Click="BtnFilterSystem_Click" Style="{StaticResource StormSecondaryButton}" Padding="10,5" Margin="0,0,0,2">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Ellipse Width="6" Height="6" Fill="#EF4444" Margin="0,0,4,0"/>
                                 <TextBlock Text="Системные" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
 
                     <!-- Sorting Selectors -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <WrapPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="Сортировка: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,4,0"/>
-                        <Button Command="{Binding SetSortCommand}" CommandParameter="ЦП" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,3,0">
-                            <TextBlock Text="🔥 ЦП" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Button Command="{Binding SetSortCommand}" CommandParameter="ЦП" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,3,2">
+                            <TextBlock Text="ЦП" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding SetSortCommand}" CommandParameter="Память" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,3,0">
-                            <TextBlock Text="🧠 ОЗУ" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Button Command="{Binding SetSortCommand}" CommandParameter="Память" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,3,2">
+                            <TextBlock Text="ОЗУ" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding SetSortCommand}" CommandParameter="Имя" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,3,0">
-                            <TextBlock Text="🔤 Имя" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Button Command="{Binding SetSortCommand}" CommandParameter="Имя" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,3,2">
+                            <TextBlock Text="Имя" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding SetSortCommand}" CommandParameter="PID" Style="{StaticResource StormSecondaryButton}" Padding="8,4">
-                            <TextBlock Text="⚡ PID" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Button Command="{Binding SetSortCommand}" CommandParameter="PID" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,0,2">
+                            <TextBlock Text="PID" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </Grid>
             </Border>
 
@@ -188,29 +188,29 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <WrapPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
                             <TextBlock Text="Выбран: " FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                            <TextBlock Text="{Binding SelectedProcess.ProcessName}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                            <TextBlock Text="{Binding SelectedProcess.ProcessId, StringFormat=' (PID: {0})'}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </StackPanel>
+                            <TextBlock Text="{Binding SelectedProcess.ProcessName}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SelectedProcess.ProcessId, StringFormat=' (PID: {0})'}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                        </WrapPanel>
 
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Command="{Binding TerminateProcessTreeCommand}" Style="{StaticResource StormDangerButton}" Padding="8,4" Margin="0,0,4,0">
+                        <WrapPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Command="{Binding TerminateProcessTreeCommand}" Style="{StaticResource StormDangerButton}" Padding="8,4" Margin="0,0,4,2">
                                 <TextBlock Text="Дерево процессов" FontSize="10.5" FontWeight="Bold"/>
                             </Button>
-                            <Button Command="{Binding SuspendSelectedProcessCommand}" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,0">
+                            <Button Command="{Binding SuspendSelectedProcessCommand}" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,2">
                                 <TextBlock Text="Заморозить" FontSize="10.5" FontWeight="Bold" Foreground="#F59E0B"/>
                             </Button>
-                            <Button Command="{Binding ResumeSelectedProcessCommand}" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,0">
+                            <Button Command="{Binding ResumeSelectedProcessCommand}" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,2">
                                 <TextBlock Text="Возобновить" FontSize="10.5" FontWeight="Bold" Foreground="#10B981"/>
                             </Button>
-                            <Button Command="{Binding SetHighPriorityCommand}" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,0">
+                            <Button Command="{Binding SetHighPriorityCommand}" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,4,2">
                                 <TextBlock Text="Высокий приоритет" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
-                            <Button Command="{Binding OpenFileLocationCommand}" Style="{StaticResource StormSecondaryButton}" Padding="8,4">
-                                <TextBlock Text="Папка 📁" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <Button Command="{Binding OpenFileLocationCommand}" Style="{StaticResource StormSecondaryButton}" Padding="8,4" Margin="0,0,0,2">
+                                <TextBlock Text="Папка" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
-                        </StackPanel>
+                        </WrapPanel>
                     </Grid>
                 </Border>
             </StackPanel>

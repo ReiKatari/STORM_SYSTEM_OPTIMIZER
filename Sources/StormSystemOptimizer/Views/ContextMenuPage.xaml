@@ -18,7 +18,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradPurple}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -29,14 +29,14 @@
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding ToggleClassicMenuCommand}" Style="{StaticResource StormHeroButton}" Padding="16,10" Margin="0,0,10,0">
-                            <TextBlock Text="🔄 Переключить стиль меню" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding ToggleClassicMenuCommand}" Style="{StaticResource StormHeroButton}" Padding="16,10" Margin="0,0,10,4">
+                            <TextBlock Text="Переключить стиль меню" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
-                        <Button Command="{Binding CleanClutterCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,10">
-                            <TextBlock Text="🧹 Очистить мусор меню" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Button Command="{Binding CleanClutterCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,10" Margin="0,0,0,4">
+                            <TextBlock Text="Очистить мусор меню" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </Grid>
             </Border>
 
@@ -47,9 +47,9 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Классическое быстрое меню Windows 10" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="Мгновенный показ всех команд при нажатии правой кнопкой мыши без скрытия под «Показать дополнительные параметры»." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
+                        <TextBlock Text="Классическое быстрое меню Windows 10" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                        <TextBlock Text="Мгновенный показ всех команд при нажатии правой кнопкой мыши без скрытия под «Показать дополнительные параметры»." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
                     <CheckBox Grid.Column="1" IsChecked="{Binding IsClassicMenu}" Command="{Binding ToggleClassicMenuCommand}" Content="Классическое меню" VerticalAlignment="Center"/>
                 </Grid>
@@ -58,10 +58,10 @@
             <!-- Filter Tabs Bar -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,0,0,16">
                 <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Все" Content="Все пункты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Инструменты" Content="Инструменты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Очистка" Content="Очистка меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,0" FontSize="11.5" FontWeight="Bold"/>
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Сторонние" Content="Сторонние меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Все" Content="Все пункты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,4" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Инструменты" Content="Инструменты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,4" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Очистка" Content="Очистка меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,4" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Сторонние" Content="Сторонние меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,0,4" FontSize="11.5" FontWeight="Bold"/>
                 </WrapPanel>
             </Border>
 
@@ -80,10 +80,10 @@
                                              <ColumnDefinition Width="Auto"/>
                                              <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
-                                            <TextBlock Text="{Binding Location, StringFormat='Расположение: {0}'}" FontSize="10" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,2,0,0"/>
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                            <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding Location, StringFormat='Расположение: {0}'}" FontSize="10" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                                         </StackPanel>
 
                                         <Border Grid.Column="1" Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="8,0" VerticalAlignment="Center">

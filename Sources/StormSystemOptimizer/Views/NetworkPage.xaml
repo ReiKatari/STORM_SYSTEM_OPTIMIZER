@@ -22,12 +22,12 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoNetwork}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Глубокая оптимизация и ускорение интернета" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Глубокая оптимизация и ускорение интернета" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </StackPanel>
                         <TextBlock Text="Диагностика сетевого адаптера, определение внешнего IP и провайдера, встроенный замер скорости соединения, оптимизация TCP/IP, DNS-бенчмарк и сетевой экран Blackhole Shield."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
@@ -324,9 +324,9 @@
                             <Border Background="#1A00D2FF" CornerRadius="4" Padding="3" Margin="0,0,6,0">
                                 <Path Data="{StaticResource GeoSettings}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform"/>
                             </Border>
-                            <TextBlock Text="Пользовательский DNS (Ручной ввод DNS 1 и DNS 2)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Пользовательский DNS (Ручной ввод DNS 1 и DNS 2)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </StackPanel>
-                        <TextBlock Text="Укажите любые произвольные адреса DNS-серверов для назначения активному сетевому адаптеру." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="Укажите любые произвольные адреса DNS-серверов для назначения активному сетевому адаптеру." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
 
                     <Grid Grid.Row="1">
@@ -383,8 +383,8 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Тест задержки DNS-серверов и переключение в 1 клик" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
+                            <TextBlock Text="Тест задержки DNS-серверов и переключение в 1 клик" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
                             <TextBlock Text="Замер пинга до глобальных серверов сопоставления доменов и назначение активному сетевому адаптеру." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
                         </StackPanel>
 

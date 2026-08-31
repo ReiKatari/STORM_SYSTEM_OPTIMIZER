@@ -18,7 +18,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoExplorer}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -27,17 +27,17 @@
                         </StackPanel>
                         <TextBlock Text="Тонкая настройка оболочки Windows Shell: мгновенный рендеринг эскизов, отображение расширений файлов, компактный режим, устранение задержек поиска и безопасный перезапуск explorer.exe."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding RestartExplorerCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,0">
+                    <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding RestartExplorerCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,4">
                             <TextBlock Text="Перезапустить explorer.exe" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding ApplyTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10">
+                        <Button Command="{Binding ApplyTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" Margin="0,0,0,4">
                             <TextBlock Text="Применить оптимизацию" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </Grid>
             </Border>
 
@@ -48,71 +48,71 @@
 
                     <CheckBox IsChecked="{Binding ShowFileExtensions}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Всегда отображать расширения имен файлов (.exe, .dll, .txt, .iso)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Повышает безопасность и защищает от скрытых исполняемых файлов." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Всегда отображать расширения имен файлов (.exe, .dll, .txt, .iso)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Повышает безопасность и защищает от скрытых исполняемых файлов." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding ShowHiddenFiles}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Отображать скрытые системные папки и файлы (Hidden = 1)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Позволяет быстро находить файлы AppData, конфигурации и дампы." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Отображать скрытые системные папки и файлы (Hidden = 1)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Позволяет быстро находить файлы AppData, конфигурации и дампы." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding UseCompactMode}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Включить компактный режим отображения папок (Compact View)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Уменьшает интервалы между строками файлов в Windows 11 для максимальной плотности информации." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Включить компактный режим отображения папок (Compact View)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Уменьшает интервалы между строками файлов в Windows 11 для максимальной плотности информации." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding DisallowShaking}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Отключить случайное сворачивание окон при встряхивании мыши (Aero Shake = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Блокирует случайное скрытие фоновых приложений при быстрых движениях мыши в играх." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Отключить случайное сворачивание окон при встряхивании мыши (Aero Shake = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Блокирует случайное скрытие фоновых приложений при быстрых движениях мыши в играх." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding FastThumbnails}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Мгновенный кэш эскизов и предпросмотра (ExtendedUIHoverTime = 1 мс)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Устраняет задержку Windows при наведении курсора на папки и видеофайлы." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Мгновенный кэш эскизов и предпросмотра (ExtendedUIHoverTime = 1 мс)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Устраняет задержку Windows при наведении курсора на папки и видеофайлы." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding DisableRecentFiles}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Отключить слежение за недавними файлами и папками (ShowRecent = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Ускоряет открытие Проводника и освобождает системный кэш Shell MRU." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Отключить слежение за недавними файлами и папками (ShowRecent = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Ускоряет открытие Проводника и освобождает системный кэш Shell MRU." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding DisableSearchBing}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Отключить онлайн-поиск Bing и рекламу в меню «Пуск»" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Делает поиск по локальным файлам и программам мгновенным без обращения к веб-серверам." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Отключить онлайн-поиск Bing и рекламу в меню «Пуск»" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Делает поиск по локальным файлам и программам мгновенным без обращения к веб-серверам." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding ClassicContextMenu}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Классическое контекстное меню Windows 10 (без вложенного меню Windows 11)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Возвращает привычное быстрое меню правой кнопки мыши со всеми пунктами без лишних кликов." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Классическое контекстное меню Windows 10 (без вложенного меню Windows 11)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Возвращает привычное быстрое меню правой кнопки мыши со всеми пунктами без лишних кликов." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding LaunchToThisPC}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Открывать «Этот компьютер» по умолчанию при запуске Проводника" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Сразу показывает все локальные диски и накопители вместо тяжелого раздела «Главная»." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Открывать «Этот компьютер» по умолчанию при запуске Проводника" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Сразу показывает все локальные диски и накопители вместо тяжелого раздела «Главная»." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding RemoveShortcutSuffix}" Margin="0,0,0,6">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Удалять суффикс «- Ярлык» при создании новых ярлыков" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Имена создаваемых ярлыков остаются аккуратными и чистыми без добавления лишнего текста." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Удалять суффикс «- Ярлык» при создании новых ярлыков" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Имена создаваемых ярлыков остаются аккуратными и чистыми без добавления лишнего текста." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
                 </StackPanel>

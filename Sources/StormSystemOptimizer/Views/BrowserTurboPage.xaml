@@ -18,7 +18,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoBrowser}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -27,20 +27,20 @@
                         </StackPanel>
                         <TextBlock Text="Индивидуальное и глобальное управление браузерами: Google Chrome, Яндекс Браузер, Microsoft Edge, Mozilla Firefox, Opera &amp; GX, Brave, Vivaldi, Tor. Дефрагментация баз SQLite, глубокая очистка кэшей и разгон аппаратного рендера."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding RefreshStatsCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
+                    <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding RefreshStatsCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,4">
                             <TextBlock Text="Обновить кэш" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding CleanCachesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,0">
+                        <Button Command="{Binding CleanCachesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,4">
                             <TextBlock Text="Очистить все кэши" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding ApplyBrowserPolicyCommand}" Style="{StaticResource StormHeroButton}" Padding="16,9">
+                        <Button Command="{Binding ApplyBrowserPolicyCommand}" Style="{StaticResource StormHeroButton}" Padding="16,9" Margin="0,0,0,4">
                             <TextBlock Text="Применить глобально" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </Grid>
             </Border>
 
@@ -91,7 +91,7 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0">
+                        <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock Text="{Binding SelectedBrowser.IconEmoji}" FontSize="26" Margin="0,0,10,0" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding SelectedBrowser.Name}" FontSize="19" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
@@ -100,26 +100,26 @@
                                     <TextBlock Text="Установлен в системе" FontSize="11" FontWeight="Bold" Foreground="#10B981"/>
                                 </Border>
                             </StackPanel>
-                            <TextBlock Text="{Binding SelectedBrowser.Subtitle}" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                            <TextBlock Text="{Binding SelectedBrowser.InstallPath, StringFormat='📂 Путь профилей: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Opacity="0.8"/>
+                            <TextBlock Text="{Binding SelectedBrowser.Subtitle}" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SelectedBrowser.InstallPath, StringFormat='Путь профилей: {0}'}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Opacity="0.8" TextWrapping="Wrap"/>
                         </StackPanel>
 
                         <!-- Individual Quick Actions -->
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Command="{Binding CleanSelectedBrowserCacheCommand}" Style="{StaticResource StormSecondaryButton}" Padding="13,8" Margin="0,0,8,0">
+                        <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Command="{Binding CleanSelectedBrowserCacheCommand}" Style="{StaticResource StormSecondaryButton}" Padding="13,8" Margin="0,0,8,4">
                                 <TextBlock Text="Очистить кэш" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
-                            <Button Command="{Binding DefragSelectedBrowserSqliteCommand}" Style="{StaticResource StormSecondaryButton}" Padding="13,8" Margin="0,0,8,0">
+                            <Button Command="{Binding DefragSelectedBrowserSqliteCommand}" Style="{StaticResource StormSecondaryButton}" Padding="13,8" Margin="0,0,8,4">
                                 <TextBlock Text="Сжать базы SQLite" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
-                            <Button Command="{Binding LaunchWithTurboGpuCommand}" Style="{StaticResource StormSecondaryButton}" Padding="13,8" Margin="0,0,8,0"
+                            <Button Command="{Binding LaunchWithTurboGpuCommand}" Style="{StaticResource StormSecondaryButton}" Padding="13,8" Margin="0,0,8,4"
                                     Visibility="{Binding SelectedBrowser.ExePath, Converter={StaticResource NullToVisibilityConverter}}">
                                 <TextBlock Text="Запуск с Zero-Copy" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                             </Button>
-                            <Button Command="{Binding ApplySelectedBrowserTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="16,8">
+                            <Button Command="{Binding ApplySelectedBrowserTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="16,8" Margin="0,0,0,4">
                                 <TextBlock Text="Применить твики" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                             </Button>
-                        </StackPanel>
+                        </WrapPanel>
                     </Grid>
 
                     <Separator Background="{DynamicResource CardBorderBrush}" Margin="0,0,0,16"/>

@@ -18,31 +18,31 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoDatabase}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Оптимизация и дефрагментация баз данных SQLite" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Оптимизация и дефрагментация баз данных SQLite" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </StackPanel>
                         <TextBlock Text="Компактизация (VACUUM) и перестроение индексов (REINDEX) для баз данных Chromium, Edge, Firefox, Telegram, Discord, Steam и VS Code для мгновенного отклика."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
                         <StackPanel Orientation="Horizontal">
                             <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="12,6" Margin="0,0,8,0">
-                                <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                             </Border>
                         </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding ScanCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="14,10" Margin="0,0,8,0">
+                    <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding ScanCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="14,10" Margin="0,0,8,4">
                             <TextBlock Text="Сканировать" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding OptimizeAllCommand}" Style="{DynamicResource StormHeroButton}" Padding="16,10">
+                        <Button Command="{Binding OptimizeAllCommand}" Style="{DynamicResource StormHeroButton}" Padding="16,10" Margin="0,0,0,4">
                             <TextBlock Text="ОПТИМИЗИРОВАТЬ ВСЕ БАЗЫ" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </Grid>
             </Border>
 
@@ -50,20 +50,20 @@
             <UniformGrid Columns="3" Margin="0,0,0,16">
                 <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,6,0">
                     <StackPanel>
-                        <TextBlock Text="ОБНАРУЖЕНО БАЗ ДАННЫХ" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="ОБНАРУЖЕНО БАЗ ДАННЫХ" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding TotalFoundCount}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
                 <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="3,0,3,0">
                     <StackPanel>
-                        <TextBlock Text="ОБЩИЙ ОБЪЕМ НА ДИСКЕ" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="ОБЩИЙ ОБЪЕМ НА ДИСКЕ" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding TotalOriginalSize}" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
                 <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="6,0,0,0">
                     <StackPanel>
-                        <TextBlock Text="ВЫСВОБОЖДЕНО ПАМЯТИ" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        <TextBlock Text="{Binding ReclaimedSpaceText}" FontSize="18" FontWeight="Bold" Foreground="#10B981" Margin="0,2,0,0"/>
+                        <TextBlock Text="СЭКОНОМЛЕНО МЕСТА" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding TotalSavedSize}" FontSize="18" FontWeight="Bold" Foreground="#10B981" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
             </UniformGrid>

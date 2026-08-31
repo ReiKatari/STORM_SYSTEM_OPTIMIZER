@@ -18,7 +18,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoComponent}" Fill="{StaticResource IconGradSky}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -27,17 +27,17 @@
                         </StackPanel>
                         <TextBlock Text="Приостановка нежелательных обновлений, очистка папки загрузок SoftwareDistribution, глубокое сжатие и сброс компонентов WinSxS через DISM, отключение P2P раздачи трафика."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding CleanCacheCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,0">
+                    <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding CleanCacheCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,4">
                             <TextBlock Text="Очистить кэш загрузок" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding RunDismCleanupCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10">
+                        <Button Command="{Binding RunDismCleanupCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" Margin="0,0,0,4">
                             <TextBlock Text="Глубокая очистка DISM" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </Grid>
             </Border>
 
@@ -48,14 +48,14 @@
                     <TextBlock Text="Позволяет полностью заблокировать принудительные перезагрузки и фоновые обновления Windows без нарушения работы магазина Microsoft Store."
                                FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14" TextWrapping="Wrap"/>
 
-                    <StackPanel Orientation="Horizontal">
-                        <Button Command="{Binding PauseUpdatesUntil2099Command}" Style="{StaticResource StormHeroButton}" Padding="16,8" Margin="0,0,10,0">
-                            <TextBlock Text="⏸️ Заморозить обновления (до 2099 года)" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    <WrapPanel Orientation="Horizontal">
+                        <Button Command="{Binding PauseUpdatesUntil2099Command}" Style="{StaticResource StormHeroButton}" Padding="16,8" Margin="0,0,10,4">
+                            <TextBlock Text="Заморозить обновления (до 2099 года)" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
-                        <Button Command="{Binding ResumeUpdatesNowCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8">
-                            <TextBlock Text="▶️ Возобновить штатный поиск" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <Button Command="{Binding ResumeUpdatesNowCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,0,4">
+                            <TextBlock Text="Возобновить штатный поиск" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </StackPanel>
             </Border>
 
@@ -66,12 +66,12 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="Объем временных файлов в SoftwareDistribution\Download:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                    <StackPanel Grid.Column="0" Margin="0,0,20,0" VerticalAlignment="Center">
+                        <TextBlock Text="Объем временных файлов в SoftwareDistribution\Download:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding DistCacheSize}" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                     </StackPanel>
                     <Button Grid.Column="1" Command="{Binding RefreshStatsCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,6" VerticalAlignment="Center">
-                        <TextBlock Text="🔄 Обновить размер" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Обновить размер" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                     </Button>
                 </Grid>
             </Border>
@@ -83,8 +83,8 @@
 
                     <CheckBox IsChecked="{Binding DisableDeliveryP2P}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Отключить P2P раздачу обновлений Delivery Optimization по интернету (DODownloadMode = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Блокирует отправку файлов обновлений с вашего компьютера другим пользователям в сети." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Отключить P2P раздачу обновлений Delivery Optimization по интернету (DODownloadMode = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Блокирует отправку файлов обновлений с вашего компьютера другим пользователям в сети." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 

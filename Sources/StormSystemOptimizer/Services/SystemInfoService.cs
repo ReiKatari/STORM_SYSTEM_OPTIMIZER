@@ -434,12 +434,15 @@ namespace StormSystemOptimizer.Services
                             _ => "Custom"
                         };
                         string diagStr = matchedEdid.Diagonal > 0 ? $" ({matchedEdid.Diagonal:0.0}\" {aspect})" : $" ({aspect})";
-                        cat.Add($"  Аппаратное разрешение #{monIndex}", $"{nativeResStr} @ {matchedEdid.NativeHz} Гц{diagStr}");
+                        cat.Add($"  Аппаратная матрица #{monIndex}", $"{nativeResStr} @ {matchedEdid.NativeHz} Гц{diagStr}");
+                        
+                        string curResStr = $"{d.Width:N0} x {d.Height:N0}".Replace(",", " ");
+                        cat.Add($"  Текущий видеорежим Windows #{monIndex}", $"{curResStr} @ {d.Hz} Гц ({d.Bits}-бит)");
                     }
                     else
                     {
                         string formattedRes = $"{d.Width:N0} x {d.Height:N0}".Replace(",", " ");
-                        cat.Add($"  Разрешение #{monIndex}", $"{formattedRes} @ {d.Hz} Гц");
+                        cat.Add($"  Разрешение #{monIndex}", $"{formattedRes} @ {d.Hz} Гц ({d.Bits}-бит)");
                     }
 
                     if (matchedEdid.WidthCm > 0 && matchedEdid.HeightCm > 0)
@@ -451,8 +454,6 @@ namespace StormSystemOptimizer.Services
                     {
                         cat.Add($"  Серийный номер #{monIndex}", matchedEdid.Serial);
                     }
-
-                    cat.Add($"  Глубина цвета #{monIndex}", $"{d.Bits}-бит (RGB True Color)");
                     cat.Add($"  Видеовыход GPU #{monIndex}", $"{d.DeviceName} (DirectX 12 / DWM)");
                     monIndex++;
                 }
@@ -765,9 +766,9 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine 2.0.4 • 100% Safe Optimization         ");
+            sb.AppendLine("         Сформировано через STORM Engine 2.0.5 • 100% Safe Optimization         ");
             sb.AppendLine("================================================================================");
-            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.4                        ");
+            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.5                        ");
             sb.AppendLine("================================================================================");
             return sb.ToString();
         }
@@ -790,8 +791,8 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
             sb.AppendLine("<div class='container'>");
-            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.4 — Диагностический отчет</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine 2.0.4</p>");
+            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.5 — Диагностический отчет</h1>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine 2.0.5</p>");
             return sb.ToString();
         }
 
@@ -805,7 +806,7 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("td{padding:8px 0;border-bottom:1px solid #1F2937;}.prop{color:#94A3B8;width:40%;}.val{color:#F8FAFC;font-weight:bold;}");
             sb.AppendLine("</style></head><body>");
             sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER — Спецификация системы</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine 2.0.4</p>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine 2.0.5</p>");
 
             foreach (var cat in specs)
             {

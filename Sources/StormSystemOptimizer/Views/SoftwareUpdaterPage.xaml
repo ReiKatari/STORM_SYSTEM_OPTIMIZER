@@ -125,14 +125,14 @@
 
                                         <!-- Installed Version -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,12,0">
-                                            <TextBlock Text="{Binding InstalledVersion, StringFormat='{}Установлена: v{0}'}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                            <TextBlock Text="Текущая версия в системе" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{Binding InstalledVersion, StringFormat='{}Установлена: v{0}'}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="Текущая версия в системе" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                                         </StackPanel>
 
                                         <!-- Available Version -->
                                         <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,12,0">
-                                            <TextBlock Text="{Binding AvailableVersion, StringFormat='{}Доступна: v{0}'}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                                            <TextBlock Text="Официальный репозиторий" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                            <TextBlock Text="{Binding AvailableVersion, StringFormat='{}Доступна: v{0}'}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="Официальный репозиторий" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                                         </StackPanel>
 
                                         <!-- Action Buttons -->

@@ -87,7 +87,7 @@
                             <Button Visibility="{Binding IsMsiActive, Converter={StaticResource InverseBoolToVisConverter}}"
                                     Command="{Binding ToggleMsiModeCommand}"
                                     IsEnabled="{Binding IsNotBusy}"
-                                    Content="⚡ Включить"
+                                    Content="Включить"
                                     Style="{StaticResource StormHeroButton}"
                                     Padding="14,6"/>
                             <Button Visibility="{Binding IsMsiActive, Converter={StaticResource BoolToVisConverter}}"
@@ -136,7 +136,7 @@
                             <Button Visibility="{Binding IsDirectStorageActive, Converter={StaticResource InverseBoolToVisConverter}}"
                                     Command="{Binding ToggleDirectStorageCommand}"
                                     IsEnabled="{Binding IsNotBusy}"
-                                    Content="⚡ Включить"
+                                    Content="Включить"
                                     Style="{StaticResource StormHeroButton}"
                                     Padding="14,6"/>
                             <Button Visibility="{Binding IsDirectStorageActive, Converter={StaticResource BoolToVisConverter}}"
@@ -933,21 +933,21 @@
                             <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoSystemTools}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform"/>
                             </Border>
-                            <TextBlock Text="Глубокое системное обслуживание и стек ОС" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Глубокое системное обслуживание и стек ОС" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Grid>
                     <TextBlock Text="Быстрый сброс сетевого стека TCP/IP, ARP-таблиц и DNS, принудительная очистка зависшей очереди Print Spooler и синхронизация времени NTP."
-                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14"/>
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14" TextWrapping="Wrap"/>
 
                     <WrapPanel Orientation="Horizontal">
                         <Button Command="{Binding FlushNetworkStackCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,8">
-                            <TextBlock Text="🌐 Сбросить сетевой стек и сокеты" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Сбросить сетевой стек и сокеты" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <Button Command="{Binding ClearSpoolerCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,8">
-                            <TextBlock Text="🖨️ Очистить очередь печати" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Очистить очередь печати" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                         <Button Command="{Binding ResyncClockCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,8">
-                            <TextBlock Text="⏱️ Синхронизировать время NTP" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Синхронизировать время NTP" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                     </WrapPanel>
                 </StackPanel>

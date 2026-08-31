@@ -18,7 +18,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoLock}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -32,10 +32,7 @@
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <Button Command="{Binding ToggleContextMenuCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,8">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🖱️ " FontSize="12"/>
-                                <TextBlock Text="{Binding IsContextMenuEnabled, Converter={StaticResource BoolToContextMenuTextConverter}, FallbackValue='Интеграция в контекстное меню'}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            </StackPanel>
+                            <TextBlock Text="{Binding IsContextMenuEnabled, Converter={StaticResource BoolToContextMenuTextConverter}, FallbackValue='Интеграция в контекстное меню'}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -64,8 +61,8 @@
                                 <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="20" Width="40" Height="40" HorizontalAlignment="Center" Margin="0,0,0,8">
                                     <Path Data="{StaticResource GeoLock}" Fill="{StaticResource IconGradCyan}" Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <TextBlock Text="Перетащите заблокированный файл или папку сюда (Drag and Drop)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
-                                <TextBlock Text="Или укажите путь вручную с помощью кнопок обзора ниже" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                <TextBlock Text="Перетащите заблокированный файл или папку сюда (Drag and Drop)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+                                <TextBlock Text="Или укажите путь вручную с помощью кнопок обзора ниже" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center" Margin="0,4,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -178,21 +175,21 @@
 
                     <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4">
                         <Expander.Header>
-                            <TextBlock Text="Почему Windows пишет «Файл уже используется другим процессом»?" VerticalAlignment="Center"/>
+                            <TextBlock Text="Почему Windows пишет «Файл уже используется другим процессом»?" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </Expander.Header>
                         <TextBlock Text="Когда приложение или фоновая служба Windows открывает файл без флага FileShare.Delete или FileShare.ReadWrite, ядро NT запрещает любые модификации, удаление и перемещение. STORM опрашивает системный диспетчер Restart Manager и закрывает блокирующие дескрипторы." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
                     </Expander>
 
                     <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,4">
                         <Expander.Header>
-                            <TextBlock Text="Безопасно ли принудительное снятие блокировки?" VerticalAlignment="Center"/>
+                            <TextBlock Text="Безопасно ли принудительное снятие блокировки?" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </Expander.Header>
                         <TextBlock Text="Да. STORM сбрасывает атрибуты только для чтения (Read-Only/System) и аккуратно выгружает зависшие дескрипторы. Если файл удерживается системным драйвером ядра, программа автоматически планирует удаление на момент следующей перезагрузки ОС через MoveFileEx." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
                     </Expander>
 
                     <Expander Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" FontWeight="SemiBold">
                         <Expander.Header>
-                            <TextBlock Text="Как использовать разблокировку из Проводника Windows?" VerticalAlignment="Center"/>
+                            <TextBlock Text="Как использовать разблокировку из Проводника Windows?" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </Expander.Header>
                         <TextBlock Text="Нажмите кнопку «Интеграция в контекстное меню». После этого при клике правой кнопкой мыши по любому файлу или папке в Windows 10 и Windows 11 будет доступен пункт «Разблокировать через STORM OPTIMIZER»." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,4,0,2" TextWrapping="Wrap"/>
                     </Expander>
