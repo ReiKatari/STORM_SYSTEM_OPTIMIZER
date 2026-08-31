@@ -276,7 +276,8 @@ namespace StormSystemOptimizer.Services
 
             try
             {
-                var detectedMonitors = new List<(string Brand, string Model, string FullName, string Instance)>();
+                // 1. Query physical EDID monitors via WMI
+                var physicalMonitors = new List<(string Brand, string Model, string FullName, string InstanceId)>();
                 try
                 {
                     using var searcher = new ManagementObjectSearcher(@"root\wmi", "SELECT ManufacturerName, UserFriendlyName, InstanceName FROM WmiMonitorID");
@@ -302,14 +303,14 @@ namespace StormSystemOptimizer.Services
                         string full = DecodeMonitorName(mfg, model);
                         if (!string.IsNullOrWhiteSpace(full))
                         {
-                            detectedMonitors.Add((mfg, model, full, instance));
+                            physicalMonitors.Add((mfg, model, full, instance));
                         }
                     }
                 }
                 catch { }
 
-                var activeDisplays = new List<(string DeviceName, string DeviceString, bool IsPrimary, int Width, int Height, int Hz, int Bits)>();
-
+                // 2. Query active desktop displays via Win32 EnumDisplayDevices & EnumDisplaySettings
+                var activeDisplays = new List<(string DeviceName, string DeviceString, bool IsPrimary, int Width, int Height, int Hz, int Bits, string MonitorDeviceID)>();
                 try
                 {
                     var dd = new NativeMethods.DISPLAY_DEVICE();
@@ -332,7 +333,16 @@ namespace StormSystemOptimizer.Services
                                 bits = dm.dmBitsPerPel > 0 ? dm.dmBitsPerPel : 32;
                             }
 
-                            activeDisplays.Add((dd.DeviceName, dd.DeviceString, isPrimary, w, h, hz, bits));
+                            // Query attached monitor on this adapter
+                            string monId = "";
+                            var md = new NativeMethods.DISPLAY_DEVICE();
+                            md.cb = System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.DISPLAY_DEVICE));
+                            if (NativeMethods.EnumDisplayDevices(dd.DeviceName, 0, ref md, 0))
+                            {
+                                monId = md.DeviceID ?? "";
+                            }
+
+                            activeDisplays.Add((dd.DeviceName, dd.DeviceString, isPrimary, w, h, hz, bits, monId));
                         }
                         dd.cb = System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.DISPLAY_DEVICE));
                     }
@@ -341,66 +351,77 @@ namespace StormSystemOptimizer.Services
 
                 activeDisplays = activeDisplays.OrderByDescending(d => d.IsPrimary).ThenByDescending(d => d.Width * d.Height).ToList();
 
-                int totalPhysicalMonitors = 4; // 3 active desktop streams + 1 hardware duplicate/switch
-                cat.Add("Количество дисплеев", $"{totalPhysicalMonitors} физических монитора (3 независимых потока + 1 дублирование через свитч)");
+                int totalDetected = Math.Max(physicalMonitors.Count, activeDisplays.Count);
+                int activeCount = activeDisplays.Count;
+                int standbyCount = Math.Max(0, physicalMonitors.Count - activeCount);
 
-                int benqCount = 0;
-                for (int idx = 0; idx < activeDisplays.Count; idx++)
+                string countSummary = activeCount == totalDetected
+                    ? $"{totalDetected} дисплея (Все активны)"
+                    : $"{totalDetected} физических монитора ({activeCount} активных, {standbyCount} в режиме ожидания/отключен в ОС)";
+                cat.Add("Количество дисплеев", countSummary);
+
+                var matchedInstances = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                int monIndex = 1;
+
+                // First, render active displays with matched EDID or native names
+                foreach (var d in activeDisplays)
                 {
-                    var d = activeDisplays[idx];
-                    string friendly = "";
+                    string monitorTitle = "";
+                    (string Brand, string Model, string FullName, string InstanceId) matchedEdid = default;
 
-                    // Match 1: 4K UHD or Primary is Samsung
-                    if (d.Width >= 3840 || d.IsPrimary)
+                    // Match by DeviceID or resolution characteristic
+                    if (physicalMonitors.Count > 0)
                     {
-                        var sam = detectedMonitors.FirstOrDefault(m => m.FullName.Contains("Samsung", StringComparison.OrdinalIgnoreCase) || m.Brand.Equals("SAM", StringComparison.OrdinalIgnoreCase));
-                        friendly = !string.IsNullOrEmpty(sam.FullName) ? sam.FullName : "Samsung U28E590 (4K UHD)";
-                    }
-                    // Match 2: Full HD 1920x1080 (BenQ displays)
-                    else if (d.Width == 1920 && d.Height == 1080)
-                    {
-                        benqCount++;
-                        var bnq = detectedMonitors.FirstOrDefault(m => m.FullName.Contains("BenQ", StringComparison.OrdinalIgnoreCase) || m.Brand.Equals("BNQ", StringComparison.OrdinalIgnoreCase));
-                        string baseName = !string.IsNullOrEmpty(bnq.FullName) ? bnq.FullName : "BenQ GW2270";
-                        friendly = $"{baseName} (Монитор #{benqCount})";
-                    }
-                    // Match 3: Lower resolutions (1280x1024 or 1366x768)
-                    else if (d.Width <= 1440)
-                    {
-                        var acr = detectedMonitors.FirstOrDefault(m => m.FullName.Contains("Acer", StringComparison.OrdinalIgnoreCase) || m.Brand.Equals("ACR", StringComparison.OrdinalIgnoreCase));
-                        friendly = !string.IsNullOrEmpty(acr.FullName) ? acr.FullName : "Acer V193 (SXGA)";
-                    }
-                    else
-                    {
-                        friendly = string.IsNullOrWhiteSpace(d.DeviceString) ? $"Дисплей #{idx + 1}" : d.DeviceString;
+                        var edidMatch = physicalMonitors.FirstOrDefault(m => !matchedInstances.Contains(m.InstanceId) &&
+                            (!string.IsNullOrEmpty(d.MonitorDeviceID) && m.InstanceId.Contains(d.MonitorDeviceID, StringComparison.OrdinalIgnoreCase)));
+
+                        if (string.IsNullOrEmpty(edidMatch.FullName))
+                        {
+                            edidMatch = physicalMonitors.FirstOrDefault(m => !matchedInstances.Contains(m.InstanceId));
+                        }
+
+                        if (!string.IsNullOrEmpty(edidMatch.FullName))
+                        {
+                            matchedEdid = edidMatch;
+                            matchedInstances.Add(edidMatch.InstanceId);
+                            monitorTitle = edidMatch.FullName;
+                        }
                     }
 
-                    string primaryBadge = d.IsPrimary ? " [Основной дисплей]" : "";
+                    if (string.IsNullOrEmpty(monitorTitle))
+                    {
+                        monitorTitle = !string.IsNullOrWhiteSpace(d.DeviceString) ? d.DeviceString : $"Дисплей #{monIndex}";
+                    }
 
+                    string primaryTag = d.IsPrimary ? " [Основной дисплей]" : " [Расширение экрана]";
                     string formattedRes = $"{d.Width:N0} x {d.Height:N0}".Replace(",", " ");
-                    cat.Add($"Монитор #{idx + 1}", $"{friendly}{primaryBadge}");
-                    cat.Add($"  Разрешение #{idx + 1}", $"{formattedRes} @ {d.Hz} Гц");
-                    cat.Add($"  Глубина цвета #{idx + 1}", $"{d.Bits}-bit (RGB True Color)");
-                    cat.Add($"  Видеовыход GPU #{idx + 1}", $"{d.DeviceName} (DirectX 12 / DWM)");
+
+                    cat.Add($"Монитор #{monIndex}", $"{monitorTitle}{primaryTag}");
+                    cat.Add($"  Статус #{monIndex}", "🟢 Активен (Рабочий стол DWM)");
+                    cat.Add($"  Разрешение #{monIndex}", $"{formattedRes} @ {d.Hz} Гц");
+                    cat.Add($"  Глубина цвета #{monIndex}", $"{d.Bits}-бит (RGB True Color)");
+                    cat.Add($"  Видеовыход GPU #{monIndex}", $"{d.DeviceName} (DirectX 12 / DWM)");
+                    monIndex++;
                 }
 
-                // Monitor #4: Physical Acer V193 connected through hardware switch / video splitter
-                var acerEdid = detectedMonitors.FirstOrDefault(m => m.FullName.Contains("Acer", StringComparison.OrdinalIgnoreCase) || m.Brand.Equals("ACR", StringComparison.OrdinalIgnoreCase));
-                string acerName = !string.IsNullOrEmpty(acerEdid.FullName) ? acerEdid.FullName : "Acer V193";
+                // Next, render physical monitors detected via EDID that are currently inactive in Windows
+                foreach (var pm in physicalMonitors.Where(m => !matchedInstances.Contains(m.InstanceId)))
+                {
+                    cat.Add($"Монитор #{monIndex} (Неактивен)", $"{pm.FullName} [Физически подключен к GPU]");
+                    cat.Add($"  Статус #{monIndex}", "⚪ Подключен к видеокарте (В режиме ожидания / Выключен в Windows)");
+                    cat.Add($"  Идентификатор EDID #{monIndex}", pm.InstanceId);
+                    cat.Add($"  Рекомендация #{monIndex}", "Включите монитор в параметрах дисплея Windows (Win + P -> Расширить)");
+                    monIndex++;
+                }
 
-                cat.Add("Монитор #4 (Свитч/Дублирование)", $"{acerName} [Подключен через аппаратный переключатель]");
-                cat.Add("  Нативное разрешение #4", "1 280 x 1 024 @ 60 Гц (5:4 SXGA)");
-                cat.Add("  Режим видеосигнала #4", "Аппаратное дублирование / свитч к видеовыходу BenQ");
-                cat.Add("  Статус подключения #4", "Физически подключен к GPU через KVM/Display Switch • Готов к переключению");
-
-                if (activeDisplays.Count == 0)
+                if (activeDisplays.Count == 0 && physicalMonitors.Count == 0)
                 {
                     cat.Add("Основной дисплей", "1 920 x 1 080 @ 60 Гц [DWM Active]");
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                cat.Add("Статус дисплеев", "Активное прямое подключение к GPU (DWM Composition Active)");
+                cat.Add("Статус дисплеев", $"Динамический опрос активен ({ex.Message})");
             }
 
             return cat;
@@ -596,9 +617,9 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine v2.0.1 • 100% Safe Optimization        ");
+            sb.AppendLine("         Сформировано через STORM Engine v2.0.2 • 100% Safe Optimization        ");
             sb.AppendLine("================================================================================");
-            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.1                        ");
+            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.2                        ");
             sb.AppendLine("================================================================================");
             return sb.ToString();
         }
@@ -621,8 +642,8 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
             sb.AppendLine("<div class='container'>");
-            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.1 — Диагностический отчет</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v2.0.1</p>");
+            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.2 — Диагностический отчет</h1>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v2.0.2</p>");
             return sb.ToString();
         }
 

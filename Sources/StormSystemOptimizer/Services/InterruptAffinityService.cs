@@ -139,9 +139,9 @@ namespace StormSystemOptimizer.Services
                                     int prioVal = (int)(affinityKey.GetValue("DevicePriority") ?? 2);
                                     devInfo.Priority = prioVal switch
                                     {
-                                        3 => "Высокий (High)",
-                                        2 => "Обычный (Normal)",
-                                        1 => "Низкий (Low)",
+                                        3 => "Высокий",
+                                        2 => "Обычный",
+                                        1 => "Низкий",
                                         _ => "По умолчанию"
                                     };
                                 }
@@ -158,14 +158,14 @@ namespace StormSystemOptimizer.Services
                             }
                             else if (category.Contains("USB"))
                             {
-                                devInfo.Recommendation = "Изолировать от GPU ядра для мгновенного отклика мыши (1000-8000 Hz)";
+                                devInfo.Recommendation = "Изолировать от GPU ядра для мгновенного отклика мыши (1000-8000 Гц)";
                             }
                             else
                             {
                                 devInfo.Recommendation = "Рекомендуется включить MSI для устранения аудио-щелчков";
                             }
 
-                            devInfo.StatusSummary = $"MSI: {(devInfo.IsMsiEnabled ? "Включен ✅" : "Отключен (Line-based)")} | Маска: {(devInfo.CurrentAffinityMask == 0 ? "Все ядра" : "0x" + devInfo.CurrentAffinityMask.ToString("X"))}";
+                            devInfo.StatusSummary = $"MSI: {(devInfo.IsMsiEnabled ? "Включен ✅" : "Отключен (IRQ)")} | Маска: {(devInfo.CurrentAffinityMask == 0 ? "Все ядра" : "0x" + devInfo.CurrentAffinityMask.ToString("X"))}";
 
                             list.Add(devInfo);
                         }

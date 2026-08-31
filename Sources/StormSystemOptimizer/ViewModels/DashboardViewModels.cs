@@ -136,7 +136,7 @@ namespace StormSystemOptimizer.ViewModels
         public bool IsNotOptimizing => !IsOptimizing;
 
         [ObservableProperty]
-        private string _optimizeButtonText = "⚡ Очистить RAM";
+        private string _optimizeButtonText = "⚡ Очистить память (ОЗУ)";
 
         [ObservableProperty]
         private bool _isGameBoostActive = false;
@@ -303,7 +303,7 @@ namespace StormSystemOptimizer.ViewModels
 
             await Task.Delay(1000);
             RefreshMetrics();
-            OptimizeButtonText = "⚡ Очистить RAM";
+            OptimizeButtonText = "⚡ Очистить память (ОЗУ)";
             IsOptimizing = false;
         }
 
