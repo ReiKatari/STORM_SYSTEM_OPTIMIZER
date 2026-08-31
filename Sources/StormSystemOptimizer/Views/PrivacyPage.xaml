@@ -21,12 +21,12 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoPrivacy}" Fill="{StaticResource IconGradRose}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Конфиденциальность и защита от телеметрии" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Конфиденциальность и защита от телеметрии" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </StackPanel>
                         <TextBlock Text="Полное отключение скрытой телеметрии Microsoft, трекеров рекламы, фонового кейлоггинга и облачного сбора личных данных."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
@@ -40,8 +40,8 @@
 
                     <!-- Presets & Apply Button -->
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8" HorizontalAlignment="Right">
-                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Max" Style="{StaticResource StormHeroButton}" Padding="12,7" Margin="0,0,6,0">
+                        <WrapPanel Orientation="Horizontal" Margin="0,0,0,8" HorizontalAlignment="Right">
+                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Max" Style="{StaticResource StormHeroButton}" Padding="12,7" Margin="0,0,6,4">
                                 <Grid Margin="0,0,0,2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -54,7 +54,7 @@
                             </Grid>
                             </Button>
 
-                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Balanced" Style="{StaticResource StormSecondaryButton}" Padding="12,7" Margin="0,0,6,0">
+                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Balanced" Style="{StaticResource StormSecondaryButton}" Padding="12,7" Margin="0,0,6,4">
                                 <Grid Margin="0,0,0,2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -67,7 +67,7 @@
                             </Grid>
                             </Button>
 
-                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Default" Style="{StaticResource StormSecondaryButton}" Padding="12,7">
+                            <Button Command="{Binding ApplyPresetCommand}" CommandParameter="Default" Style="{StaticResource StormSecondaryButton}" Padding="12,7" Margin="0,0,0,4">
                                 <Grid Margin="0,0,0,2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
@@ -79,7 +79,7 @@
                                 <TextBlock Grid.Column="1" Text="Сброс" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" VerticalAlignment="Center"/>
                             </Grid>
                             </Button>
-                        </StackPanel>
+                        </WrapPanel>
 
                         <Button Command="{Binding ApplyPrivacySettingsCommand}"
                                 Style="{StaticResource StormHeroButton}"
@@ -882,7 +882,7 @@
                         <Expander.Header>
                             <StackPanel Orientation="Horizontal">
                                 <Path Data="{StaticResource GeoShield}" Fill="{StaticResource IconGradEmerald}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                                <TextBlock Text="Не сломает ли отключение телеметрии работу Windows и магазина приложений?" VerticalAlignment="Center"/>
+                                <TextBlock Text="Не сломает ли отключение телеметрии работу Windows и магазина приложений?" VerticalAlignment="Center" TextWrapping="Wrap"/>
                             </StackPanel>
                         </Expander.Header>
                         <TextBlock Text="Нет. Все твики приватности STORM блокируют исключительно фоновый трекинг, запись нажатий клавиш (кейлоггинг) и отправку диагностических снимков экрана в Microsoft. Windows Update, магазин Microsoft Store и учетные записи продолжают работать в штатном режиме." FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="10,2,0,2" TextWrapping="Wrap"/>

@@ -18,7 +18,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoLaunchers}" Fill="{StaticResource IconGradRose}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -27,21 +27,21 @@
                         </StackPanel>
                         <TextBlock Text="Индивидуальное и глобальное управление платформами: LaunchBox и BigBox, Steam, Epic Games, EA App, GOG Galaxy, Battle.net, Playnite, RetroArch, Discord, Ubisoft, VK Play, Rockstar. Точечная очистка кэшей, выгрузка перед игрой и тонкая оптимизация."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center">
                         <Button Command="{Binding ApplyLauncherTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" Margin="0,0,0,8">
                             <TextBlock Text="Оптимизировать все лаунчеры" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
-                        <StackPanel Orientation="Horizontal">
-                            <Button Command="{Binding CleanAllLauncherCachesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,0">
+                        <WrapPanel Orientation="Horizontal">
+                            <Button Command="{Binding CleanAllLauncherCachesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,4">
                                 <TextBlock Text="Очистить весь кэш" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Button>
-                            <Button Command="{Binding KillAllRunningLaunchersCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8">
+                            <Button Command="{Binding KillAllRunningLaunchersCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,0,4">
                                 <TextBlock Text="Выгрузить всё" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444"/>
                             </Button>
-                        </StackPanel>
+                        </WrapPanel>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -57,7 +57,7 @@
                             <TextBlock Text="Обнаруженные игровые платформы и индивидуальное управление" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <Button Command="{Binding DetectLaunchersCommand}" Background="Transparent" BorderThickness="0" HorizontalAlignment="Right" Cursor="Hand">
-                            <TextBlock Text="🔄 Сканировать диски" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                            <TextBlock Text="Сканировать диски" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                         </Button>
                     </Grid>
 
@@ -83,7 +83,7 @@
                                         </Border>
 
                                         <!-- Info Details -->
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,14,0">
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
                                                 <TextBlock Text="{Binding Name}" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                                                 
@@ -128,51 +128,51 @@
                                             <TextBlock Text="{Binding Description}" FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4" TextWrapping="Wrap"/>
                                             
                                             <!-- Path & Cache Info -->
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="📁 Путь: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                                <TextBlock Text="{Binding Path}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,12,0"/>
-                                                <TextBlock Text="🧹 Кэш: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            <WrapPanel Orientation="Horizontal">
+                                                <TextBlock Text="Путь: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock Text="{Binding Path}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,12,0" TextWrapping="Wrap"/>
+                                                <TextBlock Text="Кэш: " FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
                                                 <TextBlock Text="{Binding CacheSizeFormatted}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                                            </StackPanel>
+                                            </WrapPanel>
                                         </StackPanel>
 
                                         <!-- Actions Per Launcher -->
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                                        <WrapPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                                             <!-- Clean Cache -->
                                             <Button Command="{Binding DataContext.CleanLauncherCacheCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                     CommandParameter="{Binding}"
-                                                    Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,0" ToolTip="Очистить временные файлы и кэш этого лаунчера">
+                                                    Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,4" ToolTip="Очистить временные файлы и кэш этого лаунчера">
                                                 <TextBlock Text="Кэш" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </Button>
 
                                             <!-- Optimize Launcher -->
                                             <Button Command="{Binding DataContext.OptimizeLauncherCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                     CommandParameter="{Binding}"
-                                                    Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,0" ToolTip="Применить твики производительности для этого лаунчера">
+                                                    Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,4" ToolTip="Применить твики производительности для этого лаунчера">
                                                 <TextBlock Text="Твики" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </Button>
 
                                             <!-- Open Folder -->
                                             <Button Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                     CommandParameter="{Binding}"
-                                                    Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,0" ToolTip="Открыть папку установки и библиотеку игр">
+                                                    Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,4" ToolTip="Открыть папку установки и библиотеку игр">
                                                 <TextBlock Text="Папка" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </Button>
 
                                             <!-- Launch App -->
                                             <Button Command="{Binding DataContext.LaunchAppCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                     CommandParameter="{Binding}"
-                                                    Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,0" ToolTip="Запустить клиент">
+                                                    Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,6,4" ToolTip="Запустить клиент">
                                                 <TextBlock Text="Запуск" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </Button>
 
                                             <!-- Kill Process (if running) -->
                                             <Button Command="{Binding DataContext.KillLauncherCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                     CommandParameter="{Binding}"
-                                                    Style="{StaticResource StormSecondaryButton}" Padding="10,6" ToolTip="Выгрузить фоновые процессы из памяти">
+                                                    Style="{StaticResource StormSecondaryButton}" Padding="10,6" Margin="0,0,0,4" ToolTip="Выгрузить фоновые процессы из памяти">
                                                 <TextBlock Text="Выгрузить" FontSize="11" FontWeight="SemiBold" Foreground="#EF4444"/>
                                             </Button>
-                                        </StackPanel>
+                                        </WrapPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -188,29 +188,29 @@
 
                     <CheckBox IsChecked="{Binding OptimizeLaunchBox}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Аппаратное DirectX ускорение LaunchBox и BigBox и высокий приоритет эмуляторов" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Обеспечивает плавные 60-120 FPS в интерфейсе BigBox и исключает просадки кадровой частоты в эмуляторах." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Аппаратное DirectX ускорение LaunchBox и BigBox и высокий приоритет эмуляторов" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Обеспечивает плавные 60-120 FPS в интерфейсе BigBox и исключает просадки кадровой частоты в эмуляторах." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding OptimizeSteam}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Оптимизация процессов Steam Web Helper (SmoothScrollWebViews = 0, H.264 HW)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Уменьшает использование оперативной памяти и фоновую нагрузку на CPU встроенного браузера Steam." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Оптимизация процессов Steam Web Helper (SmoothScrollWebViews = 0, H.264 HW)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Уменьшает использование оперативной памяти и фоновую нагрузку на CPU встроенного браузера Steam." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding OptimizeDiscord}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Устранение задержек Discord (Отключение фоновой телеметрии и краш-дампов)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Предотвращает скачки времени кадра (Frame Time) во время голосовой связи и демонстрации экрана." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Устранение задержек Discord (Отключение фоновой телеметрии и краш-дампов)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Предотвращает скачки времени кадра (Frame Time) во время голосовой связи и демонстрации экрана." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding DisableXboxGameBar}">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Отключение фоновой службы Xbox GameDVR (AppCaptureEnabled = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Ликвидирует скрытую непрерывную буферизацию видеопотока, экономя ресурс видеокарты и SSD." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Отключение фоновой службы Xbox GameDVR (AppCaptureEnabled = 0)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Ликвидирует скрытую непрерывную буферизацию видеопотока, экономя ресурс видеокарты и SSD." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
                 </StackPanel>

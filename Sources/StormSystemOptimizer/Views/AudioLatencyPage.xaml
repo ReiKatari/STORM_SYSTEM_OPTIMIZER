@@ -18,7 +18,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1AF59E0B" BorderBrush="#33F59E0B" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoAudio}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -27,7 +27,7 @@
                         </StackPanel>
                         <TextBlock Text="Конфигурация MMCSS Pro Audio, закрепление системного аудио-движка audiodg.exe за выделенным ядром CPU, снижение DPC Latency и ликвидация заиканий и треска звука."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
 
                     <Button Grid.Column="1" Command="{Binding ApplyAudioTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" VerticalAlignment="Center">
@@ -67,15 +67,15 @@
 
                     <CheckBox IsChecked="{Binding BoostMmcss}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Установить приоритет Pro Audio и Audio задач на High (Priority = 8, Clock Rate = 10000)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Дает потокам звука наивысший приоритет над фоновыми процессами, предотвращая треск и рассинхрон звука." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Установить приоритет Pro Audio и Audio задач на High (Priority = 8, Clock Rate = 10000)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Дает потокам звука наивысший приоритет над фоновыми процессами, предотвращая треск и рассинхрон звука." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding BoostMmcss}">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Отключить троттлинг сетевого трафика мультимедиа (NetworkThrottlingIndex = 0xFFFFFFFF)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Отменяет искусственное ограничение пропускной способности сети при воспроизведении аудио и видео." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Отключить троттлинг сетевого трафика мультимедиа (NetworkThrottlingIndex = 0xFFFFFFFF)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Отменяет искусственное ограничение пропускной способности сети при воспроизведении аудио и видео." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
                 </StackPanel>

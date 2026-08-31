@@ -28,7 +28,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0">
+                <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                         <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,10,0" VerticalAlignment="Center">
                             <Path Data="{StaticResource GeoCpu}" Fill="{StaticResource IconGradCyan}" Width="16" Height="16" Stretch="Uniform"/>
@@ -36,32 +36,32 @@
                         <TextBlock Text="Информация о системе и спецификация ПК" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBlock Text="Детальная диагностика конфигурации: процессор, видеокарта, модули ОЗУ, материнская плата, BIOS, дисковая подсистема и параметры ОС."
-                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
-                    <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding StatusText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Command="{Binding CopySpecsToClipboardCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
+                <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding CopySpecsToClipboardCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,4">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="{StaticResource GeoLog}" Fill="{StaticResource IconGradCyan}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
                             <TextBlock Text="Скопировать" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding ExportSpecsToFileCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
+                    <Button Command="{Binding ExportSpecsToFileCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,4">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="{StaticResource GeoCheck}" Fill="{StaticResource IconGradEmerald}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
                             <TextBlock Text="Экспорт в файл" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </StackPanel>
                     </Button>
 
-                    <Button Command="{Binding LoadSpecsCommand}" Style="{StaticResource StormHeroButton}" Padding="14,8">
+                    <Button Command="{Binding LoadSpecsCommand}" Style="{StaticResource StormHeroButton}" Padding="14,8" Margin="0,0,0,4">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="{StaticResource GeoAppUpdate}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
                             <TextBlock Text="Обновить" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </StackPanel>
                     </Button>
-                </StackPanel>
+                </WrapPanel>
             </Grid>
         </Border>
 
@@ -139,7 +139,7 @@
 
         <!-- Status Bottom Banner -->
         <Border Grid.Row="3" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8" Margin="20,0,20,20">
-            <TextBlock Text="Полная спецификация оборудования ПК сформирована на основе аппаратных датчиков и BIOS." FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+            <TextBlock Text="Полная спецификация оборудования ПК сформирована на основе аппаратных датчиков и BIOS." FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
         </Border>
     </Grid>
 </Page>

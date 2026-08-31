@@ -18,7 +18,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0">
+                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                             <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoPagefile}" Fill="{StaticResource IconGradPurple}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -27,17 +27,17 @@
                         </StackPanel>
                         <TextBlock Text="Глубокая очистка списков ожидания Standby List, сброс рабочих наборов EmptyWorkingSet, включение LargeSystemCache и гибкое ручное управление размером файла подкачки (pagefile.sys)."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
-                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Command="{Binding FlushMemoryCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,0">
+                    <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding FlushMemoryCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,9" Margin="0,0,8,4">
                             <TextBlock Text="Сбросить Standby List" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
-                        <Button Command="{Binding ApplyMemoryTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10">
+                        <Button Command="{Binding ApplyMemoryTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" Margin="0,0,0,4">
                             <TextBlock Text="Применить тюнинг ОЗУ" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                         </Button>
-                    </StackPanel>
+                    </WrapPanel>
                 </Grid>
             </Border>
 
@@ -135,14 +135,14 @@
                         </StackPanel>
 
                         <!-- Action Buttons -->
-                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,0,0">
+                        <WrapPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Bottom" Margin="0,0,0,0">
                             <Button Command="{Binding ApplyCustomPagefileCommand}" Style="{StaticResource StormHeroButton}" Height="38" Padding="16,0" Margin="0,0,8,0">
-                                <TextBlock Text="💾 Задать размер" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                <TextBlock Text="Задать размер" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
                             </Button>
                             <Button Command="{Binding ApplySystemManagedPagefileCommand}" Style="{StaticResource StormSecondaryButton}" Height="38" Padding="14,0">
-                                <TextBlock Text="🔄 Авто-выбор" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="Авто-выбор" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                             </Button>
-                        </StackPanel>
+                        </WrapPanel>
                     </Grid>
                 </StackPanel>
             </Border>
@@ -154,22 +154,22 @@
 
                     <CheckBox IsChecked="{Binding EnableLargeSystemCache}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Включить LargeSystemCache и запретить выгрузку исполнительных компонентов ядра (DisablePagingExecutive = 1)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Удерживает критически важные драйверы и ядро NT в быстрой физической памяти RAM без сброса на SSD." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Включить LargeSystemCache и запретить выгрузку исполнительных компонентов ядра (DisablePagingExecutive = 1)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Удерживает критически важные драйверы и ядро NT в быстрой физической памяти RAM без сброса на SSD." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding OptimizePools}" Margin="0,0,0,14">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Оптимизация пулов памяти (PoolUsageMaximum = 60%, NonPagedPoolSize)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Предотвращает фрагментацию пулов памяти и утечки при интенсивных игровых сессиях." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Оптимизация пулов памяти (PoolUsageMaximum = 60%, NonPagedPoolSize)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Предотвращает фрагментацию пулов памяти и утечки при интенсивных игровых сессиях." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
 
                     <CheckBox IsChecked="{Binding ClearPagefileAtShutdown}" Margin="0,0,0,4">
                         <StackPanel Margin="6,0,0,0">
-                            <TextBlock Text="Очищать файл подкачки при завершении работы (ClearPageFileAtShutdown = 1)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
-                            <TextBlock Text="Заполняет pagefile нулями перед выключением ПК для обеспечения максимальной конфиденциальности." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5"/>
+                            <TextBlock Text="Очищать файл подкачки при завершении работы (ClearPageFileAtShutdown = 1)" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13" TextWrapping="Wrap"/>
+                            <TextBlock Text="Заполняет pagefile нулями перед выключением ПК для обеспечения максимальной конфиденциальности." Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11.5" TextWrapping="Wrap"/>
                         </StackPanel>
                     </CheckBox>
                 </StackPanel>

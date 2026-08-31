@@ -32,7 +32,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0">
+                <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
                         <Border Background="#1AFBBF24" BorderBrush="#33FBBF24" BorderThickness="1" CornerRadius="8" Padding="6" Margin="0,0,10,0" VerticalAlignment="Center">
                             <Path Data="{StaticResource GeoFolderLock}" Fill="{StaticResource IconGradAmber}" Width="16" Height="16" Stretch="Uniform"/>
@@ -40,8 +40,8 @@
                         <TextBlock Text="Скрытие и защита папок" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBlock Text="3 режима защиты: скрытие от проводника, блокировка доступа паролем через NTFS ACL без скрытия, или максимальная защита со скрытием и шифрованием."
-                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8"/>
-                    <TextBlock Text="{Binding VaultStats}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,8"/>
+                    <TextBlock Text="{Binding VaultStats}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                 </StackPanel>
             </Grid>
         </Border>
@@ -54,7 +54,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="⚡ Добавить папку в защищенный сейф (Поддерживается Drag and Drop)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Grid.Column="0" Text="Добавить папку в защищенный сейф (Поддерживается Drag and Drop)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
                     <Border Grid.Column="1" Background="#1A00D2FF" CornerRadius="4" Padding="6,2">
                         <TextBlock Text="Перетащите папку сюда" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
                     </Border>
@@ -72,6 +72,7 @@
                                        Foreground="{DynamicResource TextSecondaryBrush}"
                                        FontSize="12"
                                        VerticalAlignment="Center"
+                                       TextWrapping="Wrap"
                                        IsHitTestVisible="False"
                                        Visibility="{Binding SelectedFolderPath, Converter={StaticResource StringEmptyToVisibilityConverter}}"/>
                             <TextBox Text="{Binding SelectedFolderPath, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" VerticalAlignment="Center"/>
@@ -192,40 +193,41 @@
                                         </StackPanel>
 
                                         <!-- Actions -->
-                                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <WrapPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                                             <Button Command="{Binding DataContext.OpenInExplorerCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormSecondaryButton}"
                                                     Padding="8,6"
-                                                    Margin="0,0,6,0"
+                                                    Margin="0,0,6,4"
                                                     ToolTip="Открыть в проводнике Windows">
-                                                <TextBlock Text="📂 Проводник" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                <TextBlock Text="Проводник" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                                             </Button>
 
                                             <Button Command="{Binding DataContext.UnlockFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormSecondaryButton}"
                                                     Padding="10,6"
-                                                    Margin="0,0,6,0">
-                                                <TextBlock Text="🔓 Открыть" FontSize="11" FontWeight="Bold" Foreground="#10B981"/>
+                                                    Margin="0,0,6,4">
+                                                <TextBlock Text="Открыть" FontSize="11" FontWeight="Bold" Foreground="#10B981"/>
                                             </Button>
 
                                             <Button Command="{Binding DataContext.LockFolderCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormSecondaryButton}"
                                                     Padding="10,6"
-                                                    Margin="0,0,6,0">
-                                                <TextBlock Text="🔒 Заблокировать" FontSize="11" FontWeight="Bold" Foreground="#EF4444"/>
+                                                    Margin="0,0,6,4">
+                                                <TextBlock Text="Заблокировать" FontSize="11" FontWeight="Bold" Foreground="#EF4444"/>
                                             </Button>
 
                                             <Button Command="{Binding DataContext.RemoveProtectionCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
                                                     Style="{StaticResource StormDangerButton}"
                                                     Padding="8,6"
+                                                    Margin="0,0,0,4"
                                                     ToolTip="Снять защиту навсегда">
                                                 <TextBlock Text="✕" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
                                             </Button>
-                                        </StackPanel>
+                                        </WrapPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -258,7 +260,7 @@
 
         <!-- Status Bottom Banner -->
         <Border Grid.Row="4" Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,8" Margin="20,0,20,20">
-            <TextBlock Text="{Binding StatusMessage}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+            <TextBlock Text="{Binding StatusMessage}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
         </Border>
     </Grid>
 </Page>
