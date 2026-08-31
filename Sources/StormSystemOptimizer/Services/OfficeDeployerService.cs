@@ -20,9 +20,18 @@ namespace StormSystemOptimizer.Services
         public string Description { get; set; } = "LTSC бессрочная корпоративная лицензия";
     }
 
+    public class OfficeCdnServer
+    {
+        public string Id { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string ServerHost { get; set; } = "officecdn.microsoft.com";
+        public string Description { get; set; } = string.Empty;
+    }
+
     public class OfficeDeployOptions
     {
         public string EditionId { get; set; } = "ProPlus2024Volume";
+        public string CdnServer { get; set; } = "officecdn.microsoft.com";
         public string Architecture { get; set; } = "64"; // 64 or 32
         public string Language { get; set; } = "ru-ru";
         public bool InstallWord { get; set; } = true;
@@ -110,13 +119,63 @@ namespace StormSystemOptimizer.Services
             }
         };
 
+        public List<OfficeCdnServer> SupportedCdnServers => new()
+        {
+            new OfficeCdnServer
+            {
+                Id = "GlobalCDN",
+                DisplayName = "Microsoft CDN WorldWide (Глобальный — Рекомендуется)",
+                ServerHost = "officecdn.microsoft.com",
+                Description = "Официальный глобальный CDN Microsoft с максимальной скоростью и стабильностью"
+            },
+            new OfficeCdnServer
+            {
+                Id = "AkamaiMirror",
+                DisplayName = "Microsoft CDN Akamai Mirror (Зеркало Edge)",
+                ServerHost = "officecdn.microsoft.com.edgesuite.net",
+                Description = "Быстрое CDN-зеркало Akamai для обхода региональных задержек"
+            },
+            new OfficeCdnServer
+            {
+                Id = "WsusRepo",
+                DisplayName = "Microsoft WSUS Corporate (Корпоративный канал)",
+                ServerHost = "officecdn.microsoft.com/pr/wsus",
+                Description = "Корпоративный канал стабильных выпусков Office"
+            },
+            new OfficeCdnServer
+            {
+                Id = "C2RDirect",
+                DisplayName = "Microsoft C2R Direct (Прямой репозиторий 2016-2024)",
+                ServerHost = "officecdn.microsoft.com/pr/492350f6-3a01-4f97-b9c0-c7c6ddf67d60",
+                Description = "Прямой репозиторий Click-to-Run дистрибутивов"
+            },
+            new OfficeCdnServer
+            {
+                Id = "LtscEnterprise",
+                DisplayName = "Microsoft LTSC Enterprise (Канал долговременного обслуживания)",
+                ServerHost = "officecdn.microsoft.com/pr/7ffbc6bf-bc32-4f92-8982-f9dd17fd3114",
+                Description = "Корпоративный канал долгосрочной поддержки"
+            },
+            new OfficeCdnServer
+            {
+                Id = "InsiderBeta",
+                DisplayName = "Microsoft Insider Beta (Канал предварительной оценки)",
+                ServerHost = "officecdn.microsoft.com/pr/ea4a4090-de26-49d7-93c1-91bff9e53fc3",
+                Description = "Ранние предварительные версии и новые функции"
+            }
+        };
+
         public List<string> KmsServers => new()
         {
             "kms.digiboy.ir",
-            "kms8.msguides.com",
+            "kms.lotro.cc",
             "kms.03k.org",
+            "kms.srv.crident.com",
+            "kms.cangshui.net",
+            "kms8.msguides.com",
             "kms.loli.best",
-            "kms.cx90.net"
+            "kms.cx90.net",
+            "127.0.0.1"
         };
 
         public string GetInstalledOfficeInfo()
@@ -213,7 +272,14 @@ namespace StormSystemOptimizer.Services
             var edition = SupportedEditions.Find(e => e.Id == options.EditionId) ?? SupportedEditions[0];
 
             sb.AppendLine("<Configuration>");
-            sb.AppendLine($"  <Add OfficeClientEdition=\"{options.Architecture}\" Channel=\"{edition.Channel}\">");
+            if (!string.IsNullOrEmpty(options.CdnServer) && options.CdnServer != "officecdn.microsoft.com")
+            {
+                sb.AppendLine($"  <Add OfficeClientEdition=\"{options.Architecture}\" Channel=\"{edition.Channel}\" SourcePath=\"https://{options.CdnServer}\">");
+            }
+            else
+            {
+                sb.AppendLine($"  <Add OfficeClientEdition=\"{options.Architecture}\" Channel=\"{edition.Channel}\">");
+            }
             sb.AppendLine($"    <Product ID=\"{edition.Id}\">");
             sb.AppendLine($"      <Language ID=\"{options.Language}\" />");
 

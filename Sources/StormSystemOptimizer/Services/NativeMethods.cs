@@ -221,7 +221,7 @@ namespace StormSystemOptimizer.Services
         public const int DISPLAY_DEVICE_ATTACHED_TO_DESKTOP = 0x00000001;
         public const int DISPLAY_DEVICE_PRIMARY_DEVICE = 0x00000004;
 
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         public struct DISPLAY_DEVICE
         {
             public int cb;
@@ -236,7 +236,7 @@ namespace StormSystemOptimizer.Services
             public string DeviceKey;
         }
 
-        [DllImport("user32.dll", CharSet = CharSet.Ansi)]
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
         public static extern bool EnumDisplayDevices(string? lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
 
         // --- Win32 Display Config API ---

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Management;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 
 namespace StormSystemOptimizer.Services
 {
@@ -277,7 +278,7 @@ namespace StormSystemOptimizer.Services
             try
             {
                 // 1. Query physical EDID monitors via WMI
-                var physicalMonitors = new List<(string Brand, string Model, string FullName, string InstanceId)>();
+                var physicalMonitors = new List<(string Brand, string Model, string FullName, string InstanceId, string PnpCode)>();
                 try
                 {
                     using var searcher = new ManagementObjectSearcher(@"root\wmi", "SELECT ManufacturerName, UserFriendlyName, InstanceName FROM WmiMonitorID");
@@ -300,17 +301,57 @@ namespace StormSystemOptimizer.Services
                         }
 
                         string instance = obj["InstanceName"]?.ToString() ?? "";
+                        string pnpCode = "";
+                        if (!string.IsNullOrEmpty(instance))
+                        {
+                            var parts = instance.Split(new[] { '\\', '#' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length >= 2) pnpCode = parts[1];
+                        }
+
                         string full = DecodeMonitorName(mfg, model);
                         if (!string.IsNullOrWhiteSpace(full))
                         {
-                            physicalMonitors.Add((mfg, model, full, instance));
+                            physicalMonitors.Add((mfg, model, full, instance, pnpCode));
+                        }
+                    }
+                }
+                catch { }
+
+                // Fallback / supplement from Registry EDID
+                try
+                {
+                    using var displayKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\DISPLAY");
+                    if (displayKey != null)
+                    {
+                        foreach (var pnpName in displayKey.GetSubKeyNames())
+                        {
+                            if (physicalMonitors.Any(m => m.PnpCode.Equals(pnpName, StringComparison.OrdinalIgnoreCase))) continue;
+
+                            using var pnpSub = displayKey.OpenSubKey(pnpName);
+                            if (pnpSub == null) continue;
+
+                            foreach (var instName in pnpSub.GetSubKeyNames())
+                            {
+                                using var devParams = pnpSub.OpenSubKey($@"{instName}\Device Parameters");
+                                if (devParams?.GetValue("EDID") is byte[] edidBytes && edidBytes.Length >= 128)
+                                {
+                                    var (parsedMfg, parsedModel, _) = ParseEdidBlock(edidBytes);
+                                    string full = DecodeMonitorName(parsedMfg, parsedModel);
+                                    if (!string.IsNullOrWhiteSpace(full))
+                                    {
+                                        string pnpStr = pnpName?.ToString() ?? string.Empty;
+                                        string instStr = instName?.ToString() ?? string.Empty;
+                                        physicalMonitors.Add((parsedMfg, parsedModel, full, $@"DISPLAY\{pnpStr}\{instStr}", pnpStr));
+                                    }
+                                }
+                            }
                         }
                     }
                 }
                 catch { }
 
                 // 2. Query active desktop displays via Win32 EnumDisplayDevices & EnumDisplaySettings
-                var activeDisplays = new List<(string DeviceName, string DeviceString, bool IsPrimary, int Width, int Height, int Hz, int Bits, string MonitorDeviceID)>();
+                var activeDisplays = new List<(string DeviceName, string DeviceString, bool IsPrimary, int Width, int Height, int Hz, int Bits, string MonitorDeviceID, string PnpCode)>();
                 try
                 {
                     var dd = new NativeMethods.DISPLAY_DEVICE();
@@ -335,20 +376,27 @@ namespace StormSystemOptimizer.Services
 
                             // Query attached monitor on this adapter
                             string monId = "";
+                            string pnpCode = "";
                             var md = new NativeMethods.DISPLAY_DEVICE();
                             md.cb = System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.DISPLAY_DEVICE));
                             if (NativeMethods.EnumDisplayDevices(dd.DeviceName, 0, ref md, 0))
                             {
                                 monId = md.DeviceID ?? "";
+                                if (!string.IsNullOrEmpty(monId))
+                                {
+                                    var parts = monId.Split(new[] { '\\', '#' }, StringSplitOptions.RemoveEmptyEntries);
+                                    if (parts.Length >= 2) pnpCode = parts[1];
+                                }
                             }
 
-                            activeDisplays.Add((dd.DeviceName, dd.DeviceString, isPrimary, w, h, hz, bits, monId));
+                            activeDisplays.Add((dd.DeviceName, dd.DeviceString, isPrimary, w, h, hz, bits, monId, pnpCode));
                         }
                         dd.cb = System.Runtime.InteropServices.Marshal.SizeOf(typeof(NativeMethods.DISPLAY_DEVICE));
                     }
                 }
                 catch { }
 
+                // Sort: Primary monitor is ALWAYS #1, then sort by resolution
                 activeDisplays = activeDisplays.OrderByDescending(d => d.IsPrimary).ThenByDescending(d => d.Width * d.Height).ToList();
 
                 int totalDetected = Math.Max(physicalMonitors.Count, activeDisplays.Count);
@@ -363,32 +411,43 @@ namespace StormSystemOptimizer.Services
                 var matchedInstances = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 int monIndex = 1;
 
-                // First, render active displays with matched EDID or native names
+                // First, render active displays with matched EDID
                 foreach (var d in activeDisplays)
                 {
                     string monitorTitle = "";
-                    (string Brand, string Model, string FullName, string InstanceId) matchedEdid = default;
+                    (string Brand, string Model, string FullName, string InstanceId, string PnpCode) matchedEdid = default;
 
-                    // Match by DeviceID or resolution characteristic
-                    if (physicalMonitors.Count > 0)
+                    // 1. Match by PNP Code (e.g. SAM0C4D, ACR0024, BNQ78DB)
+                    if (!string.IsNullOrEmpty(d.PnpCode))
                     {
-                        var edidMatch = physicalMonitors.FirstOrDefault(m => !matchedInstances.Contains(m.InstanceId) &&
-                            (!string.IsNullOrEmpty(d.MonitorDeviceID) && m.InstanceId.Contains(d.MonitorDeviceID, StringComparison.OrdinalIgnoreCase)));
-
-                        if (string.IsNullOrEmpty(edidMatch.FullName))
-                        {
-                            edidMatch = physicalMonitors.FirstOrDefault(m => !matchedInstances.Contains(m.InstanceId));
-                        }
-
-                        if (!string.IsNullOrEmpty(edidMatch.FullName))
-                        {
-                            matchedEdid = edidMatch;
-                            matchedInstances.Add(edidMatch.InstanceId);
-                            monitorTitle = edidMatch.FullName;
-                        }
+                        matchedEdid = physicalMonitors.FirstOrDefault(m => !string.IsNullOrEmpty(m.InstanceId) && !matchedInstances.Contains(m.InstanceId) &&
+                            (m.PnpCode.Equals(d.PnpCode, StringComparison.OrdinalIgnoreCase) ||
+                             m.InstanceId.Contains(d.PnpCode, StringComparison.OrdinalIgnoreCase)));
                     }
 
-                    if (string.IsNullOrEmpty(monitorTitle))
+                    // 2. Match by DeviceID substring
+                    if (string.IsNullOrEmpty(matchedEdid.FullName) && !string.IsNullOrEmpty(d.MonitorDeviceID))
+                    {
+                        matchedEdid = physicalMonitors.FirstOrDefault(m => !string.IsNullOrEmpty(m.InstanceId) && !matchedInstances.Contains(m.InstanceId) &&
+                            (m.InstanceId.Contains(d.MonitorDeviceID, StringComparison.OrdinalIgnoreCase) ||
+                             d.MonitorDeviceID.Contains(m.PnpCode, StringComparison.OrdinalIgnoreCase)));
+                    }
+
+                    // 3. Fallback to unallocated monitor if any
+                    if (string.IsNullOrEmpty(matchedEdid.FullName) && physicalMonitors.Count > 0)
+                    {
+                        matchedEdid = physicalMonitors.FirstOrDefault(m => !string.IsNullOrEmpty(m.InstanceId) && !matchedInstances.Contains(m.InstanceId));
+                    }
+
+                    if (!string.IsNullOrEmpty(matchedEdid.FullName))
+                    {
+                        if (!string.IsNullOrEmpty(matchedEdid.InstanceId))
+                        {
+                            matchedInstances.Add(matchedEdid.InstanceId);
+                        }
+                        monitorTitle = matchedEdid.FullName;
+                    }
+                    else
                     {
                         monitorTitle = !string.IsNullOrWhiteSpace(d.DeviceString) ? d.DeviceString : $"Дисплей #{monIndex}";
                     }
@@ -425,6 +484,60 @@ namespace StormSystemOptimizer.Services
             }
 
             return cat;
+        }
+
+        private static (string Mfg, string Model, string Serial) ParseEdidBlock(byte[] edid)
+        {
+            if (edid == null || edid.Length < 128) return ("", "", "");
+            try
+            {
+                int b1 = edid[8];
+                int b2 = edid[9];
+                char c1 = (char)(((b1 & 0x7C) >> 2) + '@');
+                char c2 = (char)((((b1 & 0x03) << 3) | ((b2 & 0xE0) >> 5)) + '@');
+                char c3 = (char)((b2 & 0x1F) + '@');
+                string mfg = $"{c1}{c2}{c3}".Trim();
+
+                string model = "";
+                string serial = "";
+
+                for (int i = 0; i < 4; i++)
+                {
+                    int offset = 54 + i * 18;
+                    if (offset + 18 > edid.Length) break;
+                    if (edid[offset] == 0 && edid[offset + 1] == 0 && edid[offset + 2] == 0)
+                    {
+                        byte tag = edid[offset + 3];
+                        if (tag == 0xFC)
+                        {
+                            var sb = new StringBuilder();
+                            for (int j = 5; j < 18; j++)
+                            {
+                                byte b = edid[offset + j];
+                                if (b == 0x0A || b == 0x00) break;
+                                if (b >= 32 && b <= 126) sb.Append((char)b);
+                            }
+                            model = sb.ToString().Trim();
+                        }
+                        else if (tag == 0xFF)
+                        {
+                            var sb = new StringBuilder();
+                            for (int j = 5; j < 18; j++)
+                            {
+                                byte b = edid[offset + j];
+                                if (b == 0x0A || b == 0x00) break;
+                                if (b >= 32 && b <= 126) sb.Append((char)b);
+                            }
+                            serial = sb.ToString().Trim();
+                        }
+                    }
+                }
+                return (mfg, model, serial);
+            }
+            catch
+            {
+                return ("", "", "");
+            }
         }
 
         private static string DecodeMonitorName(string mfgCode, string modelName)
@@ -617,9 +730,9 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine v2.0.2 • 100% Safe Optimization        ");
+            sb.AppendLine("         Сформировано через STORM Engine v2.0.3 • 100% Safe Optimization        ");
             sb.AppendLine("================================================================================");
-            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.2                        ");
+            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.3                        ");
             sb.AppendLine("================================================================================");
             return sb.ToString();
         }
@@ -642,8 +755,8 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
             sb.AppendLine("<div class='container'>");
-            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.2 — Диагностический отчет</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v2.0.2</p>");
+            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.3 — Диагностический отчет</h1>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v2.0.3</p>");
             return sb.ToString();
         }
 
@@ -657,7 +770,7 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("td{padding:8px 0;border-bottom:1px solid #1F2937;}.prop{color:#94A3B8;width:40%;}.val{color:#F8FAFC;font-weight:bold;}");
             sb.AppendLine("</style></head><body>");
             sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER — Спецификация системы</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v1.1.2</p>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine v2.0.3</p>");
 
             foreach (var cat in specs)
             {
