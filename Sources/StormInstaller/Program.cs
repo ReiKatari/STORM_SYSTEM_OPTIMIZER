@@ -130,27 +130,37 @@ namespace StormUniversal.Installer
                 Location = new Point(24, 49)
             };
 
-            // Top-Right Header Icon Container Badge (Preserved Red-Black Logo)
-            var logoContainer = new Panel
-            {
-                Location = new Point(546, 12),
-                Size = new Size(62, 62),
-                BackColor = Color.Transparent
-            };
-            logoContainer.Paint += (s, e) =>
-            {
-                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                using var path = GetRoundedRectPath(new Rectangle(0, 0, 61, 61), 10);
-                using var brush = new SolidBrush(Color.FromArgb(20, 10, 15));
-                using var pen = new Pen(Color.FromArgb(225, 29, 72), 1.5f);
-                e.Graphics.FillPath(brush, path);
-                e.Graphics.DrawPath(pen, path);
-            };
-
+            // Top-Right Header Icon (Clean Program Icon, without frames or borders)
             picHeaderLogo = new PictureBox
             {
-                Location = new Point(5, 5),
-                Size = new Size(52, 52),
+                Location = new Point(548, 16),
+                Size = new Size(54, 54),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = Color.Transparent
+            };
+
+            if (this.Icon != null)
+            {
+                picHeaderLogo.Image = this.Icon.ToBitmap();
+            }
+
+            headerPanel.Controls.Add(lblTitle);
+            headerPanel.Controls.Add(lblSubtitle);
+            headerPanel.Controls.Add(picHeaderLogo);
+            this.Controls.Add(headerPanel);
+
+            // 2. Body Panel
+            var bodyPanel = new Panel
+            {
+                Location = new Point(24, 98),
+                Size = new Size(576, 350)
+            };
+
+            // Red-Black Signature Logo in Body (Clean, without frames/borders, directly below header icon)
+            var picBodyLogo = new PictureBox
+            {
+                Location = new Point(524, 10),
+                Size = new Size(54, 54),
                 SizeMode = PictureBoxSizeMode.Zoom,
                 BackColor = Color.Transparent
             };
@@ -161,9 +171,9 @@ namespace StormUniversal.Installer
                 var asm = Assembly.GetExecutingAssembly();
                 foreach (var name in asm.GetManifestResourceNames())
                 {
-                    if (name.EndsWith("header_badge.png", StringComparison.OrdinalIgnoreCase) ||
+                    if (name.EndsWith("logo.png", StringComparison.OrdinalIgnoreCase) ||
                         name.EndsWith("badge_logo.png", StringComparison.OrdinalIgnoreCase) ||
-                        name.EndsWith("logo.png", StringComparison.OrdinalIgnoreCase))
+                        name.EndsWith("header_badge.png", StringComparison.OrdinalIgnoreCase))
                     {
                         using var s = asm.GetManifestResourceStream(name);
                         if (s != null)
@@ -178,30 +188,13 @@ namespace StormUniversal.Installer
 
             if (logoImg != null)
             {
-                picHeaderLogo.Image = logoImg;
+                picBodyLogo.Image = logoImg;
+                bodyPanel.Controls.Add(picBodyLogo);
             }
-            else if (this.Icon != null)
-            {
-                picHeaderLogo.Image = this.Icon.ToBitmap();
-            }
-
-            logoContainer.Controls.Add(picHeaderLogo);
-
-            headerPanel.Controls.Add(lblTitle);
-            headerPanel.Controls.Add(lblSubtitle);
-            headerPanel.Controls.Add(logoContainer);
-            this.Controls.Add(headerPanel);
-
-            // 2. Body Panel
-            var bodyPanel = new Panel
-            {
-                Location = new Point(24, 98),
-                Size = new Size(576, 350)
-            };
 
             var lblMode = new Label
             {
-                Text = "\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0442\u0438\u043F \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438 \u043F\u0440\u043E\u0433\u0440\u0430\u043C\u043C\u044B:",
+                Text = "Выберите тип установки программы:",
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(226, 232, 240),
                 Location = new Point(0, 0),
@@ -441,7 +434,7 @@ namespace StormUniversal.Installer
         private async Task StartInstallationAsync()
         {
             btnInstall.Enabled = false;
-            btnCancel.Enabled = false;
+            btnCancel.Enabled = true;
             btnBrowse.Enabled = false;
 
             try
@@ -517,6 +510,8 @@ namespace StormUniversal.Installer
                 }
 
                 progressBar.Value = 100;
+                btnInstall.Enabled = false;
+                btnCancel.Enabled = false;
                 lblStatus.Text = rbPortable.Checked ? "Портативная версия успешно распакована!" : "Установка успешно завершена! Система полностью готова.";
                 lblStatus.ForeColor = Color.FromArgb(16, 185, 129);
                 await Task.Delay(500);
