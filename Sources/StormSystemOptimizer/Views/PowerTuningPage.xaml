@@ -171,7 +171,7 @@
                             <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoMonitor}" Fill="{StaticResource IconGradEmerald}" Width="12" Height="12" Stretch="Uniform"/>
                             </Border>
-                            <TextBlock Text="GPU Maximum Performance &amp; HAGS" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="GPU Maximum Performance and HAGS" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
                         <TextBlock Text="Принудительно форсирует профиль максимальной мощности графического адаптера, активирует планирование HAGS и увеличивает тайм-аут TDR видеодрайвера."
                                    FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
