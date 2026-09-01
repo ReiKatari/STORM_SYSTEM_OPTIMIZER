@@ -98,8 +98,47 @@ namespace StormSystemOptimizer
 
         public static string? UnlockInitialPath { get; set; }
 
+        private static System.Threading.Mutex? _singleInstanceMutex;
+
         protected override void OnStartup(StartupEventArgs e)
         {
+            const string mutexName = @"Global\STORM_SYSTEM_OPTIMIZER_SingleInstanceMutex";
+            bool createdNew;
+            try
+            {
+                _singleInstanceMutex = new System.Threading.Mutex(true, mutexName, out createdNew);
+            }
+            catch
+            {
+                createdNew = true;
+            }
+
+            if (!createdNew)
+            {
+                try
+                {
+                    var current = Process.GetCurrentProcess();
+                    foreach (var process in Process.GetProcessesByName(current.ProcessName))
+                    {
+                        if (process.Id != current.Id && process.MainWindowHandle != IntPtr.Zero)
+                        {
+                            NativeMethods.ShowWindow(process.MainWindowHandle, NativeMethods.SW_RESTORE);
+                            NativeMethods.SetForegroundWindow(process.MainWindowHandle);
+                            break;
+                        }
+                    }
+                }
+                catch { }
+
+                MessageBox.Show("Приложение STORM SYSTEM OPTIMIZER уже запущено и активно.",
+                                "STORM SYSTEM OPTIMIZER",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information);
+
+                Current.Shutdown();
+                return;
+            }
+
             base.OnStartup(e);
 
             try
@@ -239,6 +278,17 @@ namespace StormSystemOptimizer
 
             // Apply saved theme
             ThemeManager.Instance.ApplyTheme(ThemeManager.Instance.CurrentTheme);
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            try
+            {
+                _singleInstanceMutex?.ReleaseMutex();
+                _singleInstanceMutex?.Dispose();
+            }
+            catch { }
+            base.OnExit(e);
         }
 
         private void LogCrash(Exception? ex)
