@@ -57,7 +57,12 @@ namespace StormSystemOptimizer.Themes
                 string dir = Path.GetDirectoryName(_configPath)!;
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
-                var data = new { Theme = CurrentTheme.ToString() };
+                string currentLang = LocalizationService.Instance.CurrentLanguage;
+                var data = new
+                {
+                    Theme = CurrentTheme.ToString(),
+                    Language = currentLang
+                };
                 File.WriteAllText(_configPath, JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true }));
             }
             catch { }

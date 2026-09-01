@@ -1,4 +1,4 @@
-﻿<Page x:Class="StormSystemOptimizer.Views.SettingsPage"
+<Page x:Class="StormSystemOptimizer.Views.SettingsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -198,6 +198,79 @@
                         </Border>
                         <TextBlock Text="STORM WARHAMMER 40K" FontSize="11.5" FontWeight="Bold" Foreground="#FDF6E2" HorizontalAlignment="Center"/>
                         <TextBlock Text="Имперская готика" FontSize="9.5" Foreground="#D4AF37" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+
+            <!-- Language Selector (6 Major Languages) -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Width="22" Height="22" Margin="0,0,8,0" VerticalAlignment="Center">
+                    <Path Data="{StaticResource GeoMonitor}" Fill="{StaticResource IconGradEmerald}" Width="11" Height="11" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <TextBlock Text="Язык интерфейса (6 основных языков)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Grid Margin="0,0,0,24">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- RU -->
+                <Button Click="BtnLangRu_Click" Grid.Column="0" Margin="0,0,4,0" Style="{StaticResource StormSecondaryButton}" Padding="10">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🇷🇺" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock Text="Русский" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Russian" FontSize="9.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- EN -->
+                <Button Click="BtnLangEn_Click" Grid.Column="1" Margin="2,0,2,0" Style="{StaticResource StormSecondaryButton}" Padding="10">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🇬🇧" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock Text="English" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Английский" FontSize="9.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- DE -->
+                <Button Click="BtnLangDe_Click" Grid.Column="2" Margin="2,0,2,0" Style="{StaticResource StormSecondaryButton}" Padding="10">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🇩🇪" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock Text="Deutsch" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Немецкий" FontSize="9.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- FR -->
+                <Button Click="BtnLangFr_Click" Grid.Column="3" Margin="2,0,2,0" Style="{StaticResource StormSecondaryButton}" Padding="10">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🇫🇷" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock Text="Français" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Французский" FontSize="9.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- ZH -->
+                <Button Click="BtnLangZh_Click" Grid.Column="4" Margin="2,0,2,0" Style="{StaticResource StormSecondaryButton}" Padding="10">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🇨🇳" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock Text="简体中文" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Китайский" FontSize="9.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <!-- JA -->
+                <Button Click="BtnLangJa_Click" Grid.Column="5" Margin="4,0,0,0" Style="{StaticResource StormSecondaryButton}" Padding="10">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="🇯🇵" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock Text="日本語" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Японский" FontSize="9.5" Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Button>
             </Grid>
