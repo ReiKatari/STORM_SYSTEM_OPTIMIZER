@@ -25,7 +25,7 @@
                             </Border>
                             <TextBlock Text="Тюнинг и очистка веб-браузеров" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Индивидуальное и глобальное управление браузерами: Google Chrome, Яндекс Браузер, Microsoft Edge, Mozilla Firefox, Opera &amp; GX, Brave, Vivaldi, Tor. Дефрагментация баз SQLite, глубокая очистка кэшей и разгон аппаратного рендера."
+                        <TextBlock Text="Индивидуальное и глобальное управление браузерами: Google Chrome, Яндекс Браузер, Microsoft Edge, Mozilla Firefox, Opera и Opera GX, Brave, Vivaldi, Tor. Дефрагментация баз SQLite, глубокая очистка кэшей и разгон аппаратного рендера."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
