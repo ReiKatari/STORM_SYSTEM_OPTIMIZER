@@ -51,5 +51,35 @@ namespace StormSystemOptimizer.Views
         {
             ThemeManager.Instance.ApplyTheme(ThemeType.StormWarhammer, Application.Current.MainWindow);
         }
+
+        private void BtnLangRu_Click(object sender, RoutedEventArgs e)
+        {
+            Services.LocalizationService.Instance.CurrentLanguage = "ru";
+        }
+
+        private void BtnLangEn_Click(object sender, RoutedEventArgs e)
+        {
+            Services.LocalizationService.Instance.CurrentLanguage = "en";
+        }
+
+        private void BtnLangDe_Click(object sender, RoutedEventArgs e)
+        {
+            Services.LocalizationService.Instance.CurrentLanguage = "de";
+        }
+
+        private void BtnLangFr_Click(object sender, RoutedEventArgs e)
+        {
+            Services.LocalizationService.Instance.CurrentLanguage = "fr";
+        }
+
+        private void BtnLangZh_Click(object sender, RoutedEventArgs e)
+        {
+            Services.LocalizationService.Instance.CurrentLanguage = "zh";
+        }
+
+        private void BtnLangJa_Click(object sender, RoutedEventArgs e)
+        {
+            Services.LocalizationService.Instance.CurrentLanguage = "ja";
+        }
     }
 }

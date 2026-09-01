@@ -7,13 +7,13 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>..\..\Files\AppIcon.ico</ApplicationIcon>
-    <Version>2.0.7</Version>
-    <AssemblyVersion>2.0.7.0</AssemblyVersion>
-    <FileVersion>2.0.7.0</FileVersion>
-    <AssemblyTitle>STORM SYSTEM OPTIMIZER 2.0.7</AssemblyTitle>
-    <Product>STORM SYSTEM OPTIMIZER 2.0.7</Product>
-    <Title>STORM SYSTEM OPTIMIZER 2.0.7</Title>
-    <Description>STORM SYSTEM OPTIMIZER 2.0.7</Description>
+    <Version>2.0.8</Version>
+    <AssemblyVersion>2.0.8.0</AssemblyVersion>
+    <FileVersion>2.0.8.0</FileVersion>
+    <AssemblyTitle>STORM SYSTEM OPTIMIZER 2.0.8</AssemblyTitle>
+    <Product>STORM SYSTEM OPTIMIZER 2.0.8</Product>
+    <Title>STORM SYSTEM OPTIMIZER 2.0.8</Title>
+    <Description>STORM SYSTEM OPTIMIZER 2.0.8</Description>
     <Company>STORM TEAM</Company>
     <Authors>STORM TEAM</Authors>
     <Copyright>Copyright © 2026 STORM TEAM</Copyright>
