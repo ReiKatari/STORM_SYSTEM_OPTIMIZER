@@ -55,7 +55,7 @@ namespace StormSystemOptimizer.Services
                 sb.AppendLine("        <div class='title'>⚡ STORM SYSTEM OPTIMIZER</div>");
                 sb.AppendLine($"        <div class='subtitle'>Официальный отчет диагностики и производительности • {DateTime.Now:dd.MM.yyyy HH:mm:ss}</div>");
                 sb.AppendLine("      </div>");
-                sb.AppendLine("      <div class='badge'>STORM Engine 2.0.5</div>");
+                sb.AppendLine("      <div class='badge'>STORM Engine 2.0.6</div>");
                 sb.AppendLine("    </div>");
 
                 // Summary Cards

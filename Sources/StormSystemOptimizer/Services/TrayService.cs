@@ -122,7 +122,7 @@ namespace StormSystemOptimizer.Services
                     uFlags = NativeMethods.NIF_ICON | NativeMethods.NIF_TIP | NativeMethods.NIF_MESSAGE,
                     uCallbackMessage = WM_TRAYICON,
                     hIcon = hIcon,
-                    szTip = "STORM SYSTEM OPTIMIZER 2.0.5"
+                    szTip = "STORM SYSTEM OPTIMIZER 2.0.6"
                 };
 
                 _isCreated = NativeMethods.Shell_NotifyIcon(NativeMethods.NIM_ADD, ref _nid);
