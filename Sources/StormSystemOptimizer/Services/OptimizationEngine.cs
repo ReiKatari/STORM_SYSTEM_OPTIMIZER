@@ -119,6 +119,24 @@ namespace StormSystemOptimizer.Services
                         SystemToolsService.Instance.OptimizeMenuDelay();
                         break;
 
+                    case "junk_shaders":
+                        string lad = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                        freed += SafeCleanDirectory(Path.Combine(lad, @"NVIDIA\DXCache"));
+                        freed += SafeCleanDirectory(Path.Combine(lad, @"NVIDIA\GLCache"));
+                        freed += SafeCleanDirectory(Path.Combine(lad, @"AMD\DxCache"));
+                        freed += SafeCleanDirectory(Path.Combine(lad, @"AMD\GLCache"));
+                        freed += SafeCleanDirectory(Path.Combine(lad, @"Intel\ShaderCache"));
+                        freed += SafeCleanDirectory(Path.Combine(lad, @"D3DSCache"));
+                        break;
+
+                    case "boot_acceleration":
+                        _ = BootProfilerService.Instance.ApplyComprehensiveBootAccelerationAsync();
+                        break;
+
+                    case "dwm_smoothness":
+                        _ = InputLagService.Instance.ApplySmoothnessAndTimerResolutionTweakAsync();
+                        break;
+
                     default:
                         if (item.Category == OptimizationCategory.JunkAndCache && item.ReclaimableBytes > 0)
                         {

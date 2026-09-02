@@ -32,6 +32,7 @@ namespace StormSystemOptimizer.Services
     {
         public string EditionId { get; set; } = "ProPlus2024Volume";
         public string CdnServer { get; set; } = "officecdn.microsoft.com";
+        public string TargetVersion { get; set; } = "Latest";
         public string Architecture { get; set; } = "64"; // 64 or 32
         public string Language { get; set; } = "ru-ru";
         public bool InstallWord { get; set; } = true;
@@ -43,6 +44,9 @@ namespace StormSystemOptimizer.Services
         public bool InstallPublisher { get; set; } = false;
         public bool InstallVisio { get; set; } = false;
         public bool InstallProject { get; set; } = false;
+        public bool InstallLync { get; set; } = false;
+        public bool InstallGroove { get; set; } = false;
+        public bool InstallProofingTools { get; set; } = false;
         public bool ExcludeTeams { get; set; } = true;
         public bool ExcludeOneDrive { get; set; } = true;
         public bool ExcludeBing { get; set; } = true;
@@ -89,13 +93,23 @@ namespace StormSystemOptimizer.Services
             },
             new OfficeProductEdition
             {
+                Id = "ProPlus2016Volume",
+                DisplayName = "Microsoft Office 2016 ProPlus (Volume C2R)",
+                Channel = "PerpetualVL2016",
+                GvlkKey = "XQNVK-8JYDB-WJ9W3-YJ8YR-WFG99",
+                TargetVersion = "16.0.12527.22286",
+                ReleaseDate = "2016 (Volume)",
+                Description = "Классический проверенный выпуск 2016 с максимальной совместимостью"
+            },
+            new OfficeProductEdition
+            {
                 Id = "O365ProPlusRetail",
                 DisplayName = "Microsoft 365 ProPlus (Mondo / Enterprise)",
                 Channel = "Current",
                 GvlkKey = "HFTND-W9MK4-8VK7D-VQVC9-TMCRG",
                 TargetVersion = "16.0.18025.20160",
                 ReleaseDate = "2026 (Live CDN)",
-                Description = "Всегда актуальные облачные функции, новые формулы Excel и дизайн"
+                Description = "Всегда актуальные облачные функции, новые формулы Excel и современный дизайн"
             },
             new OfficeProductEdition
             {
@@ -116,6 +130,26 @@ namespace StormSystemOptimizer.Services
                 TargetVersion = "16.0.17932.20162",
                 ReleaseDate = "2024 (LTSC)",
                 Description = "Инструмент управления проектами, диаграммами Ганта и ресурсами"
+            },
+            new OfficeProductEdition
+            {
+                Id = "VisioPro2021Volume",
+                DisplayName = "Microsoft Visio 2021 Professional (Volume)",
+                Channel = "PerpetualVL2021",
+                GvlkKey = "F228H-QQNKX-P9CB8-28GGJ-DPWT4",
+                TargetVersion = "16.0.14332.20771",
+                ReleaseDate = "2021 (LTSC)",
+                Description = "Классический выпуск Visio Professional 2021"
+            },
+            new OfficeProductEdition
+            {
+                Id = "ProjectPro2021Volume",
+                DisplayName = "Microsoft Project 2021 Professional (Volume)",
+                Channel = "PerpetualVL2021",
+                GvlkKey = "FTNWT-C6WBT-8HMGF-K9PRX-QV9H8",
+                TargetVersion = "16.0.14332.20771",
+                ReleaseDate = "2021 (LTSC)",
+                Description = "Классический выпуск Project Professional 2021"
             }
         };
 
@@ -158,10 +192,24 @@ namespace StormSystemOptimizer.Services
             },
             new OfficeCdnServer
             {
+                Id = "MonthlyEnterprise",
+                DisplayName = "Microsoft Monthly Enterprise (Ежемесячный корпоративный)",
+                ServerHost = "officecdn.microsoft.com/pr/55336482-7488-4400-9a60-dc611037d3d0",
+                Description = "Канал с ежемесячными проверенными обновлениями функций"
+            },
+            new OfficeCdnServer
+            {
+                Id = "SemiAnnual",
+                DisplayName = "Microsoft Semi-Annual Enterprise (Полугодовой)",
+                ServerHost = "officecdn.microsoft.com/pr/b8f9b850-328d-4355-9145-c59439a0c4cf",
+                Description = "Канал полугодовых проверенных релизов Microsoft"
+            },
+            new OfficeCdnServer
+            {
                 Id = "InsiderBeta",
                 DisplayName = "Microsoft Insider Beta (Канал предварительной оценки)",
                 ServerHost = "officecdn.microsoft.com/pr/ea4a4090-de26-49d7-93c1-91bff9e53fc3",
-                Description = "Ранние предварительные версии и новые функции"
+                Description = "Ранние предварительные версии и новейшие функции"
             }
         };
 
@@ -271,14 +319,18 @@ namespace StormSystemOptimizer.Services
             var sb = new StringBuilder();
             var edition = SupportedEditions.Find(e => e.Id == options.EditionId) ?? SupportedEditions[0];
 
+            string versionAttr = (!string.IsNullOrEmpty(options.TargetVersion) && options.TargetVersion != "Latest")
+                ? $" Version=\"{options.TargetVersion}\""
+                : "";
+
             sb.AppendLine("<Configuration>");
             if (!string.IsNullOrEmpty(options.CdnServer) && options.CdnServer != "officecdn.microsoft.com")
             {
-                sb.AppendLine($"  <Add OfficeClientEdition=\"{options.Architecture}\" Channel=\"{edition.Channel}\" SourcePath=\"https://{options.CdnServer}\">");
+                sb.AppendLine($"  <Add OfficeClientEdition=\"{options.Architecture}\" Channel=\"{edition.Channel}\" SourcePath=\"https://{options.CdnServer}\"{versionAttr}>");
             }
             else
             {
-                sb.AppendLine($"  <Add OfficeClientEdition=\"{options.Architecture}\" Channel=\"{edition.Channel}\">");
+                sb.AppendLine($"  <Add OfficeClientEdition=\"{options.Architecture}\" Channel=\"{edition.Channel}\"{versionAttr}>");
             }
             sb.AppendLine($"    <Product ID=\"{edition.Id}\">");
             sb.AppendLine($"      <Language ID=\"{options.Language}\" />");
@@ -291,19 +343,28 @@ namespace StormSystemOptimizer.Services
             if (!options.InstallOutlook) sb.AppendLine("      <ExcludeApp ID=\"Outlook\" />");
             if (!options.InstallOneNote) sb.AppendLine("      <ExcludeApp ID=\"OneNote\" />");
             if (!options.InstallPublisher) sb.AppendLine("      <ExcludeApp ID=\"Publisher\" />");
-            if (!options.InstallVisio && edition.Id != "VisioPro2024Volume") sb.AppendLine("      <ExcludeApp ID=\"Visio\" />");
-            if (!options.InstallProject && edition.Id != "ProjectPro2024Volume") sb.AppendLine("      <ExcludeApp ID=\"Project\" />");
+            if (!options.InstallVisio && edition.Id != "VisioPro2024Volume" && edition.Id != "VisioPro2021Volume") sb.AppendLine("      <ExcludeApp ID=\"Visio\" />");
+            if (!options.InstallProject && edition.Id != "ProjectPro2024Volume" && edition.Id != "ProjectPro2021Volume") sb.AppendLine("      <ExcludeApp ID=\"Project\" />");
+            if (!options.InstallLync) sb.AppendLine("      <ExcludeApp ID=\"Lync\" />");
+            if (!options.InstallGroove) sb.AppendLine("      <ExcludeApp ID=\"Groove\" />");
 
             // Exclude bloat
             if (options.ExcludeTeams)
             {
                 sb.AppendLine("      <ExcludeApp ID=\"Teams\" />");
-                sb.AppendLine("      <ExcludeApp ID=\"Lync\" />");
             }
             if (options.ExcludeOneDrive) sb.AppendLine("      <ExcludeApp ID=\"OneDrive\" />");
             if (options.ExcludeBing) sb.AppendLine("      <ExcludeApp ID=\"Bing\" />");
 
             sb.AppendLine("    </Product>");
+
+            if (options.InstallProofingTools)
+            {
+                sb.AppendLine("    <Product ID=\"ProofingTools\">");
+                sb.AppendLine($"      <Language ID=\"{options.Language}\" />");
+                sb.AppendLine("    </Product>");
+            }
+
             sb.AppendLine("  </Add>");
             sb.AppendLine("  <Property Name=\"SharedComputerLicensing\" Value=\"0\" />");
             sb.AppendLine("  <Property Name=\"PinIconsToTaskbar\" Value=\"FALSE\" />");
@@ -360,7 +421,8 @@ namespace StormSystemOptimizer.Services
                         if (options.AutoActivate)
                         {
                             progress?.Report("Запуск автоматической KMS-активации...");
-                            await ActivateOfficeKmsAsync(options.KmsServer, progress);
+                            var ed = SupportedEditions.Find(e => e.Id == options.EditionId);
+                            await ActivateOfficeKmsAsync(options.KmsServer, ed?.GvlkKey, progress);
                         }
 
                         return true;
@@ -375,7 +437,7 @@ namespace StormSystemOptimizer.Services
             });
         }
 
-        public async Task<bool> ActivateOfficeKmsAsync(string kmsServer, IProgress<string>? progress = null)
+        public async Task<bool> ActivateOfficeKmsAsync(string kmsServer, string? gvlkKey = null, IProgress<string>? progress = null)
         {
             return await Task.Run(() =>
             {
@@ -390,8 +452,25 @@ namespace StormSystemOptimizer.Services
                         return RunPowerShellActivation(kmsServer, progress);
                     }
 
-                    progress?.Report($"Установка KMS-сервера: {kmsServer}...");
-                    RunCscript(osppPath, $"/sethst:{kmsServer}", progress);
+                    if (!string.IsNullOrEmpty(gvlkKey))
+                    {
+                        progress?.Report($"Установка официального корпоративного GVLK ключа ({gvlkKey})...");
+                        RunCscript(osppPath, $"/inpkey:{gvlkKey}", progress);
+                    }
+
+                    string host = kmsServer.Trim();
+                    string port = "1688";
+                    if (host.Contains(':'))
+                    {
+                        var parts = host.Split(':');
+                        host = parts[0];
+                        if (parts.Length > 1 && !string.IsNullOrWhiteSpace(parts[1]))
+                            port = parts[1];
+                    }
+
+                    progress?.Report($"Установка KMS-сервера: {host}:{port}...");
+                    RunCscript(osppPath, $"/sethst:{host}", progress);
+                    RunCscript(osppPath, $"/setprt:{port}", progress);
 
                     progress?.Report("Применение активации через OSPP...");
                     string output = RunCscript(osppPath, "/act", progress);

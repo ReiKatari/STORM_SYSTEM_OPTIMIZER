@@ -60,6 +60,18 @@ namespace StormSystemOptimizer.ViewModels
         private bool _installProject = false;
 
         [ObservableProperty]
+        private bool _installLync = false;
+
+        [ObservableProperty]
+        private bool _installGroove = false;
+
+        [ObservableProperty]
+        private bool _installProofingTools = false;
+
+        [ObservableProperty]
+        private string _selectedTargetVersion = "Latest (Всегда актуальный билд)";
+
+        [ObservableProperty]
         private bool _excludeTeams = true;
 
         [ObservableProperty]
@@ -85,6 +97,7 @@ namespace StormSystemOptimizer.ViewModels
 
         public ObservableCollection<OfficeProductEdition> Editions { get; } = new();
         public ObservableCollection<OfficeCdnServer> CdnServers { get; } = new();
+        public ObservableCollection<string> TargetVersions { get; } = new();
         public ObservableCollection<string> KmsServers { get; } = new();
 
         public ICommand InstallCommand { get; }
@@ -140,6 +153,19 @@ namespace StormSystemOptimizer.ViewModels
         {
             SelectedEditionVersionText = $"Билд CDN: v{ed.TargetVersion} • Выпуск {ed.ReleaseDate} ({ed.Channel})";
             SelectedEditionDesc = ed.Description;
+
+            TargetVersions.Clear();
+            TargetVersions.Add("Latest (Всегда самый свежий с CDN)");
+            if (!string.IsNullOrEmpty(ed.TargetVersion) && !TargetVersions.Contains(ed.TargetVersion))
+            {
+                TargetVersions.Add(ed.TargetVersion);
+            }
+            string[] knownBuilds = new[] { "16.0.17932.20162", "16.0.14332.20771", "16.0.10411.20011", "16.0.12527.22286", "16.0.18025.20160" };
+            foreach (var b in knownBuilds)
+            {
+                if (!TargetVersions.Contains(b)) TargetVersions.Add(b);
+            }
+            SelectedTargetVersion = TargetVersions[0];
         }
 
         public void RefreshStatus()
@@ -180,6 +206,9 @@ namespace StormSystemOptimizer.ViewModels
             InstallPublisher = val;
             InstallVisio = val;
             InstallProject = val;
+            InstallLync = val;
+            InstallGroove = val;
+            InstallProofingTools = val;
         }
 
         private void SetBasicApps()
@@ -193,6 +222,9 @@ namespace StormSystemOptimizer.ViewModels
             InstallPublisher = false;
             InstallVisio = false;
             InstallProject = false;
+            InstallLync = false;
+            InstallGroove = false;
+            InstallProofingTools = false;
         }
 
         private void AppendLog(string message)
@@ -209,10 +241,14 @@ namespace StormSystemOptimizer.ViewModels
             IsBusy = true;
             AppendLog("Запуск процесса развертывания Microsoft Office...");
 
+            string cleanVer = SelectedTargetVersion;
+            if (cleanVer.Contains(" ")) cleanVer = cleanVer.Split(' ')[0];
+
             var options = new OfficeDeployOptions
             {
                 EditionId = SelectedEdition?.Id ?? "ProPlus2024Volume",
                 CdnServer = SelectedCdnServer?.ServerHost ?? "officecdn.microsoft.com",
+                TargetVersion = cleanVer,
                 Architecture = SelectedArchitecture,
                 Language = SelectedLanguage,
                 InstallWord = InstallWord,
@@ -224,6 +260,9 @@ namespace StormSystemOptimizer.ViewModels
                 InstallPublisher = InstallPublisher,
                 InstallVisio = InstallVisio,
                 InstallProject = InstallProject,
+                InstallLync = InstallLync,
+                InstallGroove = InstallGroove,
+                InstallProofingTools = InstallProofingTools,
                 ExcludeTeams = ExcludeTeams,
                 ExcludeOneDrive = ExcludeOneDrive,
                 ExcludeBing = ExcludeBing,
@@ -242,9 +281,9 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-            AppendLog($"Запуск KMS-активации через {SelectedKmsServer}...");
+            AppendLog($"Запуск онлайн KMS-активации на сервере {SelectedKmsServer}...");
             var progress = new Progress<string>(AppendLog);
-            await OfficeDeployerService.Instance.ActivateOfficeKmsAsync(SelectedKmsServer, progress);
+            await OfficeDeployerService.Instance.ActivateOfficeKmsAsync(SelectedKmsServer, SelectedEdition?.GvlkKey, progress);
             RefreshStatus();
             IsBusy = false;
         }
