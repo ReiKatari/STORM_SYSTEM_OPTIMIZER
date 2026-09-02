@@ -158,6 +158,8 @@ namespace StormSystemOptimizer.Services
                 Path.Combine(localAppData, @"NVIDIA\DXCache"),
                 Path.Combine(localAppData, @"NVIDIA\GLCache"),
                 Path.Combine(localAppData, @"AMD\DxCache"),
+                Path.Combine(localAppData, @"AMD\GLCache"),
+                Path.Combine(localAppData, @"Intel\ShaderCache"),
                 Path.Combine(localAppData, @"D3DSCache")
             };
 
@@ -171,12 +173,12 @@ namespace StormSystemOptimizer.Services
                 items.Add(new OptimizationItem
                 {
                     Id = "junk_shaders",
-                    Title = "Кэш шейдеров видеокарты",
-                    Description = "Скомпилированные шейдеры DirectX/OpenGL/Vulkan. Очистка устраняет статтеры и артефакты.",
+                    Title = "Кэш шейдеров видеокарты (Direct3D, Vulkan, NVIDIA, AMD, Intel)",
+                    Description = "Скомпилированные шейдеры DirectX 11/12, Vulkan, NVIDIA, AMD и Intel. Очистка ликвидирует микрофризы и статтеры.",
                     Category = OptimizationCategory.JunkAndCache,
                     RiskLevel = RiskLevel.Safe,
                     ReclaimableBytes = shaderBytes,
-                    FormattedDetails = "Директории DirectX / NVIDIA / AMD / D3DSCache",
+                    FormattedDetails = "Директории DirectX / NVIDIA DXCache / AMD DxCache / Intel ShaderCache",
                     IsSelected = true
                 });
             }
@@ -392,6 +394,8 @@ namespace StormSystemOptimizer.Services
                             CleanDirectory(Path.Combine(localAppData, @"NVIDIA\DXCache"));
                             CleanDirectory(Path.Combine(localAppData, @"NVIDIA\GLCache"));
                             CleanDirectory(Path.Combine(localAppData, @"AMD\DxCache"));
+                            CleanDirectory(Path.Combine(localAppData, @"AMD\GLCache"));
+                            CleanDirectory(Path.Combine(localAppData, @"Intel\ShaderCache"));
                             CleanDirectory(Path.Combine(localAppData, @"D3DSCache"));
                             return true;
 

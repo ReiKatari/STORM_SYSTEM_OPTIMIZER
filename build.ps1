@@ -41,7 +41,7 @@ if (Test-Path "$launcherProjDir\obj") { Remove-Item "$launcherProjDir\obj" -Recu
 # Step 2: Publish Single-File App Executable & Fast Launcher
 Write-Host "[2/6] Publishing App & Fast Zero-UAC Launcher..." -ForegroundColor Yellow
 $appPublishDir = Join-Path $appProjDir "bin\Release\net8.0-windows\win-x64\publish"
-dotnet publish "$appProjDir\StormSystemOptimizer.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+dotnet publish "$appProjDir\StormSystemOptimizer.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:UseSharedCompilation=false
 
 $publishedExe = Join-Path $appPublishDir "StormSystemOptimizer.exe"
 if (-not (Test-Path $publishedExe)) {
@@ -49,7 +49,7 @@ if (-not (Test-Path $publishedExe)) {
 }
 
 $launcherPublishDir = Join-Path $launcherProjDir "bin\Release\net8.0-windows\win-x64\publish"
-dotnet publish "$launcherProjDir\StormLauncher.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+dotnet publish "$launcherProjDir\StormLauncher.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:UseSharedCompilation=false
 
 $publishedLauncher = Join-Path $launcherPublishDir "StormLauncher.exe"
 
@@ -102,7 +102,7 @@ try {
 # Step 5: Publish & Sign Installer
 Write-Host "[5/6] Publishing and Signing Installer v$appVersion..." -ForegroundColor Yellow
 $installerPublishDir = Join-Path $installerProjDir "bin\Release\net8.0-windows\win-x64\publish"
-dotnet publish "$installerProjDir\StormInstaller.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true
+dotnet publish "$installerProjDir\StormInstaller.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:UseSharedCompilation=false
 
 $publishedInstaller = Join-Path $installerPublishDir "StormInstaller.exe"
 if (-not (Test-Path $publishedInstaller)) {

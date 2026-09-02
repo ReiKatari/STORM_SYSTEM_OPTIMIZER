@@ -76,6 +76,10 @@
                         <TextBlock Text="Сервер загрузки и репозиторий CDN:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
                         <ComboBox ItemsSource="{Binding CdnServers}" SelectedItem="{Binding SelectedCdnServer}" DisplayMemberPath="DisplayName" Margin="0,0,0,8" Height="34"/>
 
+                        <!-- Target Build / Version Selector -->
+                        <TextBlock Text="Версия билда Office (Target Version):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding TargetVersions}" SelectedItem="{Binding SelectedTargetVersion}" Text="{Binding SelectedTargetVersion, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Margin="0,0,0,8" Height="34"/>
+
                         <!-- Edition Version & Desc Banner -->
                         <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,14">
                             <StackPanel>
@@ -105,6 +109,14 @@
                                 <ComboBox SelectedValue="{Binding SelectedLanguage}" SelectedValuePath="Tag" Height="32">
                                     <ComboBoxItem Content="Русский (ru-RU)" Tag="ru-ru" IsSelected="True"/>
                                     <ComboBoxItem Content="English (en-US)" Tag="en-us"/>
+                                    <ComboBoxItem Content="Deutsch (de-DE)" Tag="de-de"/>
+                                    <ComboBoxItem Content="Français (fr-FR)" Tag="fr-fr"/>
+                                    <ComboBoxItem Content="中文 (zh-CN)" Tag="zh-cn"/>
+                                    <ComboBoxItem Content="日本語 (ja-JP)" Tag="ja-jp"/>
+                                    <ComboBoxItem Content="Español (es-ES)" Tag="es-es"/>
+                                    <ComboBoxItem Content="Italiano (it-IT)" Tag="it-it"/>
+                                    <ComboBoxItem Content="Українська (uk-UA)" Tag="uk-ua"/>
+                                    <ComboBoxItem Content="Polski (pl-PL)" Tag="pl-pl"/>
                                 </ComboBox>
                             </StackPanel>
                         </Grid>
@@ -136,6 +148,9 @@
                             <CheckBox Content="Publisher" IsChecked="{Binding InstallPublisher}" Margin="0,0,0,8"/>
                             <CheckBox Content="Visio Pro" IsChecked="{Binding InstallVisio}" Margin="0,0,0,8"/>
                             <CheckBox Content="Project Pro" IsChecked="{Binding InstallProject}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Skype for Bus. (Lync)" IsChecked="{Binding InstallLync}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Groove" IsChecked="{Binding InstallGroove}" Margin="0,0,0,8"/>
+                            <CheckBox Content="Проверка орфографии" IsChecked="{Binding InstallProofingTools}" Margin="0,0,0,8"/>
                         </UniformGrid>
 
                         <TextBlock Text="3. Исключение мусора и телеметрии" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,6,0,8"/>
@@ -160,10 +175,10 @@
                     <StackPanel>
                         <TextBlock Text="4. Активация и управление лицензиями" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
-                        <TextBlock Text="Онлайн KMS-сервер:" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
-                        <ComboBox ItemsSource="{Binding KmsServers}" SelectedItem="{Binding SelectedKmsServer}" Height="32" Margin="0,0,0,12"/>
+                        <TextBlock Text="Онлайн KMS-сервер (хост или хост:порт):" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4"/>
+                        <ComboBox ItemsSource="{Binding KmsServers}" SelectedItem="{Binding SelectedKmsServer}" Text="{Binding SelectedKmsServer, UpdateSourceTrigger=PropertyChanged}" IsEditable="True" Height="32" Margin="0,0,0,12"/>
 
-                        <CheckBox Content="Автоматически активировать после установки" IsChecked="{Binding AutoActivate}" Margin="0,0,0,12"/>
+                        <CheckBox Content="Автоматически активировать после установки (GVLK + KMS)" IsChecked="{Binding AutoActivate}" Margin="0,0,0,12"/>
 
                         <UniformGrid Columns="2" Margin="0,0,0,16">
                             <Button Command="{Binding ActivateCommand}" Style="{DynamicResource StormHeroButton}" Padding="10,8" Margin="0,0,6,0">
