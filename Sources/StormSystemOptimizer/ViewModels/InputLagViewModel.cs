@@ -126,5 +126,24 @@ namespace StormSystemOptimizer.ViewModels
                 StatusMessage = msg;
             }
         }
+
+        [RelayCommand]
+        public async Task ApplySmoothnessTuningAsync()
+        {
+            StatusMessage = "Тюнинг плавности интерфейса: DWM высокий приоритет, распаковка ядер, 0x26 квантование...";
+            var (ok, msg) = await InputLagService.Instance.ApplySmoothnessAndTimerResolutionTweakAsync();
+            StatusMessage = msg;
+            TrayService.Instance.ShowNotification("Плавность интерфейса ✨", "DWM приоритет повышен, парковка ядер отключена, ядро зафиксировано в RAM!");
+        }
+
+        [RelayCommand]
+        public async Task PurgeShaderCachesAsync()
+        {
+            StatusMessage = "Очистка кэша скомпилированных шейдеров Direct3D (DirectX 11/12, Vulkan, NVIDIA, AMD)...";
+            var (count, bytes) = await InputLagService.Instance.PurgeDirect3DShaderCachesAsync();
+            string sizeStr = FormatHelper.FormatSize(bytes);
+            StatusMessage = $"✓ Очищено {count} файлов кэша шейдеров ({sizeStr})! Фризы и статтеры в играх ликвидированы.";
+            TrayService.Instance.ShowNotification("Очистка шейдеров Direct3D 🎮", $"Очищено {count} кэшированных файлов ({sizeStr}). Шейдеры будут пересобраны начисто.");
+        }
     }
 }

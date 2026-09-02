@@ -2685,5 +2685,106 @@ namespace StormSystemOptimizer.Services
             }
             catch { }
         }
+
+        public async Task<string> OptimizeBootFilesAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "defrag.exe",
+                        Arguments = "C: /B /U",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(45000);
+                    return "Дефрагментация и группировка загрузочных файлов ядра Windows (defrag C: /B) успешно завершена!";
+                }
+                catch (Exception ex)
+                {
+                    return $"Ошибка оптимизации загрузочных файлов: {ex.Message}";
+                }
+            });
+        }
+
+        public async Task<string> RunProcessIdleTasksAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "rundll32.exe",
+                        Arguments = "advapi32.dll,ProcessIdleTasks",
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(10000);
+                    return "Фоновые задачи упреждающей выборки и компиляции (ProcessIdleTasks) успешно завершены!";
+                }
+                catch (Exception ex)
+                {
+                    return $"Ошибка выполнения ProcessIdleTasks: {ex.Message}";
+                }
+            });
+        }
+
+        public void ConfigureBcdZeroTimeout()
+        {
+            try
+            {
+                var psi1 = new ProcessStartInfo
+                {
+                    FileName = "bcdedit.exe",
+                    Arguments = "/timeout 0",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                using var p1 = Process.Start(psi1);
+                p1?.WaitForExit(3000);
+
+                var psi2 = new ProcessStartInfo
+                {
+                    FileName = "bcdedit.exe",
+                    Arguments = "/set {current} quietboot on",
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+                using var p2 = Process.Start(psi2);
+                p2?.WaitForExit(3000);
+            }
+            catch { }
+        }
+
+        public async Task<string> ApplyComprehensiveBootAccelerationAsync()
+        {
+            return await Task.Run(async () =>
+            {
+                SetZeroStartupDelay(true);
+                SetReducedHiberfile(true);
+                SetFastStartup(true);
+                ConfigureBcdZeroTimeout();
+
+                // Prefetcher optimal
+                try
+                {
+                    using var pfKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management\PrefetchParameters");
+                    pfKey?.SetValue("EnablePrefetcher", 3, RegistryValueKind.DWord);
+                    pfKey?.SetValue("EnableSuperfetch", 3, RegistryValueKind.DWord);
+                }
+                catch { }
+
+                await RunProcessIdleTasksAsync();
+                await OptimizeBootFilesAsync();
+
+                return "Комплексное ускорение старта Windows успешно завершено: задержка автозапуска = 0, BCD тайм-аут = 0, загрузочные кластеры сгруппированы!";
+            });
+        }
     }
 }

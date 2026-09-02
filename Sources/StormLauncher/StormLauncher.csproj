@@ -8,13 +8,13 @@
     <ApplicationIcon>..\..\Files\AppIcon.ico</ApplicationIcon>
     <AssemblyName>StormLauncher</AssemblyName>
     <RootNamespace>StormLauncher</RootNamespace>
-    <Version>2.0.8</Version>
-    <AssemblyVersion>2.0.8.0</AssemblyVersion>
-    <FileVersion>2.0.8.0</FileVersion>
-    <AssemblyTitle>STORM Fast Zero-UAC Launcher 2.0.8</AssemblyTitle>
-    <Product>STORM Fast Zero-UAC Launcher 2.0.8</Product>
-    <Title>STORM Fast Zero-UAC Launcher 2.0.8</Title>
-    <Description>STORM Fast Zero-UAC Launcher 2.0.8</Description>
+    <Version>2.0.9</Version>
+    <AssemblyVersion>2.0.9.0</AssemblyVersion>
+    <FileVersion>2.0.9.0</FileVersion>
+    <AssemblyTitle>STORM Fast Zero-UAC Launcher 2.0.9</AssemblyTitle>
+    <Product>STORM Fast Zero-UAC Launcher 2.0.9</Product>
+    <Title>STORM Fast Zero-UAC Launcher 2.0.9</Title>
+    <Description>STORM Fast Zero-UAC Launcher 2.0.9</Description>
     <Company>STORM TEAM</Company>
     <Authors>STORM TEAM</Authors>
     <Copyright>Copyright © 2026 STORM TEAM</Copyright>

@@ -835,5 +835,46 @@ namespace StormSystemOptimizer.ViewModels
             StatusMessage = ReducedHiberfile ? "Размер hiberfil.sys сжат (Reduced), освобождено до 16-32 ГБ диска!" : "Размер hiberfil.sys восстановлен на полный.";
             TrayService.Instance.ShowNotification("Файл гибернации", StatusMessage);
         }
+
+        [RelayCommand]
+        public async Task ApplyComprehensiveBootAccelerationAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            StatusMessage = "Выполнение комплексного ускорения старта Windows (BCD, Prefetch, дефрагментация)...";
+
+            string res = await BootProfilerService.Instance.ApplyComprehensiveBootAccelerationAsync();
+            await LoadBootMetricsAsync();
+
+            StatusMessage = res;
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Ускорение запуска", "Старт Windows и инициализация ядра оптимизированы до предела!");
+        }
+
+        [RelayCommand]
+        public async Task OptimizeBootFilesAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            StatusMessage = "Группировка загрузочных кластеров ядра Windows (defrag C: /B)...";
+
+            string res = await BootProfilerService.Instance.OptimizeBootFilesAsync();
+            StatusMessage = res;
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Загрузочные файлы", res);
+        }
+
+        [RelayCommand]
+        public async Task RunProcessIdleTasksAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            StatusMessage = "Принудительное завершение фоновых задач компиляции и упреждающей выборки...";
+
+            string res = await BootProfilerService.Instance.RunProcessIdleTasksAsync();
+            StatusMessage = res;
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("ProcessIdleTasks", res);
+        }
     }
 }

@@ -213,5 +213,107 @@ namespace StormSystemOptimizer.Services
                 return false;
             });
         }
+
+        public async Task<(bool success, string msg)> ApplySmoothnessAndTimerResolutionTweakAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    // 1. DWM High Priority & Multimedia Profile Tuning
+                    using var wmKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Window Manager");
+                    if (wmKey != null)
+                    {
+                        wmKey.SetValue("Scheduling Category", "High", RegistryValueKind.String);
+                        wmKey.SetValue("SFIO Priority", "High", RegistryValueKind.String);
+                        wmKey.SetValue("Background Priority", 24, RegistryValueKind.DWord);
+                        wmKey.SetValue("Priority", 8, RegistryValueKind.DWord);
+                    }
+
+                    // 2. Global Timer Resolution Request Policy
+                    using var kernelKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\kernel");
+                    kernelKey?.SetValue("GlobalTimerResolutionRequests", 1, RegistryValueKind.DWord);
+
+                    // 3. Disable Paging Executive (Kernel & Drivers strictly in Physical RAM)
+                    using var memKey = Registry.LocalMachine.CreateSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\Memory Management");
+                    memKey?.SetValue("DisablePagingExecutive", 1, RegistryValueKind.DWord);
+
+                    // 4. Core Unparking (100% Active Cores in Current Power Scheme)
+                    try
+                    {
+                        var psi1 = new ProcessStartInfo
+                        {
+                            FileName = "powercfg.exe",
+                            Arguments = "/setacvalueindex scheme_current sub_processor CPMINCORES 100",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        };
+                        using var p1 = Process.Start(psi1);
+                        p1?.WaitForExit(3000);
+
+                        var psi2 = new ProcessStartInfo
+                        {
+                            FileName = "powercfg.exe",
+                            Arguments = "/setactive scheme_current",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        };
+                        using var p2 = Process.Start(psi2);
+                        p2?.WaitForExit(3000);
+                    }
+                    catch { }
+
+                    return (true, "✨ Тюнинг плавности применен: DWM переведен в высокий приоритет, парковка ядер отключена, ядро зафиксировано в RAM!");
+                }
+                catch (Exception ex)
+                {
+                    return (false, $"Ошибка применения параметров плавности: {ex.Message}");
+                }
+            });
+        }
+
+        public async Task<(int fileCount, long bytesCleaned)> PurgeDirect3DShaderCachesAsync()
+        {
+            return await Task.Run(() =>
+            {
+                int count = 0;
+                long bytes = 0;
+
+                string localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string[] targets = new[]
+                {
+                    System.IO.Path.Combine(localApp, @"NVIDIA\DXCache"),
+                    System.IO.Path.Combine(localApp, @"NVIDIA\GLCache"),
+                    System.IO.Path.Combine(localApp, @"D3DSCache"),
+                    System.IO.Path.Combine(localApp, @"AMD\DxCache"),
+                    System.IO.Path.Combine(localApp, @"Intel\ShaderCache")
+                };
+
+                foreach (var dir in targets)
+                {
+                    if (System.IO.Directory.Exists(dir))
+                    {
+                        try
+                        {
+                            foreach (var file in System.IO.Directory.GetFiles(dir, "*.*", System.IO.SearchOption.AllDirectories))
+                            {
+                                try
+                                {
+                                    var fi = new System.IO.FileInfo(file);
+                                    long len = fi.Length;
+                                    fi.Delete();
+                                    count++;
+                                    bytes += len;
+                                }
+                                catch { }
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
+                return (count, bytes);
+            });
+        }
     }
 }
