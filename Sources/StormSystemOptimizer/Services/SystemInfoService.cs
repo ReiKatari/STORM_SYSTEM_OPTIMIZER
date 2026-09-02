@@ -766,9 +766,9 @@ namespace StormSystemOptimizer.Services
             }
 
             sb.AppendLine("================================================================================");
-            sb.AppendLine("         Сформировано через STORM Engine 2.0.8 • 100% Safe Optimization         ");
+            sb.AppendLine("         Сформировано через STORM Engine 2.0.9 • 100% Safe Optimization         ");
             sb.AppendLine("================================================================================");
-            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.8                        ");
+            sb.AppendLine("             Конец отчета • STORM SYSTEM OPTIMIZER 2.0.9                        ");
             sb.AppendLine("================================================================================");
             return sb.ToString();
         }
@@ -791,8 +791,8 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
             sb.AppendLine("<div class='container'>");
-            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.8 — Диагностический отчет</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine 2.0.8</p>");
+            sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER 2.0.9 — Диагностический отчет</h1>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine 2.0.9</p>");
             return sb.ToString();
         }
 
@@ -806,7 +806,7 @@ namespace StormSystemOptimizer.Services
             sb.AppendLine("td{padding:8px 0;border-bottom:1px solid #1F2937;}.prop{color:#94A3B8;width:40%;}.val{color:#F8FAFC;font-weight:bold;}");
             sb.AppendLine("</style></head><body>");
             sb.AppendLine("<h1>⚡ STORM SYSTEM OPTIMIZER — Спецификация системы</h1>");
-            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine 2.0.8</p>");
+            sb.AppendLine($"<p style='color:#64748B;'>Сформировано: {DateTime.Now:dd.MM.yyyy HH:mm:ss} • STORM Engine 2.0.9</p>");
 
             foreach (var cat in specs)
             {

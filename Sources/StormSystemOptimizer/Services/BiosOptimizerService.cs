@@ -289,26 +289,144 @@ namespace StormSystemOptimizer.Services
                 }
 
                 // -------------------------------------------------------------
-                // 3. CPU Power Limits & Thermal Control (i9-9900KS / high TDP)
+                // 3. CPU Thermal State & Power Limits (Deeply Adaptive to Temperature)
                 // -------------------------------------------------------------
-                if (isIntel && (b.CpuName.Contains("9900") || b.CpuName.Contains("10900") || b.CpuName.Contains("12900") || b.CpuName.Contains("13900") || b.CpuName.Contains("14900")))
+                if (b.CpuTemperatureC >= 75.0)
                 {
                     list.Add(new BiosSettingItem
                     {
-                        Id = "bios_thermal_limits_intel",
-                        Title = $"Контроль лимитов мощности и температур для {b.CpuName} (Текущая T: {b.CpuTemperatureC:F0}°C)",
-                        Category = "Процессор (CPU)",
-                        RecommendedValue = "ASUS MultiCore Enhancement [Disabled - Enforce All Limits] / LLC [Level 5/6]",
-                        CurrentStatus = $"Температура процессора в норме ({b.CpuTemperatureC:F0}°C) • Защита от перегрева",
-                        PerformanceImpact = "Снижение пикового нагрева на 10–15°C при стабильных 5.0 ГГц",
-                        SafetyLevel = "100% Защита кремния от перегрева и деградации",
-                        Explanation = $"Процессор {b.CpuName} при снятых лимитах может кратковременно выделять 220–250+ Вт тепла. На материнских платах {b.Manufacturer} ({b.Model}) опция Multi-Core Enhancement по умолчанию подает завышенное напряжение. Рекомендуется: отключить MCE [Disabled / Enforce All Limits] и настроить калибровку цепей питания (LLC) на Level 5 или 6 для снижения температур без потери частот.",
-                        MenuPathAsus = "Ai Tweaker ➔ ASUS MultiCore Enhancement [Disabled - Enforce All Limits] ➔ DIGI+ VRM ➔ CPU Load-line Calibration [Level 5]",
-                        MenuPathMsi = "OC ➔ DigitALL Power ➔ CPU Loadline Calibration Control [Mode 4/5]",
-                        MenuPathGigabyte = "Tweaker ➔ Advanced Voltage Settings ➔ CPU Vcore Loadline Calibration [Medium/High]",
-                        MenuPathAsrock = "OC Tweaker ➔ Voltage Configuration ➔ CPU Vcore Load-Line Calibration [Level 2/3]"
+                        Id = "bios_thermal_crisis_undervolt",
+                        Title = $"Снижение напряжения (Undervolt) и защита от троттлинга (CPU {b.CpuTemperatureC:F0}°C - Высокий нагрев)",
+                        Category = "Охлаждение и лимиты",
+                        RecommendedValue = "Core Voltage Offset [-50mV...-80mV] / CPU Lite Load [Mode 9-11] / MCE [Disabled]",
+                        CurrentStatus = $"Повышенная температура CPU ({b.CpuTemperatureC:F0}°C) • Требуется оптимизация кривой напряжения",
+                        PerformanceImpact = "Снижение нагрева на 10–18°C без падения частот и защита от троттлинга",
+                        SafetyLevel = "100% Безопасно (Снижение избыточного фабричного напряжения)",
+                        Explanation = $"Текущая температура процессора ({b.CpuTemperatureC:F0}°C) приближается к порогу троттлинга. Материнские платы {b.Manufacturer} часто подают избыточное напряжение (до 1.38–1.45V) по умолчанию. Настройка отрицательного смещения напряжения (Offset -50mV до -80mV) или переключение CPU Lite Load на Mode 9-11 (для плат MSI) кардинально снижает энергопотребление и нагрев кристалла при сохранении 100% максимальной тактовой частоты.",
+                        MenuPathAsus = "Ai Tweaker ➔ Actual VRM Core Voltage [Offset Mode] ➔ Offset Mode Sign [-] ➔ CPU Core Voltage Offset [0.05000 - 0.08000] ➔ ASUS MultiCore Enhancement [Disabled]",
+                        MenuPathMsi = "OC ➔ CPU Core Voltage Mode [Offset Mode] ➔ Offset Prefix [-] ➔ CPU Core Voltage Offset [0.050] ➔ CPU Lite Load [Mode 9/11]",
+                        MenuPathGigabyte = "Tweaker ➔ Dynamic Vcore (DVID) [-0.050V] ➔ Enhanced Multi-Core Performance [Disabled]",
+                        MenuPathAsrock = "OC Tweaker ➔ Voltage Configuration ➔ CPU Core/Cache Voltage [Offset Mode] ➔ Offset Voltage [-50mV]"
                     });
                 }
+                else if (b.CpuTemperatureC < 60.0)
+                {
+                    list.Add(new BiosSettingItem
+                    {
+                        Id = "bios_thermal_headroom_boost",
+                        Title = $"Увеличение времени пикового Turbo Boost (Запас по температуре: CPU {b.CpuTemperatureC:F0}°C - Холодный режим)",
+                        Category = "Процессор (CPU)",
+                        RecommendedValue = "Long Duration Package Power Limit (PL1) [253W/Max] ➔ Package Power Time Window (Tau) [128s-448s]",
+                        CurrentStatus = $"Отличный запас охлаждения ({b.CpuTemperatureC:F0}°C) • Процессор не ограничен кулером",
+                        PerformanceImpact = "+5–10% устойчивой производительности в играх и компиляции без сброса частот",
+                        SafetyLevel = "100% Безопасно при текущих низких температурах",
+                        Explanation = $"Система охлаждения вашего {b.CpuName} работает эффективно ({b.CpuTemperatureC:F0}°C). Стандартные лимиты Intel/AMD сбрасывают частоты с 5.0+ ГГц до базовых спустя 28–56 секунд тяжелой нагрузки (Tau). Увеличение окна времени Tau до 128–448 секунд и выравнивание PL1=PL2 позволяет процессору непрерывно удерживать максимальную турбо-частоту всех ядер.",
+                        MenuPathAsus = "Ai Tweaker ➔ Internal CPU Power Management ➔ Long Duration Package Power Limit [4095] ➔ Package Power Time Window [448]",
+                        MenuPathMsi = "OC ➔ Advanced CPU Configuration ➔ Long Duration Power Limit(W) [4096] ➔ Long Duration Maintained(s) [128]",
+                        MenuPathGigabyte = "Tweaker ➔ Advanced CPU Settings ➔ Package Power Limit1 [4096] ➔ Package Power Limit1 Time [128s]",
+                        MenuPathAsrock = "OC Tweaker ➔ CPU Configuration ➔ Long Duration Power Limit [4095] ➔ Long Duration Maintained [128s]"
+                    });
+                }
+
+                // -------------------------------------------------------------
+                // 3.1. Motherboard VRM Thermal State
+                // -------------------------------------------------------------
+                if (b.MotherboardTemperatureC >= 48.0)
+                {
+                    list.Add(new BiosSettingItem
+                    {
+                        Id = "bios_vrm_thermal_control",
+                        Title = $"Оптимизация фаз питания VRM и обдува радиаторов (T платы: {b.MotherboardTemperatureC:F0}°C)",
+                        Category = "Охлаждение и вентиляторы",
+                        RecommendedValue = "VRM Switching Frequency [350-400 kHz] ➔ CPU VRM Phase Control [Optimized] ➔ Fan Source [VRM/MOS]",
+                        CurrentStatus = $"Повышенная температура зоны цепей питания ({b.MotherboardTemperatureC:F0}°C)",
+                        PerformanceImpact = "Снижение нагрева мосфетов на 8–12°C и стабильное напряжение без просадок Vdroop",
+                        SafetyLevel = "100% Защита компонентов материнской платы от деградации",
+                        Explanation = $"Температура материнской платы/чипсета составляет {b.MotherboardTemperatureC:F0}°C. Завышенная частота переключения фаз питания (500+ кГц) разогревает мосфеты VRM. Фиксация частоты на уровне 350–400 кГц и привязка датчика температуры корпусных вентиляторов к источнику VRM/Motherboard нормализует тепловой режим силовых цепей.",
+                        MenuPathAsus = "Ai Tweaker ➔ DIGI+ VRM ➔ VRM Switching Frequency [Manual - 350/400] ➔ CPU VRM Phase Control [Optimized]",
+                        MenuPathMsi = "OC ➔ DigitALL Power ➔ CPU VRM Switching Frequency [350] ➔ CPU Phase Control [Optimized]",
+                        MenuPathGigabyte = "Tweaker ➔ Advanced Voltage Settings ➔ CPU Vcore PWM Frequency [350-400 KHz]",
+                        MenuPathAsrock = "OC Tweaker ➔ Voltage Configuration ➔ PWM Switching Frequency [350 KHz]"
+                    });
+                }
+                else
+                {
+                    list.Add(new BiosSettingItem
+                    {
+                        Id = "bios_vrm_extreme_duty",
+                        Title = $"Производительный режим фаз питания VRM (T платы: {b.MotherboardTemperatureC:F0}°C - Температура в норме)",
+                        Category = "Процессор (CPU)",
+                        RecommendedValue = "CPU VRM Power Duty Control [T.Probe] ➔ VRM Spread Spectrum [Disabled]",
+                        CurrentStatus = $"Тепловой режим материнской платы ({b.MotherboardTemperatureC:F0}°C) стабилен",
+                        PerformanceImpact = "Мгновенная подача тока при резких скачках нагрузки в играх без просадок напряжения",
+                        SafetyLevel = "100% Безопасно при умеренных температурах",
+                        Explanation = "Режим T.Probe балансирует тепловую нагрузку между всеми силовыми фазами питания процессора, предотвращая точечный перегрев отдельных транзисторов и обеспечивая чистый постоянный ток для стабильности системы.",
+                        MenuPathAsus = "Ai Tweaker ➔ DIGI+ VRM ➔ CPU VRM Power Duty Control [T.Probe] ➔ VRM Spread Spectrum [Disabled]",
+                        MenuPathMsi = "OC ➔ DigitALL Power ➔ Power Duty Control [T.Probe]",
+                        MenuPathGigabyte = "Tweaker ➔ Advanced Voltage Settings ➔ CPU Vcore Phase Control [Auto/Standard]",
+                        MenuPathAsrock = "OC Tweaker ➔ Voltage Configuration ➔ VRM Power Duty [T.Probe]"
+                    });
+                }
+
+                // -------------------------------------------------------------
+                // 3.2. Boot Speed Optimization: Fast Boot, CSM Disabled, POST Timeout
+                // -------------------------------------------------------------
+                list.Add(new BiosSettingItem
+                {
+                    Id = "bios_fast_boot_pure_uefi",
+                    Title = "Сверхбыстрый старт: Fast Boot, отключение CSM и минимальный POST Delay",
+                    Category = "Скорость загрузки и старт",
+                    RecommendedValue = "Fast Boot [Enabled] ➔ CSM Support [Disabled] ➔ POST Delay Time [1s / 0s] ➔ Network Stack [Disabled]",
+                    CurrentStatus = "Оптимизация фазы аппаратной инициализации прошивки (POST)",
+                    PerformanceImpact = "Сокращение времени старта ПК на 4–8 секунд при каждом включении",
+                    SafetyLevel = "100% Безопасно для современных видеокарт с поддержкой UEFI GOP",
+                    Explanation = "По умолчанию материнская плата тратит 3–5 секунд на отображение логотипа (POST Delay), опрашивает сетевой стек PXE и загружает устаревшие 16-битные модули совместимости CSM. Отключение CSM (чистый UEFI режим), установка POST Delay на 1 сек и включение Fast Boot ускоряет старт ПК до рабочего стола в 2 раза.",
+                    MenuPathAsus = "Boot ➔ Fast Boot [Enabled] ➔ POST Delay Time [1 sec] ➔ CSM (Compatibility Support Module) ➔ Launch CSM [Disabled]",
+                    MenuPathMsi = "Settings ➔ Boot ➔ Fast Boot [Enabled] ➔ POST Beep [Disabled] ➔ Boot mode select [UEFI]",
+                    MenuPathGigabyte = "Boot ➔ Fast Boot [Enabled] ➔ Setup Prompt Timeout [1] ➔ CSM Support [Disabled]",
+                    MenuPathAsrock = "Boot ➔ Fast Boot [Fast] ➔ Setup Prompt Timeout [1] ➔ CSM [Disabled]"
+                });
+
+                // -------------------------------------------------------------
+                // 3.3. DDR5 / AM5 / Modern Memory Context Restore
+                // -------------------------------------------------------------
+                if (b.RamConfiguredClockSpeed >= 4800 || isAmd)
+                {
+                    list.Add(new BiosSettingItem
+                    {
+                        Id = "bios_memory_context_restore",
+                        Title = "Memory Context Restore (Ликвидация долгой тренировки памяти DDR5)",
+                        Category = "Скорость загрузки и старт",
+                        RecommendedValue = "Memory Context Restore [Enabled] ➔ Power Down Enable [Enabled]",
+                        CurrentStatus = "Сохранение карты тренировки таймингов в энергонезависимой памяти",
+                        PerformanceImpact = "Сокращение времени холодного старта ПК с 45–60 секунд до 8–10 секунд!",
+                        SafetyLevel = "Официальная рекомендация производителей памяти и плат AMD/Intel",
+                        Explanation = "На платформах с памятью DDR5 материнская плата при каждом включении заново проводит полный цикл тренировки сигналов шины (Memory Training), что занимает до 1 минуты черного экрана. Включение Memory Context Restore вместе с Power Down Enable сохраняет обученную карту таймингов и исключает повторные тесты при каждом старте.",
+                        MenuPathAsus = "Ai Tweaker ➔ DRAM Timing Control ➔ Memory Context Restore [Enabled] ➔ Power Down Enable [Enabled]",
+                        MenuPathMsi = "OC ➔ Advanced DRAM Configuration ➔ Memory Context Restore [Enabled] ➔ Power Down Enable [Enabled]",
+                        MenuPathGigabyte = "Tweaker ➔ Advanced Memory Settings ➔ Memory Boot Mode [Fast Boot] ➔ Memory Context Restore [Enabled]",
+                        MenuPathAsrock = "OC Tweaker ➔ DRAM Configuration ➔ Memory Context Restore [Enabled]"
+                    });
+                }
+
+                // -------------------------------------------------------------
+                // 3.4. NVMe SSD M.2 High-Speed Link & Latency
+                // -------------------------------------------------------------
+                list.Add(new BiosSettingItem
+                {
+                    Id = "bios_nvme_pcie_tuning",
+                    Title = "Аппаратная фиксация шины M.2 NVMe SSD и отключение энергосбережения",
+                    Category = "Шина PCIe и накопители",
+                    RecommendedValue = "M.2 Link Speed [Gen3 / Gen4 / Gen5] ➔ SATA Mode [AHCI] ➔ NVMe APST [Disabled]",
+                    CurrentStatus = "Максимальная скорость обмена данными с накопителями NVMe",
+                    PerformanceImpact = "Ликвидация микрозадержек при чтении игровых текстур и стабильные 3500-7000 МБ/с",
+                    SafetyLevel = "100% Безопасно (Фиксация аппаратного режима накопителя)",
+                    Explanation = "В автоматическом режиме линии M.2 могут сбрасывать скорость при простое диска, вызывая задержку пробуждения при начале загрузки уровня в играх. Принудительная установка максимального поколения PCIe Gen и выбор режима AHCI гарантируют мгновенную готовность дисковой подсистемы.",
+                    MenuPathAsus = "Advanced ➔ Onboard Devices Configuration ➔ M.2 Link Speed [Gen3 / Gen4] ➔ SATA Configuration ➔ SATA Mode Selection [AHCI]",
+                    MenuPathMsi = "Settings ➔ Advanced ➔ Integrated Peripherals ➔ M2_1 - PCIe Storage Mode [Gen4/Gen3] ➔ SATA Mode [AHCI Mode]",
+                    MenuPathGigabyte = "Settings ➔ IO Ports ➔ M.2 PCIe Slot Speed [Gen3/Gen4] ➔ SATA Mode Selection [AHCI]",
+                    MenuPathAsrock = "Advanced ➔ Storage Configuration ➔ SATA Mode Selection [AHCI] ➔ M.2 Link Speed [Force Gen3/Gen4]"
+                });
 
                 // -------------------------------------------------------------
                 // 4. Intel Speed Shift (HWP)

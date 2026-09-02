@@ -86,6 +86,37 @@
                 </Border>
             </UniformGrid>
 
+            <!-- Smoothness & Direct3D Shader Suite Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8" VerticalAlignment="Center">
+                        <Border Background="#1AC084FC" BorderBrush="#33C084FC" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoVisual}" Fill="{StaticResource IconGradPurple}" Width="12" Height="12" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="Плавность интерфейса DWM и стабильность Direct3D" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <TextBlock Text="Перевод диспетчера окон DWM в высокий класс приоритета, квантование потоков 0x26 (3:1 boost переднего плана), фиксация ядра в оперативной памяти (DisablePagingExecutive) и очистка скомпилированных шейдеров Direct3D/Vulkan для ликвидации микрозадержек."
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14" TextWrapping="Wrap"/>
+
+                    <WrapPanel Orientation="Horizontal">
+                        <Button Command="{Binding ApplySmoothnessTuningCommand}" Style="{StaticResource StormHeroButton}" Padding="16,10" Margin="0,0,10,6">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeoVisual}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
+                                <TextBlock Text="Форсировать плавность DWM и распаковку ядер" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            </StackPanel>
+                        </Button>
+
+                        <Button Command="{Binding PurgeShaderCachesCommand}" Style="{StaticResource StormSecondaryButton}" Padding="14,10" Margin="0,0,0,6">
+                            <StackPanel Orientation="Horizontal">
+                                <Path Data="{StaticResource GeoScanner}" Fill="{StaticResource IconGradRose}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
+                                <TextBlock Text="Очистить кэш шейдеров Direct3D (DX11/12, Vulkan)" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </StackPanel>
+                        </Button>
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
             <!-- Status Banner -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10">
                 <TextBlock Text="{Binding StatusMessage}" FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
