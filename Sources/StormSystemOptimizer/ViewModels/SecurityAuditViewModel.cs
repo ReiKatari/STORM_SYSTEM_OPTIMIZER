@@ -66,82 +66,119 @@ namespace StormSystemOptimizer.ViewModels
             if (IsBusy) return;
             IsBusy = true;
 
-            var progress = new Progress<string>(msg =>
+            try
             {
-                Application.Current?.Dispatcher?.Invoke(() => StatusMessage = msg);
-            });
+                var progress = new Progress<string>(msg =>
+                {
+                    Application.Current?.Dispatcher?.Invoke(() => StatusMessage = msg);
+                });
 
-            var list = await MalwareHeuristicsService.Instance.ScanSystemThreatsAsync(progress);
+                var list = await MalwareHeuristicsService.Instance.ScanSystemThreatsAsync(progress);
 
-            Application.Current?.Dispatcher?.Invoke(() =>
+                Application.Current?.Dispatcher?.Invoke(() =>
+                {
+                    Threats.Clear();
+                    foreach (var t in list) Threats.Add(t);
+                    TotalThreatsCount = Threats.Count.ToString();
+                    StatusMessage = $"Сканирование угроз завершено. Обнаружено угроз: {Threats.Count}";
+                });
+            }
+            catch (Exception ex)
             {
-                Threats.Clear();
-                foreach (var t in list) Threats.Add(t);
-                TotalThreatsCount = Threats.Count.ToString();
-                StatusMessage = $"Сканирование угроз завершено. Обнаружено угроз: {Threats.Count}";
+                StatusMessage = $"Ошибка при сканировании: {ex.Message}";
+            }
+            finally
+            {
                 IsBusy = false;
-            });
+            }
         }
 
         private async Task ExecuteResolveThreatAsync(SecurityThreatItem threat)
         {
             IsBusy = true;
-            StatusMessage = $"Устранение угрозы: {threat.Title}...";
-            bool ok = await MalwareHeuristicsService.Instance.ResolveThreatAsync(threat);
-
-            Application.Current?.Dispatcher?.Invoke(() =>
+            try
             {
-                if (ok)
+                StatusMessage = $"Устранение угрозы: {threat.Title}...";
+                bool ok = await MalwareHeuristicsService.Instance.ResolveThreatAsync(threat);
+
+                Application.Current?.Dispatcher?.Invoke(() =>
                 {
-                    Threats.Remove(threat);
-                    TotalThreatsCount = Threats.Count.ToString();
-                    StatusMessage = "Угроза успешно нейтрализована!";
-                }
-                else
-                {
-                    StatusMessage = "Не удалось устранить угрозу (возможно, объект защищен системой).";
-                }
+                    if (ok)
+                    {
+                        Threats.Remove(threat);
+                        TotalThreatsCount = Threats.Count.ToString();
+                        StatusMessage = "Угроза успешно нейтрализована!";
+                    }
+                    else
+                    {
+                        StatusMessage = "Не удалось устранить угрозу (возможно, объект защищен системой).";
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка устранения: {ex.Message}";
+            }
+            finally
+            {
                 IsBusy = false;
-            });
+            }
         }
 
         public async Task ExecuteScanFirewallAsync()
         {
-            var progress = new Progress<string>(msg =>
+            try
             {
-                Application.Current?.Dispatcher?.Invoke(() => StatusMessage = msg);
-            });
-
-            var list = await FirewallAuditService.Instance.ScanFirewallRulesAsync(progress);
-
-            Application.Current?.Dispatcher?.Invoke(() =>
-            {
-                FirewallRules.Clear();
-                int orphaned = 0;
-                foreach (var r in list)
+                var progress = new Progress<string>(msg =>
                 {
-                    FirewallRules.Add(r);
-                    if (r.IsOrphaned) orphaned++;
-                }
+                    Application.Current?.Dispatcher?.Invoke(() => StatusMessage = msg);
+                });
 
-                FirewallRulesCount = FirewallRules.Count.ToString();
-                OrphanedRulesCount = orphaned.ToString();
-                StatusMessage = $"Брандмауэр: загружено {FirewallRules.Count} правил (сиротских: {orphaned})";
-            });
+                var list = await FirewallAuditService.Instance.ScanFirewallRulesAsync(progress);
+
+                Application.Current?.Dispatcher?.Invoke(() =>
+                {
+                    FirewallRules.Clear();
+                    int orphaned = 0;
+                    foreach (var r in list)
+                    {
+                        FirewallRules.Add(r);
+                        if (r.IsOrphaned) orphaned++;
+                    }
+
+                    FirewallRulesCount = FirewallRules.Count.ToString();
+                    OrphanedRulesCount = orphaned.ToString();
+                    StatusMessage = $"Брандмауэр: загружено {FirewallRules.Count} правил (сиротских: {orphaned})";
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка брандмауэра: {ex.Message}";
+            }
         }
 
         private async Task ExecutePurgeFirewallAsync()
         {
             IsBusy = true;
-            StatusMessage = "Удаление устаревших правил Брандмауэра...";
-            int purged = await FirewallAuditService.Instance.PurgeOrphanedRulesAsync();
-            await ExecuteScanFirewallAsync();
-
-            Application.Current?.Dispatcher?.Invoke(() =>
+            try
             {
-                StatusMessage = $"Очистка завершена! Удалено сиротских правил: {purged}";
+                StatusMessage = "Удаление устаревших правил Брандмауэра...";
+                int purged = await FirewallAuditService.Instance.PurgeOrphanedRulesAsync();
+                await ExecuteScanFirewallAsync();
+
+                Application.Current?.Dispatcher?.Invoke(() =>
+                {
+                    StatusMessage = $"Очистка завершена: удалено {purged} сиротских правил.";
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка очистки правил: {ex.Message}";
+            }
+            finally
+            {
                 IsBusy = false;
-            });
+            }
         }
 
         private void ExecuteBrowseFile()

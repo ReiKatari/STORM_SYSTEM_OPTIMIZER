@@ -7,22 +7,46 @@ using System.Management;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 
+using CommunityToolkit.Mvvm.ComponentModel;
+
 namespace StormSystemOptimizer.Services
 {
-    public class PciDeviceInterruptInfo
+    public partial class PciDeviceInterruptInfo : ObservableObject
     {
-        public string InstanceId { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string Category { get; set; } = "Устройство";
-        public string Driver { get; set; } = string.Empty;
-        public bool IsMsiSupported { get; set; }
-        public bool IsMsiEnabled { get; set; }
+        [ObservableProperty]
+        private string _instanceId = string.Empty;
+
+        [ObservableProperty]
+        private string _name = string.Empty;
+
+        [ObservableProperty]
+        private string _category = "Устройство";
+
+        [ObservableProperty]
+        private string _driver = string.Empty;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(MsiSupported))]
+        private bool _isMsiSupported = true;
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(MsiEnabled))]
+        private bool _isMsiEnabled = false;
+
         public bool MsiSupported => IsMsiSupported;
         public bool MsiEnabled => IsMsiEnabled;
-        public ulong CurrentAffinityMask { get; set; } = 0; // 0 = Default (all cores)
-        public string Priority { get; set; } = "Normal";
-        public string StatusSummary { get; set; } = string.Empty;
-        public string Recommendation { get; set; } = string.Empty;
+
+        [ObservableProperty]
+        private ulong _currentAffinityMask = 0; // 0 = Default (all cores)
+
+        [ObservableProperty]
+        private string _priority = "Normal";
+
+        [ObservableProperty]
+        private string _statusSummary = string.Empty;
+
+        [ObservableProperty]
+        private string _recommendation = string.Empty;
     }
 
     public class InterruptAffinityService
@@ -187,10 +211,11 @@ namespace StormSystemOptimizer.Services
         {
             return await Task.Run(() =>
             {
+                string basePath = $@"SYSTEM\CurrentControlSet\Enum\{instanceId}\Device Parameters\Interrupt Management";
+                bool directSuccess = false;
+
                 try
                 {
-                    string basePath = $@"SYSTEM\CurrentControlSet\Enum\{instanceId}\Device Parameters\Interrupt Management";
-
                     // Affinity Policy
                     using (var affKey = Registry.LocalMachine.CreateSubKey($@"{basePath}\Affinity Policy"))
                     {
@@ -198,7 +223,6 @@ namespace StormSystemOptimizer.Services
                         {
                             if (affinityMask == 0)
                             {
-                                // Default / all cores
                                 try { affKey.DeleteValue("AssignmentSetOverride"); } catch { }
                                 try { affKey.DeleteValue("DevicePolicy"); } catch { }
                             }
@@ -219,14 +243,60 @@ namespace StormSystemOptimizer.Services
                         {
                             msiKey.SetValue("MSISupported", enableMsi ? 1 : 0, RegistryValueKind.DWord);
                             msiKey.SetValue("MessageNumberLimit", 16, RegistryValueKind.DWord);
+                            directSuccess = true;
                         }
                     }
+
+                    if (directSuccess) return true;
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[InterruptAffinityService] Direct SetDeviceAffinity failed: {ex.Message}, trying silent fallback...");
+                }
+
+                // Fallback for protected Enum keys: invoke silent registry update via temp cmd file without any visible window
+                try
+                {
+                    string tmpCmd = Path.Combine(Path.GetTempPath(), $"storm_pci_{Guid.NewGuid():N}.cmd");
+                    string regPath = $@"HKLM\SYSTEM\CurrentControlSet\Enum\{instanceId}\Device Parameters\Interrupt Management";
+                    var lines = new List<string>
+                    {
+                        "@echo off",
+                        $"reg.exe add \"{regPath}\\MessageSignaledInterruptProperties\" /v MSISupported /t REG_DWORD /d {(enableMsi ? 1 : 0)} /f >nul 2>&1",
+                        $"reg.exe add \"{regPath}\\MessageSignaledInterruptProperties\" /v MessageNumberLimit /t REG_DWORD /d 16 /f >nul 2>&1"
+                    };
+
+                    if (affinityMask == 0)
+                    {
+                        lines.Add($"reg.exe delete \"{regPath}\\Affinity Policy\" /v AssignmentSetOverride /f >nul 2>&1");
+                        lines.Add($"reg.exe delete \"{regPath}\\Affinity Policy\" /v DevicePolicy /f >nul 2>&1");
+                    }
+                    else
+                    {
+                        lines.Add($"reg.exe add \"{regPath}\\Affinity Policy\" /v DevicePolicy /t REG_DWORD /d 4 /f >nul 2>&1");
+                        lines.Add($"reg.exe add \"{regPath}\\Affinity Policy\" /v DevicePriority /t REG_DWORD /d {priority} /f >nul 2>&1");
+                    }
+
+                    File.WriteAllLines(tmpCmd, lines);
+
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/c \"{tmpCmd}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+
+                    using var proc = Process.Start(psi);
+                    proc?.WaitForExit(2500);
+                    try { File.Delete(tmpCmd); } catch { }
 
                     return true;
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[InterruptAffinityService] SetDeviceAffinity Error: {ex.Message}");
+                    Debug.WriteLine($"[InterruptAffinityService] Silent SetDeviceAffinity Error: {ex.Message}");
                     return false;
                 }
             });

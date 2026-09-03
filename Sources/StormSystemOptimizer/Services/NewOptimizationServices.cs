@@ -1008,7 +1008,7 @@ namespace StormSystemOptimizer.Services
             var steam = new GameLauncherDetail
             {
                 Id = "steam",
-                Name = "Steam (Valve)",
+                Name = "Steam",
                 Category = "Игровая платформа",
                 IconEmoji = "♨️",
                 Description = "Крупнейший сервис цифровой дистрибуции игр. Оптимизация WebHelper и шейдерного кэша.",
@@ -1083,7 +1083,7 @@ namespace StormSystemOptimizer.Services
             var ea = new GameLauncherDetail
             {
                 Id = "ea",
-                Name = "EA App (Electronic Arts)",
+                Name = "EA App",
                 Category = "Игровая платформа",
                 IconEmoji = "🎯",
                 Description = "Клиент Electronic Arts. Очистка IGOCache, логов и отключение фоновой службы слежения.",
@@ -1533,9 +1533,9 @@ namespace StormSystemOptimizer.Services
                                 if (!string.IsNullOrEmpty(iconStr))
                                 {
                                     string clean = iconStr.Split(',')[0].Trim('"');
-                                    if (File.Exists(clean) && clean.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) && !clean.Contains("unins", StringComparison.OrdinalIgnoreCase))
+                                    if (File.Exists(clean) && (clean.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) || clean.EndsWith(".ico", StringComparison.OrdinalIgnoreCase)) && !clean.Contains("unins", StringComparison.OrdinalIgnoreCase))
                                     {
-                                        return clean;
+                                         return clean;
                                     }
                                 }
                                 string loc = sk?.GetValue("InstallLocation")?.ToString() ?? "";
