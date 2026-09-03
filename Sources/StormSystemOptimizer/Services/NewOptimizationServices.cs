@@ -2212,6 +2212,135 @@ namespace StormSystemOptimizer.Services
             }
             catch { }
         }
+
+        public void ApplyAudioProfile(string profile)
+        {
+            try
+            {
+                switch (profile.ToLowerInvariant())
+                {
+                    case "gaming":
+                        ApplyProAudioTweaks();
+                        DisableAudioPowerSaving();
+                        OptimizeWasapiBuffer();
+                        EnableAudioControllerMsiMode();
+                        SetAudiodgAffinityAndPriority(2);
+                        break;
+
+                    case "studio":
+                        ApplyProAudioTweaks();
+                        DisableAudioPowerSaving();
+                        OptimizeWasapiBuffer();
+                        SetAudiodgAffinityAndPriority(4);
+                        break;
+
+                    case "default":
+                        using (var prof = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"))
+                        {
+                            prof.SetValue("SystemResponsiveness", 20, RegistryValueKind.DWord);
+                            prof.SetValue("NetworkThrottlingIndex", 10, RegistryValueKind.DWord);
+                        }
+                        using (var task = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio"))
+                        {
+                            task.SetValue("Priority", 6, RegistryValueKind.DWord);
+                            task.SetValue("Scheduling Category", "Medium", RegistryValueKind.String);
+                        }
+                        break;
+                }
+            }
+            catch { }
+        }
+
+        public void DisableAudioPowerSaving()
+        {
+            try
+            {
+                // Disable power savings on Media class devices to prevent audio popping / dropouts
+                const string audioClassKey = @"SYSTEM\CurrentControlSet\Control\Class\{4d36e96c-e325-11ce-bfc1-08002be10318}";
+                using var classKey = Registry.LocalMachine.OpenSubKey(audioClassKey, true);
+                if (classKey != null)
+                {
+                    foreach (var subName in classKey.GetSubKeyNames())
+                    {
+                        try
+                        {
+                            using var sub = classKey.OpenSubKey(subName, true);
+                            if (sub != null)
+                            {
+                                sub.SetValue("ConservationIdleTime", new byte[] { 0, 0, 0, 0 }, RegistryValueKind.Binary);
+                                sub.SetValue("PerformanceIdleTime", new byte[] { 0, 0, 0, 0 }, RegistryValueKind.Binary);
+                                sub.SetValue("IdlePowerState", new byte[] { 0, 0, 0, 0 }, RegistryValueKind.Binary);
+
+                                using var powerSettings = sub.OpenSubKey("PowerSettings", true);
+                                if (powerSettings != null)
+                                {
+                                    powerSettings.SetValue("ConservationIdleTime", new byte[] { 0, 0, 0, 0 }, RegistryValueKind.Binary);
+                                    powerSettings.SetValue("PerformanceIdleTime", new byte[] { 0, 0, 0, 0 }, RegistryValueKind.Binary);
+                                    powerSettings.SetValue("IdlePowerState", new byte[] { 0, 0, 0, 0 }, RegistryValueKind.Binary);
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        public void OptimizeWasapiBuffer()
+        {
+            try
+            {
+                // Audio Engine optimizations for lower buffer latency and exclusive event pull mode
+                using var engineKey = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Audio");
+                if (engineKey != null)
+                {
+                    engineKey.SetValue("DisableProtection", 1, RegistryValueKind.DWord);
+                }
+            }
+            catch { }
+        }
+
+        public void EnableAudioControllerMsiMode()
+        {
+            try
+            {
+                // Search PCI media devices for High Definition Audio / Realtek controllers
+                using var pciKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\PCI", true);
+                if (pciKey == null) return;
+
+                foreach (var devId in pciKey.GetSubKeyNames())
+                {
+                    using var devKey = pciKey.OpenSubKey(devId, true);
+                    if (devKey == null) continue;
+
+                    foreach (var instId in devKey.GetSubKeyNames())
+                    {
+                        using var instKey = devKey.OpenSubKey(instId, true);
+                        if (instKey == null) continue;
+
+                        string? service = instKey.GetValue("Service") as string;
+                        string? deviceDesc = instKey.GetValue("DeviceDesc") as string;
+                        string? classGuid = instKey.GetValue("ClassGUID") as string;
+
+                        bool isAudio = (service != null && (service.Contains("hdaud", StringComparison.OrdinalIgnoreCase) || service.Contains("RTKVHD64", StringComparison.OrdinalIgnoreCase)))
+                            || (deviceDesc != null && deviceDesc.Contains("Audio", StringComparison.OrdinalIgnoreCase))
+                            || string.Equals(classGuid, "{4d36e96c-e325-11ce-bfc1-08002be10318}", StringComparison.OrdinalIgnoreCase);
+
+                        if (isAudio)
+                        {
+                            try
+                            {
+                                using var msiKey = instKey.CreateSubKey(@"Device Parameters\Interrupt Management\MessageSignaledInterruptProperties");
+                                msiKey?.SetValue("MSISupported", 1, RegistryValueKind.DWord);
+                            }
+                            catch { }
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
     }
 
     // =========================================================================

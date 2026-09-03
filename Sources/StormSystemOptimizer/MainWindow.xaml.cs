@@ -238,6 +238,8 @@ namespace StormSystemOptimizer
                 "OfficeDeployer" => new OfficeDeployerPage(),
                 "DatabaseOptimizer" => new DatabaseOptimizerPage(),
                 "SecurityAudit" => new SecurityAuditPage(),
+                "BrowserExtensions" => new BrowserExtensionsPage(),
+                "TaskSchedulerAudit" => new TaskSchedulerAuditPage(),
                 "Settings" => new SettingsPage(),
                 _ => new DashboardPage()
             };

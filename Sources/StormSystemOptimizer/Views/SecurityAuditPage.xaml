@@ -141,34 +141,77 @@
                     </StackPanel>
                 </Border>
 
-                <!-- File Shredder Card -->
+                <!-- File Shredder & Free Space Wiper Card -->
                 <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="8,0,0,0">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                             <Border Background="#1AFB7185" BorderBrush="#33FB7185" BorderThickness="1" CornerRadius="6" Width="24" Height="24" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoShredder}" Fill="{StaticResource IconGradRose}" Width="12" Height="12" Stretch="Uniform"/>
                             </Border>
-                            <TextBlock Text="Безвозвратный шредер файлов (DoD 5220)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Шредер данных и затирание дисков" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Многопроходная перезапись байтов случайными данными перед удалением, исключающая восстановление криминалистическим ПО."
-                                   FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <TextBlock Text="Гарантированное уничтожение файлов, целых папок и затирание свободного места (DoD 5220.22-M и Peter Gutmann 35 проходов)."
+                                   FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
+                        <!-- File destruction row -->
+                        <TextBlock Text="Уничтожение отдельного файла:" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
                         <Grid Margin="0,0,0,8">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4">
-                                <TextBox Text="{Binding ShredFilePath, UpdateSourceTrigger=PropertyChanged}" FontSize="12" Background="Transparent" Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding ShredFilePath, UpdateSourceTrigger=PropertyChanged}" FontSize="11" Background="Transparent" Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0" VerticalAlignment="Center"/>
                             </Border>
-                            <Button Grid.Column="1" Command="{Binding BrowseShredFileCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="10,6" Margin="6,0,0,0">
-                                <TextBlock Text="📁 Обзор..." FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <Button Grid.Column="1" Command="{Binding BrowseShredFileCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="8,5" Margin="6,0,0,0">
+                                <TextBlock Text="📁 Файл..." FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                            <Button Grid.Column="2" Command="{Binding ShredFileCommand}" Style="{DynamicResource StormHeroButton}" Padding="10,5" Margin="6,0,0,0">
+                                <TextBlock Text="Уничтожить" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                             </Button>
                         </Grid>
 
-                        <Button Command="{Binding ShredFileCommand}" Style="{DynamicResource StormHeroButton}" Padding="14,10" MinHeight="38">
-                            <TextBlock Text="🗑️ УНИЧТОЖИТЬ ФАЙЛ БЕЗ ВОЗВРАТА" FontWeight="Bold" FontSize="11" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
+                        <!-- Folder destruction row -->
+                        <TextBlock Text="Рекурсивное уничтожение папки:" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,4,0,4"/>
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8,4">
+                                <TextBox Text="{Binding ShredFolderPath, UpdateSourceTrigger=PropertyChanged}" FontSize="11" Background="Transparent" Foreground="{DynamicResource TextPrimaryBrush}" BorderThickness="0" VerticalAlignment="Center"/>
+                            </Border>
+                            <Button Grid.Column="1" Command="{Binding BrowseShredFolderCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="8,5" Margin="6,0,0,0">
+                                <TextBlock Text="📂 Папка..." FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                            <Button Grid.Column="2" Command="{Binding ShredFolderCommand}" Style="{DynamicResource StormHeroButton}" Padding="10,5" Margin="6,0,0,0">
+                                <TextBlock Text="Уничтожить папку" FontSize="10.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            </Button>
+                        </Grid>
+
+                        <!-- Free Space Wipe row -->
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Затирание свободного места" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Уничтожение следов удалённых файлов в кластерах" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                                <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableDrives}" SelectedItem="{Binding SelectedDrive}" Width="65" Height="28" Margin="8,0" VerticalAlignment="Center" FontSize="11"/>
+                                <Button Grid.Column="2" Command="{Binding WipeFreeSpaceCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="10,5" VerticalAlignment="Center">
+                                    <TextBlock Text="Очистить диск" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </Button>
+                            </Grid>
+                        </Border>
+
+                        <!-- Progress Bar -->
+                        <ProgressBar Value="{Binding ShredProgress}" Maximum="100" Height="5" Margin="0,4,0,0" Foreground="{DynamicResource AccentPrimaryBrush}" Background="{DynamicResource AppBackgroundBrush}" BorderThickness="0"/>
                     </StackPanel>
                 </Border>
             </UniformGrid>

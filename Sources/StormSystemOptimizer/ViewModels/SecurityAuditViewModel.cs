@@ -21,6 +21,12 @@ namespace StormSystemOptimizer.ViewModels
         private string _shredFilePath = string.Empty;
 
         [ObservableProperty]
+        private string _shredFolderPath = string.Empty;
+
+        [ObservableProperty]
+        private string _selectedDrive = "C:";
+
+        [ObservableProperty]
         private double _shredProgress = 0;
 
         [ObservableProperty]
@@ -37,6 +43,7 @@ namespace StormSystemOptimizer.ViewModels
 
         public ObservableCollection<SecurityThreatItem> Threats { get; } = new();
         public ObservableCollection<FirewallRuleItem> FirewallRules { get; } = new();
+        public ObservableCollection<string> AvailableDrives { get; } = new();
 
         public ICommand ScanThreatsCommand { get; }
         public ICommand ResolveThreatCommand { get; }
@@ -44,6 +51,9 @@ namespace StormSystemOptimizer.ViewModels
         public ICommand PurgeOrphanedFirewallCommand { get; }
         public ICommand ShredFileCommand { get; }
         public ICommand BrowseShredFileCommand { get; }
+        public ICommand BrowseShredFolderCommand { get; }
+        public ICommand ShredFolderCommand { get; }
+        public ICommand WipeFreeSpaceCommand { get; }
 
         public SecurityAuditViewModel()
         {
@@ -56,6 +66,22 @@ namespace StormSystemOptimizer.ViewModels
             PurgeOrphanedFirewallCommand = new RelayCommand(async () => await ExecutePurgeFirewallAsync());
             ShredFileCommand = new RelayCommand(async () => await ExecuteShredFileAsync());
             BrowseShredFileCommand = new RelayCommand(() => ExecuteBrowseFile());
+            BrowseShredFolderCommand = new RelayCommand(() => ExecuteBrowseFolder());
+            ShredFolderCommand = new RelayCommand(async () => await ExecuteShredFolderAsync());
+            WipeFreeSpaceCommand = new RelayCommand(async () => await ExecuteWipeFreeSpaceAsync());
+
+            try
+            {
+                foreach (var d in System.IO.DriveInfo.GetDrives())
+                {
+                    if (d.IsReady && (d.DriveType == System.IO.DriveType.Fixed || d.DriveType == System.IO.DriveType.Removable))
+                    {
+                        AvailableDrives.Add(d.Name.TrimEnd('\\'));
+                    }
+                }
+                if (AvailableDrives.Count > 0) SelectedDrive = AvailableDrives[0];
+            }
+            catch { }
 
             _ = ExecuteScanThreatsAsync();
             _ = ExecuteScanFirewallAsync();
@@ -219,6 +245,77 @@ namespace StormSystemOptimizer.ViewModels
             {
                 StatusMessage = ok ? "✅ Файл успешно и безвозвратно уничтожен!" : "Ошибка при уничтожении файла";
                 if (ok) ShredFilePath = string.Empty;
+                IsBusy = false;
+            });
+        }
+
+        private void ExecuteBrowseFolder()
+        {
+            var dlg = new Microsoft.Win32.OpenFolderDialog
+            {
+                Title = "Выберите папку для гарантированного уничтожения (Шредер)"
+            };
+            if (dlg.ShowDialog() == true)
+            {
+                ShredFolderPath = dlg.FolderName;
+            }
+        }
+
+        private async Task ExecuteShredFolderAsync()
+        {
+            if (string.IsNullOrWhiteSpace(ShredFolderPath) || !System.IO.Directory.Exists(ShredFolderPath))
+            {
+                MessageBox.Show("Пожалуйста, выберите существующую папку для уничтожения.", "STORM File Shredder", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var res = MessageBox.Show($"Вы уверены, что хотите БЕЗВОЗВРАТНО уничтожить ВСЮ папку и её содержимое:\n{ShredFolderPath}\n\nВосстановление будет НЕВОЗМОЖНО.", "STORM File Shredder", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (res != MessageBoxResult.Yes) return;
+
+            IsBusy = true;
+            ShredProgress = 0;
+            StatusMessage = "Рекурсивное многопроходное уничтожение файлов в папке...";
+
+            var prog = new Progress<double>(p =>
+            {
+                Application.Current?.Dispatcher?.Invoke(() => ShredProgress = p);
+            });
+
+            bool ok = await FileShredderService.Instance.ShredDirectoryAsync(ShredFolderPath, SelectedAlgorithm, prog);
+
+            Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                StatusMessage = ok ? "✅ Папка и все вложенные файлы успешно уничтожены!" : "Ошибка при уничтожении папки";
+                if (ok) ShredFolderPath = string.Empty;
+                IsBusy = false;
+            });
+        }
+
+        private async Task ExecuteWipeFreeSpaceAsync()
+        {
+            if (string.IsNullOrWhiteSpace(SelectedDrive))
+            {
+                MessageBox.Show("Пожалуйста, выберите диск для затирания свободного места.", "STORM Free Space Wiper", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var res = MessageBox.Show($"Запустить затирание свободного места на диске {SelectedDrive}?\n\nВсе ранее удаленные файлы будут перезаписаны нулями, исключая возможность их восстановления через Recuva / R-Studio.\nСуществующие файлы затронуты НЕ будут.", "STORM Free Space Wiper", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (res != MessageBoxResult.Yes) return;
+
+            IsBusy = true;
+            ShredProgress = 0;
+            StatusMessage = $"Затирание неразмеченного свободного пространства на диске {SelectedDrive}...";
+
+            var prog = new Progress<double>(p =>
+            {
+                Application.Current?.Dispatcher?.Invoke(() => ShredProgress = p);
+            });
+
+            bool ok = await FileShredderService.Instance.WipeFreeSpaceAsync(SelectedDrive, prog);
+
+            Application.Current?.Dispatcher?.Invoke(() =>
+            {
+                StatusMessage = ok ? $"✅ Свободное пространство на диске {SelectedDrive} успешно очищено!" : "Ошибка очистки свободного места";
                 IsBusy = false;
             });
         }
