@@ -13,6 +13,19 @@ namespace StormSystemOptimizer.ViewModels
     public partial class UninstallerViewModel : ObservableObject
     {
         private List<InstalledAppItem> _allApps = new();
+        private List<InstalledAppItem> _orphanedResiduals = new();
+
+        [ObservableProperty]
+        private bool _isResidualsTabSelected = false;
+
+        [ObservableProperty]
+        private int _residualsCount = 0;
+
+        [ObservableProperty]
+        private double _residualsTotalSizeMb = 0;
+
+        [ObservableProperty]
+        private string _residualsSummaryText = "Остаточные следы не обнаружены";
 
         [ObservableProperty]
         private bool _isBusy = false;
@@ -24,7 +37,7 @@ namespace StormSystemOptimizer.ViewModels
         private string _searchQuery = string.Empty;
 
         [ObservableProperty]
-        private string _selectedCategory = "Все"; // Все, Игры, Программы, Windows Store
+        private string _selectedCategory = "Все"; // Все, Игры, Программы, Магазин Windows, Остатки программ
 
         [ObservableProperty]
         private string _selectedSort = "Размер ↓"; // "Размер ↓", "Размер ↑", "Имя (А-Я)", "Дата"
@@ -47,7 +60,7 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (IsBusy) return;
             IsBusy = true;
-            StatusText = "Сканирование реестра 64-bit, 32-bit, Steam и Windows Store...";
+            StatusText = "Сканирование реестра 64-bit, 32-bit, Steam и Магазина Windows...";
 
             _allApps = await SoftwareUninstallerService.Instance.GetInstalledAppsAsync();
 
@@ -71,6 +84,64 @@ namespace StormSystemOptimizer.ViewModels
         public void SetCategory(string category)
         {
             SelectedCategory = category;
+            IsResidualsTabSelected = (category == "Остатки программ");
+            if (IsResidualsTabSelected)
+            {
+                if (_orphanedResiduals.Count == 0)
+                {
+                    _ = LoadOrphanedResidualsAsync();
+                }
+                else
+                {
+                    ApplyFilters();
+                }
+            }
+            else
+            {
+                ApplyFilters();
+            }
+        }
+
+        [RelayCommand]
+        public async Task LoadOrphanedResidualsAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            StatusText = "Анализ системы на наличие остаточных файлов от ранее удаленных программ...";
+
+            _orphanedResiduals = await SoftwareUninstallerService.Instance.ScanOrphanedResidualsAsync(_allApps);
+            ResidualsCount = _orphanedResiduals.Count;
+            ResidualsTotalSizeMb = Math.Round(_orphanedResiduals.Sum(r => r.EstimatedSizeMb), 1);
+            ResidualsSummaryText = $"Обнаружено {ResidualsCount} программ с остаточными следами ({ResidualsTotalSizeMb} МБ мусора)";
+
+            ApplyFilters();
+            StatusText = $"Сканирование завершено: найдено {ResidualsCount} остаточных программ.";
+            IsBusy = false;
+        }
+
+        [RelayCommand]
+        public async Task CleanAllResidualsAsync()
+        {
+            if (_orphanedResiduals.Count == 0 || IsBusy) return;
+            IsBusy = true;
+            StatusText = "Полная зачистка всех обнаруженных остаточных папок и записей реестра...";
+
+            int cleanedCount = 0;
+            foreach (var r in _orphanedResiduals.ToList())
+            {
+                var (ok, _) = await SoftwareUninstallerService.Instance.CleanResidualsAsync(r);
+                if (ok) cleanedCount++;
+            }
+
+            _orphanedResiduals.Clear();
+            ResidualsCount = 0;
+            ResidualsTotalSizeMb = 0;
+            ResidualsSummaryText = "Все остаточные файлы и ключи реестра успешно удалены!";
+            ApplyFilters();
+
+            TrayService.Instance.ShowNotification("Очистка остатков ⚡", $"Успешно удалены остатки {cleanedCount} ранее удаленных программ.");
+            StatusText = $"Очистка завершена: удалены остатки {cleanedCount} программ.";
+            IsBusy = false;
         }
 
         [RelayCommand]
@@ -81,6 +152,29 @@ namespace StormSystemOptimizer.ViewModels
 
         private void ApplyFilters()
         {
+            if (SelectedCategory == "Остатки программ")
+            {
+                var residualQuery = _orphanedResiduals.AsEnumerable();
+                if (!string.IsNullOrWhiteSpace(SearchQuery))
+                {
+                    residualQuery = residualQuery.Where(a => a.DisplayName.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase));
+                }
+
+                residualQuery = SelectedSort switch
+                {
+                    "Размер ↑" => residualQuery.OrderBy(a => a.EstimatedSizeMb),
+                    "Имя (А-Я)" => residualQuery.OrderBy(a => a.DisplayName),
+                    _ => residualQuery.OrderByDescending(a => a.EstimatedSizeMb)
+                };
+
+                DisplayApps.Clear();
+                foreach (var r in residualQuery)
+                {
+                    DisplayApps.Add(r);
+                }
+                return;
+            }
+
             var query = _allApps.AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(SearchQuery))
@@ -97,9 +191,9 @@ namespace StormSystemOptimizer.ViewModels
             {
                 query = query.Where(a => a.AppType == "Программа");
             }
-            else if (SelectedCategory == "Windows Store")
+            else if (SelectedCategory == "Магазин Windows" || SelectedCategory == "Windows Store")
             {
-                query = query.Where(a => a.AppType == "Windows Store");
+                query = query.Where(a => a.AppType == "Магазин Windows" || a.AppType == "Windows Store");
             }
 
             query = SelectedSort switch
@@ -139,6 +233,18 @@ namespace StormSystemOptimizer.ViewModels
 
             var (success, msg) = await SoftwareUninstallerService.Instance.CleanResidualsAsync(item);
             StatusText = msg;
+
+            if (item.AppType == "Остатки")
+            {
+                _orphanedResiduals.RemoveAll(r => r.Id == item.Id || r.DisplayName.Equals(item.DisplayName, StringComparison.OrdinalIgnoreCase));
+                ResidualsCount = _orphanedResiduals.Count;
+                ResidualsTotalSizeMb = Math.Round(_orphanedResiduals.Sum(r => r.EstimatedSizeMb), 1);
+                ResidualsSummaryText = ResidualsCount > 0
+                    ? $"Обнаружено {ResidualsCount} программ с остаточными следами ({ResidualsTotalSizeMb} МБ мусора)"
+                    : "Все остаточные файлы и ключи реестра успешно удалены!";
+                DisplayApps.Remove(item);
+            }
+
             Controls.StormMessageBox.Show(msg, "Очистка хвостов", System.Windows.MessageBoxButton.OK, success ? System.Windows.MessageBoxImage.Information : System.Windows.MessageBoxImage.Warning);
             IsBusy = false;
         }
@@ -148,22 +254,35 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (item == null) return;
 
+            string confirmPrompt = item.AppType == "Остатки"
+                ? $"Удалить все найденные остаточные файлы и записи реестра для «{item.DisplayName}» ({item.ResidualFilesCount} файлов, {item.ResidualSizeMb} МБ)?"
+                : $"Вы действительно хотите полностью удалить «{item.DisplayName}»?\n\nБудет запущен штатный деинсталлятор, после чего STORM автоматически закроет зависшие процессы, удалит каталог установки, зачистит все остаточные папки в AppData/ProgramData и записи реестра.";
+
             var confirm = Controls.StormMessageBox.Show(
-                $"Вы действительно хотите полностью удалить «{item.DisplayName}»?\n\nБудет запущен штатный деинсталлятор, после чего STORM автоматически закроет зависшие процессы, удалит каталог установки, зачистит все остаточные папки в AppData/ProgramData и записи реестра.",
-                "Полное удаление программы",
+                confirmPrompt,
+                item.AppType == "Остатки" ? "Удаление остатков программы" : "Полное удаление программы",
                 System.Windows.MessageBoxButton.YesNo,
                 System.Windows.MessageBoxImage.Question);
 
             if (confirm != System.Windows.MessageBoxResult.Yes) return;
 
             IsBusy = true;
-            StatusText = $"Запуск деинсталлятора «{item.DisplayName}»...";
+            StatusText = item.AppType == "Остатки" ? $"Удаление остаточных следов «{item.DisplayName}»..." : $"Запуск деинсталлятора «{item.DisplayName}»...";
 
             var (success, msg) = await SoftwareUninstallerService.Instance.DeepUninstallAsync(item);
             StatusText = msg;
 
             // Immediately purge from UI collections so it instantly disappears
             _allApps.RemoveAll(a => a.Id == item.Id || a.DisplayName.Equals(item.DisplayName, StringComparison.OrdinalIgnoreCase));
+            if (item.AppType == "Остатки")
+            {
+                _orphanedResiduals.RemoveAll(r => r.Id == item.Id || r.DisplayName.Equals(item.DisplayName, StringComparison.OrdinalIgnoreCase));
+                ResidualsCount = _orphanedResiduals.Count;
+                ResidualsTotalSizeMb = Math.Round(_orphanedResiduals.Sum(r => r.EstimatedSizeMb), 1);
+                ResidualsSummaryText = ResidualsCount > 0
+                    ? $"Обнаружено {ResidualsCount} программ с остаточными следами ({ResidualsTotalSizeMb} МБ мусора)"
+                    : "Все остаточные файлы и ключи реестра успешно удалены!";
+            }
             DisplayApps.Remove(item);
             ApplyFilters();
             UpdateStatsSummary();

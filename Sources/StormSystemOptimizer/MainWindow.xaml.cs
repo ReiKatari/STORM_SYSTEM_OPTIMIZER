@@ -193,7 +193,8 @@ namespace StormSystemOptimizer
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Не удалось открыть раздел: {ex.Message}", "Навигация", MessageBoxButton.OK, MessageBoxImage.Warning);
+                string detail = ex.InnerException != null ? $"{ex.Message}\n\nПодробности: {ex.InnerException.Message}" : ex.Message;
+                MessageBox.Show($"Не удалось открыть раздел: {detail}", "Навигация", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 

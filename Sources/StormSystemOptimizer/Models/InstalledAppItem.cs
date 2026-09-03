@@ -68,7 +68,8 @@ namespace StormSystemOptimizer.Models
         public string TypeBadgeColor => AppType switch
         {
             "Игра" => "#C084FC",
-            "Windows Store" => "#38BDF8",
+            "Windows Store" or "Магазин Windows" => "#38BDF8",
+            "Остатки" => "#F59E0B",
             "Системное" => "#FB7185",
             _ => "#10B981"
         };
@@ -76,7 +77,8 @@ namespace StormSystemOptimizer.Models
         public string TypeBadgeBg => AppType switch
         {
             "Игра" => "#26C084FC",
-            "Windows Store" => "#2638BDF8",
+            "Windows Store" or "Магазин Windows" => "#2638BDF8",
+            "Остатки" => "#26F59E0B",
             "Системное" => "#26FB7185",
             _ => "#2610B981"
         };

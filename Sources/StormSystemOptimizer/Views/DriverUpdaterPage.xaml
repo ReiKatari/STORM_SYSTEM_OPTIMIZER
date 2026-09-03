@@ -63,6 +63,16 @@
                         </StackPanel>
                     </Button>
 
+                    <Button Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisConverter}}"
+                            Command="{Binding UpdateAllDriversCommand}"
+                            Style="{StaticResource StormHeroButton}"
+                            Padding="14,8" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Path Data="{StaticResource GeoAppUpdate}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
+                            <TextBlock Text="Обновить все драйверы" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </StackPanel>
+                    </Button>
+
                     <Button Command="{Binding LoadDriversCommand}" Style="{StaticResource StormHeroButton}" Padding="14,8">
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                             <Path Data="{StaticResource GeoScanner}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
@@ -151,6 +161,7 @@
                 <RadioButton Content="Материнская плата" Style="{StaticResource NavRadioButtonStyle}" Click="CatMobo_Click" Margin="0,0,6,4" Padding="10,5"/>
                 <RadioButton Content="Сеть и Wi-Fi" Style="{StaticResource NavRadioButtonStyle}" Click="CatNet_Click" Margin="0,0,6,4" Padding="10,5"/>
                 <RadioButton Content="Звук" Style="{StaticResource NavRadioButtonStyle}" Click="CatAudio_Click" Margin="0,0,6,4" Padding="10,5"/>
+                <RadioButton Content="Bluetooth" Style="{StaticResource NavRadioButtonStyle}" Click="CatBluetooth_Click" Margin="0,0,6,4" Padding="10,5"/>
                 <RadioButton Content="Накопители" Style="{StaticResource NavRadioButtonStyle}" Click="CatDisk_Click" Margin="0,0,6,4" Padding="10,5"/>
                 <RadioButton Content="Чипсет и USB" Style="{StaticResource NavRadioButtonStyle}" Click="CatChipset_Click" Margin="0,0,6,4" Padding="10,5"/>
                 <RadioButton Content="Бэкапы и точки восстановления" Style="{StaticResource NavRadioButtonStyle}" Click="CatBackups_Click" Margin="0,0,6,4" Padding="10,5"/>
