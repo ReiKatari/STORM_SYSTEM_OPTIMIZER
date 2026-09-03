@@ -23,7 +23,7 @@ namespace StormUniversal.Installer
         private PictureBox picHeaderLogo = null!;
         private Panel headerPanel = null!;
 
-        private const string AppVersion = "2.1.2";
+        private const string AppVersion = "2.1.3";
         private const string AppDisplayName = "STORM SYSTEM OPTIMIZER";
         private const string AppFolderName = "STORM SYSTEM OPTIMIZER";
         private const string ExeName = "StormSystemOptimizer.exe";
@@ -752,6 +752,17 @@ namespace StormUniversal.Installer
         {
             try
             {
+                // Write a standalone uninstall.cmd script into target directory for zero-leftover removal
+                string uninstScript = Path.Combine(targetDir, "uninstall.cmd");
+                string scriptContent = $@"@echo off
+taskkill /F /IM StormSystemOptimizer.exe /T >nul 2>&1
+taskkill /F /IM StormLauncher.exe /T >nul 2>&1
+powershell.exe -NoProfile -ExecutionPolicy Bypass -Command ""Remove-Item -Path '$env:LOCALAPPDATA\StormSystemOptimizer','$env:APPDATA\StormSystemOptimizer' -Recurse -Force -ErrorAction SilentlyContinue; Get-ChildItem '$env:APPDATA\Microsoft\Windows\Start Menu\Programs\*STORM SYSTEM OPTIMIZER*' | Remove-Item -Force -ErrorAction SilentlyContinue; Get-ChildItem '$env:USERPROFILE\Desktop\*STORM SYSTEM OPTIMIZER*' | Remove-Item -Force -ErrorAction SilentlyContinue; Remove-Item -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer','HKCU:\Software\StormSystemOptimizer' -Recurse -Force -ErrorAction SilentlyContinue"" >nul 2>&1
+start /b cmd /c ""ping 127.0.0.1 -n 2 >nul & rmdir /s /q \""{targetDir}\""""
+exit
+";
+                try { File.WriteAllText(uninstScript, scriptContent); } catch { }
+
                 using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer");
                 if (key != null)
                 {
@@ -760,7 +771,10 @@ namespace StormUniversal.Installer
                     key.SetValue("Publisher", "STORM TEAM");
                     key.SetValue("DisplayIcon", File.Exists(targetIco) ? targetIco : targetExe);
                     key.SetValue("InstallLocation", targetDir);
-                    key.SetValue("UninstallString", $"cmd.exe /c rmdir /s /q \"{targetDir}\" & del \"%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\*STORM SYSTEM OPTIMIZER*.lnk\" & del \"%USERPROFILE%\\Desktop\\*STORM SYSTEM OPTIMIZER*.lnk\"");
+                    string uninstallCmd = $"cmd.exe /c \"\"{uninstScript}\"\"";
+                    key.SetValue("UninstallString", uninstallCmd);
+                    key.SetValue("QuietUninstallString", uninstallCmd);
+                    key.SetValue("EstimatedSize", 48000, RegistryValueKind.DWord);
                 }
             }
             catch { }
@@ -778,7 +792,7 @@ namespace StormUniversal.Installer
         }
 
         [STAThread]
-        public static void Main()
+        public static void Main(string[] args)
         {
             try
             {
@@ -786,6 +800,15 @@ namespace StormUniversal.Installer
                 if (!string.IsNullOrEmpty(selfExe))
                 {
                     UnblockFile(selfExe);
+                }
+
+                // Clean Uninstall Mode
+                if (args.Length > 0 && (args[0].Equals("/uninstall", StringComparison.OrdinalIgnoreCase) ||
+                                        args[0].Equals("-uninstall", StringComparison.OrdinalIgnoreCase) ||
+                                        args[0].Equals("--uninstall", StringComparison.OrdinalIgnoreCase)))
+                {
+                    PerformFullUninstall();
+                    return;
                 }
 
                 if (!IsAdministrator())
@@ -805,6 +828,52 @@ namespace StormUniversal.Installer
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new InstallerForm());
+        }
+
+        private static void PerformFullUninstall()
+        {
+            try
+            {
+                foreach (var name in new[] { "StormSystemOptimizer", "StormLauncher" })
+                {
+                    foreach (var p in Process.GetProcessesByName(name))
+                    {
+                        try { p.Kill(); p.WaitForExit(1500); } catch { }
+                    }
+                }
+
+                string localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string roApp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string desk = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+                string startMenu = Path.Combine(roApp, @"Microsoft\Windows\Start Menu\Programs");
+
+                // Clear files
+                string targetDir = Path.Combine(localApp, "Programs", "STORM SYSTEM OPTIMIZER");
+                try { if (Directory.Exists(targetDir)) Directory.Delete(targetDir, true); } catch { }
+
+                string appData1 = Path.Combine(localApp, "StormSystemOptimizer");
+                try { if (Directory.Exists(appData1)) Directory.Delete(appData1, true); } catch { }
+
+                string appData2 = Path.Combine(roApp, "StormSystemOptimizer");
+                try { if (Directory.Exists(appData2)) Directory.Delete(appData2, true); } catch { }
+
+                // Clear shortcuts
+                try
+                {
+                    foreach (var f in Directory.GetFiles(desk, "*STORM SYSTEM OPTIMIZER*.lnk")) File.Delete(f);
+                    foreach (var f in Directory.GetFiles(startMenu, "*STORM SYSTEM OPTIMIZER*.lnk", SearchOption.AllDirectories)) File.Delete(f);
+                }
+                catch { }
+
+                // Clear registry
+                try
+                {
+                    Registry.CurrentUser.DeleteSubKeyTree(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\StormSystemOptimizer", false);
+                    Registry.CurrentUser.DeleteSubKeyTree(@"Software\StormSystemOptimizer", false);
+                }
+                catch { }
+            }
+            catch { }
         }
     }
 }

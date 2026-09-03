@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -412,10 +412,10 @@ namespace StormSystemOptimizer.Services
                 var foundRegs = new List<string>();
                 double sizeMb = 0;
 
-                string safeName = CleanForSearch(app.DisplayName);
+                var aliases = GetAppSearchAliases(app.DisplayName, app.Publisher);
                 string safePub = CleanForSearch(app.Publisher);
 
-                if (string.IsNullOrWhiteSpace(safeName) || safeName.Length < 2) return;
+                if (aliases.Count == 0) return;
 
                 // 1. Scan filesystem folders
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
@@ -424,9 +424,10 @@ namespace StormSystemOptimizer.Services
                 string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                 string docsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 string savedGames = Path.Combine(userProfile, "Saved Games");
+                string localPrograms = Path.Combine(localAppData, "Programs");
                 string tempDir = Path.GetTempPath();
 
-                var baseDirs = new[] { appData, localAppData, programData, docsDir, savedGames, tempDir };
+                var baseDirs = new[] { appData, localAppData, programData, docsDir, savedGames, localPrograms, tempDir };
 
                 foreach (var baseDir in baseDirs)
                 {
@@ -436,8 +437,7 @@ namespace StormSystemOptimizer.Services
                         foreach (var dir in Directory.GetDirectories(baseDir))
                         {
                             string dirName = Path.GetFileName(dir);
-                            if (dirName.Contains(safeName, StringComparison.OrdinalIgnoreCase) ||
-                                (!string.IsNullOrEmpty(safePub) && safePub.Length > 3 && !safePub.Equals("Microsoft Corporation", StringComparison.OrdinalIgnoreCase) && dirName.Contains(safePub, StringComparison.OrdinalIgnoreCase)))
+                            if (IsMatchForLeftover(dirName, aliases, safePub))
                             {
                                 if (!foundDirs.Contains(dir, StringComparer.OrdinalIgnoreCase))
                                 {
@@ -445,7 +445,7 @@ namespace StormSystemOptimizer.Services
                                     try
                                     {
                                         var di = new DirectoryInfo(dir);
-                                        long bytes = di.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 3, IgnoreInaccessible = true }).Sum(f => f.Length);
+                                        long bytes = di.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 4, IgnoreInaccessible = true }).Sum(f => f.Length);
                                         sizeMb += bytes / (1024.0 * 1024.0);
                                     }
                                     catch { }
@@ -463,12 +463,12 @@ namespace StormSystemOptimizer.Services
                 }
 
                 // 2. Scan Registry Keys
-                ScanRegistryForLeftovers(Registry.CurrentUser, @"Software", safeName, foundRegs);
-                ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE", safeName, foundRegs);
-                ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE\WOW6432Node", safeName, foundRegs);
+                ScanRegistryForLeftovers(Registry.CurrentUser, @"Software", aliases, safePub, foundRegs);
+                ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE", aliases, safePub, foundRegs);
+                ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE\WOW6432Node", aliases, safePub, foundRegs);
 
                 // Scan Uninstall hives for leftover uninstallation keys
-                ScanUninstallHivesForLeftovers(safeName, foundRegs);
+                ScanUninstallHivesForLeftovers(aliases, foundRegs);
 
                 app.FoundFolders = foundDirs;
                 app.FoundRegistryKeys = foundRegs;
@@ -479,7 +479,76 @@ namespace StormSystemOptimizer.Services
             });
         }
 
-        private void ScanRegistryForLeftovers(RegistryKey root, string path, string name, List<string> found)
+        private List<string> GetAppSearchAliases(string displayName, string publisher)
+        {
+            var aliases = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(displayName)) return aliases.ToList();
+
+            string raw = displayName.Trim();
+            aliases.Add(raw);
+
+            // Strip (x86), (64-bit), etc.
+            string cleaned = System.Text.RegularExpressions.Regex.Replace(raw, @"\s*\((?:x86|x64|32-bit|64-bit|arm64)\)", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+            aliases.Add(cleaned);
+
+            // Strip common installer keywords
+            cleaned = System.Text.RegularExpressions.Regex.Replace(cleaned, @"\s+(?:Setup|Installer|Portable|Edition|Community|Release|Preview|Beta)$", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+            aliases.Add(cleaned);
+
+            // Strip trailing versions: e.g. "LM Studio 0.4.23+1" -> "LM Studio", "Python 3.12" -> "Python"
+            string withoutVer = System.Text.RegularExpressions.Regex.Replace(cleaned, @"\s+(?:v|ver\.?|version)?\s*\d+(\.\d+)*(?:[-+._a-zA-Z0-9]+)?$", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
+            if (!string.IsNullOrWhiteSpace(withoutVer) && withoutVer.Length >= 2)
+            {
+                aliases.Add(withoutVer);
+                aliases.Add(withoutVer.Replace(" ", ""));
+                aliases.Add(withoutVer.Replace(" ", "-"));
+                aliases.Add(withoutVer.Replace(" ", "_"));
+            }
+
+            // Remove generic system words
+            aliases.RemoveWhere(a => string.IsNullOrWhiteSpace(a) || a.Length < 2 ||
+                a.Equals("Microsoft", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("Windows", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("System", StringComparison.OrdinalIgnoreCase));
+
+            return aliases.ToList();
+        }
+
+        private bool IsMatchForLeftover(string dirOrKeyName, List<string> aliases, string safePub)
+        {
+            if (string.IsNullOrWhiteSpace(dirOrKeyName) || dirOrKeyName.Length < 2) return false;
+
+            var ignored = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Microsoft", "Windows", "Common Files", "System32", "SysWOW64", "Temp", "Packages",
+                "assembly", "WinSxS", "Desktop", "Downloads", "AppData", "Roaming", "Local",
+                "LocalLow", "Default", "Public", "All Users", "Application Data", "Programs"
+            };
+            if (ignored.Contains(dirOrKeyName)) return false;
+
+            foreach (var alias in aliases)
+            {
+                if (dirOrKeyName.Equals(alias, StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                if (dirOrKeyName.Contains(alias, StringComparison.OrdinalIgnoreCase))
+                    return true;
+
+                if (dirOrKeyName.Length >= 4 && alias.Contains(dirOrKeyName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            if (!string.IsNullOrEmpty(safePub) && safePub.Length > 3 &&
+                !safePub.Equals("Microsoft Corporation", StringComparison.OrdinalIgnoreCase) &&
+                dirOrKeyName.Contains(safePub, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private void ScanRegistryForLeftovers(RegistryKey root, string path, List<string> aliases, string safePub, List<string> found)
         {
             try
             {
@@ -487,9 +556,7 @@ namespace StormSystemOptimizer.Services
                 if (key == null) return;
                 foreach (var sub in key.GetSubKeyNames())
                 {
-                    if (sub.Contains(name, StringComparison.OrdinalIgnoreCase) &&
-                        !sub.Equals("Microsoft", StringComparison.OrdinalIgnoreCase) &&
-                        !sub.Equals("Windows", StringComparison.OrdinalIgnoreCase))
+                    if (IsMatchForLeftover(sub, aliases, safePub))
                     {
                         string fullPath = $@"{root.Name}\{path}\{sub}";
                         if (!found.Contains(fullPath, StringComparer.OrdinalIgnoreCase))
@@ -500,7 +567,7 @@ namespace StormSystemOptimizer.Services
             catch { }
         }
 
-        private void ScanUninstallHivesForLeftovers(string name, List<string> found)
+        private void ScanUninstallHivesForLeftovers(List<string> aliases, List<string> found)
         {
             var paths = new[]
             {
@@ -521,7 +588,7 @@ namespace StormSystemOptimizer.Services
                         {
                             using var appKey = key.OpenSubKey(appSub);
                             string dn = appKey?.GetValue("DisplayName")?.ToString() ?? "";
-                            if (dn.Contains(name, StringComparison.OrdinalIgnoreCase) || appSub.Contains(name, StringComparison.OrdinalIgnoreCase))
+                            if (aliases.Any(a => dn.Contains(a, StringComparison.OrdinalIgnoreCase) || appSub.Contains(a, StringComparison.OrdinalIgnoreCase)))
                             {
                                 string full = $@"{root.Name}\{subPath}\{appSub}";
                                 if (!found.Contains(full, StringComparer.OrdinalIgnoreCase))
@@ -538,7 +605,7 @@ namespace StormSystemOptimizer.Services
         private string CleanForSearch(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return string.Empty;
-            return input.Replace("(x86)", "").Replace("(64-bit)", "").Replace("(32-bit)", "").Trim();
+            return System.Text.RegularExpressions.Regex.Replace(input, @"\s*\((?:x86|x64|32-bit|64-bit|arm64)\)", "", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim();
         }
 
         public async Task<(bool success, string message)> CleanResidualsAsync(InstalledAppItem app)
@@ -559,7 +626,7 @@ namespace StormSystemOptimizer.Services
                         {
                             if (Directory.Exists(dir))
                             {
-                                Directory.Delete(dir, true);
+                                ForceDeleteDirectory(dir);
                                 deletedDirs++;
                             }
                         }
@@ -667,7 +734,7 @@ namespace StormSystemOptimizer.Services
                         {
                             if (Directory.Exists(dir))
                             {
-                                Directory.Delete(dir, true);
+                                ForceDeleteDirectory(dir);
                                 deletedDirs++;
                             }
                         }
@@ -861,7 +928,8 @@ namespace StormSystemOptimizer.Services
         private void RemoveUninstallRegistryEntries(string appDisplayName)
         {
             if (string.IsNullOrWhiteSpace(appDisplayName)) return;
-            string safeName = CleanForSearch(appDisplayName);
+            var aliases = GetAppSearchAliases(appDisplayName, "");
+            if (aliases.Count == 0) return;
 
             var targets = new (RegistryKey root, string path)[]
             {
@@ -885,8 +953,8 @@ namespace StormSystemOptimizer.Services
                             if (subKey == null) continue;
 
                             string name = subKey.GetValue("DisplayName")?.ToString()?.Trim() ?? string.Empty;
-                            if ((!string.IsNullOrEmpty(name) && name.Contains(safeName, StringComparison.OrdinalIgnoreCase)) ||
-                                sub.Contains(safeName, StringComparison.OrdinalIgnoreCase))
+                            if (aliases.Any(a => (!string.IsNullOrEmpty(name) && name.Contains(a, StringComparison.OrdinalIgnoreCase)) ||
+                                                 sub.Contains(a, StringComparison.OrdinalIgnoreCase)))
                             {
                                 subKey.Dispose();
                                 key.DeleteSubKeyTree(sub, false);
@@ -894,6 +962,38 @@ namespace StormSystemOptimizer.Services
                         }
                         catch { }
                     }
+                }
+                catch { }
+            }
+        }
+
+        private static void ForceDeleteDirectory(string path)
+        {
+            try
+            {
+                if (!Directory.Exists(path)) return;
+                var di = new DirectoryInfo(path);
+                foreach (var fi in di.EnumerateFileSystemInfos("*", SearchOption.AllDirectories))
+                {
+                    try { fi.Attributes = FileAttributes.Normal; } catch { }
+                }
+                di.Attributes = FileAttributes.Normal;
+                Directory.Delete(path, true);
+            }
+            catch
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/c rmdir /s /q \"{path}\"",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(3000);
                 }
                 catch { }
             }
@@ -914,7 +1014,23 @@ namespace StormSystemOptimizer.Services
                     Registry.LocalMachine.DeleteSubKeyTree(sub, false);
                 }
             }
-            catch { }
+            catch
+            {
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "reg.exe",
+                        Arguments = $"delete \"{fullPath}\" /f",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        WindowStyle = ProcessWindowStyle.Hidden
+                    };
+                    using var p = Process.Start(psi);
+                    p?.WaitForExit(2000);
+                }
+                catch { }
+            }
         }
             public async System.Threading.Tasks.Task<bool> RemoveMicrosoftEdgeAsync()
         {

@@ -274,6 +274,8 @@ namespace StormSystemOptimizer.Services
                     else
                     {
                         lines.Add($"reg.exe add \"{regPath}\\Affinity Policy\" /v DevicePolicy /t REG_DWORD /d 4 /f >nul 2>&1");
+                        string hexBytes = BitConverter.ToString(BitConverter.GetBytes(affinityMask)).Replace("-", "");
+                        lines.Add($"reg.exe add \"{regPath}\\Affinity Policy\" /v AssignmentSetOverride /t REG_BINARY /d {hexBytes} /f >nul 2>&1");
                         lines.Add($"reg.exe add \"{regPath}\\Affinity Policy\" /v DevicePriority /t REG_DWORD /d {priority} /f >nul 2>&1");
                     }
 
@@ -364,6 +366,24 @@ namespace StormSystemOptimizer.Services
                 if (!res) allOk = false;
             }
             return allOk;
+        }
+
+        /// <summary>
+        /// Audits and enables MSI mode for safe devices (Ethernet, Audio, USB, Storage) without modifying affinity masks.
+        /// </summary>
+        public async Task<int> EnsureSafeMsiEnabledAsync()
+        {
+            var devices = await GetInterruptDevicesAsync();
+            int count = 0;
+            foreach (var dev in devices)
+            {
+                if (dev.IsMsiSupported && !dev.IsMsiEnabled && !dev.Category.Contains("GPU"))
+                {
+                    bool res = await SetDeviceAffinityAsync(dev.InstanceId, dev.CurrentAffinityMask, enableMsi: true, priority: 2);
+                    if (res) count++;
+                }
+            }
+            return count;
         }
     }
 }
