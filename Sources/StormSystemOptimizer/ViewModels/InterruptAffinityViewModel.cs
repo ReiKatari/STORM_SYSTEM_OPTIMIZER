@@ -29,6 +29,48 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _totalMsiEnabledCount = "0";
 
+        [ObservableProperty]
+        private string _cpuTopologyTitle = string.Empty;
+
+        [ObservableProperty]
+        private string _cpuTopologySummary = string.Empty;
+
+        [ObservableProperty]
+        private string _cpuTopologyMasksInfo = string.Empty;
+
+        [ObservableProperty]
+        private string _gameBoostActiveStatus = "Ожидание запуска игры";
+
+        public bool IsCpuSetsEnabled
+        {
+            get => GameBoostService.Instance.IsCpuSetsIsolationEnabled;
+            set
+            {
+                GameBoostService.Instance.IsCpuSetsIsolationEnabled = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsNoSmtEnabled
+        {
+            get => GameBoostService.Instance.IsNoSmtEnabled;
+            set
+            {
+                GameBoostService.Instance.IsNoSmtEnabled = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsDynamicCpuDemoteEnabled
+        {
+            get => GameBoostService.Instance.IsDynamicCpuDemoteEnabled;
+            set
+            {
+                GameBoostService.Instance.IsDynamicCpuDemoteEnabled = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ObservableCollection<PciDeviceInterruptInfo> Devices { get; } = new();
         public ObservableCollection<GameQosProfile> QosProfiles { get; } = new();
 
@@ -81,6 +123,18 @@ namespace StormSystemOptimizer.ViewModels
                 CurrentImodInterval = imod;
                 TotalDevicesCount = Devices.Count.ToString();
                 TotalMsiEnabledCount = msiCount.ToString();
+
+                var topo = CpuTopologyService.Instance.CurrentTopology;
+                CpuTopologyTitle = $"{topo.ClassificationName} • {topo.TotalPhysicalCores}C / {topo.TotalLogicalProcessors}T";
+                CpuTopologySummary = topo.Summary;
+                
+                var masksText = string.Join(" | ", topo.DerivedMasks.Select(m => $"{m.Name} ({m.LogicalProcessors.Count} потоков)"));
+                CpuTopologyMasksInfo = $"Доступные системные маски: {masksText}";
+
+                GameBoostActiveStatus = GameBoostService.Instance.IsGameBoostActive
+                    ? $"Активен: {GameBoostService.Instance.ActiveGameName} (Маска: {GameBoostService.Instance.ActiveCpuMaskName})"
+                    : "Ожидание запуска игры (автоопределение активно)";
+
                 StatusMessage = $"Загружено устройств: {Devices.Count} (MSI активно: {msiCount}) | CPU: {InterruptAffinityService.Instance.LogicalCoreCount} логических ядер";
                 IsBusy = false;
             });
