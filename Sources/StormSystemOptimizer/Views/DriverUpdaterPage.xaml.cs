@@ -41,6 +41,11 @@ namespace StormSystemOptimizer.Views
             if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Звук");
         }
 
+        private void CatBluetooth_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Bluetooth");
+        }
+
         private void CatDisk_Click(object sender, RoutedEventArgs e)
         {
             if (DataContext is DriverUpdaterViewModel vm) vm.SetCategory("Накопители");

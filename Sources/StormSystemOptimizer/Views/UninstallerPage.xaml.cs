@@ -28,7 +28,12 @@ namespace StormSystemOptimizer.Views
 
         private void FilterStore_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is UninstallerViewModel vm) vm.SetCategory("Windows Store");
+            if (DataContext is UninstallerViewModel vm) vm.SetCategory("Магазин Windows");
+        }
+
+        private void FilterResiduals_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is UninstallerViewModel vm) vm.SetCategory("Остатки программ");
         }
     }
 }

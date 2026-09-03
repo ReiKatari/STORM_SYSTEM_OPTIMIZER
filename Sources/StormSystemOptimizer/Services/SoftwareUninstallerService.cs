@@ -33,6 +33,9 @@ namespace StormSystemOptimizer.Services
                 // 4. Scan Steam Games across all drives & libraries
                 ScanSteamGames(apps);
 
+                // 5. Scan Windows Store / UWP Apps
+                ScanWindowsStoreApps(apps);
+
                 return apps.Values.OrderBy(a => a.DisplayName).ToList();
             });
         }
@@ -100,7 +103,7 @@ namespace StormSystemOptimizer.Services
                         }
                         else if (uninstall.Contains("ms-resource:", StringComparison.OrdinalIgnoreCase) || location.Contains("WindowsApps", StringComparison.OrdinalIgnoreCase))
                         {
-                            type = "Windows Store";
+                            type = "Магазин Windows";
                         }
 
                         // Calculate accurate size from install folder if estimated size is missing
@@ -124,7 +127,7 @@ namespace StormSystemOptimizer.Services
 
                         if (sizeMb == 0)
                         {
-                            sizeMb = type == "Игра" ? 12400.0 : (type == "Windows Store" ? 280.0 : 150.0);
+                            sizeMb = type == "Игра" ? 12400.0 : (type == "Магазин Windows" || type == "Windows Store" ? 280.0 : 150.0);
                         }
 
                         // Extract accurate version from main binary if DisplayVersion is missing or generic
@@ -671,9 +674,29 @@ namespace StormSystemOptimizer.Services
                     // 1. Terminate running processes belonging to target app
                     KillAppProcesses(app);
 
-                    // 2. Run Standard Uninstaller or Appx removal
-                    if (app.AppType == "Windows Store" || (app.UninstallString.Contains("ms-resource:", StringComparison.OrdinalIgnoreCase)))
+                    // 2. If this is an Orphaned Residuals item, directly perform deep residual cleanup
+                    if (app.AppType == "Остатки" || app.UninstallString == "STORM_RESIDUAL_CLEAN")
                     {
+                        return await CleanResidualsAsync(app);
+                    }
+
+                    // 3. Run Standard Uninstaller or Appx removal
+                    if (app.AppType == "Магазин Windows" || app.AppType == "Windows Store" || (app.UninstallString.Contains("ms-resource:", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        if (!string.IsNullOrEmpty(app.ManifestFilePath))
+                        {
+                            try
+                            {
+                                var psi = new ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -Command \"Remove-AppxPackage -Package '{app.ManifestFilePath}' -ErrorAction SilentlyContinue\"")
+                                {
+                                    CreateNoWindow = true,
+                                    UseShellExecute = false
+                                };
+                                using var p = Process.Start(psi);
+                                p?.WaitForExit(15000);
+                            }
+                            catch { }
+                        }
                         await RemoveBloatwareAppAsync(CleanForSearch(app.DisplayName));
                     }
                     else
@@ -1138,6 +1161,269 @@ namespace StormSystemOptimizer.Services
                     return p?.ExitCode == 0;
                 }
                 catch { return false; }
+            });
+        }
+
+        private void ScanWindowsStoreApps(Dictionary<string, InstalledAppItem> apps)
+        {
+            try
+            {
+                string subKeyPath = @"Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\Repository\Packages";
+                using var key = Registry.CurrentUser.OpenSubKey(subKeyPath);
+                if (key == null) return;
+
+                var seenDisplayNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var pkg in key.GetSubKeyNames())
+                {
+                    try
+                    {
+                        if (pkg.Contains(".split.", StringComparison.OrdinalIgnoreCase) ||
+                            pkg.Contains("UndockedDevKit", StringComparison.OrdinalIgnoreCase) ||
+                            pkg.Contains("CBSPreview", StringComparison.OrdinalIgnoreCase) ||
+                            pkg.Contains("MicrosoftWindows.Client.", StringComparison.OrdinalIgnoreCase) ||
+                            pkg.Contains("VCLibs", StringComparison.OrdinalIgnoreCase) ||
+                            pkg.Contains("NET.Native", StringComparison.OrdinalIgnoreCase) ||
+                            pkg.Contains("UI.Xaml", StringComparison.OrdinalIgnoreCase) ||
+                            pkg.Contains("WinAppRuntime", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        using var pkgKey = key.OpenSubKey(pkg);
+                        if (pkgKey == null) continue;
+
+                        string rawDisplayName = pkgKey.GetValue("DisplayName")?.ToString()?.Trim() ?? string.Empty;
+                        string pkgId = pkgKey.GetValue("PackageID")?.ToString()?.Trim() ?? pkg;
+                        string rootFolder = pkgKey.GetValue("PackageRootFolder")?.ToString()?.Trim() ?? string.Empty;
+
+                        if (rootFolder.StartsWith(@"C:\Windows\SystemApps", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        string friendlyName = GetFriendlyStoreAppName(rawDisplayName, pkg);
+                        if (string.IsNullOrWhiteSpace(friendlyName) || seenDisplayNames.Contains(friendlyName))
+                            continue;
+
+                        string version = "1.0.0.0";
+                        var parts = pkg.Split('_');
+                        if (parts.Length >= 2)
+                        {
+                            version = parts[1];
+                        }
+
+                        double sizeMb = 180.0;
+                        if (!string.IsNullOrEmpty(rootFolder) && Directory.Exists(rootFolder))
+                        {
+                            try
+                            {
+                                var di = new DirectoryInfo(rootFolder);
+                                long bytes = 0;
+                                foreach (var f in di.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 2, IgnoreInaccessible = true }))
+                                {
+                                    bytes += f.Length;
+                                }
+                                if (bytes > 0) sizeMb = Math.Round(bytes / (1024.0 * 1024.0), 1);
+                            }
+                            catch { }
+                        }
+
+                        seenDisplayNames.Add(friendlyName);
+                        if (!apps.ContainsKey(friendlyName))
+                        {
+                            apps[friendlyName] = new InstalledAppItem
+                            {
+                                DisplayName = friendlyName,
+                                DisplayVersion = version,
+                                Publisher = "Microsoft Store",
+                                InstallLocation = rootFolder,
+                                AppType = "Магазин Windows",
+                                EstimatedSizeMb = sizeMb,
+                                UninstallString = $"powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"Remove-AppxPackage -Package '{pkgId}' -ErrorAction SilentlyContinue\"",
+                                ManifestFilePath = pkgId
+                            };
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        }
+
+        private string GetFriendlyStoreAppName(string rawDisplayName, string packageFullName)
+        {
+            if (!string.IsNullOrEmpty(rawDisplayName) && !rawDisplayName.StartsWith("@{") && !rawDisplayName.StartsWith("ms-resource:"))
+            {
+                return rawDisplayName;
+            }
+
+            string baseName = packageFullName.Split('_')[0];
+
+            var known = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "A025C540.Yandex.Music", "Яндекс Музыка" },
+                { "Microsoft.WindowsCalculator", "Калькулятор Windows" },
+                { "Microsoft.Paint", "Paint" },
+                { "Microsoft.WindowsNotepad", "Блокнот Windows" },
+                { "Microsoft.WindowsCamera", "Камера Windows" },
+                { "Microsoft.ScreenSketch", "Ножницы (Screen Sketch)" },
+                { "Microsoft.WindowsSoundRecorder", "Запись голоса" },
+                { "Microsoft.ZuneMusic", "Медиаплеер Windows (Zune)" },
+                { "Microsoft.WindowsFeedbackHub", "Центр отзывов" },
+                { "Microsoft.WindowsAlarms", "Часы и будильники Windows" },
+                { "Microsoft.PowerAutomateDesktop", "Power Automate" },
+                { "Microsoft.OutlookForWindows", "Outlook для Windows" },
+                { "Microsoft.MicrosoftSolitaireCollection", "Коллекция пасьянсов (Solitaire)" },
+                { "Microsoft.MicrosoftOfficeHub", "Microsoft 365 (Office)" },
+                { "Microsoft.OneDriveSync", "Синхронизация OneDrive" },
+                { "MSTeams", "Microsoft Teams" },
+                { "Claude", "Claude" },
+                { "Clipchamp.Clipchamp", "Clipchamp" },
+                { "NVIDIACorp.NVIDIAControlPanel", "Панель управления NVIDIA" },
+                { "WinRAR.ShellExtension", "WinRAR Shell Extension" }
+            };
+
+            if (known.TryGetValue(baseName, out var name)) return name;
+
+            if (baseName.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase))
+            {
+                return baseName.Substring("Microsoft.".Length);
+            }
+
+            return baseName;
+        }
+
+        public async Task<List<InstalledAppItem>> ScanOrphanedResidualsAsync(List<InstalledAppItem> installedApps)
+        {
+            return await Task.Run(() =>
+            {
+                var residuals = new List<InstalledAppItem>();
+                var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                var installedTokens = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var app in installedApps)
+                {
+                    if (string.IsNullOrWhiteSpace(app.DisplayName)) continue;
+                    installedTokens.Add(app.DisplayName.Trim());
+                    foreach (var a in GetAppSearchAliases(app.DisplayName, app.Publisher))
+                    {
+                        if (a.Length >= 3) installedTokens.Add(a.Trim());
+                    }
+                    if (!string.IsNullOrEmpty(app.InstallLocation))
+                    {
+                        string folder = Path.GetFileName(app.InstallLocation.TrimEnd('\\'));
+                        if (folder.Length >= 3) installedTokens.Add(folder);
+                    }
+                }
+
+                var systemWhitelist = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "Microsoft", "Windows", "System", "Packages", "Temp", "DirectX", "CrashDumps",
+                    "D3DSCache", "Comms", "IdentityCRL", "ConnectedDevicesPlatform", "Publishers",
+                    "Classes", "Policies", "RegisteredApplications", "Clients", "OEM", "Storm",
+                    "StormSystemOptimizer", "STORM SOFT", "Google", "NVIDIA Corporation", "NVIDIA",
+                    "AMD", "Intel", "Realtek", "Steam", "Valve", "Epic Games", "Ubisoft", "GOG.com",
+                    "Battle.net", "Origin", "Electronic Arts", "Application Data", "VirtualStore",
+                    "History", "INetCache", "INetCookies", "NetHood", "PrintHood", "Recent", "SendTo",
+                    "Start Menu", "Templates", "Programs", "Default", "All Users", "dotnet", "Pip",
+                    "npm", "NuGet", "PackageManagement", "Windows PowerShell", "PowerShell", "git",
+                    "Gemini", "antigravity", "WindowsApps", "Windows Defender", "Windows Mail", "Windows NT",
+                    "Windows Sidebar", "Windows Media Player", "Common Files", "desktop.ini", "crypto",
+                    "assembly", "Installer", "System32", "SysWOW64", "WinSxS", "Boot"
+                };
+
+                string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+                string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
+                string localPrograms = Path.Combine(localAppData, "Programs");
+                string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                string savedGames = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Saved Games");
+
+                var candidateLocations = new[] { appData, localAppData, progData, localPrograms, userDocs, savedGames };
+                var candidateFolders = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var baseDir in candidateLocations)
+                {
+                    if (!Directory.Exists(baseDir)) continue;
+                    try
+                    {
+                        foreach (var dir in Directory.GetDirectories(baseDir))
+                        {
+                            string dirName = Path.GetFileName(dir);
+                            if (string.IsNullOrWhiteSpace(dirName) || systemWhitelist.Contains(dirName))
+                                continue;
+
+                            bool isInstalled = installedTokens.Any(token =>
+                                dirName.Equals(token, StringComparison.OrdinalIgnoreCase) ||
+                                (token.Length >= 4 && dirName.Contains(token, StringComparison.OrdinalIgnoreCase)) ||
+                                (dirName.Length >= 4 && token.Contains(dirName, StringComparison.OrdinalIgnoreCase)));
+
+                            if (!isInstalled)
+                            {
+                                if (!candidateFolders.ContainsKey(dirName))
+                                {
+                                    candidateFolders[dirName] = new List<string>();
+                                }
+                                if (!candidateFolders[dirName].Contains(dir, StringComparer.OrdinalIgnoreCase))
+                                {
+                                    candidateFolders[dirName].Add(dir);
+                                }
+                            }
+                        }
+                    }
+                    catch { }
+                }
+
+                foreach (var (appName, folders) in candidateFolders)
+                {
+                    if (seenNames.Contains(appName)) continue;
+
+                    long totalBytes = 0;
+                    int totalFiles = 0;
+
+                    foreach (var folder in folders)
+                    {
+                        try
+                        {
+                            var di = new DirectoryInfo(folder);
+                            foreach (var f in di.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 3, IgnoreInaccessible = true }))
+                            {
+                                totalFiles++;
+                                totalBytes += f.Length;
+                                if (totalFiles > 1000) break;
+                            }
+                        }
+                        catch { }
+                    }
+
+                    if (totalFiles == 0 && folders.Count == 0) continue;
+
+                    var foundRegs = new List<string>();
+                    var aliases = GetAppSearchAliases(appName, "");
+                    ScanRegistryForLeftovers(Registry.CurrentUser, @"Software", aliases, appName, foundRegs);
+                    ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE", aliases, appName, foundRegs);
+                    ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE\WOW6432Node", aliases, appName, foundRegs);
+
+                    double sizeMb = Math.Round(totalBytes / (1024.0 * 1024.0), 1);
+                    if (sizeMb == 0 && totalFiles > 0) sizeMb = 0.5;
+
+                    seenNames.Add(appName);
+                    residuals.Add(new InstalledAppItem
+                    {
+                        DisplayName = appName,
+                        DisplayVersion = "Остаточные файлы и реестр",
+                        Publisher = "Ранее удаленная программа",
+                        InstallLocation = folders.FirstOrDefault() ?? string.Empty,
+                        AppType = "Остатки",
+                        EstimatedSizeMb = sizeMb,
+                        FoundFolders = folders,
+                        FoundRegistryKeys = foundRegs,
+                        ResidualFilesCount = totalFiles,
+                        ResidualRegistryCount = foundRegs.Count,
+                        ResidualSizeMb = sizeMb,
+                        IsScanned = true,
+                        UninstallString = "STORM_RESIDUAL_CLEAN"
+                    });
+                }
+
+                return residuals.OrderByDescending(r => r.EstimatedSizeMb).ToList();
             });
         }
     }

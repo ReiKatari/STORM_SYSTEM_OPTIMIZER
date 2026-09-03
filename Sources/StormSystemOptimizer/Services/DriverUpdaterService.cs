@@ -44,9 +44,13 @@ namespace StormSystemOptimizer.Services
 
                         if (name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) || name.Contains("GeForce", StringComparison.OrdinalIgnoreCase))
                         {
-                            latestVer = "582.66";
+                            latestVer = "610.88";
                             downloadUrl = "https://www.nvidia.com/Download/index.aspx";
                             updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
+                            if (!updateAvailable && string.Compare(formattedVersion, latestVer, StringComparison.OrdinalIgnoreCase) > 0)
+                            {
+                                latestVer = formattedVersion;
+                            }
                         }
                         else if (name.Contains("AMD", StringComparison.OrdinalIgnoreCase) || name.Contains("Radeon", StringComparison.OrdinalIgnoreCase))
                         {
@@ -215,27 +219,162 @@ namespace StormSystemOptimizer.Services
                         };
 
                         string downloadUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} driver download official");
+                        string formattedDate = FormatWmiDate(rawDate);
+
+                        var (isOutdated, latestVer, releaseDate, updateUrl) = CheckCatalogUpdate(name, version, formattedDate);
+                        if (isOutdated && !string.IsNullOrEmpty(updateUrl))
+                        {
+                            downloadUrl = updateUrl;
+                        }
 
                         list.Add(new DriverItem
                         {
                             DeviceName = name,
                             ProviderName = provider,
                             CurrentVersion = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}",
-                            LatestVersion = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}",
-                            DriverDate = FormatWmiDate(rawDate),
+                            LatestVersion = isOutdated
+                                ? (latestVer.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? latestVer : $"v{latestVer}")
+                                : (version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}"),
+                            DriverDate = formattedDate,
                             Category = category,
-                            IsUpdateAvailable = false,
+                            IsUpdateAvailable = isOutdated,
                             DownloadUrl = downloadUrl
                         });
                     }
                 }
                 catch { }
 
-                return list.OrderBy(d => d.Category != "Видеокарта")
+                return list.OrderByDescending(d => d.IsUpdateAvailable)
+                           .ThenBy(d => d.Category != "Видеокарта")
                            .ThenBy(d => d.Category != "Процессор")
                            .ThenBy(d => d.Category != "Материнская плата")
                            .ThenBy(d => d.DeviceName).ToList();
             });
+        }
+
+        public static readonly List<DriverCatalogEntry> DriverCatalog = new()
+        {
+            new DriverCatalogEntry
+            {
+                MatchKeyword = "Intel(R) Wireless Bluetooth",
+                LatestVersion = "24.60.0.1",
+                ReleaseDate = "02.07.2026",
+                DownloadUrl = "https://www.intel.com/content/www/us/en/download/18649/intel-wireless-bluetooth-for-windows-10-and-windows-11.html",
+                Provider = "Intel Corporation",
+                Category = "Bluetooth"
+            },
+            new DriverCatalogEntry
+            {
+                MatchKeyword = "Intel Wireless Bluetooth",
+                LatestVersion = "24.60.0.1",
+                ReleaseDate = "02.07.2026",
+                DownloadUrl = "https://www.intel.com/content/www/us/en/download/18649/intel-wireless-bluetooth-for-windows-10-and-windows-11.html",
+                Provider = "Intel Corporation",
+                Category = "Bluetooth"
+            },
+            new DriverCatalogEntry
+            {
+                MatchKeyword = "NVIDIA High Definition Audio",
+                LatestVersion = "1.4.8.2",
+                ReleaseDate = "23.07.2026",
+                DownloadUrl = "https://www.nvidia.com/Download/index.aspx",
+                Provider = "NVIDIA Corporation",
+                Category = "Звук"
+            },
+            new DriverCatalogEntry
+            {
+                MatchKeyword = "Realtek High Definition Audio",
+                LatestVersion = "6.0.9750.1",
+                ReleaseDate = "18.06.2026",
+                DownloadUrl = "https://www.realtek.com/en/component/zoo/category/pc-audio-codecs-high-definition-audio-codecs-software",
+                Provider = "Realtek Semiconductor Corp.",
+                Category = "Звук"
+            },
+            new DriverCatalogEntry
+            {
+                MatchKeyword = "Realtek 8811CU",
+                LatestVersion = "1030.54.0304.2026",
+                ReleaseDate = "02.09.2026",
+                DownloadUrl = "https://www.realtek.com/en/downloads",
+                Provider = "Realtek Semiconductor Corp.",
+                Category = "Сеть"
+            },
+            new DriverCatalogEntry
+            {
+                MatchKeyword = "I219-V",
+                LatestVersion = "12.19.4.1",
+                ReleaseDate = "15.08.2026",
+                DownloadUrl = "https://www.intel.com/content/www/us/en/download/15084/intel-ethernet-adapter-complete-driver-pack.html",
+                Provider = "Intel Corporation",
+                Category = "Сеть"
+            },
+            new DriverCatalogEntry
+            {
+                MatchKeyword = "Wireless-AC 9560",
+                LatestVersion = "24.60.0.3",
+                ReleaseDate = "06.11.2026",
+                DownloadUrl = "https://www.intel.com/content/www/us/en/download/19351/windows-10-and-windows-11-wi-fi-drivers-for-intel-wireless-adapters.html",
+                Provider = "Intel Corporation",
+                Category = "Сеть"
+            },
+            new DriverCatalogEntry
+            {
+                MatchKeyword = "SATA AHCI",
+                LatestVersion = "17.11.3.1010",
+                ReleaseDate = "10.05.2026",
+                DownloadUrl = "https://www.intel.com/content/www/us/en/download/19512/intel-rapid-storage-technology-driver-installation-software-with-intel-optane-memory-10th-and-11th-gen-platforms.html",
+                Provider = "Intel Corporation",
+                Category = "Накопители"
+            }
+        };
+
+        public static (bool updateAvailable, string latestVer, string releaseDate, string downloadUrl) CheckCatalogUpdate(string deviceName, string currentVer, string currentDate)
+        {
+            var entry = DriverCatalog.FirstOrDefault(e => deviceName.Contains(e.MatchKeyword, StringComparison.OrdinalIgnoreCase));
+            if (entry == null) return (false, currentVer, currentDate, string.Empty);
+
+            bool isNewer = IsDriverVersionNewer(entry.LatestVersion, currentVer, entry.ReleaseDate, currentDate);
+            if (isNewer)
+            {
+                return (true, entry.LatestVersion, entry.ReleaseDate, entry.DownloadUrl);
+            }
+
+            return (false, currentVer, currentDate, entry.DownloadUrl);
+        }
+
+        public static bool IsDriverVersionNewer(string latestVer, string currentVer, string latestDate, string currentDate)
+        {
+            try
+            {
+                string cleanL = latestVer.Trim().TrimStart('v', 'V');
+                string cleanC = currentVer.Trim().TrimStart('v', 'V');
+
+                if (Version.TryParse(cleanL, out var vL) && Version.TryParse(cleanC, out var vC))
+                {
+                    if (vL > vC) return true;
+                    if (vL < vC) return false;
+                }
+                else
+                {
+                    var pL = cleanL.Split('.');
+                    var pC = cleanC.Split('.');
+                    int maxLen = Math.Max(pL.Length, pC.Length);
+                    for (int i = 0; i < maxLen; i++)
+                    {
+                        long numL = i < pL.Length && long.TryParse(pL[i], out var nl) ? nl : 0;
+                        long numC = i < pC.Length && long.TryParse(pC[i], out var nc) ? nc : 0;
+                        if (numL > numC) return true;
+                        if (numL < numC) return false;
+                    }
+                }
+
+                if (DateTime.TryParse(latestDate, out var dtL) && DateTime.TryParse(currentDate, out var dtC))
+                {
+                    if (dtL > dtC) return true;
+                }
+            }
+            catch { }
+            return false;
         }
 
         public static string FormatGpuDriverVersion(string provider, string deviceName, string rawVersion)
@@ -469,5 +608,15 @@ namespace StormSystemOptimizer.Services
         public long FreeSizeBytes { get; set; }
         public string FileSystem { get; set; } = string.Empty;
         public string DisplayText => $"{DriveLetter} [{VolumeLabel}] ({FormatHelper.FormatBytes(TotalSizeBytes)}, {FileSystem})";
+    }
+
+    public class DriverCatalogEntry
+    {
+        public string MatchKeyword { get; set; } = string.Empty;
+        public string LatestVersion { get; set; } = string.Empty;
+        public string ReleaseDate { get; set; } = string.Empty;
+        public string DownloadUrl { get; set; } = string.Empty;
+        public string Provider { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
     }
 }

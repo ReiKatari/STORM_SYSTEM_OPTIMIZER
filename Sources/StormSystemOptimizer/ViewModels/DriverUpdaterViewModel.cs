@@ -43,6 +43,12 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _usbWriterStatus = "Вставьте USB-флешку и выберите файл прошивки BIOS";
 
+        [ObservableProperty]
+        private int _outdatedCount = 0;
+
+        [ObservableProperty]
+        private bool _hasUpdates = false;
+
         public ObservableCollection<DriverItem> DisplayDrivers { get; } = new();
         public ObservableCollection<SystemBackupItem> DisplayBackups { get; } = new();
         public ObservableCollection<UsbDriveItem> UsbFlashDrives { get; } = new();
@@ -146,8 +152,9 @@ namespace StormSystemOptimizer.ViewModels
             _allDrivers = await DriverUpdaterService.Instance.ScanDriversAsync();
             ApplyFilter();
 
-            int updatesCount = _allDrivers.Count(d => d.IsUpdateAvailable);
-            StatsSummary = $"{_allDrivers.Count} устройств в системе • {(updatesCount > 0 ? $"{updatesCount} требуют обновления ⚡" : "Все драйверы актуальны ✅")}";
+            OutdatedCount = _allDrivers.Count(d => d.IsUpdateAvailable);
+            HasUpdates = OutdatedCount > 0;
+            StatsSummary = $"{_allDrivers.Count} устройств в системе • {(HasUpdates ? $"Доступно {OutdatedCount} обновления оборудования ⚡" : "Все драйверы актуальны ✅")}";
             StatusText = $"Найдено {_allDrivers.Count} драйверов оборудования.";
             IsBusy = false;
         }
@@ -155,7 +162,7 @@ namespace StormSystemOptimizer.ViewModels
         public void SetCategory(string cat)
         {
             SelectedCategory = cat;
-            IsBackupsSelected = (cat == "Бэкапы");
+            IsBackupsSelected = (cat == "Бэкапы" || cat.StartsWith("Бэкапы"));
             if (IsBackupsSelected)
             {
                 _ = LoadBackupsAsync();
@@ -169,9 +176,16 @@ namespace StormSystemOptimizer.ViewModels
         private void ApplyFilter()
         {
             var query = _allDrivers.AsEnumerable();
-            if (SelectedCategory != "Все" && SelectedCategory != "Бэкапы")
+            if (SelectedCategory != "Все" && SelectedCategory != "Бэкапы" && !SelectedCategory.StartsWith("Бэкапы"))
             {
-                query = query.Where(d => d.Category.Equals(SelectedCategory, StringComparison.OrdinalIgnoreCase));
+                if (SelectedCategory.StartsWith("Сеть", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.Where(d => d.Category.StartsWith("Сеть", StringComparison.OrdinalIgnoreCase));
+                }
+                else
+                {
+                    query = query.Where(d => d.Category.Equals(SelectedCategory, StringComparison.OrdinalIgnoreCase));
+                }
             }
 
             DisplayDrivers.Clear();
@@ -179,6 +193,31 @@ namespace StormSystemOptimizer.ViewModels
             {
                 DisplayDrivers.Add(item);
             }
+        }
+
+        [RelayCommand]
+        public async Task UpdateAllDriversAsync()
+        {
+            var outdated = _allDrivers.Where(d => d.IsUpdateAvailable).ToList();
+            if (outdated.Count == 0) return;
+
+            StatusText = $"Создание единой точки восстановления перед пакетом обновлений...";
+            await SystemRestoreService.Instance.CreateRestorePointAsync("Перед пакетным обновлением драйверов оборудования");
+
+            foreach (var d in outdated)
+            {
+                if (!string.IsNullOrEmpty(d.DownloadUrl))
+                {
+                    try
+                    {
+                        Process.Start(new ProcessStartInfo { FileName = d.DownloadUrl, UseShellExecute = true });
+                    }
+                    catch { }
+                }
+            }
+
+            TrayService.Instance.ShowNotification("Центр обновления драйверов ⚡", $"Запущена загрузка официальных обновлений для {outdated.Count} устройств. Точка восстановления создана.");
+            StatusText = $"Открыты официальные страницы загрузки для {outdated.Count} устаревших устройств.";
         }
 
         [RelayCommand]
