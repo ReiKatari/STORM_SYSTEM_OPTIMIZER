@@ -566,6 +566,50 @@ namespace StormSystemOptimizer.Services
                 });
 
                 // -------------------------------------------------------------
+                // 10.1. AMD X3D Turbo Game Mode & CCD Parking (Architecture Insight)
+                // -------------------------------------------------------------
+                if (isAmd && (b.CpuThreads >= 16 || b.CpuName.Contains("X3D", StringComparison.OrdinalIgnoreCase)))
+                {
+                    list.Add(new BiosSettingItem
+                    {
+                        Id = "bios_amd_x3d_turbo_mode",
+                        Title = "Режим Turbo Game Mode в BIOS и парковка CCD (AMD X3D / Multi-CCD)",
+                        Category = "Процессор (CPU)",
+                        RecommendedValue = "Turbo Game Mode [Disabled] ➔ Управление ядрами через STORM (CPU Sets)",
+                        CurrentStatus = "Оптимизация многокристальной архитектуры AMD Ryzen",
+                        PerformanceImpact = "Сохранение 100% мощности CPU для фона (Discord/OBS) при максимальном FPS в играх",
+                        SafetyLevel = "100% Безопасно (Рекомендованный режим динамической изоляции)",
+                        Explanation = "Аппаратные опции BIOS 'Turbo Game Mode' (ASUS) или 'X3D Turbo Mode' (Gigabyte) полностью отключают второй чиплет CCD и технологию SMT при загрузке ПК. Это лишает систему половины ядер для фоновых приложений (Discord, браузеры, OBS, стриминг). Рекомендуется отключить жесткую блокировку в BIOS и использовать интеллектуальную изоляцию CPU Sets в STORM SYSTEM OPTIMIZER: игра получает чистый Cache CCD с 3D V-Cache, а фоновые задачи изолируются на частотный чиплет.",
+                        MenuPathAsus = "Ai Tweaker ➔ Turbo Game Mode [Disabled] ➔ CPU Core Ratio [Auto]",
+                        MenuPathMsi = "OC ➔ Advanced CPU Configuration ➔ Downcore Control [Auto] ➔ SMT Control [Auto]",
+                        MenuPathGigabyte = "Tweaker ➔ X3D Turbo Mode [Disabled] ➔ SMT Mode [Auto]",
+                        MenuPathAsrock = "OC Tweaker ➔ CPU Configuration ➔ AMD Overclocking ➔ CCD Control [Auto]"
+                    });
+                }
+
+                // -------------------------------------------------------------
+                // 10.2. Intel Hybrid P/E-Core Scheduling
+                // -------------------------------------------------------------
+                if (isIntel && b.CpuGeneration >= 12)
+                {
+                    list.Add(new BiosSettingItem
+                    {
+                        Id = "bios_intel_hybrid_scheduling",
+                        Title = "Настройка Intel Thread Director и сохранение E-ядер для фона",
+                        Category = "Процессор (CPU)",
+                        RecommendedValue = "Efficient-cores [All Active] ➔ Изоляция P-ядер через STORM (CPU Sets)",
+                        CurrentStatus = "Оптимизация гибридной архитектуры Intel Alder/Raptor/Arrow Lake",
+                        PerformanceImpact = "Игры работают на P-ядрах с высоким IPC, а фоновые задачи вытеснены на E-ядра",
+                        SafetyLevel = "100% Безопасно (Штатный гибридный режим без отключения ядер)",
+                        Explanation = "Часто рекомендуемое отключение E-ядер в BIOS лишает систему 8–16 энергоэффективных потоков и перегружает основные P-ядра фоновыми процессами. Оставьте все ядра активными в BIOS, а динамическое разделение потоков выполнит STORM SYSTEM OPTIMIZER через системный CPU Sets API Windows.",
+                        MenuPathAsus = "Advanced ➔ CPU Configuration ➔ Active Efficient Cores [All]",
+                        MenuPathMsi = "OC ➔ CPU Features ➔ Active E-Cores [All]",
+                        MenuPathGigabyte = "Tweaker ➔ Advanced CPU Settings ➔ Active Efficient Cores [All]",
+                        MenuPathAsrock = "Advanced ➔ CPU Configuration ➔ Active Efficient Cores [All]"
+                    });
+                }
+
+                // -------------------------------------------------------------
                 // 11. TPM 2.0 & Secure Boot (Windows 11 Standard)
                 // -------------------------------------------------------------
                 string tpmName = isIntel ? "Intel PTT (Platform Trust Technology)" : "AMD fTPM";

@@ -63,6 +63,75 @@
                 </Border>
             </UniformGrid>
 
+            <!-- CPU Sets & L3 Cache Topology Card -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <StackPanel>
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoCpu}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Интеллектуальная изоляция CPU Sets и топология кэша L3" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="{Binding CpuTopologySummary}" FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Grid.Column="1" Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Padding="10,4" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding CpuTopologyTitle}" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Mask Information Banner -->
+                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,14">
+                        <TextBlock Text="{Binding CpuTopologyMasksInfo}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    </Border>
+
+                    <!-- Control Toggles -->
+                    <UniformGrid Columns="3" Margin="0,0,0,14">
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,6,0">
+                            <CheckBox IsChecked="{Binding IsCpuSetsEnabled}" Style="{DynamicResource StormCheckBoxStyle}" VerticalAlignment="Center">
+                                <StackPanel Margin="6,0,0,0">
+                                    <TextBlock Text="Изоляция CPU Sets для игр" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="100% совместимо с античитами" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="3,0,3,0">
+                            <CheckBox IsChecked="{Binding IsNoSmtEnabled}" Style="{DynamicResource StormCheckBoxStyle}" VerticalAlignment="Center">
+                                <StackPanel Margin="6,0,0,0">
+                                    <TextBlock Text="Режим No SMT (1 поток на ядро)" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Минимальный инпут-лаг в FPS" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="6,0,0,0">
+                            <CheckBox IsChecked="{Binding IsDynamicCpuDemoteEnabled}" Style="{DynamicResource StormCheckBoxStyle}" VerticalAlignment="Center">
+                                <StackPanel Margin="6,0,0,0">
+                                    <TextBlock Text="Авто-вытеснение фоновых задач" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Тяжёлый фон на E-ядра / Freq CCD" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+                    </UniformGrid>
+
+                    <!-- Active Game Boost Status Strip -->
+                    <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Padding="12,6">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Статус Game Boost: " FontSize="12" FontWeight="Bold" Foreground="#10B981"/>
+                            <TextBlock Text="{Binding GameBoostActiveStatus}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
             <!-- Devices Table Card -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
                 <StackPanel>

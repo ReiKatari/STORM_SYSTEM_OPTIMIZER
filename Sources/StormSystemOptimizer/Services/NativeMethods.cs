@@ -322,5 +322,88 @@ namespace StormSystemOptimizer.Services
 
         [DllImport("user32.dll")]
         public static extern int DisplayConfigGetDeviceInfo(ref DISPLAYCONFIG_TARGET_DEVICE_NAME deviceName);
+
+        // --- Windows CPU Sets API & Topology ---
+        public const uint PROCESS_SET_LIMITED_INFORMATION = 0x2000;
+        public const uint PROCESS_QUERY_LIMITED_INFORMATION = 0x1000;
+
+        [StructLayout(LayoutKind.Explicit)]
+        public struct SYSTEM_CPU_SET_INFORMATION
+        {
+            [FieldOffset(0)]
+            public uint Size;
+
+            [FieldOffset(4)]
+            public int Type; // CpuSetInformation = 0
+
+            [FieldOffset(8)]
+            public uint Id;
+
+            [FieldOffset(12)]
+            public ushort Group;
+
+            [FieldOffset(14)]
+            public byte LogicalProcessorIndex;
+
+            [FieldOffset(15)]
+            public byte CoreIndex;
+
+            [FieldOffset(16)]
+            public byte LastLevelCacheIndex;
+
+            [FieldOffset(17)]
+            public byte NumaNodeIndex;
+
+            [FieldOffset(18)]
+            public byte EfficiencyClass;
+
+            [FieldOffset(19)]
+            public byte AllFlags;
+        }
+
+        public enum LOGICAL_PROCESSOR_RELATIONSHIP
+        {
+            RelationProcessorCore = 0,
+            RelationNumaNode = 1,
+            RelationCache = 2,
+            RelationProcessorPackage = 3,
+            RelationGroup = 4,
+            RelationAll = 0xffff
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetSystemCpuSetInformation(
+            IntPtr Information,
+            uint BufferLength,
+            out uint ReturnedLength,
+            IntPtr Process,
+            uint Flags
+        );
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetLogicalProcessorInformationEx(
+            LOGICAL_PROCESSOR_RELATIONSHIP RelationshipType,
+            IntPtr Buffer,
+            ref uint ReturnedLength
+        );
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetProcessDefaultCpuSets(
+            IntPtr Process,
+            uint[]? CpuSetIds,
+            uint CpuSetIdCount
+        );
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetProcessDefaultCpuSets(
+            IntPtr Process,
+            [Out] uint[]? CpuSetIds,
+            uint CpuSetIdCount,
+            out uint RequiredIdCount
+        );
     }
 }
