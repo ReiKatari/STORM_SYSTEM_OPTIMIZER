@@ -8,5 +8,13 @@ namespace StormSystemOptimizer.Views
         {
             InitializeComponent();
         }
+
+        private void OpenExtensions_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (System.Windows.Application.Current.MainWindow is MainWindow mw)
+            {
+                mw.NavigateToTag("BrowserExtensions");
+            }
+        }
     }
 }

@@ -628,10 +628,29 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty] private int _audiodgCore = 2;
         [ObservableProperty] private string _statusMessage = "Готов к тюнингу задержек аудио";
         [ObservableProperty] private bool _isBusy = false;
+        [ObservableProperty] private string _activeProfile = "Gaming";
 
         public AudioLatencyViewModel()
         {
             BoostMmcss = AudioLatencyService.Instance.IsMmcssAudioOptimized();
+        }
+
+        [RelayCommand]
+        public async Task ApplyProfileAsync(string profile)
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            ActiveProfile = profile;
+            StatusMessage = $"Применение звукового профиля «{profile}»...";
+
+            await Task.Run(() =>
+            {
+                AudioLatencyService.Instance.ApplyAudioProfile(profile);
+            });
+
+            StatusMessage = $"Профиль «{profile}» успешно применён! Задержка звукового буфера оптимизирована.";
+            IsBusy = false;
+            TrayService.Instance.ShowNotification("Звуковой профиль", $"Применён режим: {profile}");
         }
 
         [RelayCommand]
@@ -645,11 +664,45 @@ namespace StormSystemOptimizer.ViewModels
             {
                 AudioLatencyService.Instance.ApplyProAudioTweaks();
                 AudioLatencyService.Instance.SetAudiodgAffinityAndPriority(AudiodgCore);
+                AudioLatencyService.Instance.DisableAudioPowerSaving();
+                AudioLatencyService.Instance.EnableAudioControllerMsiMode();
             });
 
             StatusMessage = $"Приоритет MMCSS Pro Audio установлен на High, audiodg.exe закреплен за ядром {AudiodgCore}!";
             IsBusy = false;
             TrayService.Instance.ShowNotification("Звуковой тракт", "Задержки аудио MMCSS снижены, треск и щелчки звука устранены.");
+        }
+
+        [RelayCommand]
+        public async Task DisablePowerSavingAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            StatusMessage = "Отключение энергосбережения HD Audio контроллера...";
+
+            await Task.Run(() =>
+            {
+                AudioLatencyService.Instance.DisableAudioPowerSaving();
+            });
+
+            StatusMessage = "Энергосбережение аудиочипа отключено (устранены задержки выхода из D3)!";
+            IsBusy = false;
+        }
+
+        [RelayCommand]
+        public async Task EnableMsiAudioAsync()
+        {
+            if (IsBusy) return;
+            IsBusy = true;
+            StatusMessage = "Перевод звукового контроллера в режим MSI (Message Signaled Interrupts)...";
+
+            await Task.Run(() =>
+            {
+                AudioLatencyService.Instance.EnableAudioControllerMsiMode();
+            });
+
+            StatusMessage = "Контроллер звука переведен в режим MSI для минимального DPC джиттера!";
+            IsBusy = false;
         }
     }
 

@@ -23,9 +23,9 @@
                             <Border Background="#1AF59E0B" BorderBrush="#33F59E0B" BorderThickness="1" CornerRadius="6" Width="28" Height="28" Margin="0,0,8,0" VerticalAlignment="Center">
                                 <Path Data="{StaticResource GeoAudio}" Fill="{StaticResource IconGradAmber}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Border>
-                            <TextBlock Text="Задержки аудио и MMCSS" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            <TextBlock Text="Оптимизатор звуковых задержек и буфера DPC" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" TextWrapping="Wrap"/>
                         </StackPanel>
-                        <TextBlock Text="Конфигурация MMCSS Pro Audio, закрепление системного аудио-движка audiodg.exe за выделенным ядром CPU, снижение DPC Latency и ликвидация заиканий и треска звука."
+                        <TextBlock Text="Тонкая настройка подсистемы WASAPI и MMCSS Pro Audio, устранение микрофризов, треска и задержек буфера в играх и звуковых редакторах (DAW/ASIO)."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
                         <TextBlock Text="{Binding StatusMessage}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentPrimaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
@@ -33,6 +33,73 @@
                     <Button Grid.Column="1" Command="{Binding ApplyAudioTweaksCommand}" Style="{StaticResource StormHeroButton}" Padding="18,10" VerticalAlignment="Center">
                         <TextBlock Text="Применить тюнинг MMCSS" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF"/>
                     </Button>
+                </Grid>
+            </Border>
+
+            <!-- Audio Latency Profiles Grid -->
+            <UniformGrid Columns="3" Margin="0,0,0,16">
+                <!-- Gaming Low Latency -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,8,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="🎮" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Игровой режим" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Минимальная задержка аудиопотока, отключение спящего режима аудиочипа и приоритет audiodg.exe." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        <Button Command="{Binding ApplyProfileCommand}" CommandParameter="Gaming" Style="{StaticResource StormHeroButton}" Padding="12,7" HorizontalAlignment="Stretch">
+                            <TextBlock Text="Включить игровой режим" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Studio Pro Audio / DAW -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="4,0,4,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="🎙️" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Студийный режим (DAW)" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Стабильный буфер без выпадений (Buffer Underrun), приоритет Pro Audio = 8, Clock Rate = 10000." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        <Button Command="{Binding ApplyProfileCommand}" CommandParameter="Studio" Style="{StaticResource StormSecondaryButton}" Padding="12,7" HorizontalAlignment="Stretch">
+                            <TextBlock Text="Включить студийный режим" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- Default Balanced -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="8,0,0,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="⚖️" FontSize="18" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Стандартный режим" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <TextBlock Text="Восстановление стандартных параметров мультимедийного планировщика Windows по умолчанию." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,12"/>
+                        <Button Command="{Binding ApplyProfileCommand}" CommandParameter="Default" Style="{StaticResource StormSecondaryButton}" Padding="12,7" HorizontalAlignment="Stretch">
+                            <TextBlock Text="Сброс на заводские" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Hardware Audio Controller Enhancements -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center">
+                        <TextBlock Text="Аппаратный контроллер HD Audio и снижение DPC/ISR задержек" FontSize="14.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="Отключение режима энергосбережения чипа (предотвращает треск при начале воспроизведения) и перевод аудиокарты в режим прерываний MSI." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding DisablePowerSavingCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8" Margin="0,0,8,0">
+                            <TextBlock Text="Запретить спящий режим звука" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                        <Button Command="{Binding EnableMsiAudioCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,8">
+                            <TextBlock Text="Включить MSI звука" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
 
