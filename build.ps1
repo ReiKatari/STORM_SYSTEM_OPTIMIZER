@@ -15,7 +15,7 @@ $appVersion = $appProjXml.Project.PropertyGroup.Version
 if (-not $appVersion) { $appVersion = "0.3.5" }
 
 Write-Host "============================================================" -ForegroundColor Cyan
-Write-Host " STORM SYSTEM OPTIMIZER v$appVersion - PRODUCTION BUILD PIPELINE " -ForegroundColor Cyan
+Write-Host " STORM SYSTEM OPTIMIZER $appVersion - PRODUCTION BUILD PIPELINE " -ForegroundColor Cyan
 Write-Host "============================================================" -ForegroundColor Cyan
 
 $setupExePath = Join-Path $filesDir "STORM_SYSTEM_OPTIMIZER_${appVersion}_Setup.exe"

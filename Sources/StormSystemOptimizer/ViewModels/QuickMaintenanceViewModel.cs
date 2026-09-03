@@ -320,6 +320,9 @@ namespace StormSystemOptimizer.ViewModels
 
             InitializeSteps();
 
+            // Safety ensure no throttled browsers or stale CPU set journals
+            try { GameBoostService.RecoverAndCleanAllProcessesCpuSets(); } catch { }
+
             long totalFreedBytes = 0;
 
             try
@@ -593,7 +596,7 @@ namespace StormSystemOptimizer.ViewModels
                     StatusText = "Аудит и оптимизация аппаратных прерываний MSI...";
                     try
                     {
-                        await InterruptAffinityService.Instance.ApplyEsportsAffinityPresetAsync();
+                        await InterruptAffinityService.Instance.EnsureSafeMsiEnabledAsync();
                     }
                     catch { }
                     await Task.Delay(200);
@@ -695,7 +698,10 @@ namespace StormSystemOptimizer.ViewModels
                     try
                     {
                         await PowerTunerService.Instance.ActivateStormUltimatePowerPlanAsync();
-                        GameBoostService.Instance.ActivateGameBoost();
+                        using var gmKey = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\GameBar");
+                        gmKey?.SetValue("AllowAutoGameMode", 1, Microsoft.Win32.RegistryValueKind.DWord);
+                        gmKey?.SetValue("AutoGameModeEnabled", 1, Microsoft.Win32.RegistryValueKind.DWord);
+                        GameBoostService.Instance.EnableHighResolutionTimer();
                     }
                     catch { }
                     await Task.Delay(200);

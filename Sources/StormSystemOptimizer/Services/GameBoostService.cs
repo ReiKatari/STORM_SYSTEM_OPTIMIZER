@@ -18,7 +18,8 @@ namespace StormSystemOptimizer.Services
         public static GameBoostService Instance => _instance ??= new GameBoostService();
 
         private DispatcherTimer? _gameDetectTimer;
-        private DispatcherTimer? _gameWatcherTimer;
+        private System.Threading.Timer? _gameWatcherTimer;
+        private int _isWatcherRunning = 0;
 
         private bool _isGameBoostActive = false;
         private int _boostedGameProcessId = 0;
@@ -57,7 +58,8 @@ namespace StormSystemOptimizer.Services
             "system", "idle", "smss", "fontdrvhost", "sihost", "taskhostw",
             "easyanticheat", "easyanticheat_eos", "beservice", "vgc", "vgtray", "battleye",
             "nvdisplay.container", "nvcontainer", "amdrsserv", "radeonsoftware", "amd3dvcacheuser",
-            "steam", "epicgameslauncher", "battle.net", "stormsystemoptimizer", "stormlauncher"
+            "steam", "epicgameslauncher", "battle.net", "stormsystemoptimizer", "stormlauncher",
+            "chrome", "msedge", "firefox", "brave", "opera", "yandex", "browser", "devenv", "code"
         };
 
         private static readonly HashSet<string> KnownGames = new(StringComparer.OrdinalIgnoreCase)
@@ -72,7 +74,7 @@ namespace StormSystemOptimizer.Services
         private GameBoostService()
         {
             // Recover any leftover CPU sets from previous sessions or unexpected terminations
-            Task.Run(() => RecoverAndCleanJournal());
+            Task.Run(() => RecoverAndCleanAllProcessesCpuSets());
         }
 
         public void EnableHighResolutionTimer() => SetHighResolutionTimer(true);
@@ -82,10 +84,10 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                var cur = Process.GetCurrentProcess();
-                BoostGameProcess(cur);
+                StartAutoGameDetection();
                 _isGameBoostActive = true;
-                GameBoostStateChanged?.Invoke(true, "STORM GAME BOOST: Активен (CPU Sets + Таймер 0.5мс + Фокус)");
+                SetHighResolutionTimer(true);
+                GameBoostStateChanged?.Invoke(true, "STORM GAME BOOST: Мониторинг активен (Автоматическая изоляция CPU Sets при запуске игр)");
             }
             catch { }
         }
@@ -193,6 +195,11 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
+                if (gameProc == null || gameProc.Id <= 4 || gameProc.Id == Process.GetCurrentProcess().Id)
+                    return false;
+                if (ExcludedProcessNames.Contains(gameProc.ProcessName))
+                    return false;
+
                 _boostedGameProcessId = gameProc.Id;
                 _boostedGameName = gameProc.ProcessName;
 
@@ -211,9 +218,9 @@ namespace StormSystemOptimizer.Services
                     var topo = CpuTopologyService.Instance.CurrentTopology;
                     CpuNamedMask? targetMask = null;
 
-                    if (IsNoSmtEnabled)
+                    if (IsNoSmtEnabled && topo.DerivedMasks.Any(m => m.Name.Contains("No-SMT", StringComparison.OrdinalIgnoreCase)))
                     {
-                        targetMask = topo.DerivedMasks.FirstOrDefault(m => m.Name.Contains("No SMT")) ?? topo.DefaultGameMask;
+                        targetMask = topo.DerivedMasks.First(m => m.Name.Contains("No-SMT", StringComparison.OrdinalIgnoreCase));
                     }
                     else
                     {
@@ -263,7 +270,7 @@ namespace StormSystemOptimizer.Services
             // Revert all governed processes cleanly
             Task.Run(() =>
             {
-                RecoverAndCleanJournal();
+                RecoverAndCleanAllProcessesCpuSets();
             });
 
             _governedChildPids.Clear();
@@ -273,28 +280,30 @@ namespace StormSystemOptimizer.Services
             GameBoostStateChanged?.Invoke(false, "Игровой режим выключен • CPU Sets сброшены");
         }
 
-        // 4. Watcher Loop: Child Process Tree & Dynamic Background App Demotion
+        // 4. Watcher Loop: Child Process Tree & Dynamic Background App Demotion (Background Thread)
         private void StartGameWatcherTimer()
         {
-            if (_gameWatcherTimer == null)
+            StopGameWatcherTimer();
+            _gameWatcherTimer = new System.Threading.Timer(_ =>
             {
-                _gameWatcherTimer = new DispatcherTimer
+                if (System.Threading.Interlocked.CompareExchange(ref _isWatcherRunning, 1, 0) == 0)
                 {
-                    Interval = TimeSpan.FromMilliseconds(500)
-                };
-                _gameWatcherTimer.Tick += (s, e) => WatcherTick();
-            }
-            _gameWatcherTimer.Start();
+                    try { WatcherTick(); }
+                    catch { }
+                    finally { System.Threading.Interlocked.Exchange(ref _isWatcherRunning, 0); }
+                }
+            }, null, 3000, 3000);
         }
 
         private void StopGameWatcherTimer()
         {
-            _gameWatcherTimer?.Stop();
+            _gameWatcherTimer?.Dispose();
+            _gameWatcherTimer = null;
         }
 
         private void WatcherTick()
         {
-            if (!_isGameBoostActive || _boostedGameProcessId == 0) return;
+            if (!_isGameBoostActive || _boostedGameProcessId == 0 || _boostedGameProcessId == Process.GetCurrentProcess().Id) return;
 
             // Check if game is still running
             try
@@ -343,6 +352,7 @@ namespace StormSystemOptimizer.Services
                         }
                     }
                     catch { }
+                    finally { p.Dispose(); }
                 }
 
                 // Clean exited children
@@ -354,14 +364,12 @@ namespace StormSystemOptimizer.Services
                     }
                 }
 
-                // 2. Dynamic CPU% Demoter for Heavy Background Tasks (if enabled)
+                // 2. Dynamic CPU Demoter for Background Tasks (Strictly Non-Browser)
                 if (IsDynamicCpuDemoteEnabled && bgMask != null && bgMask.CpuSetIds.Count > 0)
                 {
                     var knownHeavy = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
                     {
-                        "onedrive", "dropbox", "discord", "spotify", "telegram", "steamwebhelper",
-                        "chrome", "msedge", "firefox", "brave", "opera", "epicgameslauncher",
-                        "battle.net", "razer synapse", "armoury crate", "icue"
+                        "onedrive", "dropbox", "spotify", "razer synapse", "armoury crate", "icue"
                     };
 
                     foreach (var p in allProcs)
@@ -479,6 +487,34 @@ namespace StormSystemOptimizer.Services
                 }
 
                 File.Delete(JournalPath);
+            }
+            catch { }
+        }
+
+        public static void RecoverAndCleanAllProcessesCpuSets()
+        {
+            try
+            {
+                RecoverAndCleanJournal();
+
+                var browserNames = new[] { "msedge", "chrome", "firefox", "brave", "opera", "steamwebhelper", "telegram", "discord" };
+                foreach (var bName in browserNames)
+                {
+                    try
+                    {
+                        foreach (var p in Process.GetProcessesByName(bName))
+                        {
+                            try
+                            {
+                                ClearCpuSetsFromProcess(p.Id);
+                                p.PriorityClass = ProcessPriorityClass.Normal;
+                            }
+                            catch { }
+                            finally { p.Dispose(); }
+                        }
+                    }
+                    catch { }
+                }
             }
             catch { }
         }
