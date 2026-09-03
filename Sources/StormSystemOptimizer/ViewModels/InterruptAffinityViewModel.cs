@@ -146,6 +146,11 @@ namespace StormSystemOptimizer.ViewModels
             bool newState = !dev.MsiEnabled;
             StatusMessage = $"Переключение MSI для {dev.Name}...";
             bool ok = await InterruptAffinityService.Instance.SetDeviceMsiStateAsync(dev, newState);
+            if (ok)
+            {
+                dev.IsMsiEnabled = newState;
+                dev.StatusSummary = $"MSI: {(newState ? "Включен ✅" : "Отключен (IRQ)")} | Маска: {(dev.CurrentAffinityMask == 0 ? "Все ядра" : "0x" + dev.CurrentAffinityMask.ToString("X"))}";
+            }
             await LoadDataAsync();
             StatusMessage = ok ? $"Режим MSI для {dev.Name} успешно изменен!" : "Ошибка изменения режима MSI";
             IsBusy = false;

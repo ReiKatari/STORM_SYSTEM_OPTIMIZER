@@ -39,7 +39,7 @@
             </Style>
 
             <!-- Global Neon Solid Square CheckBox Style (No checkmarks, pure filled neon square) -->
-            <Style TargetType="CheckBox">
+            <Style x:Key="StormCheckBoxStyle" TargetType="CheckBox">
                 <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                 <Setter Property="FontSize" Value="13"/>
                 <Setter Property="Cursor" Value="Hand"/>
@@ -85,6 +85,7 @@
                     </Setter.Value>
                 </Setter>
             </Style>
+            <Style TargetType="CheckBox" BasedOn="{StaticResource StormCheckBoxStyle}"/>
 
             <!-- Global Default Button Style with 3D Volumetric Elevation & Tactile Press -->
             <!-- Global Default Button Style with 3D Volumetric Elevation & Tactile Press -->
@@ -883,10 +884,19 @@
                         <Setter Property="Background" Value="#2600D2FF"/>
                         <Setter Property="Foreground" Value="#FFFFFF"/>
                     </Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsSelected" Value="True"/>
+                            <Condition Property="Selector.IsSelectionActive" Value="False"/>
+                        </MultiTrigger.Conditions>
+                        <Setter Property="Background" Value="{DynamicResource CardHoverBrush}"/>
+                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                    </MultiTrigger>
                 </Style.Triggers>
             </Style>
 
             <Style TargetType="{x:Type DataGridCell}">
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
                 <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                 <Setter Property="BorderThickness" Value="0,0,1,0"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
@@ -894,15 +904,33 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type DataGridCell}">
-                            <Border Background="Transparent"
+                            <Border x:Name="CellBorder"
+                                    Background="Transparent"
                                     BorderThickness="{TemplateBinding BorderThickness}"
                                     BorderBrush="{TemplateBinding BorderBrush}"
                                     Padding="{TemplateBinding Padding}">
-                                <ContentPresenter VerticalAlignment="Center"/>
+                                <ContentPresenter VerticalAlignment="Center" TextElement.Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter TargetName="CellBorder" Property="Background" Value="#2600D2FF"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Setter.Value>
                 </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsSelected" Value="True">
+                        <Setter Property="Foreground" Value="#FFFFFF"/>
+                    </Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions>
+                            <Condition Property="IsSelected" Value="True"/>
+                            <Condition Property="Selector.IsSelectionActive" Value="False"/>
+                        </MultiTrigger.Conditions>
+                        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                    </MultiTrigger>
+                </Style.Triggers>
             </Style>
 
             <Style TargetType="{x:Type DataGrid}">

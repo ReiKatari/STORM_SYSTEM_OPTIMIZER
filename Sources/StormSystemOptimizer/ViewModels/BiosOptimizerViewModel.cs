@@ -50,6 +50,27 @@ namespace StormSystemOptimizer.ViewModels
         private string _selectedFilter = "Все настройки";
 
         [ObservableProperty]
+        private int _totalCount = 0;
+
+        [ObservableProperty]
+        private int _cpuCount = 0;
+
+        [ObservableProperty]
+        private int _ramCount = 0;
+
+        [ObservableProperty]
+        private int _gpuCount = 0;
+
+        [ObservableProperty]
+        private int _pcieCount = 0;
+
+        [ObservableProperty]
+        private int _bootCount = 0;
+
+        [ObservableProperty]
+        private int _coolingCount = 0;
+
+        [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
         private bool _isBusy = false;
 
@@ -85,6 +106,14 @@ namespace StormSystemOptimizer.ViewModels
             var settings = await BiosOptimizerService.Instance.GetRecommendedSettingsAsync();
             _allSettings.Clear();
             foreach (var item in settings) _allSettings.Add(item);
+
+            TotalCount = _allSettings.Count;
+            CpuCount = _allSettings.Count(s => s.Category.IndexOf("Процессор", StringComparison.OrdinalIgnoreCase) >= 0);
+            RamCount = _allSettings.Count(s => s.Category.IndexOf("Память", StringComparison.OrdinalIgnoreCase) >= 0);
+            GpuCount = _allSettings.Count(s => s.Category.IndexOf("Видеокарта", StringComparison.OrdinalIgnoreCase) >= 0);
+            PcieCount = _allSettings.Count(s => s.Category.IndexOf("PCIe", StringComparison.OrdinalIgnoreCase) >= 0);
+            BootCount = _allSettings.Count(s => s.Category.IndexOf("Загрузка", StringComparison.OrdinalIgnoreCase) >= 0);
+            CoolingCount = _allSettings.Count(s => s.Category.IndexOf("Охлаждение", StringComparison.OrdinalIgnoreCase) >= 0);
 
             ApplyFilter(SelectedFilter);
             StatusSummary = $"Сформировано {settings.Count} аппаратных рекомендаций для платы {MotherboardManufacturer} ({MotherboardModel})";

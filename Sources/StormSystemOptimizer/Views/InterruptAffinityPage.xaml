@@ -35,13 +35,19 @@
 
                     <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                         <Button Command="{Binding ApplyEsportsPresetCommand}" Style="{DynamicResource StormHeroButton}" Padding="14,10" Margin="0,0,8,4">
-                            <TextBlock Text="КИБЕРСПОРТИВНЫЙ ПРОФИЛЬ" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoLightning}" Fill="#FFFFFF" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0"/>
+                                <TextBlock Text="Киберспортивный профиль" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            </StackPanel>
                         </Button>
                         <Button Command="{Binding ApplyBalancedMsiPresetCommand}" Style="{DynamicResource StormPrimaryButton}" Padding="12,10" Margin="0,0,8,4">
-                            <TextBlock Text="MSI ДЛЯ ВСЕХ" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="{StaticResource GeoCheck}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0"/>
+                                <TextBlock Text="MSI для всех" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            </StackPanel>
                         </Button>
                         <Button Command="{Binding ResetDefaultsCommand}" Style="{DynamicResource StormSecondaryButton}" Padding="12,10" Margin="0,0,0,4">
-                            <TextBlock Text="Сброс на Windows" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Сброс на Windows" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
                         </Button>
                     </WrapPanel>
                 </Grid>
@@ -161,11 +167,17 @@
                                   FontSize="12"
                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                   SelectedItem="{Binding SelectedDevice}">
+                            <DataGrid.Resources>
+                                <Style TargetType="TextBlock" x:Key="DataGridTextCell">
+                                    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGrid.Resources>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Категория" Binding="{Binding Category}" Width="150"/>
-                                <DataGridTextColumn Header="Устройство" Binding="{Binding Name}" Width="2*"/>
-                                <DataGridTextColumn Header="Статус MSI / Маска" Binding="{Binding StatusSummary}" Width="1.4*"/>
-                                <DataGridTextColumn Header="Рекомендация STORM" Binding="{Binding Recommendation}" Width="2*"/>
+                                <DataGridTextColumn Header="Категория" Binding="{Binding Category}" Width="150" ElementStyle="{StaticResource DataGridTextCell}"/>
+                                <DataGridTextColumn Header="Устройство" Binding="{Binding Name}" Width="2*" ElementStyle="{StaticResource DataGridTextCell}"/>
+                                <DataGridTextColumn Header="Статус MSI / Маска" Binding="{Binding StatusSummary}" Width="1.4*" ElementStyle="{StaticResource DataGridTextCell}"/>
+                                <DataGridTextColumn Header="Рекомендация STORM" Binding="{Binding Recommendation}" Width="2*" ElementStyle="{StaticResource DataGridTextCell}"/>
                                 <DataGridTemplateColumn Header="Управление MSI" Width="150">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate>
@@ -173,7 +185,7 @@
                                                     CommandParameter="{Binding}"
                                                     Style="{DynamicResource StormSecondaryButton}"
                                                     Padding="10,4" Margin="2">
-                                                <TextBlock Text="{Binding MsiEnabled, Converter={StaticResource BoolToMsiButtonTextConverter}, FallbackValue='MSI Активен'}"
+                                                <TextBlock Text="{Binding MsiEnabled, Converter={StaticResource BoolToMsiButtonTextConverter}, FallbackValue='MSI активен'}"
                                                            FontSize="11" FontWeight="Bold"
                                                            Foreground="{Binding MsiEnabled, Converter={StaticResource BoolToMsiBrushConverter}}"
                                                            TextWrapping="Wrap"/>
