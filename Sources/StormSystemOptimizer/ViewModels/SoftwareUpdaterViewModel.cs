@@ -53,13 +53,24 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public async Task LoadUpdatesAsync()
         {
+            await FetchUpdatesAsync(forceRefresh: false);
+        }
+
+        [RelayCommand]
+        public async Task RefreshUpdatesAsync()
+        {
+            await FetchUpdatesAsync(forceRefresh: true);
+        }
+
+        private async Task FetchUpdatesAsync(bool forceRefresh)
+        {
             if (IsBusy) return;
             IsBusy = true;
             StatusText = ShowBetaVersions
                 ? "Сканирование программ со сверкой релизных и бета-версий..."
                 : "Мгновенное сканирование установленных программ и сверка версий...";
 
-            _allApps = await SoftwareUpdaterService.Instance.ScanInstalledAppsForUpdatesAsync(ShowBetaVersions);
+            _allApps = await SoftwareUpdaterService.Instance.ScanInstalledAppsForUpdatesAsync(ShowBetaVersions, forceRefresh);
             ApplyFilter();
             UpdateStatsSummary();
 

@@ -82,5 +82,33 @@ namespace StormSystemOptimizer.Models
             "Системное" => "#26FB7185",
             _ => "#2610B981"
         };
+
+        public InstalledAppItem Clone()
+        {
+            return new InstalledAppItem
+            {
+                Id = Id,
+                DisplayName = DisplayName,
+                DisplayVersion = DisplayVersion,
+                Publisher = Publisher,
+                InstallDate = InstallDate,
+                InstallLocation = InstallLocation,
+                UninstallString = UninstallString,
+                QuietUninstallString = QuietUninstallString,
+                EstimatedSizeMb = EstimatedSizeMb,
+                AppType = AppType,
+                DisplayIconPath = DisplayIconPath,
+                RegistryKeyPath = RegistryKeyPath,
+                ManifestFilePath = ManifestFilePath,
+                IsSelected = IsSelected,
+                IconSource = IconSource,
+                IsScanned = IsScanned,
+                ResidualFilesCount = ResidualFilesCount,
+                ResidualRegistryCount = ResidualRegistryCount,
+                ResidualSizeMb = ResidualSizeMb,
+                FoundFolders = new List<string>(FoundFolders),
+                FoundRegistryKeys = new List<string>(FoundRegistryKeys)
+            };
+        }
     }
 }

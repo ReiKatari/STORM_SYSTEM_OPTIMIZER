@@ -31,5 +31,24 @@ namespace StormSystemOptimizer.Models
             "USB" => "🔌",
             _ => "⚡"
         };
+
+        public DriverItem Clone()
+        {
+            return new DriverItem
+            {
+                Id = Id,
+                DeviceName = DeviceName,
+                Category = Category,
+                ProviderName = ProviderName,
+                CurrentVersion = CurrentVersion,
+                DriverDate = DriverDate,
+                LatestVersion = LatestVersion,
+                InfName = InfName,
+                HardwareId = HardwareId,
+                IsUpdateAvailable = IsUpdateAvailable,
+                DownloadUrl = DownloadUrl,
+                IconSource = IconSource
+            };
+        }
     }
 }
