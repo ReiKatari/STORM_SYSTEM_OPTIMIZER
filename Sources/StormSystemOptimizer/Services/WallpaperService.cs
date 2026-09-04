@@ -40,6 +40,16 @@ namespace StormSystemOptimizer.Services
         private string _localPath = string.Empty;
     }
 
+    public class SystemMonitorInfo
+    {
+        public string DeviceId { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public int Index { get; set; } = 0;
+        public int Width { get; set; } = 1920;
+        public int Height { get; set; } = 1080;
+        public bool IsPrimary { get; set; } = false;
+    }
+
     public class WallpaperService
     {
         private static WallpaperService? _instance;
@@ -60,11 +70,52 @@ namespace StormSystemOptimizer.Services
             }
         }
 
+        public List<SystemMonitorInfo> GetSystemMonitors()
+        {
+            var list = new List<SystemMonitorInfo>
+            {
+                new() { DeviceId = "", DisplayName = "Все экраны системы", Index = -1 }
+            };
+
+            try
+            {
+                var wallpaper = (NativeMethods.IDesktopWallpaper)new NativeMethods.DesktopWallpaperClass();
+                uint count = wallpaper.GetMonitorDevicePathCount();
+                for (uint i = 0; i < count; i++)
+                {
+                    string monId = wallpaper.GetMonitorDevicePathAt(i);
+                    var rect = wallpaper.GetMonitorRECT(monId);
+                    int w = Math.Abs(rect.Right - rect.Left);
+                    int h = Math.Abs(rect.Bottom - rect.Top);
+                    bool isPrimary = (rect.Left == 0 && rect.Top == 0);
+                    string name = isPrimary 
+                        ? $"Монитор {i + 1} (Основной, {w}×{h})" 
+                        : $"Монитор {i + 1} ({w}×{h})";
+
+                    list.Add(new SystemMonitorInfo
+                    {
+                        DeviceId = monId,
+                        DisplayName = name,
+                        Index = (int)i,
+                        Width = w,
+                        Height = h,
+                        IsPrimary = isPrimary
+                    });
+                }
+            }
+            catch
+            {
+                list.Add(new SystemMonitorInfo { DeviceId = "mon1", DisplayName = "Монитор 1 (Основной)", Index = 0, IsPrimary = true });
+            }
+
+            return list;
+        }
+
         public List<WallpaperItem> GetCurated4KWallpapers()
         {
             return new List<WallpaperItem>
             {
-                // 5 STORM SOFT Branded
+                // 1. STORM Dark (8 фирменных обоев)
                 new() {
                     Title = "STORM Dark Core 4K",
                     Category = "STORM Dark",
@@ -110,8 +161,35 @@ namespace StormSystemOptimizer.Services
                     DownloadsCount = 83000,
                     Rating = 4.9
                 },
+                new() {
+                    Title = "STORM Cyber Matrix 4K",
+                    Category = "STORM Dark",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=3840&q=100",
+                    DownloadsCount = 71800,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "STORM Midnight Amethyst 4K",
+                    Category = "STORM Dark",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=3840&q=100",
+                    DownloadsCount = 68900,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "STORM OLED Absolute 8K",
+                    Category = "STORM Dark",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=7680&q=100",
+                    DownloadsCount = 98200,
+                    Rating = 5.0
+                },
 
-                // 13 Curated Ultra Dark & Black Themes
+                // 2. Тёмный арт (10 работ)
                 new() {
                     Title = "Горящий тигр 4K",
                     Category = "Тёмный арт",
@@ -149,6 +227,62 @@ namespace StormSystemOptimizer.Services
                     Rating = 4.9
                 },
                 new() {
+                    Title = "Пылающий череп 4K",
+                    Category = "Тёмный арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=3840&q=100",
+                    DownloadsCount = 74600,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Ледяной левиафан 4K",
+                    Category = "Тёмный арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=3840&q=100",
+                    DownloadsCount = 67300,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Темный рыцарь 4K",
+                    Category = "Тёмный арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=3840&q=100",
+                    DownloadsCount = 78900,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Теневой демон 4K",
+                    Category = "Тёмный арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=3840&q=100",
+                    DownloadsCount = 63100,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Черный ворон 4K",
+                    Category = "Тёмный арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?w=3840&q=100",
+                    DownloadsCount = 59400,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Лунный грифон 8K",
+                    Category = "Тёмный арт",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=7680&q=100",
+                    DownloadsCount = 84200,
+                    Rating = 5.0
+                },
+
+                // 3. Киберпанк (10 работ)
+                new() {
                     Title = "Кибер-самурай 4K",
                     Category = "Киберпанк",
                     Resolution = "4K UHD (3840×2160)",
@@ -158,14 +292,88 @@ namespace StormSystemOptimizer.Services
                     Rating = 5.0
                 },
                 new() {
-                    Title = "Пылающий череп 4K",
-                    Category = "Тёмный арт",
+                    Title = "Неоновый пантеон 4K",
+                    Category = "Киберпанк",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=3840&q=100",
+                    DownloadsCount = 82400,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Кибер-меха Титан 4K",
+                    Category = "Киберпанк",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1563089145-599997674d42?w=3840&q=100",
+                    DownloadsCount = 68400,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Неоновый Найт-Сити 8K",
+                    Category = "Киберпанк",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=7680&q=100",
+                    DownloadsCount = 129400,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Кибер-мотоцикл Неон 4K",
+                    Category = "Киберпанк",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=3840&q=100",
+                    DownloadsCount = 75300,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Кибер-город 2099 4K",
+                    Category = "Киберпанк",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=3840&q=100",
+                    DownloadsCount = 91200,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Нейросетевой хакер QHD",
+                    Category = "Киберпанк",
+                    Resolution = "QHD 2K (2560×1440)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=2560&q=100",
+                    DownloadsCount = 61800,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Неоновый дождь Токио 4K",
+                    Category = "Киберпанк",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=3840&q=100",
+                    DownloadsCount = 104500,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Синтвейв трасса 4K",
+                    Category = "Киберпанк",
                     Resolution = "4K UHD (3840×2160)",
                     PreviewUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&q=80",
                     SourceUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=3840&q=100",
-                    DownloadsCount = 74600,
-                    Rating = 4.8
+                    DownloadsCount = 83200,
+                    Rating = 4.9
                 },
+                new() {
+                    Title = "Квантовый андроид 8K",
+                    Category = "Киберпанк",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=7680&q=100",
+                    DownloadsCount = 95600,
+                    Rating = 5.0
+                },
+
+                // 4. Космос (10 работ)
                 new() {
                     Title = "Глубокая туманность 8K",
                     Category = "Космос",
@@ -185,14 +393,79 @@ namespace StormSystemOptimizer.Services
                     Rating = 5.0
                 },
                 new() {
-                    Title = "Кибер-меха Титан 4K",
-                    Category = "Киберпанк",
+                    Title = "Туманность Ориона 4K",
+                    Category = "Космос",
                     Resolution = "4K UHD (3840×2160)",
-                    PreviewUrl = "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80",
-                    SourceUrl = "https://images.unsplash.com/photo-1563089145-599997674d42?w=3840&q=100",
-                    DownloadsCount = 68400,
+                    PreviewUrl = "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=3840&q=100",
+                    DownloadsCount = 88400,
                     Rating = 4.9
                 },
+                new() {
+                    Title = "Галактика Млечный Путь 8K",
+                    Category = "Космос",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=7680&q=100",
+                    DownloadsCount = 112000,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Рождение сверхновой 4K",
+                    Category = "Космос",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=3840&q=100",
+                    DownloadsCount = 74500,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Солнечный протуберанец 4K",
+                    Category = "Космос",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=3840&q=100",
+                    DownloadsCount = 69200,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Ледяная экзопланета 4K",
+                    Category = "Космос",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=3840&q=100",
+                    DownloadsCount = 77100,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Космический телескоп 4K",
+                    Category = "Космос",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1447433589675-4aaa569f3e05?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1447433589675-4aaa569f3e05?w=3840&q=100",
+                    DownloadsCount = 63800,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Столпы творения 8K",
+                    Category = "Космос",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=7680&q=100",
+                    DownloadsCount = 108300,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Полярное сияние Земли 4K",
+                    Category = "Космос",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1483347756197-71ef80e95f73?w=3840&q=100",
+                    DownloadsCount = 89900,
+                    Rating = 4.9
+                },
+
+                // 5. Игры и Арт (10 работ)
                 new() {
                     Title = "Призрачный клинок QHD",
                     Category = "Игры и Арт",
@@ -203,23 +476,88 @@ namespace StormSystemOptimizer.Services
                     Rating = 4.8
                 },
                 new() {
-                    Title = "Неоновый пантеон 4K",
-                    Category = "Киберпанк",
+                    Title = "Драконий хребет 4K",
+                    Category = "Игры и Арт",
                     Resolution = "4K UHD (3840×2160)",
-                    PreviewUrl = "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=800&q=80",
-                    SourceUrl = "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=3840&q=100",
-                    DownloadsCount = 82400,
+                    PreviewUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=3840&q=100",
+                    DownloadsCount = 84500,
                     Rating = 4.9
                 },
                 new() {
-                    Title = "Темный рыцарь 4K",
+                    Title = "Страж цитадели 4K",
                     Category = "Игры и Арт",
                     Resolution = "4K UHD (3840×2160)",
-                    PreviewUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
-                    SourceUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=3840&q=100",
-                    DownloadsCount = 78900,
+                    PreviewUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=3840&q=100",
+                    DownloadsCount = 76200,
                     Rating = 4.9
                 },
+                new() {
+                    Title = "Древний храм рун 4K",
+                    Category = "Игры и Арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=3840&q=100",
+                    DownloadsCount = 71300,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Магический портал 4K",
+                    Category = "Игры и Арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=3840&q=100",
+                    DownloadsCount = 82100,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Рыцарь солнца 4K",
+                    Category = "Игры и Арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=3840&q=100",
+                    DownloadsCount = 65400,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Подземный кузнечный горн 4K",
+                    Category = "Игры и Арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=3840&q=100",
+                    DownloadsCount = 69800,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Парящие острова 8K",
+                    Category = "Игры и Арт",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=7680&q=100",
+                    DownloadsCount = 94300,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Лесной дух хранитель 4K",
+                    Category = "Игры и Арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1511497584788-87676104235f?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1511497584788-87676104235f?w=3840&q=100",
+                    DownloadsCount = 73200,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Эпическая битва титанов 4K",
+                    Category = "Игры и Арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=3840&q=100",
+                    DownloadsCount = 88700,
+                    Rating = 4.9
+                },
+
+                // 6. Абстракция (10 работ)
                 new() {
                     Title = "Плазменный вихрь 4K",
                     Category = "Абстракция",
@@ -229,8 +567,89 @@ namespace StormSystemOptimizer.Services
                     DownloadsCount = 71200,
                     Rating = 4.8
                 },
+                new() {
+                    Title = "Темная жидкая сфера 4K",
+                    Category = "Абстракция",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=3840&q=100",
+                    DownloadsCount = 85400,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Золотые фракталы 8K",
+                    Category = "Абстракция",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=7680&q=100",
+                    DownloadsCount = 92600,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Неоморфная волна 4K",
+                    Category = "Абстракция",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=3840&q=100",
+                    DownloadsCount = 68300,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Квантовые нити 4K",
+                    Category = "Абстракция",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=3840&q=100",
+                    DownloadsCount = 74100,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Голографическая призма 4K",
+                    Category = "Абстракция",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=3840&q=100",
+                    DownloadsCount = 79500,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Геометрический горизонт QHD",
+                    Category = "Абстракция",
+                    Resolution = "QHD 2K (2560×1440)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=2560&q=100",
+                    DownloadsCount = 62400,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Неоновый гиперкуб 4K",
+                    Category = "Абстракция",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=3840&q=100",
+                    DownloadsCount = 81700,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Черный шелк и хром 8K",
+                    Category = "Абстракция",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=7680&q=100",
+                    DownloadsCount = 96400,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Энергетический кристалл 4K",
+                    Category = "Абстракция",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=3840&q=100",
+                    DownloadsCount = 77800,
+                    Rating = 4.9
+                },
 
-                // 2 Live Video Loop Wallpapers
+                // 7. Живые луп-обои WorkerW (4 видеопотока)
                 new() {
                     Title = "Кибер-луп: Неоновый дождь FHD",
                     Category = "Живые обои",
@@ -247,6 +666,24 @@ namespace StormSystemOptimizer.Services
                     PreviewUrl = "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80",
                     SourceUrl = "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=3840&q=100",
                     DownloadsCount = 142000,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Кибер-луп: Плазменный шторм FHD",
+                    Category = "Живые обои",
+                    Resolution = "Full HD (1920×1080)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=1920&q=100",
+                    DownloadsCount = 118000,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Кибер-луп: Квантовый реактор 4K",
+                    Category = "Живые обои",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=3840&q=100",
+                    DownloadsCount = 126500,
                     Rating = 5.0
                 }
             };
@@ -271,28 +708,45 @@ namespace StormSystemOptimizer.Services
             return targetPath;
         }
 
-        public async Task<bool> SetDesktopWallpaperAsync(string urlOrPath)
+        public async Task<bool> SetDesktopWallpaperAsync(string urlOrPath, string? monitorDeviceId = null)
         {
             try
             {
                 string localPath = await DownloadOrPrepareWallpaperAsync(urlOrPath);
                 if (!File.Exists(localPath)) return false;
 
-                // Configure Wallpaper Style: 10 = Fill, 2 = Stretch
-                using (var desk = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true))
+                try
                 {
-                    desk?.SetValue("WallpaperStyle", "10");
-                    desk?.SetValue("TileWallpaper", "0");
+                    var wallpaper = (NativeMethods.IDesktopWallpaper)new NativeMethods.DesktopWallpaperClass();
+                    wallpaper.SetPosition(NativeMethods.DesktopWallpaperPosition.Fill);
+                    if (string.IsNullOrEmpty(monitorDeviceId))
+                    {
+                        wallpaper.SetWallpaper(null, localPath);
+                    }
+                    else
+                    {
+                        wallpaper.SetWallpaper(monitorDeviceId, localPath);
+                    }
+                    return true;
                 }
+                catch
+                {
+                    // Fallback to classic SystemParametersInfo
+                    using (var desk = Registry.CurrentUser.OpenSubKey(@"Control Panel\Desktop", true))
+                    {
+                        desk?.SetValue("WallpaperStyle", "10");
+                        desk?.SetValue("TileWallpaper", "0");
+                    }
 
-                int res = NativeMethods.SystemParametersInfo(
-                    NativeMethods.SPI_SETDESKWALLPAPER,
-                    0,
-                    localPath,
-                    NativeMethods.SPIF_UPDATEINIFILE | NativeMethods.SPIF_SENDCHANGE
-                );
+                    int res = NativeMethods.SystemParametersInfo(
+                        NativeMethods.SPI_SETDESKWALLPAPER,
+                        0,
+                        localPath,
+                        NativeMethods.SPIF_UPDATEINIFILE | NativeMethods.SPIF_SENDCHANGE
+                    );
 
-                return res != 0;
+                    return res != 0;
+                }
             }
             catch
             {

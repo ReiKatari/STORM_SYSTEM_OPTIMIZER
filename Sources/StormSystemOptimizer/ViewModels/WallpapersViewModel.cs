@@ -34,6 +34,17 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private bool _isLiveWallpaperActive = false;
 
+        [ObservableProperty]
+        private bool _isPreviewOpen = false;
+
+        [ObservableProperty]
+        private WallpaperItem? _previewWallpaper;
+
+        public ObservableCollection<SystemMonitorInfo> Monitors { get; } = new();
+
+        [ObservableProperty]
+        private SystemMonitorInfo? _selectedMonitor;
+
         public ObservableCollection<WallpaperItem> Wallpapers { get; } = new();
         public ObservableCollection<WallpaperItem> FilteredWallpapers { get; } = new();
 
@@ -63,7 +74,18 @@ namespace StormSystemOptimizer.ViewModels
             IsNoLockScreen = WallpaperService.Instance.IsNoLockScreenEnabled();
             IsLockScreenTipsDisabled = WallpaperService.Instance.IsLockScreenTipsDisabled();
             IsLiveWallpaperActive = WallpaperService.Instance.IsLiveWallpaperActive;
+            LoadMonitors();
             LoadWallpapers();
+        }
+
+        private void LoadMonitors()
+        {
+            Monitors.Clear();
+            foreach (var m in WallpaperService.Instance.GetSystemMonitors())
+            {
+                Monitors.Add(m);
+            }
+            SelectedMonitor = Monitors.FirstOrDefault();
         }
 
         private void LoadWallpapers()
@@ -108,19 +130,59 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
-        public async Task ApplyDesktopWallpaperAsync(WallpaperItem item)
+        public void OpenPreview(WallpaperItem? item)
         {
             if (item == null) return;
-            StatusMessage = $"Загрузка и установка обоев «{item.Title}» на рабочий стол...";
-            bool ok = await WallpaperService.Instance.SetDesktopWallpaperAsync(item.SourceUrl);
+            PreviewWallpaper = item;
+            IsPreviewOpen = true;
+        }
+
+        [RelayCommand]
+        public void ClosePreview()
+        {
+            IsPreviewOpen = false;
+        }
+
+        [RelayCommand]
+        public async Task ApplyDesktopWallpaperAsync(WallpaperItem? item)
+        {
+            if (item == null) return;
+            string targetName = SelectedMonitor != null && !string.IsNullOrEmpty(SelectedMonitor.DeviceId)
+                ? SelectedMonitor.DisplayName
+                : "все экраны системы";
+
+            StatusMessage = $"Загрузка и установка обоев «{item.Title}» на {targetName}...";
+            bool ok = await WallpaperService.Instance.SetDesktopWallpaperAsync(item.SourceUrl, SelectedMonitor?.DeviceId);
             if (ok)
             {
-                StatusMessage = $"Обои «{item.Title}» успешно установлены на рабочий стол!";
+                StatusMessage = $"Обои «{item.Title}» успешно установлены на {targetName}!";
                 TrayService.Instance.ShowNotification("Обои рабочего стола 🖼️", StatusMessage);
             }
             else
             {
                 StatusMessage = "Не удалось применить обои рабочего стола.";
+            }
+        }
+
+        [RelayCommand]
+        public async Task DownloadWallpaperAsync(WallpaperItem? item)
+        {
+            if (item == null) return;
+            StatusMessage = $"Загрузка оригинала обоев «{item.Title}»...";
+            string localPath = await WallpaperService.Instance.DownloadOrPrepareWallpaperAsync(item.SourceUrl);
+            if (System.IO.File.Exists(localPath))
+            {
+                StatusMessage = $"Обои успешно сохранены: {localPath}";
+                TrayService.Instance.ShowNotification("Обои сохранены 📁", $"Файл сохранен: {System.IO.Path.GetFileName(localPath)}");
+                try
+                {
+                    System.Diagnostics.Process.Start("explorer.exe", $"/select,\"{localPath}\"");
+                }
+                catch { }
+            }
+            else
+            {
+                StatusMessage = "Не удалось загрузить файл обоев.";
             }
         }
 

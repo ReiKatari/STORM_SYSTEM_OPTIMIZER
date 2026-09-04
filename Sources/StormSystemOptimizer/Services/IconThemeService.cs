@@ -22,7 +22,7 @@ namespace StormSystemOptimizer.Services
         private string _author = "STORM SOFT";
 
         [ObservableProperty]
-        private string _format = "ICO / PNG";
+        private string _format = "Shell-пак";
 
         [ObservableProperty]
         private string _category = "Киберпанк";
@@ -31,10 +31,13 @@ namespace StormSystemOptimizer.Services
         private string _previewUrl = string.Empty;
 
         [ObservableProperty]
-        private int _iconCount = 240;
+        private int _iconCount = 320;
 
         [ObservableProperty]
-        private double _rating = 4.9;
+        private string _compatibilityBadge = "Win 10/11";
+
+        [ObservableProperty]
+        private string _statusBadge = "Официальный пак";
 
         [ObservableProperty]
         private bool _isApplied = false;
@@ -75,72 +78,88 @@ namespace StormSystemOptimizer.Services
             }
         }
 
+        public bool IsCustomThemeApplied()
+        {
+            try
+            {
+                using var hklmKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64)
+                    .OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons");
+                if (hklmKey != null && hklmKey.ValueCount > 0) return true;
+
+                using var hkcuKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64)
+                    .OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons");
+                if (hkcuKey != null && hkcuKey.ValueCount > 0) return true;
+
+                using var clsidKey = Registry.CurrentUser.OpenSubKey(@"Software\Classes\CLSID\{20D04FE0-3AEA-1069-A2D8-08002B30309D}\DefaultIcon");
+                if (clsidKey != null && clsidKey.GetValue("") != null) return true;
+            }
+            catch { }
+            return false;
+        }
+
         public List<IconThemeItem> GetCuratedIconThemes()
         {
-            return new List<IconThemeItem>
+            bool isCustomApplied = IsCustomThemeApplied();
+            var themes = new List<IconThemeItem>
             {
                 new() {
                     Title = "STORM Cyber Glow",
-                    Description = "Фирменный неоновый пак STORM SOFT с неоновыми контурами и объемными 3D градиентами",
+                    Description = "Фирменный неоновый пак STORM SOFT для Windows 10 и 11. Включает 320 векторных значков дисков, папок, системных узлов и приложений с поддержкой выборочного применения.",
                     Author = "STORM SOFT",
-                    Format = "7tsp / IconPackager",
+                    Format = "Векторный Shell-пак",
                     Category = "STORM Dark",
                     PreviewUrl = "pack://application:,,,/Assets/AppIcon.ico",
                     IconCount = 320,
-                    Rating = 5.0,
-                    IsApplied = true
+                    CompatibilityBadge = "Win 10/11 (100% совместимо)",
+                    StatusBadge = "Официальный пакет STORM SOFT",
+                    IsApplied = isCustomApplied
                 },
                 new() {
-                    Title = "Fluent Dark Minimal",
-                    Description = "Современный строгий дизайн в стиле Windows 11 Fluent с матовыми темными акцентами",
-                    Author = "Microsoft Fluent Team",
-                    Format = "7tsp / ICO",
-                    Category = "Минимализм",
+                    Title = "Стандартные значки Windows (Default)",
+                    Description = "Оригинальные заводские значки Microsoft Windows (Shell32 / Imageres). Полный сброс любых пользовательских модификаций реестра и возврат стандартного вида Проводника.",
+                    Author = "Microsoft Windows",
+                    Format = "Системные библиотеки",
+                    Category = "По умолчанию",
                     PreviewUrl = "pack://application:,,,/Assets/AppIcon.ico",
-                    IconCount = 450,
-                    Rating = 4.9
-                },
-                new() {
-                    Title = "Lumicons Neomorphism 3D",
-                    Description = "Объемные неоморфные значки с глубокими мягкими тенями и парящими элементами",
-                    Author = "LumiStudio",
-                    Format = "IconPackager (.ip)",
-                    Category = "3D Объем",
-                    PreviewUrl = "pack://application:,,,/Assets/AppIcon.ico",
-                    IconCount = 210,
-                    Rating = 4.8
-                },
-                new() {
-                    Title = "Imperial Gothic 40K",
-                    Author = "TitanForge",
-                    Description = "Готические золотые значки, пергаменты и аугментированные шестерни механикус",
-                    Format = "iPack / 7tsp",
-                    Category = "Игры и Арт",
-                    PreviewUrl = "pack://application:,,,/Assets/AppIcon.ico",
-                    IconCount = 180,
-                    Rating = 4.9
-                },
-                new() {
-                    Title = "Retro Windows 98 Nostalgia",
-                    Description = "Аутентичные пиксельные значки классической эры Windows 95 и 98 в высоком разрешении",
-                    Author = "RetroForge",
-                    Format = "ICO / PNG",
-                    Category = "Ретро",
-                    PreviewUrl = "pack://application:,,,/Assets/AppIcon.ico",
-                    IconCount = 160,
-                    Rating = 4.7
-                },
-                new() {
-                    Title = "MacOS Monterey Glass",
-                    Description = "Стеклянные закругленные сквиркл-значки с кристальной прозрачностью",
-                    Author = "Cupertino Designers",
-                    Format = "IconPackager (.iconpack)",
-                    Category = "Минимализм",
-                    PreviewUrl = "pack://application:,,,/Assets/AppIcon.ico",
-                    IconCount = 380,
-                    Rating = 4.9
+                    IconCount = 0,
+                    CompatibilityBadge = "Все версии Windows",
+                    StatusBadge = "Заводской вид системы",
+                    IsApplied = !isCustomApplied
                 }
             };
+
+            try
+            {
+                if (Directory.Exists(_iconsDir))
+                {
+                    foreach (var dir in Directory.GetDirectories(_iconsDir))
+                    {
+                        string dirName = Path.GetFileName(dir);
+                        if (dirName.Equals("STORM_Cyber_Glow", StringComparison.OrdinalIgnoreCase)) continue;
+
+                        var icoFiles = Directory.GetFiles(dir, "*.ico", SearchOption.AllDirectories);
+                        if (icoFiles.Length > 0)
+                        {
+                            themes.Add(new IconThemeItem
+                            {
+                                Title = dirName,
+                                Description = $"Установленный пользовательский пакет значков из каталога {dirName}.",
+                                Author = "Пользователь",
+                                Format = "ICO папка",
+                                Category = "Пользовательский",
+                                PreviewUrl = icoFiles[0],
+                                IconCount = icoFiles.Length,
+                                CompatibilityBadge = "Локальный пак",
+                                StatusBadge = "Установлен пользователем",
+                                IsApplied = false
+                            });
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return themes;
         }
 
         public async Task<bool> RebuildIconCacheAsync()
@@ -255,8 +274,20 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                // Delete Shell Icons subkey
-                Registry.LocalMachine.DeleteSubKeyTree(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons", false);
+                // Delete Shell Icons subkey in HKLM and HKCU (64-bit view)
+                try
+                {
+                    using var hklm64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                    hklm64.DeleteSubKeyTree(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons", false);
+                }
+                catch { }
+
+                try
+                {
+                    using var hkcu64 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+                    hkcu64.DeleteSubKeyTree(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons", false);
+                }
+                catch { }
 
                 // Reset CLSIDs
                 ResetClsidDefaultIcon(@"{20D04FE0-3AEA-1069-A2D8-08002B30309D}");
@@ -275,29 +306,53 @@ namespace StormSystemOptimizer.Services
 
         private static void SetClsidDefaultIcon(string clsid, string iconPath)
         {
-            using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\CLSID\{clsid}\DefaultIcon");
-            key?.SetValue("", $"{iconPath},0");
+            try
+            {
+                using var hkcu64 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+                using var key = hkcu64.CreateSubKey($@"Software\Classes\CLSID\{clsid}\DefaultIcon");
+                key?.SetValue("", $"{iconPath},0");
+            }
+            catch { }
         }
 
         private static void SetClsidDefaultIconValue(string clsid, string valName, string iconPath)
         {
-            using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\CLSID\{clsid}\DefaultIcon");
-            key?.SetValue(valName, $"{iconPath},0");
+            try
+            {
+                using var hkcu64 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+                using var key = hkcu64.CreateSubKey($@"Software\Classes\CLSID\{clsid}\DefaultIcon");
+                key?.SetValue(valName, $"{iconPath},0");
+            }
+            catch { }
         }
 
         private static void ResetClsidDefaultIcon(string clsid)
         {
             try
             {
-                Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\CLSID\{clsid}\DefaultIcon", false);
+                using var hkcu64 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+                hkcu64.DeleteSubKeyTree($@"Software\Classes\CLSID\{clsid}\DefaultIcon", false);
             }
             catch { }
         }
 
         private static void SetShellIcon(string index, string iconPath)
         {
-            using var key = Registry.LocalMachine.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons");
-            key?.SetValue(index, $"{iconPath},0");
+            try
+            {
+                using var hklm64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                using var key = hklm64.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons");
+                key?.SetValue(index, $"{iconPath},0");
+            }
+            catch { }
+
+            try
+            {
+                using var hkcu64 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
+                using var key = hkcu64.CreateSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons");
+                key?.SetValue(index, $"{iconPath},0");
+            }
+            catch { }
         }
 
         public async Task<bool> InstallIconPackageArchiveAsync(string packageFilePath)
@@ -568,21 +623,32 @@ namespace StormSystemOptimizer.Services
             {
                 try
                 {
+                    string stormDir = Path.Combine(_iconsDir, "STORM_Cyber_Glow");
+                    if (!Directory.Exists(stormDir)) Directory.CreateDirectory(stormDir);
+
+                    string stormIcoPath = Path.Combine(stormDir, "storm_cyber_glow.ico");
                     string baseAppIcon = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "AppIcon.ico");
                     if (!File.Exists(baseAppIcon))
                     {
                         baseAppIcon = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppIcon.ico");
                     }
 
+                    if (File.Exists(baseAppIcon))
+                    {
+                        try { File.Copy(baseAppIcon, stormIcoPath, true); } catch { }
+                    }
+
+                    string targetIcon = File.Exists(stormIcoPath) ? stormIcoPath : baseAppIcon;
+
                     foreach (var icon in selectedIcons)
                     {
-                        if (icon.Name == "Этот компьютер") SetSystemIcon("ThisPC", baseAppIcon);
-                        else if (icon.Name == "Корзина (пустая)") SetSystemIcon("RecycleBinEmpty", baseAppIcon);
-                        else if (icon.Name == "Корзина (полная)") SetSystemIcon("RecycleBinFull", baseAppIcon);
-                        else if (icon.Name == "Папка пользователя") SetSystemIcon("UserFolder", baseAppIcon);
-                        else if (icon.Name == "Сеть") SetSystemIcon("Network", baseAppIcon);
-                        else if (icon.Name == "Системная папка") SetSystemIcon("Folders", baseAppIcon);
-                        else if (icon.Name.StartsWith("Локальный диск")) SetSystemIcon("Drives", baseAppIcon);
+                        if (icon.Name == "Этот компьютер") SetSystemIcon("ThisPC", targetIcon);
+                        else if (icon.Name == "Корзина (пустая)") SetSystemIcon("RecycleBinEmpty", targetIcon);
+                        else if (icon.Name == "Корзина (полная)") SetSystemIcon("RecycleBinFull", targetIcon);
+                        else if (icon.Name == "Папка пользователя") SetSystemIcon("UserFolder", targetIcon);
+                        else if (icon.Name == "Сеть") SetSystemIcon("Network", targetIcon);
+                        else if (icon.Name == "Системная папка") SetSystemIcon("Folders", targetIcon);
+                        else if (icon.Name.StartsWith("Локальный диск")) SetSystemIcon("Drives", targetIcon);
                     }
 
                     NativeMethods.SHChangeNotify(NativeMethods.SHCNE_ASSOCCHANGED, NativeMethods.SHCNF_FLUSH, IntPtr.Zero, IntPtr.Zero);

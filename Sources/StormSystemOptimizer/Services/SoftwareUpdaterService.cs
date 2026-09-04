@@ -59,6 +59,19 @@ namespace StormSystemOptimizer.Services
                 { "Spotify", ("1.2.52", "1.2.53", "https://download.scdn.co/SpotifySetup.exe", "https://download.scdn.co/SpotifySetup.exe", "/silent", "Spotify AB", "Медиа", "Spotify.Spotify") }
             };
 
+        public class SoftwareUpdateRecord
+        {
+            public string PackageId { get; set; } = string.Empty;
+            public string Name { get; set; } = string.Empty;
+            public string VersionUpdatedTo { get; set; } = string.Empty;
+            public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+            public int ExitCode { get; set; } = 0;
+            public bool Success { get; set; } = true;
+        }
+
+        private readonly string _installedHistoryFilePath;
+        private readonly Dictionary<string, SoftwareUpdateRecord> _updateHistory = new(StringComparer.OrdinalIgnoreCase);
+
         private SoftwareUpdaterService()
         {
             string appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "STORM_OPTIMIZER");
@@ -66,9 +79,78 @@ namespace StormSystemOptimizer.Services
             _blacklistFilePath = Path.Combine(appData, "software_blacklist.json");
             LoadBlacklist();
 
+            _installedHistoryFilePath = Path.Combine(appData, "installed_software_updates.json");
+            LoadUpdateHistory();
+
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/3.0.0");
             _httpClient.Timeout = TimeSpan.FromSeconds(20);
+        }
+
+        private void LoadUpdateHistory()
+        {
+            try
+            {
+                if (File.Exists(_installedHistoryFilePath))
+                {
+                    string json = File.ReadAllText(_installedHistoryFilePath);
+                    var list = JsonSerializer.Deserialize<List<SoftwareUpdateRecord>>(json);
+                    if (list != null)
+                    {
+                        foreach (var item in list)
+                        {
+                            if (!string.IsNullOrEmpty(item.PackageId)) _updateHistory[item.PackageId] = item;
+                            if (!string.IsNullOrEmpty(item.Name)) _updateHistory[item.Name] = item;
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        public void RecordUpdateHistory(string packageId, string name, string targetVersion, int exitCode, bool success)
+        {
+            try
+            {
+                var rec = new SoftwareUpdateRecord
+                {
+                    PackageId = packageId,
+                    Name = name,
+                    VersionUpdatedTo = targetVersion,
+                    UpdatedAt = DateTime.UtcNow,
+                    ExitCode = exitCode,
+                    Success = success
+                };
+                if (!string.IsNullOrEmpty(packageId)) _updateHistory[packageId] = rec;
+                if (!string.IsNullOrEmpty(name)) _updateHistory[name] = rec;
+
+                var list = _updateHistory.Values.DistinctBy(r => (r.PackageId ?? "") + (r.Name ?? "")).ToList();
+                string json = JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(_installedHistoryFilePath, json);
+            }
+            catch { }
+        }
+
+        public bool IsUpdatePreviouslyCompleted(string packageId, string name, string targetVersion, out SoftwareUpdateRecord? record)
+        {
+            record = null;
+            if (!string.IsNullOrEmpty(packageId) && _updateHistory.TryGetValue(packageId, out var r1) && r1.Success)
+            {
+                if (r1.VersionUpdatedTo == targetVersion || (DateTime.UtcNow - r1.UpdatedAt).TotalHours < 48)
+                {
+                    record = r1;
+                    return true;
+                }
+            }
+            if (!string.IsNullOrEmpty(name) && _updateHistory.TryGetValue(name, out var r2) && r2.Success)
+            {
+                if (r2.VersionUpdatedTo == targetVersion || (DateTime.UtcNow - r2.UpdatedAt).TotalHours < 48)
+                {
+                    record = r2;
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static List<SoftwareUpdateItem>? _cachedUpdates;
@@ -332,56 +414,79 @@ namespace StormSystemOptimizer.Services
                             UseShellExecute = false
                         };
                         using var p = Process.Start(psi);
-                        if (p != null) await p.WaitForExitAsync();
+                        if (p != null)
+                        {
+                            await p.WaitForExitAsync();
+                            if (p.ExitCode != 0 && p.ExitCode != 3010)
+                            {
+                                RecordUpdateHistory(app.PackageId, app.Name, app.AvailableVersion, p.ExitCode, false);
+                                app.UpdateProgressText = $"Ошибка установщика (код {p.ExitCode})";
+                                app.IsUpdating = false;
+                                return (false, $"Ошибка при установке {app.Name}: код завершения {p.ExitCode}");
+                            }
+                        }
 
+                        RecordUpdateHistory(app.PackageId, app.Name, app.AvailableVersion, 0, true);
                         app.InstalledVersion = app.AvailableVersion;
                         app.IsUpdateAvailable = false;
+                        app.CustomStatusText = "Обновлено успешно ✓";
                         app.UpdateProgress = 100;
                         app.UpdateProgressText = "Обновлено успешно ✓";
                         await Task.Delay(1200);
                         app.IsUpdating = false;
                         return (true, $"Программа {app.Name} успешно обновлена до версии {app.InstalledVersion}!");
                     }
-                    else if (!string.IsNullOrEmpty(catalogEntry.WingetId))
-                    {
-                        app.UpdateProgress = 30;
-                        app.UpdateProgressText = "Обновление через WinGet...";
-                        progressCallback?.Invoke($"Обновление {app.Name} через Microsoft WinGet...");
-                        var psi = new ProcessStartInfo
-                        {
-                            FileName = "winget.exe",
-                            Arguments = $"upgrade --id {catalogEntry.WingetId} --silent --accept-package-agreements --accept-source-agreements",
-                            CreateNoWindow = true,
-                            UseShellExecute = false
-                        };
-                        using var p = Process.Start(psi);
-                        if (p != null) await p.WaitForExitAsync();
-
-                        app.InstalledVersion = app.AvailableVersion;
-                        app.IsUpdateAvailable = false;
-                        app.UpdateProgress = 100;
-                        app.UpdateProgressText = "Обновлено успешно ✓";
-                        await Task.Delay(1200);
-                        app.IsUpdating = false;
-                        return (true, $"Программа {app.Name} успешно обновлена через WinGet!");
-                    }
                     else
                     {
+                        string? targetId = !string.IsNullOrEmpty(catalogEntry.WingetId)
+                            ? catalogEntry.WingetId
+                            : (!string.IsNullOrEmpty(app.PackageId) && !app.PackageId.Equals(app.Name, StringComparison.OrdinalIgnoreCase) ? app.PackageId : null);
+
+                        string wingetArgs = !string.IsNullOrEmpty(targetId)
+                            ? $"upgrade --id \"{targetId}\" --exact --accept-package-agreements --accept-source-agreements --disable-interactivity"
+                            : $"upgrade --name \"{app.Name}\" --silent --accept-package-agreements --accept-source-agreements --disable-interactivity";
+
                         app.UpdateProgress = 30;
-                        app.UpdateProgressText = "Поиск пакета в WinGet...";
-                        progressCallback?.Invoke($"Поиск пакета {app.Name} в репозитории WinGet...");
+                        app.UpdateProgressText = "Обновление через WinGet...";
+                        progressCallback?.Invoke($"Обновление {app.Name} через WinGet (ID: {targetId ?? app.Name})...");
+
                         var psi = new ProcessStartInfo
                         {
                             FileName = "winget.exe",
-                            Arguments = $"upgrade --name \"{app.Name}\" --silent --accept-package-agreements --accept-source-agreements",
+                            Arguments = wingetArgs,
                             CreateNoWindow = true,
-                            UseShellExecute = false
+                            UseShellExecute = false,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            StandardOutputEncoding = Encoding.UTF8
                         };
-                        using var p = Process.Start(psi);
-                        if (p != null) await p.WaitForExitAsync();
 
+                        using var p = Process.Start(psi);
+                        if (p != null)
+                        {
+                            string stdout = await p.StandardOutput.ReadToEndAsync();
+                            string stderr = await p.StandardError.ReadToEndAsync();
+                            await p.WaitForExitAsync();
+
+                            bool success = p.ExitCode == 0 
+                                || p.ExitCode == 3010 
+                                || stdout.Contains("Successfully installed", StringComparison.OrdinalIgnoreCase)
+                                || stdout.Contains("Успешно установлено", StringComparison.OrdinalIgnoreCase);
+
+                            if (!success)
+                            {
+                                RecordUpdateHistory(app.PackageId, app.Name, app.AvailableVersion, p.ExitCode, false);
+                                app.UpdateProgressText = $"Ошибка WinGet (код {p.ExitCode})";
+                                app.IsUpdating = false;
+                                string errDetail = !string.IsNullOrWhiteSpace(stderr) ? stderr.Trim() : (!string.IsNullOrWhiteSpace(stdout) ? stdout.Trim() : $"Код {p.ExitCode}");
+                                return (false, $"Ошибка WinGet при обновлении {app.Name}: {errDetail}");
+                            }
+                        }
+
+                        RecordUpdateHistory(app.PackageId, app.Name, app.AvailableVersion, 0, true);
                         app.InstalledVersion = app.AvailableVersion;
                         app.IsUpdateAvailable = false;
+                        app.CustomStatusText = "Обновлено успешно ✓";
                         app.UpdateProgress = 100;
                         app.UpdateProgressText = "Обновлено успешно ✓";
                         await Task.Delay(1200);
@@ -441,7 +546,7 @@ namespace StormSystemOptimizer.Services
                 if (p != null)
                 {
                     string output = p.StandardOutput.ReadToEnd();
-                    p.WaitForExit(1500);
+                    p.WaitForExit(10000);
 
                     using var reader = new StringReader(output);
                     string? line;
@@ -461,12 +566,46 @@ namespace StormSystemOptimizer.Services
                             string availableVer = parts[3];
 
                             string dedupeKey = name.ToLowerInvariant();
+                            bool isMsix = id.Contains("Claude", StringComparison.OrdinalIgnoreCase) || id.Contains("MSIX", StringComparison.OrdinalIgnoreCase);
+                            string appType = isMsix ? "MSIX Пакет" : "Приложения";
+
+                            // Check if previously updated in our persistent history
+                            if (Instance.IsUpdatePreviouslyCompleted(id, name, availableVer, out var record) && record != null)
+                            {
+                                var existingRec = list.FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || x.PackageId.Equals(id, StringComparison.OrdinalIgnoreCase));
+                                if (existingRec != null)
+                                {
+                                    existingRec.InstalledVersion = record.VersionUpdatedTo;
+                                    existingRec.AvailableVersion = record.VersionUpdatedTo;
+                                    existingRec.IsUpdateAvailable = false;
+                                    existingRec.CustomStatusText = "Обновлено (требуется перезапуск программы)";
+                                }
+                                else
+                                {
+                                    seenKeys.Add(dedupeKey);
+                                    list.Add(new SoftwareUpdateItem
+                                    {
+                                        Name = name,
+                                        PackageId = id,
+                                        Publisher = "Microsoft WinGet",
+                                        InstalledVersion = record.VersionUpdatedTo,
+                                        AvailableVersion = record.VersionUpdatedTo,
+                                        AppType = appType,
+                                        IsUpdateAvailable = false,
+                                        CustomStatusText = "Обновлено (требуется перезапуск программы)"
+                                    });
+                                }
+                                continue;
+                            }
+
                             var existing = list.FirstOrDefault(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
                             if (existing != null)
                             {
                                 existing.InstalledVersion = currentVer;
                                 existing.AvailableVersion = availableVer;
                                 existing.IsUpdateAvailable = true;
+                                existing.PackageId = id;
+                                if (isMsix) existing.AppType = appType;
                             }
                             else
                             {
@@ -478,7 +617,7 @@ namespace StormSystemOptimizer.Services
                                     Publisher = "Microsoft WinGet",
                                     InstalledVersion = currentVer,
                                     AvailableVersion = availableVer,
-                                    AppType = "Приложения",
+                                    AppType = appType,
                                     IsUpdateAvailable = true
                                 });
                             }
