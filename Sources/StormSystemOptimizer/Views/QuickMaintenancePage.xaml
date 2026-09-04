@@ -190,7 +190,7 @@
             <!-- Maintenance Steps Checklist -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20">
                 <StackPanel>
-                    <TextBlock Text="Пошаговый комплекс процедур (24 этапа)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,14"/>
+                    <TextBlock Text="Пошаговый комплекс процедур (29 этапов)" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,14"/>
 
                     <ItemsControl ItemsSource="{Binding Steps}">
                         <ItemsControl.ItemTemplate>

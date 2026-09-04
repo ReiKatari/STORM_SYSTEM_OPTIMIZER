@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Management;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -24,35 +26,68 @@ namespace StormSystemOptimizer.Services
         private static DefragService? _instance;
         public static DefragService Instance => _instance ??= new DefragService();
 
+        private static Dictionary<string, bool>? _cachedSsdMap;
+        private static DateTime _lastSsdScan = DateTime.MinValue;
+
         private DefragService() { }
+
+        public Dictionary<string, bool> GetDrivesMediaTypeMap()
+        {
+            if (_cachedSsdMap != null && (DateTime.UtcNow - _lastSsdScan).TotalMinutes < 5)
+                return _cachedSsdMap;
+
+            var map = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                using var searcher = new ManagementObjectSearcher(@"root\Microsoft\Windows\Storage", "SELECT DeviceId, MediaType FROM MSFT_PhysicalDisk");
+                var diskMedia = new Dictionary<string, int>();
+                foreach (ManagementObject obj in searcher.Get())
+                {
+                    string id = obj["DeviceId"]?.ToString() ?? "";
+                    if (int.TryParse(obj["MediaType"]?.ToString(), out int mediaType))
+                    {
+                        diskMedia[id] = mediaType; // 3 = HDD, 4 = SSD, 5 = SCM
+                    }
+                }
+
+                using var partSearcher = new ManagementObjectSearcher(@"root\Microsoft\Windows\Storage", "SELECT DriveLetter, DiskNumber FROM MSFT_Partition WHERE DriveLetter IS NOT NULL");
+                foreach (ManagementObject obj in partSearcher.Get())
+                {
+                    string letter = obj["DriveLetter"]?.ToString()?.Trim() ?? "";
+                    string diskNum = obj["DiskNumber"]?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(letter) && letter != "0")
+                    {
+                        string driveKey = $"{letter}:";
+                        if (diskMedia.TryGetValue(diskNum, out int mType))
+                        {
+                            map[driveKey] = (mType == 4 || mType == 5);
+                        }
+                        else
+                        {
+                            map[driveKey] = true;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Fallback: assume SSD for modern safety
+            }
+
+            _cachedSsdMap = map;
+            _lastSsdScan = DateTime.UtcNow;
+            return map;
+        }
 
         public bool IsDriveSsd(string driveLetter)
         {
             try
             {
-                string clean = driveLetter.TrimEnd('\\', ':');
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    Arguments = $"-NoProfile -Command \"(Get-PhysicalDisk | Where-Object {{ $_.DeviceID -in (Get-Partition -DriveLetter '{clean}' | Get-Disk).Number }}).MediaType\"",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                using var proc = Process.Start(psi);
-                if (proc != null)
-                {
-                    string output = proc.StandardOutput.ReadToEnd().Trim();
-                    proc.WaitForExit(3000);
-                    if (output.Contains("SSD", StringComparison.OrdinalIgnoreCase) || output.Contains("SCM", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return true;
-                    }
-                    if (output.Contains("HDD", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return false;
-                    }
-                }
+                string clean = driveLetter.TrimEnd('\\');
+                if (!clean.EndsWith(":")) clean += ":";
+                var map = GetDrivesMediaTypeMap();
+                if (map.TryGetValue(clean, out bool isSsd))
+                    return isSsd;
             }
             catch { }
             return true;

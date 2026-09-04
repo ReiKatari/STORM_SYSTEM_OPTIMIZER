@@ -25,6 +25,7 @@
             <conv:BoolToContextMenuTextConverter x:Key="BoolToContextMenuTextConverter"/>
             <conv:BoolToMsiButtonTextConverter x:Key="BoolToMsiButtonTextConverter"/>
             <conv:BoolToMsiBrushConverter x:Key="BoolToMsiBrushConverter"/>
+            <conv:StringToGeometryConverter x:Key="StringToGeometryConverter"/>
 
             <!-- Global TextBox Style with Vivid Caret & Selection -->
             <Style TargetType="TextBox">

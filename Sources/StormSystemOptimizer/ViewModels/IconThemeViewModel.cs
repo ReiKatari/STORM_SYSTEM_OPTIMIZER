@@ -25,7 +25,34 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private bool _isBusy = false;
 
+        [ObservableProperty]
+        private bool _isCatalogPreviewOpen = false;
+
+        [ObservableProperty]
+        private string _selectedCatalogCategory = "Все";
+
+        [ObservableProperty]
+        private string _catalogSearchText = string.Empty;
+
+        [ObservableProperty]
+        private int _selectedCount = 320;
+
         public ObservableCollection<IconThemeItem> IconThemes { get; } = new();
+        public ObservableCollection<StormIconEntry> CatalogIcons { get; } = new();
+        public ObservableCollection<StormIconEntry> FilteredCatalogIcons { get; } = new();
+
+        public ObservableCollection<string> CatalogCategories { get; } = new()
+        {
+            "Все",
+            "Система",
+            "Папки и Диски",
+            "Браузеры",
+            "Игры",
+            "Разработка",
+            "Мультимедиа",
+            "Утилиты",
+            "Типы файлов"
+        };
 
         public ObservableCollection<string> TargetLocations { get; } = new()
         {
@@ -41,6 +68,7 @@ namespace StormSystemOptimizer.ViewModels
         public IconThemeViewModel()
         {
             LoadThemes();
+            LoadCatalog();
         }
 
         private void LoadThemes()
@@ -50,6 +78,108 @@ namespace StormSystemOptimizer.ViewModels
             {
                 IconThemes.Add(th);
             }
+        }
+
+        private void LoadCatalog()
+        {
+            CatalogIcons.Clear();
+            foreach (var icon in IconThemeService.Instance.GetStormCyberGlowCatalog())
+            {
+                icon.PropertyChanged += (s, e) =>
+                {
+                    if (e.PropertyName == nameof(StormIconEntry.IsSelected))
+                    {
+                        UpdateSelectedCount();
+                    }
+                };
+                CatalogIcons.Add(icon);
+            }
+            ApplyCatalogFilter();
+            UpdateSelectedCount();
+        }
+
+        private void UpdateSelectedCount()
+        {
+            SelectedCount = System.Linq.Enumerable.Count(CatalogIcons, i => i.IsSelected);
+        }
+
+        [RelayCommand]
+        public void OpenCatalogPreview()
+        {
+            IsCatalogPreviewOpen = true;
+        }
+
+        [RelayCommand]
+        public void CloseCatalogPreview()
+        {
+            IsCatalogPreviewOpen = false;
+        }
+
+        [RelayCommand]
+        public void SelectAllCatalogIcons(object? parameter)
+        {
+            bool select = parameter is bool b ? b : (parameter?.ToString() == "True" || parameter?.ToString() == "true");
+            foreach (var icon in FilteredCatalogIcons)
+            {
+                icon.IsSelected = select;
+            }
+            UpdateSelectedCount();
+        }
+
+        [RelayCommand]
+        public void FilterCatalogCategory(string category)
+        {
+            SelectedCatalogCategory = category;
+            ApplyCatalogFilter();
+        }
+
+        partial void OnCatalogSearchTextChanged(string value)
+        {
+            ApplyCatalogFilter();
+        }
+
+        private void ApplyCatalogFilter()
+        {
+            FilteredCatalogIcons.Clear();
+            string search = CatalogSearchText?.Trim() ?? string.Empty;
+
+            foreach (var icon in CatalogIcons)
+            {
+                bool matchesCat = SelectedCatalogCategory == "Все" || icon.Category.Equals(SelectedCatalogCategory, StringComparison.OrdinalIgnoreCase);
+                bool matchesSearch = string.IsNullOrEmpty(search) || icon.Name.Contains(search, StringComparison.OrdinalIgnoreCase) || icon.Category.Contains(search, StringComparison.OrdinalIgnoreCase);
+
+                if (matchesCat && matchesSearch)
+                {
+                    FilteredCatalogIcons.Add(icon);
+                }
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplySelectedIconsAsync()
+        {
+            var selected = System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(CatalogIcons, i => i.IsSelected));
+            if (selected.Count == 0)
+            {
+                StatusMessage = "Не выбрано ни одного значка для применения!";
+                return;
+            }
+
+            IsBusy = true;
+            StatusMessage = $"Применение {selected.Count} выбранных значков STORM Cyber Glow...";
+            bool ok = await IconThemeService.Instance.ApplySelectedCyberGlowIconsAsync(selected);
+            if (ok)
+            {
+                await IconThemeService.Instance.RebuildIconCacheAsync();
+                StatusMessage = $"Успешно применено {selected.Count} значков из пака STORM Cyber Glow!";
+                TrayService.Instance.ShowNotification("Значки STORM Cyber Glow ⚡", StatusMessage);
+                IsCatalogPreviewOpen = false;
+            }
+            else
+            {
+                StatusMessage = "Ошибка при установке значков.";
+            }
+            IsBusy = false;
         }
 
         [RelayCommand]

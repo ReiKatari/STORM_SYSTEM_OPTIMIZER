@@ -135,19 +135,154 @@
                                             <TextBlock Text="{Binding Rating, StringFormat='★ {0:F1}'}" FontSize="11" FontWeight="Bold" Foreground="#F59E0B"/>
                                         </Border>
 
-                                        <Button Grid.Column="3"
-                                                Command="{Binding DataContext.ApplyThemeCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                CommandParameter="{Binding}"
-                                                Style="{StaticResource StormHeroButton}"
-                                                Padding="16,8"
-                                                VerticalAlignment="Center">
-                                            <TextBlock Text="Применить" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
-                                        </Button>
+                                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Command="{Binding DataContext.OpenCatalogPreviewCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                    Style="{StaticResource StormSecondaryButton}"
+                                                    Padding="12,8" Margin="0,0,8,0">
+                                                <TextBlock Text="Каталог значков" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                            </Button>
+                                            <Button Command="{Binding DataContext.ApplyThemeCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource StormHeroButton}"
+                                                    Padding="16,8">
+                                                <TextBlock Text="Применить" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                                            </Button>
+                                        </StackPanel>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Real STORM Cyber Glow Catalog & Selective Apply Card -->
+            <Border Visibility="{Binding IsCatalogPreviewOpen, Converter={StaticResource BooleanToVisibilityConverter}}"
+                    Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource AccentPrimaryBrush}" BorderThickness="1.5" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                <Border.Effect>
+                    <DropShadowEffect Color="#00D2FF" BlurRadius="16" ShadowDepth="3" Direction="270" Opacity="0.35"/>
+                </Border.Effect>
+                <StackPanel>
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <Border Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource GeoApps}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <TextBlock Text="Каталог значков STORM Cyber Glow (320 значков)" FontSize="17" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <TextBlock Text="Выбирайте отдельные значки или целые категории для выборочного частичного применения в системе." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Command="{Binding CloseCatalogPreviewCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,6" VerticalAlignment="Center">
+                            <TextBlock Text="✕ Закрыть" FontSize="11.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </Grid>
+
+                    <!-- Filter Categories & Search Bar -->
+                    <Grid Margin="0,0,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="280"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Categories -->
+                        <ItemsControl Grid.Column="0" ItemsSource="{Binding CatalogCategories}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.FilterCatalogCategoryCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Content="{Binding}"
+                                            Style="{StaticResource StormSecondaryButton}"
+                                            Padding="10,5" Margin="0,0,6,4"
+                                            FontSize="11" FontWeight="Bold"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Search -->
+                        <Border Grid.Column="1" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10,6" VerticalAlignment="Top">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Path Grid.Column="0" Data="{StaticResource GeoSearch}" Fill="{DynamicResource TextSecondaryBrush}" Width="12" Height="12" Stretch="Uniform" VerticalAlignment="Center"/>
+                                <TextBox Grid.Column="1" Text="{Binding CatalogSearchText, UpdateSourceTrigger=PropertyChanged}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" Margin="6,0,0,0"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- Select All / Unselect Bar & Counters -->
+                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Command="{Binding SelectAllCatalogIconsCommand}" CommandParameter="True" Style="{StaticResource StormSecondaryButton}" Padding="10,4" Margin="0,0,8,0">
+                                    <TextBlock Text="Выбрать все" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
+                                </Button>
+                                <Button Command="{Binding SelectAllCatalogIconsCommand}" CommandParameter="False" Style="{StaticResource StormSecondaryButton}" Padding="10,4">
+                                    <TextBlock Text="Снять выбор" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                </Button>
+                            </StackPanel>
+
+                            <TextBlock Grid.Column="1" Text="{Binding SelectedCount, StringFormat='Отмечено для установки: {0} из 320 значков'}"
+                                       FontSize="12" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"
+                                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+                            <Button Grid.Column="2" Command="{Binding ApplySelectedIconsCommand}" Style="{StaticResource StormHeroButton}" Padding="16,6">
+                                <TextBlock Text="{Binding SelectedCount, StringFormat='Применить выбранные ({0})'}" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+
+                    <!-- Icons UniformGrid / List -->
+                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="10" MaxHeight="380">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <ItemsControl ItemsSource="{Binding FilteredCatalogIcons}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Columns="4"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="6" Padding="8" Margin="4">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="32"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                <Border Grid.Column="1" Width="26" Height="26" CornerRadius="6" Background="#1A00D2FF" BorderBrush="#3300D2FF" BorderThickness="1" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                                    <Path Data="{Binding GeometryKey, Converter={StaticResource StringToGeometryConverter}}" Fill="{StaticResource IconGradCyan}" Width="14" Height="14" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <StackPanel Grid.Column="2" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Category}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,1,0,0"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Border>
                 </StackPanel>
             </Border>
 

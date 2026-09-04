@@ -40,6 +40,24 @@ namespace StormSystemOptimizer.Services
         private bool _isApplied = false;
     }
 
+    public partial class StormIconEntry : ObservableObject
+    {
+        [ObservableProperty]
+        private string _name = string.Empty;
+
+        [ObservableProperty]
+        private string _category = string.Empty;
+
+        [ObservableProperty]
+        private string _targetSystemName = string.Empty;
+
+        [ObservableProperty]
+        private string _geometryKey = "GeoApps";
+
+        [ObservableProperty]
+        private bool _isSelected = true;
+    }
+
     public class IconThemeService
     {
         private static IconThemeService? _instance;
@@ -332,6 +350,242 @@ namespace StormSystemOptimizer.Services
                         SetSystemIcon("RecycleBinFull", trashIco);
                     }
 
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            });
+        }
+
+        public List<StormIconEntry> GetStormCyberGlowCatalog()
+        {
+            var list = new List<StormIconEntry>(320);
+
+            // 1. Система (40)
+            string[] sysIcons = {
+                "Этот компьютер", "Корзина (пустая)", "Корзина (полная)", "Папка пользователя", "Сеть",
+                "Панель управления", "Параметры Windows", "Диспетчер задач", "Службы Windows", "Редактор реестра",
+                "Командная строка", "PowerShell", "Терминал Windows", "Защитник Windows", "Центр обновления",
+                "Брандмауэр Windows", "Управление дисками", "Диспетчер устройств", "Сведения о системе", "Планировщик заданий",
+                "Монитор ресурсов", "Управление компьютером", "Групповые политики", "Очистка диска", "Дефрагментация",
+                "Восстановление системы", "Электропитание", "Параметры звука", "Параметры экрана", "Bluetooth устройства",
+                "Wi-Fi адаптер", "Сетевые подключения", "Шрифты системы", "Мышь и сенсор", "Клавиатура",
+                "Регион и язык", "Дата и время", "Учетные записи", "Автозагрузка", "Буфер обмена"
+            };
+            string[] sysGeos = {
+                "GeoMonitor", "GeoClean", "GeoClean", "GeoExplorer", "GeoNetwork",
+                "GeoSettings", "GeoSettings", "GeoTask", "GeoServices", "GeoKey",
+                "GeoTerminal", "GeoTerminal", "GeoTerminal", "GeoDefender", "GeoUpdate",
+                "GeoFirewall", "GeoDisks", "GeoDevice", "GeoSystemInfo", "GeoTimer",
+                "GeoBenchmarks", "GeoSystemTools", "GeoShield", "GeoClean", "GeoDisks",
+                "GeoShield", "GeoPower", "GeoAudio", "GeoMonitor", "GeoUsb",
+                "GeoNetwork", "GeoNetwork", "GeoComponent", "GeoDevice", "GeoDevice",
+                "GeoSettings", "GeoTimer", "GeoShield", "GeoStartup", "GeoCopy"
+            };
+            for (int i = 0; i < sysIcons.Length; i++)
+            {
+                list.Add(new StormIconEntry {
+                    Name = sysIcons[i],
+                    Category = "Система",
+                    GeometryKey = sysGeos[i % sysGeos.Length],
+                    TargetSystemName = $"Sys_{i+1}",
+                    IsSelected = true
+                });
+            }
+
+            // 2. Папки и Диски (40)
+            string[] folderIcons = {
+                "Системная папка", "Рабочий стол", "Загрузки", "Документы", "Музыка",
+                "Видео", "Изображения", "Облачное хранилище", "Локальный диск C:", "Локальный диск D:",
+                "Локальный диск E:", "Локальный диск F:", "SSD накопитель", "NVMe M.2 накопитель", "USB флеш-накопитель",
+                "Внешний жесткий диск", "Сетевой диск", "CD/DVD привод", "Виртуальный RAM диск", "Зашифрованный том",
+                "Архивная папка", "Общая сетевая папка", "Избранное", "Недавние папки", "Временные файлы",
+                "Системная папка Windows", "Папка Program Files", "Папка ProgramData", "Папка AppData", "Корзина диска",
+                "Резервные копии", "Папка проектов", "Папка скриптов", "Папка логов", "Папка кэша",
+                "Скрытая папка", "Защищенная папка", "Медиатека", "Фотоальбом", "Папка шаблонов"
+            };
+            string[] folderGeos = {
+                "GeoExplorer", "GeoMonitor", "GeoAppUpdate", "GeoLog", "GeoAudio",
+                "GeoVisual", "GeoBrush", "GeoNetwork", "GeoDisks", "GeoDisks",
+                "GeoDisks", "GeoDisks", "GeoDisks", "GeoLightning", "GeoUsb",
+                "GeoDisks", "GeoNetwork", "GeoDisks", "GeoRam", "GeoLock",
+                "GeoExplorer", "GeoNetwork", "GeoStar", "GeoTimer", "GeoClean",
+                "GeoExplorer", "GeoApps", "GeoExplorer", "GeoExplorer", "GeoClean",
+                "GeoShield", "GeoTerminal", "GeoTerminal", "GeoLog", "GeoClean",
+                "GeoEyeOff", "GeoFolderLock", "GeoVisual", "GeoBrush", "GeoComponent"
+            };
+            for (int i = 0; i < folderIcons.Length; i++)
+            {
+                list.Add(new StormIconEntry {
+                    Name = folderIcons[i],
+                    Category = "Папки и Диски",
+                    GeometryKey = folderGeos[i % folderGeos.Length],
+                    TargetSystemName = $"FolderDisk_{i+1}",
+                    IsSelected = true
+                });
+            }
+
+            // 3. Браузеры (40)
+            string[] browserIcons = {
+                "Google Chrome", "Mozilla Firefox", "Microsoft Edge", "Opera GX", "Brave Browser",
+                "Vivaldi", "Tor Browser", "Yandex Browser", "Chromium", "Safari",
+                "Waterfox", "LibreWolf", "DuckDuckGo", "Pale Moon", "Midori",
+                "Arc Browser", "Maxthon", "Sidekick", "Zen Browser", "Thorium",
+                "Floorp", "Baidu Browser", "SeaMonkey", "Sleipnir", "Iridium",
+                "SRWare Iron", "Ungoogled Chromium", "Falkon", "Otter Browser", "NetSurf",
+                "Avast Secure Browser", "CCleaner Browser", "Epic Privacy Browser", "Ghostery Dawn", "Mullvad Browser",
+                "Min Browser", "Konqueror", "qutebrowser", "Nyxt Browser", "Lynx Browser"
+            };
+            for (int i = 0; i < browserIcons.Length; i++)
+            {
+                list.Add(new StormIconEntry {
+                    Name = browserIcons[i],
+                    Category = "Браузеры",
+                    GeometryKey = "GeoBrowser",
+                    TargetSystemName = $"Browser_{i+1}",
+                    IsSelected = true
+                });
+            }
+
+            // 4. Игры (40)
+            string[] gameIcons = {
+                "Steam", "Epic Games Store", "Battle.net", "GOG Galaxy", "EA App",
+                "Ubisoft Connect", "Xbox App", "Discord", "RetroArch", "Citron Switch",
+                "Eden Switch", "Yuzu Emulator", "Ryujinx", "MelonDS", "DeSmuME",
+                "PCSX2", "RPCS3", "PPSSPP", "Dolphin Emulator", "DuckStation",
+                "Cemu Wii U", "VBA-M", "MAME Arcade", "Flycast", "Xenia Xbox 360",
+                "Vita3K", "shadPS4", "Minecraft", "Counter-Strike 2", "Dota 2",
+                "Cyberpunk 2077", "The Witcher 3", "GTA V", "Valorant", "Genshin Impact",
+                "Roblox", "Apex Legends", "Call of Duty", "Overwatch 2", "Warhammer 40K Space Marine"
+            };
+            for (int i = 0; i < gameIcons.Length; i++)
+            {
+                list.Add(new StormIconEntry {
+                    Name = gameIcons[i],
+                    Category = "Игры",
+                    GeometryKey = (i % 2 == 0) ? "GeoGamepad" : "GeoGame",
+                    TargetSystemName = $"Game_{i+1}",
+                    IsSelected = true
+                });
+            }
+
+            // 5. Разработка (40)
+            string[] devIcons = {
+                "Visual Studio 2022", "Visual Studio Code", "Git", "GitHub Desktop", "GitLab",
+                "Docker Desktop", "JetBrains Rider", "PyCharm", "IntelliJ IDEA", "WebStorm",
+                "CLion", "Android Studio", "Unity Editor", "Unreal Engine 5", "Godot Engine",
+                "Node.js", "Python Runtime", ".NET SDK", "Rust Cargo", "Go Language",
+                "C++ Toolchain", "Postman", "Insomnia", "DBeaver", "Navicat",
+                "HeidiSQL", "SQLite Studio", "Wireshark", "Fiddler", "Sublime Text",
+                "Notepad++ Dev", "Neovim", "Vim", "Emacs", "Windows Terminal Dev",
+                "Kubernetes", "Redis Desktop", "RabbitMQ", "Kafka Manager", "Nginx Server"
+            };
+            for (int i = 0; i < devIcons.Length; i++)
+            {
+                list.Add(new StormIconEntry {
+                    Name = devIcons[i],
+                    Category = "Разработка",
+                    GeometryKey = (i % 3 == 0) ? "GeoTerminal" : ((i % 3 == 1) ? "GeoCpu" : "GeoComponent"),
+                    TargetSystemName = $"Dev_{i+1}",
+                    IsSelected = true
+                });
+            }
+
+            // 6. Мультимедиа (40)
+            string[] mediaIcons = {
+                "Spotify", "Yandex Music", "VLC Media Player", "AIMP Player", "MPC-HC",
+                "PotPlayer", "OBS Studio", "Streamlabs", "Audacity", "FL Studio",
+                "Ableton Live", "Adobe Photoshop", "Adobe Illustrator", "Adobe Premiere Pro", "Adobe After Effects",
+                "Blender 3D", "DaVinci Resolve", "Foobar2000", "Winamp Modern", "CorelDRAW",
+                "Paint.NET", "GIMP", "Krita", "Inkscape", "Cinema 4D",
+                "Maya", "3ds Max", "ZBrush", "Substance Painter", "Reaper DAW",
+                "Cubase", "HandBrake", "Format Factory", "FFmpeg CLI", "MusicBee",
+                "Lightroom", "Vegas Pro", "Camtasia", "Shotcut", "Kdenlive"
+            };
+            for (int i = 0; i < mediaIcons.Length; i++)
+            {
+                list.Add(new StormIconEntry {
+                    Name = mediaIcons[i],
+                    Category = "Мультимедиа",
+                    GeometryKey = (i % 3 == 0) ? "GeoAudio" : ((i % 3 == 1) ? "GeoVisual" : "GeoBrush"),
+                    TargetSystemName = $"Media_{i+1}",
+                    IsSelected = true
+                });
+            }
+
+            // 7. Утилиты (40)
+            string[] utilIcons = {
+                "STORM SYSTEM OPTIMIZER", "STORM GAME SYSTEM", "STORM INSTALLER", "7-Zip Archiver", "WinRAR",
+                "Process Hacker", "HWMonitor", "CPU-Z", "GPU-Z", "MSI Afterburner",
+                "CrystalDiskInfo", "CrystalDiskMark", "Rufus", "BleachBit", "Everything Search",
+                "Notepad++", "HWiNFO64", "Autoruns Sysinternals", "Process Explorer", "TCPView",
+                "TreeSize Free", "SpaceSniffer", "Revo Uninstaller", "Geek Uninstaller", "AIDA64 Extreme",
+                "FurMark", "OCCT", "Prime95", "MemTest86", "Victoria HDD",
+                "QuickCPU", "CapFrameX", "RTSS Rivatuner", "Bulk Rename Utility", "FastStone Capture",
+                "ShareX", "KeePassXC", "Bitwarden", "AnyDesk", "TeamViewer"
+            };
+            for (int i = 0; i < utilIcons.Length; i++)
+            {
+                list.Add(new StormIconEntry {
+                    Name = utilIcons[i],
+                    Category = "Утилиты",
+                    GeometryKey = (i % 4 == 0) ? "GeoDashboard" : ((i % 4 == 1) ? "GeoSystemTools" : ((i % 4 == 2) ? "GeoSpeedTest" : "GeoScanner")),
+                    TargetSystemName = $"Util_{i+1}",
+                    IsSelected = true
+                });
+            }
+
+            // 8. Типы файлов (40)
+            string[] fileTypeIcons = {
+                "Исполняемый файл (.exe)", "Библиотека (.dll)", "Архив ZIP (.zip)", "Архив RAR (.rar)", "Архив 7-Zip (.7z)",
+                "Образ диска (.iso)", "Документ PDF (.pdf)", "Документ Word (.docx)", "Таблица Excel (.xlsx)", "Презентация (.pptx)",
+                "Текстовый файл (.txt)", "Файл JSON (.json)", "Файл XML (.xml)", "Аудио MP3 (.mp3)", "Аудио FLAC (.flac)",
+                "Аудио WAV (.wav)", "Видео MP4 (.mp4)", "Видео MKV (.mkv)", "Изображение PNG (.png)", "Изображение JPG (.jpg)",
+                "Иконка (.ico)", "Вектор SVG (.svg)", "Исходный код C# (.cs)", "Исходный код C++ (.cpp)", "Заголовок C++ (.h)",
+                "Исходный код Python (.py)", "Скрипт JavaScript (.js)", "Скрипт TypeScript (.ts)", "Стиль CSS (.css)", "Страница HTML (.html)",
+                "Разметка Markdown (.md)", "База данных SQLite (.db)", "Скрипт SQL (.sql)", "Конфигурация YAML (.yaml)", "Конфигурация TOML (.toml)",
+                "Пакетный файл (.bat)", "Скрипт PowerShell (.ps1)", "Файл реестра (.reg)", "Файл шрифта (.ttf)", "Файл шрифта (.otf)"
+            };
+            for (int i = 0; i < fileTypeIcons.Length; i++)
+            {
+                list.Add(new StormIconEntry {
+                    Name = fileTypeIcons[i],
+                    Category = "Типы файлов",
+                    GeometryKey = (i % 3 == 0) ? "GeoLog" : ((i % 3 == 1) ? "GeoKey" : "GeoComponent"),
+                    TargetSystemName = $"File_{i+1}",
+                    IsSelected = true
+                });
+            }
+
+            return list;
+        }
+
+        public async Task<bool> ApplySelectedCyberGlowIconsAsync(IEnumerable<StormIconEntry> selectedIcons)
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    string baseAppIcon = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "AppIcon.ico");
+                    if (!File.Exists(baseAppIcon))
+                    {
+                        baseAppIcon = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppIcon.ico");
+                    }
+
+                    foreach (var icon in selectedIcons)
+                    {
+                        if (icon.Name == "Этот компьютер") SetSystemIcon("ThisPC", baseAppIcon);
+                        else if (icon.Name == "Корзина (пустая)") SetSystemIcon("RecycleBinEmpty", baseAppIcon);
+                        else if (icon.Name == "Корзина (полная)") SetSystemIcon("RecycleBinFull", baseAppIcon);
+                        else if (icon.Name == "Папка пользователя") SetSystemIcon("UserFolder", baseAppIcon);
+                        else if (icon.Name == "Сеть") SetSystemIcon("Network", baseAppIcon);
+                        else if (icon.Name == "Системная папка") SetSystemIcon("Folders", baseAppIcon);
+                        else if (icon.Name.StartsWith("Локальный диск")) SetSystemIcon("Drives", baseAppIcon);
+                    }
+
+                    NativeMethods.SHChangeNotify(NativeMethods.SHCNE_ASSOCCHANGED, NativeMethods.SHCNF_FLUSH, IntPtr.Zero, IntPtr.Zero);
                     return true;
                 }
                 catch

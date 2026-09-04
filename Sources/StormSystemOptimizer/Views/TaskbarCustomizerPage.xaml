@@ -1,12 +1,83 @@
 <Page x:Class="StormSystemOptimizer.Views.TaskbarCustomizerPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
       xmlns:vm="clr-namespace:StormSystemOptimizer.ViewModels"
       Title="Панель задач и меню Пуск">
 
     <Page.DataContext>
         <vm:TaskbarCustomizerViewModel/>
     </Page.DataContext>
+
+    <Page.Resources>
+        <!-- Segmented Card RadioButton Style with Neon Glow Active State -->
+        <Style x:Key="SegmentCardRadioStyle" TargetType="RadioButton">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="RootBorder"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="10"
+                                Padding="{TemplateBinding Padding}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#000000" BlurRadius="8" ShadowDepth="2" Direction="270" Opacity="0.35"/>
+                            </Border.Effect>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter Grid.Column="0" VerticalAlignment="Center"/>
+                                <Border x:Name="ActiveIndicator" Grid.Column="1"
+                                        Width="12" Height="12" CornerRadius="6"
+                                        Background="Transparent" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="2"
+                                        Margin="12,0,0,0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="RootBorder" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
+                                <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource CardHoverBrush}"/>
+                                <Setter TargetName="RootBorder" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <TranslateTransform Y="-1"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="RootBorder" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
+                                <Setter TargetName="RootBorder" Property="Background" Value="{DynamicResource AccentGlowBrush}"/>
+                                <Setter TargetName="ActiveIndicator" Property="Background" Value="{DynamicResource AccentPrimaryBrush}"/>
+                                <Setter TargetName="ActiveIndicator" Property="BorderBrush" Value="{DynamicResource AccentPrimaryBrush}"/>
+                                <Setter TargetName="RootBorder" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#00D2FF" BlurRadius="12" ShadowDepth="2.5" Direction="270" Opacity="0.45"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Elevated Toggle Card Button Style -->
+        <Style x:Key="ToggleCardButtonStyle" TargetType="Button" BasedOn="{StaticResource StormSecondaryButton}">
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Margin" Value="0,0,10,10"/>
+        </Style>
+    </Page.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
         <StackPanel>
@@ -37,7 +108,325 @@
                 </Grid>
             </Border>
 
-            <!-- Acrylic Blur & Transparency Card -->
+            <!-- Card 1: Layout & Alignment Segmented Controls -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Расположение и выравнивание значков" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Мгновенное переключение позиции кнопки Пуск и закрепленных значков с прямой трансляцией системного события WM_SETTINGCHANGE."
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14" TextWrapping="Wrap"/>
+
+                    <!-- Alignment Segmented Cards -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <RadioButton Grid.Column="0" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="AlignmentGroup"
+                                     IsChecked="{Binding IsLeftAlignment, Mode=OneWay}"
+                                     Command="{Binding SelectAlignmentCommand}">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>0</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="Слева (Windows 10)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Классическое выравнивание кнопки Пуск и значков слева" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="1" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="AlignmentGroup"
+                                     IsChecked="{Binding IsCenterAlignment, Mode=OneWay}"
+                                     Command="{Binding SelectAlignmentCommand}"
+                                     Margin="0">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>1</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="По центру (Windows 11)" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Современное центрированное расположение по стандарту Windows 11" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </Grid>
+
+                    <Separator Background="{DynamicResource CardBorderBrush}" Margin="0,0,0,16"/>
+
+                    <!-- Taskbar Size Segmented Cards -->
+                    <TextBlock Text="Размер панели задач (Высота и масштаб кнопок)" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Выбор высоты панели задач для оптимизации полезного пространства экрана." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <RadioButton Grid.Column="0" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="SizeGroup"
+                                     IsChecked="{Binding IsSmallSize, Mode=OneWay}"
+                                     Command="{Binding SelectSizeCommand}">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>0</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="Компактная (Small)" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Тонкая панель, максимум места" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="1" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="SizeGroup"
+                                     IsChecked="{Binding IsMediumSize, Mode=OneWay}"
+                                     Command="{Binding SelectSizeCommand}">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>1</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="Стандартная (Medium)" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Системный масштаб Windows" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="2" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="SizeGroup"
+                                     IsChecked="{Binding IsLargeSize, Mode=OneWay}"
+                                     Command="{Binding SelectSizeCommand}"
+                                     Margin="0">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>2</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="Увеличенная (Large)" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Крупные кнопки для 4K экранов" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </Grid>
+
+                    <Separator Background="{DynamicResource CardBorderBrush}" Margin="0,0,0,16"/>
+
+                    <!-- Grouping Mode Segmented Cards -->
+                    <TextBlock Text="Режим группировки кнопок и метки окон" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Управление показом текстовых заголовков окон на панели задач." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <RadioButton Grid.Column="0" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="GroupingGroup"
+                                     IsChecked="{Binding IsGroupingAlways, Mode=OneWay}"
+                                     Command="{Binding SelectGroupingCommand}">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>0</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="Всегда объединять" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Скрывать текстовые метки" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="1" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="GroupingGroup"
+                                     IsChecked="{Binding IsGroupingWhenFull, Mode=OneWay}"
+                                     Command="{Binding SelectGroupingCommand}">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>1</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="При заполнении" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Группировать при нехватке места" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="2" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="GroupingGroup"
+                                     IsChecked="{Binding IsGroupingNever, Mode=OneWay}"
+                                     Command="{Binding SelectGroupingCommand}"
+                                     Margin="0">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>2</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="Никогда не объединять" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Всегда показывать заголовки" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </Grid>
+
+                    <Separator Background="{DynamicResource CardBorderBrush}" Margin="0,0,0,16"/>
+
+                    <!-- Search Box Mode Segmented Cards -->
+                    <TextBlock Text="Стиль строки поиска Windows" FontSize="13.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Настройка компактности элемента поиска на панели задач." FontSize="11.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <RadioButton Grid.Column="0" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="SearchGroup"
+                                     IsChecked="{Binding IsSearchHidden, Mode=OneWay}"
+                                     Command="{Binding SelectSearchBoxCommand}">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>0</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="Скрыть" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Без поиска" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="1" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="SearchGroup"
+                                     IsChecked="{Binding IsSearchIcon, Mode=OneWay}"
+                                     Command="{Binding SelectSearchBoxCommand}">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>1</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="Только значок" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Компактная лупа" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="2" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="SearchGroup"
+                                     IsChecked="{Binding IsSearchBox, Mode=OneWay}"
+                                     Command="{Binding SelectSearchBoxCommand}">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>2</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="Поле поиска" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Полная строка" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Grid.Column="3" Style="{StaticResource SegmentCardRadioStyle}"
+                                     GroupName="SearchGroup"
+                                     IsChecked="{Binding IsSearchButton, Mode=OneWay}"
+                                     Command="{Binding SelectSearchBoxCommand}"
+                                     Margin="0">
+                            <RadioButton.CommandParameter>
+                                <sys:Int32>3</sys:Int32>
+                            </RadioButton.CommandParameter>
+                            <StackPanel>
+                                <TextBlock Text="Кнопка поиска" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="Значок и надпись" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Card 2: Interactive Toggles Grid (6 Windows & Start Menu Settings) -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Text="Быстрые переключатели панели задач и меню Пуск" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                    <TextBlock Text="Нажмите на любую карточку для мгновенного включения или отключения соответствующей функции Windows."
+                               FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,14" TextWrapping="Wrap"/>
+
+                    <UniformGrid Columns="2">
+                        <!-- Auto-Hide Taskbar -->
+                        <Button Style="{StaticResource ToggleCardButtonStyle}" Command="{Binding ToggleAutoHideCommand}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Автоматически скрывать панель задач" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Скрывать панель задач при отсутствии курсора" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding IsTaskbarAutoHide, Mode=OneWay}" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button>
+
+                        <!-- Lock Taskbar -->
+                        <Button Style="{StaticResource ToggleCardButtonStyle}" Command="{Binding ToggleLockTaskbarCommand}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Закрепить панель задач" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Защита от случайного изменения размера или позиции" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding IsTaskbarLocked, Mode=OneWay}" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button>
+
+                        <!-- Task View Button -->
+                        <Button Style="{StaticResource ToggleCardButtonStyle}" Command="{Binding ToggleTaskViewCommand}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Кнопка «Вид задач»" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Отображение переключателя виртуальных рабочих столов" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding IsTaskViewVisible, Mode=OneWay}" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button>
+
+                        <!-- Widgets & Weather -->
+                        <Button Style="{StaticResource ToggleCardButtonStyle}" Command="{Binding ToggleWidgetsCommand}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Виджеты и погода" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Показ значка виджетов и погоды в углу экрана" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding IsWidgetsVisible, Mode=OneWay}" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button>
+
+                        <!-- Seconds in Clock -->
+                        <Button Style="{StaticResource ToggleCardButtonStyle}" Command="{Binding ToggleSecondsInClockCommand}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Секунды в системных часах" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Отображение точного времени с секундами в трее" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding IsSecondsInClock, Mode=OneWay}" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button>
+
+                        <!-- Hide Recommended in Start Menu -->
+                        <Button Style="{StaticResource ToggleCardButtonStyle}" Command="{Binding ToggleHideRecommendedCommand}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                    <TextBlock Text="Скрыть раздел «Рекомендуем» в меню Пуск" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="Очистить меню Пуск от недавних файлов и советов" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding IsHideRecommended, Mode=OneWay}" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Button>
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+
+            <!-- Card 3: Acrylic Blur & Transparency Card -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,16">
                 <StackPanel>
                     <TextBlock Text="Прозрачность и акриловое размытие (Acrylic Blur)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
@@ -57,82 +446,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- Layout, Alignment & Size Card -->
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,16">
-                <StackPanel>
-                    <TextBlock Text="Расположение, размер и режим группировки" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,14"/>
-
-                    <!-- Alignment -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="220"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="Выравнивание значков" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Позиция кнопки Пуск и значков" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding AlignmentOptions}" SelectedIndex="{Binding SelectedAlignmentIndex}" Height="34" Margin="0,0,8,0"/>
-                        <Button Grid.Column="2" Command="{Binding ApplyAlignmentCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,6">
-                            <TextBlock Text="Применить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                        </Button>
-                    </Grid>
-
-                    <!-- Size -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="220"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="Размер панели задач" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Высота панели и масштаб кнопок" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding SizeOptions}" SelectedIndex="{Binding SelectedSizeIndex}" Height="34" Margin="0,0,8,0"/>
-                        <Button Grid.Column="2" Command="{Binding ApplySizeCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,6">
-                            <TextBlock Text="Применить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                        </Button>
-                    </Grid>
-
-                    <!-- Grouping -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="220"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="Группировка кнопок" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Отображение заголовков окон" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding GroupingOptions}" SelectedIndex="{Binding SelectedGroupingIndex}" Height="34" Margin="0,0,8,0"/>
-                        <Button Grid.Column="2" Command="{Binding ApplyGroupingCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,6">
-                            <TextBlock Text="Применить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                        </Button>
-                    </Grid>
-
-                    <!-- Search Box Mode -->
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="220"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                            <TextBlock Text="Поле поиска" FontSize="12.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
-                            <TextBlock Text="Стиль строки поиска Windows" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                        </StackPanel>
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding SearchOptions}" SelectedIndex="{Binding SelectedSearchBoxIndex}" Height="34" Margin="0,0,8,0"/>
-                        <Button Grid.Column="2" Command="{Binding ApplySearchBoxCommand}" Style="{StaticResource StormSecondaryButton}" Padding="12,6">
-                            <TextBlock Text="Применить" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}"/>
-                        </Button>
-                    </Grid>
-                </StackPanel>
-            </Border>
-
-            <!-- Custom Start Icon Card -->
+            <!-- Card 4: Custom Start Icon Card -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,16">
                 <StackPanel>
                     <TextBlock Text="Кастомный значок кнопки Пуск" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
@@ -157,7 +471,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- Quick Toolbars / Folder Toolbar Card -->
+            <!-- Card 5: Quick Toolbars / Folder Toolbar Card -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,16">
                 <StackPanel>
                     <TextBlock Text="Быстрые панели инструментов и папки" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>

@@ -64,8 +64,9 @@ namespace StormSystemOptimizer.Services
         {
             return new List<WallpaperItem>
             {
+                // 5 STORM SOFT Branded
                 new() {
-                    Title = "STORM Cyber Neon 4K",
+                    Title = "STORM Dark Core 4K",
                     Category = "STORM Dark",
                     Resolution = "4K UHD (3840×2160)",
                     PreviewUrl = "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80",
@@ -74,44 +75,17 @@ namespace StormSystemOptimizer.Services
                     Rating = 5.0
                 },
                 new() {
-                    Title = "Imperial Gothic Titan 4K",
-                    Category = "Игры и Арт",
-                    Resolution = "4K UHD (3840×2160)",
-                    PreviewUrl = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80",
-                    SourceUrl = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=3840&q=100",
-                    DownloadsCount = 64200,
-                    Rating = 4.9
-                },
-                new() {
-                    Title = "Deep Cosmos Nebula QHD",
-                    Category = "Космос",
-                    Resolution = "QHD 2K (2560×1440)",
-                    PreviewUrl = "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=800&q=80",
-                    SourceUrl = "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=2560&q=100",
-                    DownloadsCount = 47800,
-                    Rating = 4.8
-                },
-                new() {
-                    Title = "Night City Cyberpunk 4K",
-                    Category = "Киберпанк",
-                    Resolution = "4K UHD (3840×2160)",
+                    Title = "STORM Neon Night 8K",
+                    Category = "STORM Dark",
+                    Resolution = "8K Ultra HD (7680×4320)",
                     PreviewUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&q=80",
-                    SourceUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=3840&q=100",
-                    DownloadsCount = 112000,
+                    SourceUrl = "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=7680&q=100",
+                    DownloadsCount = 114500,
                     Rating = 5.0
                 },
                 new() {
-                    Title = "Nordic Foggy Forest 4K",
-                    Category = "Природа",
-                    Resolution = "4K UHD (3840×2160)",
-                    PreviewUrl = "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80",
-                    SourceUrl = "https://images.unsplash.com/photo-1448375240586-882707db888b?w=3840&q=100",
-                    DownloadsCount = 52300,
-                    Rating = 4.9
-                },
-                new() {
-                    Title = "Dark OLED Geometric 4K",
-                    Category = "Абстракция",
+                    Title = "STORM Crimson Protocol 4K",
+                    Category = "STORM Dark",
                     Resolution = "4K UHD (3840×2160)",
                     PreviewUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&q=80",
                     SourceUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=3840&q=100",
@@ -119,22 +93,161 @@ namespace StormSystemOptimizer.Services
                     Rating = 4.9
                 },
                 new() {
-                    Title = "Minimal Mountain Ridge 8K",
-                    Category = "Минимализм",
-                    Resolution = "8K Ultra (7680×4320)",
-                    PreviewUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
-                    SourceUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=7680&q=100",
-                    DownloadsCount = 98500,
-                    Rating = 5.0
+                    Title = "STORM Royal Gold 4K",
+                    Category = "STORM Dark",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?w=3840&q=100",
+                    DownloadsCount = 64200,
+                    Rating = 4.9
                 },
                 new() {
-                    Title = "Matrix Digital Rain 4K",
+                    Title = "STORM Imperial Gothic 4K",
                     Category = "STORM Dark",
                     Resolution = "4K UHD (3840×2160)",
                     PreviewUrl = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80",
                     SourceUrl = "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=3840&q=100",
                     DownloadsCount = 83000,
                     Rating = 4.9
+                },
+
+                // 13 Curated Ultra Dark & Black Themes
+                new() {
+                    Title = "Горящий тигр 4K",
+                    Category = "Тёмный арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1561731216-c3a4d99437d5?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1561731216-c3a4d99437d5?w=3840&q=100",
+                    DownloadsCount = 92300,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Горящий волк 4K",
+                    Category = "Тёмный арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1564349683136-77e08dba1ef6?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1564349683136-77e08dba1ef6?w=3840&q=100",
+                    DownloadsCount = 88700,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Горящий дракон 8K",
+                    Category = "Тёмный арт",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=7680&q=100",
+                    DownloadsCount = 104200,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Пылающий феникс 4K",
+                    Category = "Тёмный арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=3840&q=100",
+                    DownloadsCount = 81500,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Кибер-самурай 4K",
+                    Category = "Киберпанк",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=3840&q=100",
+                    DownloadsCount = 119800,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Пылающий череп 4K",
+                    Category = "Тёмный арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=3840&q=100",
+                    DownloadsCount = 74600,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Глубокая туманность 8K",
+                    Category = "Космос",
+                    Resolution = "8K Ultra HD (7680×4320)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=7680&q=100",
+                    DownloadsCount = 95300,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Черная дыра Gargantua 4K",
+                    Category = "Космос",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=3840&q=100",
+                    DownloadsCount = 127000,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Кибер-меха Титан 4K",
+                    Category = "Киберпанк",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1563089145-599997674d42?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1563089145-599997674d42?w=3840&q=100",
+                    DownloadsCount = 68400,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Призрачный клинок QHD",
+                    Category = "Игры и Арт",
+                    Resolution = "QHD 2K (2560×1440)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=2560&q=100",
+                    DownloadsCount = 59800,
+                    Rating = 4.8
+                },
+                new() {
+                    Title = "Неоновый пантеон 4K",
+                    Category = "Киберпанк",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=3840&q=100",
+                    DownloadsCount = 82400,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Темный рыцарь 4K",
+                    Category = "Игры и Арт",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=3840&q=100",
+                    DownloadsCount = 78900,
+                    Rating = 4.9
+                },
+                new() {
+                    Title = "Плазменный вихрь 4K",
+                    Category = "Абстракция",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=3840&q=100",
+                    DownloadsCount = 71200,
+                    Rating = 4.8
+                },
+
+                // 2 Live Video Loop Wallpapers
+                new() {
+                    Title = "Кибер-луп: Неоновый дождь FHD",
+                    Category = "Живые обои",
+                    Resolution = "Full HD (1920×1080)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1515260268569-9271009adfdb?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1515260268569-9271009adfdb?w=1920&q=100",
+                    DownloadsCount = 135000,
+                    Rating = 5.0
+                },
+                new() {
+                    Title = "Кибер-луп: Пульсар бездны 4K",
+                    Category = "Живые обои",
+                    Resolution = "4K UHD (3840×2160)",
+                    PreviewUrl = "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80",
+                    SourceUrl = "https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=3840&q=100",
+                    DownloadsCount = 142000,
+                    Rating = 5.0
                 }
             };
         }
