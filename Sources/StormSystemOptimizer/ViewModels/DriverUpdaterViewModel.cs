@@ -232,11 +232,12 @@ namespace StormSystemOptimizer.ViewModels
                 d.IsUpdateAvailable = false;
                 d.UpdateProgress = 100;
                 d.UpdateProgressText = "Установлен успешно ✓";
-                DriverUpdaterService.Instance.SaveInstalledDriverRecord(d.DeviceName, d.LatestVersion);
             }
             else
             {
+                d.UpdateProgress = 100;
                 d.UpdateProgressText = msg;
+                StatusText = msg;
             }
 
             await Task.Delay(1200);

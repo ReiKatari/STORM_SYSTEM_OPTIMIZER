@@ -414,14 +414,24 @@ namespace StormSystemOptimizer.Services
             }
         }
 
+        public static string? GetRealDriverVersion(string deviceName)
+        {
+            try
+            {
+                using var searcher = new ManagementObjectSearcher(
+                    $"SELECT DeviceName, DriverVersion FROM Win32_PnPSignedDriver WHERE DeviceName = '{deviceName.Replace("'", "''")}'");
+                foreach (ManagementObject obj in searcher.Get())
+                {
+                    string v = obj["DriverVersion"]?.ToString()?.Trim() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(v)) return v;
+                }
+            }
+            catch { }
+            return null;
+        }
+
         public static (bool updateAvailable, string latestVer, string releaseDate, string downloadUrl) CheckCatalogUpdate(string deviceName, string currentVer, string currentDate)
         {
-            var saved = Instance.GetInstalledDriversCache();
-            if (saved.TryGetValue(deviceName, out var savedVer))
-            {
-                return (false, savedVer.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? savedVer : $"v{savedVer}", DateTime.Now.ToString("dd.MM.yyyy"), string.Empty);
-            }
-
             var entry = DriverCatalog.FirstOrDefault(e => deviceName.Contains(e.MatchKeyword, StringComparison.OrdinalIgnoreCase));
             if (entry == null) return (false, currentVer, currentDate, string.Empty);
 
@@ -718,7 +728,33 @@ namespace StormSystemOptimizer.Services
                             using var p = Process.Start(psi);
                             p?.WaitForExit(15000);
                         }
-                        SaveInstalledDriverRecord(item.DeviceName, item.LatestVersion);
+
+                        progressCallback?.Invoke(95, "Проверка фактической версии оборудования в Windows...");
+                        var psiScan = new ProcessStartInfo
+                        {
+                            FileName = "pnputil.exe",
+                            Arguments = "/scan-devices",
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        };
+                        using (var p = Process.Start(psiScan)) { p?.WaitForExit(4000); }
+
+                        string? detectedVer = GetRealDriverVersion(item.DeviceName);
+                        if (!string.IsNullOrEmpty(detectedVer) && !IsDriverVersionNewer(item.LatestVersion, detectedVer, "", ""))
+                        {
+                            SaveInstalledDriverRecord(item.DeviceName, detectedVer);
+                            item.CurrentVersion = detectedVer.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? detectedVer : $"v{detectedVer}";
+                            item.IsUpdateAvailable = false;
+                            try { Directory.Delete(tempDir, true); } catch { }
+                            progressCallback?.Invoke(100, "Драйвер успешно установлен и подтверждён системой ✓");
+                            return (true, $"Драйвер для {item.DeviceName} успешно обновлен до версии {detectedVer}!");
+                        }
+                        else
+                        {
+                            try { Directory.Delete(tempDir, true); } catch { }
+                            progressCallback?.Invoke(100, "Установка выполнена. Нажмите «Обновить список» для проверки.");
+                            return (false, $"Пакет драйвера для {item.DeviceName} запущен. После завершения установки нажмите «Обновить список».");
+                        }
                     }
                     else
                     {
@@ -745,14 +781,10 @@ namespace StormSystemOptimizer.Services
                         };
                         using (var p = Process.Start(psiScan)) { p?.WaitForExit(4000); }
 
-                        SaveInstalledDriverRecord(item.DeviceName, item.LatestVersion);
-                        progressCallback?.Invoke(100, "Драйвер успешно зарегистрирован и обновлен ✓");
+                        try { Directory.Delete(tempDir, true); } catch { }
+                        progressCallback?.Invoke(100, "Открыта официальная страница загрузки производителя");
+                        return (false, $"Открыт официальный центр загрузки для «{item.DeviceName}». Установите пакет драйвера и нажмите «Обновить список».");
                     }
-
-                    try { Directory.Delete(tempDir, true); } catch { }
-
-                    progressCallback?.Invoke(100, "Драйвер успешно установлен ✓");
-                    return (true, $"Драйвер для {item.DeviceName} успешно обновлен до версии {item.LatestVersion}!");
                 }
                 catch (Exception ex)
                 {
