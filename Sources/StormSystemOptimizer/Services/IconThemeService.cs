@@ -34,6 +34,18 @@ namespace StormSystemOptimizer.Services
         private int _iconCount = 320;
 
         [ObservableProperty]
+        private double _rating = 4.9;
+
+        [ObservableProperty]
+        private int _downloadsCount = 85000;
+
+        [ObservableProperty]
+        private string _previewGeometryKey = "GeoApps";
+
+        [ObservableProperty]
+        private string _accentColor = "#00D2FF";
+
+        [ObservableProperty]
         private string _compatibilityBadge = "Win 10/11";
 
         [ObservableProperty]
@@ -78,6 +90,31 @@ namespace StormSystemOptimizer.Services
             }
         }
 
+        public string GetActiveThemeName()
+        {
+            try
+            {
+                string path = Path.Combine(_iconsDir, "active_theme.txt");
+                if (File.Exists(path))
+                {
+                    string txt = File.ReadAllText(path).Trim();
+                    if (!string.IsNullOrEmpty(txt)) return txt;
+                }
+            }
+            catch { }
+            return IsCustomThemeApplied() ? "STORM Cyber Glow" : "Стандартные значки Windows (Default)";
+        }
+
+        public void SetActiveThemeName(string themeName)
+        {
+            try
+            {
+                string path = Path.Combine(_iconsDir, "active_theme.txt");
+                File.WriteAllText(path, themeName);
+            }
+            catch { }
+        }
+
         public bool IsCustomThemeApplied()
         {
             try
@@ -100,6 +137,8 @@ namespace StormSystemOptimizer.Services
         public List<IconThemeItem> GetCuratedIconThemes()
         {
             bool isCustomApplied = IsCustomThemeApplied();
+            string activeTheme = GetActiveThemeName();
+
             var themes = new List<IconThemeItem>
             {
                 new() {
@@ -108,11 +147,74 @@ namespace StormSystemOptimizer.Services
                     Author = "STORM SOFT",
                     Format = "Векторный Shell-пак",
                     Category = "STORM Dark",
-                    PreviewUrl = "pack://application:,,,/Assets/AppIcon.ico",
+                    PreviewGeometryKey = "GeoApps",
+                    AccentColor = "#00D2FF",
                     IconCount = 320,
+                    Rating = 5.0,
+                    DownloadsCount = 142500,
                     CompatibilityBadge = "Win 10/11 (100% совместимо)",
-                    StatusBadge = "Официальный пакет STORM SOFT",
-                    IsApplied = isCustomApplied
+                    StatusBadge = "Официальный пак STORM SOFT",
+                    IsApplied = isCustomApplied && activeTheme.Contains("STORM Cyber Glow")
+                },
+                new() {
+                    Title = "Windows 11 Fluent Dark",
+                    Description = "Современный глубокий тёмный стиль Windows 11 с акриловыми градиентами папок, системных библиотек, накопителей и служебных утилит.",
+                    Author = "Fluent Team",
+                    Format = "Shell-пак",
+                    Category = "Fluent Design",
+                    PreviewGeometryKey = "GeoExplorer",
+                    AccentColor = "#38BDF8",
+                    IconCount = 240,
+                    Rating = 4.9,
+                    DownloadsCount = 98400,
+                    CompatibilityBadge = "Win 10/11",
+                    StatusBadge = "Проверенный пак ✓",
+                    IsApplied = isCustomApplied && activeTheme.Contains("Fluent")
+                },
+                new() {
+                    Title = "Cyberpunk Neon City 2077",
+                    Description = "Футуристический набор значков в стилистике Найт-Сити с яркими неоновыми контурами, кибер-папками и голографическими дисками.",
+                    Author = "NightCity Modders",
+                    Format = "7tsp / ICO",
+                    Category = "Киберпанк",
+                    PreviewGeometryKey = "GeoGamepad",
+                    AccentColor = "#FF007F",
+                    IconCount = 180,
+                    Rating = 4.9,
+                    DownloadsCount = 86100,
+                    CompatibilityBadge = "Win 10/11",
+                    StatusBadge = "Популярный мод ✓",
+                    IsApplied = isCustomApplied && activeTheme.Contains("Cyberpunk")
+                },
+                new() {
+                    Title = "Minimalist Monochrome Pro",
+                    Description = "Строгий матовый монохромный набор значков в сланцево-титановых тонах для максимальной концентрации и визуальной чистоты интерфейса.",
+                    Author = "Studio Minimal",
+                    Format = "Векторный пак",
+                    Category = "Минимализм",
+                    PreviewGeometryKey = "GeoMonitor",
+                    AccentColor = "#94A3B8",
+                    IconCount = 200,
+                    Rating = 4.8,
+                    DownloadsCount = 64200,
+                    CompatibilityBadge = "Все версии Windows",
+                    StatusBadge = "Премиум пак ✓",
+                    IsApplied = isCustomApplied && activeTheme.Contains("Minimalist")
+                },
+                new() {
+                    Title = "macOS Tahoe Dark Glass",
+                    Description = "Премиальные стеклянные скругленные значки в стиле темного режима macOS со сглаженными тенями и глубоким микро-контрастом.",
+                    Author = "Cupertino Lab",
+                    Format = "Shell-пак",
+                    Category = "macOS Style",
+                    PreviewGeometryKey = "GeoVisual",
+                    AccentColor = "#A855F7",
+                    IconCount = 220,
+                    Rating = 4.9,
+                    DownloadsCount = 112000,
+                    CompatibilityBadge = "Win 10/11",
+                    StatusBadge = "Выбор пользователей ✓",
+                    IsApplied = isCustomApplied && activeTheme.Contains("macOS")
                 },
                 new() {
                     Title = "Стандартные значки Windows (Default)",
@@ -120,8 +222,11 @@ namespace StormSystemOptimizer.Services
                     Author = "Microsoft Windows",
                     Format = "Системные библиотеки",
                     Category = "По умолчанию",
-                    PreviewUrl = "pack://application:,,,/Assets/AppIcon.ico",
+                    PreviewGeometryKey = "GeoSystemTools",
+                    AccentColor = "#10B981",
                     IconCount = 0,
+                    Rating = 5.0,
+                    DownloadsCount = 350000,
                     CompatibilityBadge = "Все версии Windows",
                     StatusBadge = "Заводской вид системы",
                     IsApplied = !isCustomApplied
@@ -493,12 +598,22 @@ namespace StormSystemOptimizer.Services
                 "Avast Secure Browser", "CCleaner Browser", "Epic Privacy Browser", "Ghostery Dawn", "Mullvad Browser",
                 "Min Browser", "Konqueror", "qutebrowser", "Nyxt Browser", "Lynx Browser"
             };
+            string[] browserGeos = {
+                "GeoBrowser", "GeoLightning", "GeoBrowser", "GeoGameBoost", "GeoShield",
+                "GeoVisual", "GeoEyeOff", "GeoRocket", "GeoComponent", "GeoRadar",
+                "GeoSpeedTest", "GeoPrivacy", "GeoSecurityAudit", "GeoStar", "GeoClean",
+                "GeoBrush", "GeoRocket", "GeoTask", "GeoMonitor", "GeoCpu",
+                "GeoSpeedTest", "GeoNetwork", "GeoAudio", "GeoLightning", "GeoShield",
+                "GeoLock", "GeoTerminal", "GeoRadar", "GeoVisual", "GeoLog",
+                "GeoShield", "GeoClean", "GeoEyeOff", "GeoPrivacy", "GeoLock",
+                "GeoSpeedTest", "GeoNetwork", "GeoTerminal", "GeoComponent", "GeoTerminal"
+            };
             for (int i = 0; i < browserIcons.Length; i++)
             {
                 list.Add(new StormIconEntry {
                     Name = browserIcons[i],
                     Category = "Браузеры",
-                    GeometryKey = "GeoBrowser",
+                    GeometryKey = browserGeos[i % browserGeos.Length],
                     TargetSystemName = $"Browser_{i+1}",
                     IsSelected = true
                 });
@@ -515,12 +630,22 @@ namespace StormSystemOptimizer.Services
                 "Cyberpunk 2077", "The Witcher 3", "GTA V", "Valorant", "Genshin Impact",
                 "Roblox", "Apex Legends", "Call of Duty", "Overwatch 2", "Warhammer 40K Space Marine"
             };
+            string[] gameGeos = {
+                "GeoGamepad", "GeoRocket", "GeoShield", "GeoStar", "GeoLightning",
+                "GeoRadar", "GeoGameBoost", "GeoAudio", "GeoGame", "GeoGamepad",
+                "GeoGamepad", "GeoGame", "GeoGameBoost", "GeoDevice", "GeoDevice",
+                "GeoGpu", "GeoCpu", "GeoDevice", "GeoVisual", "GeoGpu",
+                "GeoMonitor", "GeoGame", "GeoLaunchers", "GeoRocket", "GeoGameBoost",
+                "GeoDevice", "GeoGpu", "GeoComponent", "GeoSpeedTest", "GeoShield",
+                "GeoLightning", "GeoStar", "GeoFirewall", "GeoRadar", "GeoVisual",
+                "GeoComponent", "GeoSpeedTest", "GeoFirewall", "GeoGameBoost", "GeoPower"
+            };
             for (int i = 0; i < gameIcons.Length; i++)
             {
                 list.Add(new StormIconEntry {
                     Name = gameIcons[i],
                     Category = "Игры",
-                    GeometryKey = (i % 2 == 0) ? "GeoGamepad" : "GeoGame",
+                    GeometryKey = gameGeos[i % gameGeos.Length],
                     TargetSystemName = $"Game_{i+1}",
                     IsSelected = true
                 });
@@ -537,12 +662,22 @@ namespace StormSystemOptimizer.Services
                 "Notepad++ Dev", "Neovim", "Vim", "Emacs", "Windows Terminal Dev",
                 "Kubernetes", "Redis Desktop", "RabbitMQ", "Kafka Manager", "Nginx Server"
             };
+            string[] devGeos = {
+                "GeoTerminal", "GeoComponent", "GeoNetwork", "GeoLaunchers", "GeoStar",
+                "GeoDisks", "GeoCpu", "GeoTerminal", "GeoLightning", "GeoVisual",
+                "GeoCpu", "GeoDevice", "GeoGamepad", "GeoGameBoost", "GeoRocket",
+                "GeoTerminal", "GeoTerminal", "GeoComponent", "GeoSpeedTest", "GeoTerminal",
+                "GeoCpu", "GeoNetwork", "GeoRocket", "GeoDatabase", "GeoDatabase",
+                "GeoDatabase", "GeoDatabase", "GeoRadar", "GeoNetwork", "GeoLog",
+                "GeoLog", "GeoTerminal", "GeoTerminal", "GeoTerminal", "GeoTerminal",
+                "GeoDisks", "GeoRam", "GeoServices", "GeoInterrupts", "GeoSettings"
+            };
             for (int i = 0; i < devIcons.Length; i++)
             {
                 list.Add(new StormIconEntry {
                     Name = devIcons[i],
                     Category = "Разработка",
-                    GeometryKey = (i % 3 == 0) ? "GeoTerminal" : ((i % 3 == 1) ? "GeoCpu" : "GeoComponent"),
+                    GeometryKey = devGeos[i % devGeos.Length],
                     TargetSystemName = $"Dev_{i+1}",
                     IsSelected = true
                 });
@@ -559,12 +694,22 @@ namespace StormSystemOptimizer.Services
                 "Cubase", "HandBrake", "Format Factory", "FFmpeg CLI", "MusicBee",
                 "Lightroom", "Vegas Pro", "Camtasia", "Shotcut", "Kdenlive"
             };
+            string[] mediaGeos = {
+                "GeoAudio", "GeoAudio", "GeoVisual", "GeoAudio", "GeoVisual",
+                "GeoVisual", "GeoMonitor", "GeoRadar", "GeoAudio", "GeoAudio",
+                "GeoAudio", "GeoBrush", "GeoBrush", "GeoVisual", "GeoVisual",
+                "GeoComponent", "GeoVisual", "GeoAudio", "GeoAudio", "GeoBrush",
+                "GeoBrush", "GeoBrush", "GeoBrush", "GeoBrush", "GeoComponent",
+                "GeoVisual", "GeoComponent", "GeoBrush", "GeoBrush", "GeoAudio",
+                "GeoAudio", "GeoUpdate", "GeoUpdate", "GeoTerminal", "GeoAudio",
+                "GeoVisual", "GeoVisual", "GeoMonitor", "GeoVisual", "GeoVisual"
+            };
             for (int i = 0; i < mediaIcons.Length; i++)
             {
                 list.Add(new StormIconEntry {
                     Name = mediaIcons[i],
                     Category = "Мультимедиа",
-                    GeometryKey = (i % 3 == 0) ? "GeoAudio" : ((i % 3 == 1) ? "GeoVisual" : "GeoBrush"),
+                    GeometryKey = mediaGeos[i % mediaGeos.Length],
                     TargetSystemName = $"Media_{i+1}",
                     IsSelected = true
                 });
@@ -581,12 +726,22 @@ namespace StormSystemOptimizer.Services
                 "QuickCPU", "CapFrameX", "RTSS Rivatuner", "Bulk Rename Utility", "FastStone Capture",
                 "ShareX", "KeePassXC", "Bitwarden", "AnyDesk", "TeamViewer"
             };
+            string[] utilGeos = {
+                "GeoDashboard", "GeoGameBoost", "GeoAppUpdate", "GeoFolderLock", "GeoLock",
+                "GeoProcesses", "GeoThermometer", "GeoCpu", "GeoGpu", "GeoSpeedTest",
+                "GeoDisks", "GeoSpeedTest", "GeoUsb", "GeoClean", "GeoSearch",
+                "GeoLog", "GeoSystemInfo", "GeoStartup", "GeoTask", "GeoRadar",
+                "GeoDisks", "GeoDisks", "GeoUninstaller", "GeoGarbage", "GeoBenchmarks",
+                "GeoFirewall", "GeoCpu", "GeoBenchmarks", "GeoRam", "GeoDisk",
+                "GeoCpu", "GeoSpeedTest", "GeoFan", "GeoCopy", "GeoVisual",
+                "GeoVisual", "GeoKey", "GeoShield", "GeoNetwork", "GeoMonitor"
+            };
             for (int i = 0; i < utilIcons.Length; i++)
             {
                 list.Add(new StormIconEntry {
                     Name = utilIcons[i],
                     Category = "Утилиты",
-                    GeometryKey = (i % 4 == 0) ? "GeoDashboard" : ((i % 4 == 1) ? "GeoSystemTools" : ((i % 4 == 2) ? "GeoSpeedTest" : "GeoScanner")),
+                    GeometryKey = utilGeos[i % utilGeos.Length],
                     TargetSystemName = $"Util_{i+1}",
                     IsSelected = true
                 });
@@ -603,12 +758,22 @@ namespace StormSystemOptimizer.Services
                 "Разметка Markdown (.md)", "База данных SQLite (.db)", "Скрипт SQL (.sql)", "Конфигурация YAML (.yaml)", "Конфигурация TOML (.toml)",
                 "Пакетный файл (.bat)", "Скрипт PowerShell (.ps1)", "Файл реестра (.reg)", "Файл шрифта (.ttf)", "Файл шрифта (.otf)"
             };
+            string[] fileTypeGeos = {
+                "GeoTerminal", "GeoComponent", "GeoFolderLock", "GeoFolderLock", "GeoFolderLock",
+                "GeoDisks", "GeoOffice", "GeoOffice", "GeoOffice", "GeoOffice",
+                "GeoLog", "GeoDatabase", "GeoLog", "GeoAudio", "GeoAudio",
+                "GeoAudio", "GeoVisual", "GeoVisual", "GeoBrush", "GeoBrush",
+                "GeoBrush", "GeoBrush", "GeoTerminal", "GeoTerminal", "GeoTerminal",
+                "GeoTerminal", "GeoTerminal", "GeoTerminal", "GeoBrush", "GeoBrowser",
+                "GeoLog", "GeoDatabase", "GeoDatabase", "GeoSettings", "GeoSettings",
+                "GeoTerminal", "GeoTerminal", "GeoKey", "GeoComponent", "GeoComponent"
+            };
             for (int i = 0; i < fileTypeIcons.Length; i++)
             {
                 list.Add(new StormIconEntry {
                     Name = fileTypeIcons[i],
                     Category = "Типы файлов",
-                    GeometryKey = (i % 3 == 0) ? "GeoLog" : ((i % 3 == 1) ? "GeoKey" : "GeoComponent"),
+                    GeometryKey = fileTypeGeos[i % fileTypeGeos.Length],
                     TargetSystemName = $"File_{i+1}",
                     IsSelected = true
                 });

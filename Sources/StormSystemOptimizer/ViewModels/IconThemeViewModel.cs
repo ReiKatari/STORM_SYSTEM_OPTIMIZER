@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -84,15 +85,18 @@ namespace StormSystemOptimizer.ViewModels
         public void RefreshAppliedThemeStatus()
         {
             bool isCustom = IconThemeService.Instance.IsCustomThemeApplied();
+            string active = IconThemeService.Instance.GetActiveThemeName();
+
             foreach (var th in IconThemes)
             {
-                if (th.Title.Contains("STORM Cyber Glow"))
+                if (!isCustom)
                 {
-                    th.IsApplied = isCustom;
+                    th.IsApplied = th.Title.Contains("Стандартные") || th.Title.Contains("Default");
                 }
-                else if (th.Title.Contains("Стандартные") || th.Title.Contains("Default") || th.Title.Contains("Windows"))
+                else
                 {
-                    th.IsApplied = !isCustom;
+                    th.IsApplied = th.Title.Equals(active, StringComparison.OrdinalIgnoreCase) ||
+                                  (active.Contains("STORM") && th.Title.Contains("STORM"));
                 }
             }
         }
@@ -335,6 +339,7 @@ namespace StormSystemOptimizer.ViewModels
                 bool ok = await IconThemeService.Instance.ApplySelectedCyberGlowIconsAsync(CatalogIcons);
                 if (ok)
                 {
+                    IconThemeService.Instance.SetActiveThemeName(item.Title);
                     await IconThemeService.Instance.RebuildIconCacheAsync();
                     RefreshAppliedThemeStatus();
                     StatusMessage = "Тема значков STORM Cyber Glow успешно активирована в системе!";
@@ -351,6 +356,7 @@ namespace StormSystemOptimizer.ViewModels
                 bool ok = IconThemeService.Instance.ResetSystemIconsToDefault();
                 if (ok)
                 {
+                    IconThemeService.Instance.SetActiveThemeName(item.Title);
                     await IconThemeService.Instance.RebuildIconCacheAsync();
                     RefreshAppliedThemeStatus();
                     StatusMessage = "Все системные значки успешно возвращены к стандарту Windows!";
@@ -363,12 +369,13 @@ namespace StormSystemOptimizer.ViewModels
             }
             else
             {
-                if (!string.IsNullOrEmpty(item.PreviewUrl))
+                if (!string.IsNullOrEmpty(item.PreviewUrl) && File.Exists(item.PreviewUrl))
                 {
                     StatusMessage = $"Активация пользовательской темы «{item.Title}»...";
                     bool ok = await IconThemeService.Instance.InstallIconPackageArchiveAsync(item.PreviewUrl);
                     if (ok)
                     {
+                        IconThemeService.Instance.SetActiveThemeName(item.Title);
                         await IconThemeService.Instance.RebuildIconCacheAsync();
                         RefreshAppliedThemeStatus();
                         StatusMessage = $"Пользовательская тема «{item.Title}» успешно активирована!";
@@ -377,6 +384,23 @@ namespace StormSystemOptimizer.ViewModels
                     else
                     {
                         StatusMessage = "Не удалось применить пользовательскую тему.";
+                    }
+                }
+                else
+                {
+                    StatusMessage = $"Применение темы значков «{item.Title}»...";
+                    bool ok = await IconThemeService.Instance.ApplySelectedCyberGlowIconsAsync(CatalogIcons);
+                    if (ok)
+                    {
+                        IconThemeService.Instance.SetActiveThemeName(item.Title);
+                        await IconThemeService.Instance.RebuildIconCacheAsync();
+                        RefreshAppliedThemeStatus();
+                        StatusMessage = $"Тема значков «{item.Title}» успешно активирована в системе!";
+                        TrayService.Instance.ShowNotification("Значки системы 🎨", StatusMessage);
+                    }
+                    else
+                    {
+                        StatusMessage = $"Не удалось применить тему «{item.Title}».";
                     }
                 }
             }
