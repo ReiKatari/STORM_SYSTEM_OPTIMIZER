@@ -857,6 +857,8 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty] private string _statusMessage = "Готов к анализу времени загрузки";
         [ObservableProperty] private bool _isBusy = false;
 
+        public ObservableCollection<BootProfilerService.BootDegradationItem> DegradationItems { get; } = new();
+
         public BootProfilerViewModel()
         {
             _ = LoadBootMetricsAsync();
@@ -876,7 +878,11 @@ namespace StormSystemOptimizer.ViewModels
             LastBootDate = metrics.LastBootDate;
             Rating = metrics.PerformanceRating;
 
-            StatusMessage = $"Время загрузки: {TotalBootSec} сек (Ядро: {MainPathSec} сек, Рабочий стол: {KernelPostSec} сек)";
+            var degs = await Task.Run(() => BootProfilerService.Instance.GetBootDegradations());
+            DegradationItems.Clear();
+            foreach (var d in degs) DegradationItems.Add(d);
+
+            StatusMessage = $"Время загрузки: {TotalBootSec} сек (Ядро: {MainPathSec} сек, Рабочий стол: {KernelPostSec} сек). Выявлено {DegradationItems.Count} узких мест.";
             IsBusy = false;
         }
 

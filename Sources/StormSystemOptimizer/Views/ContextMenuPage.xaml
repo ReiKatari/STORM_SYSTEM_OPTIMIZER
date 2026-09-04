@@ -25,8 +25,8 @@
                             </Border>
                             <TextBlock Text="Редактор контекстного меню и Проводника" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Очистка лишних пунктов в меню правой кнопки мыши, переключение стиля Windows 10 / Windows 11 и добавление полезных команд."
-                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <TextBlock Text="Очистка лишних пунктов в меню правой кнопки мыши, управление сторонними расширениями Shell и создание собственных команд."
+                                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,4" TextWrapping="Wrap"/>
                     </StackPanel>
 
                     <WrapPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -40,75 +40,224 @@
                 </Grid>
             </Border>
 
-            <!-- Menu Style Switch Banner -->
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
-                        <TextBlock Text="Классическое быстрое меню Windows 10" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
-                        <TextBlock Text="Мгновенный показ всех команд при нажатии правой кнопкой мыши без скрытия под «Показать дополнительные параметры»." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
-                    </StackPanel>
-                    <CheckBox Grid.Column="1" IsChecked="{Binding IsClassicMenu}" Command="{Binding ToggleClassicMenuCommand}" Content="Классическое меню" VerticalAlignment="Center"/>
-                </Grid>
-            </Border>
-
-            <!-- Filter Tabs Bar -->
+            <!-- Mode Switch Tabs Bar -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,0,0,16">
                 <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Все" Content="Все пункты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,4" FontSize="11.5" FontWeight="Bold"/>
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Инструменты" Content="Инструменты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,4" FontSize="11.5" FontWeight="Bold"/>
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Очистка" Content="Очистка меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,4" FontSize="11.5" FontWeight="Bold"/>
-                    <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Сторонние" Content="Сторонние меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,0,4" FontSize="11.5" FontWeight="Bold"/>
+                    <Button Command="{Binding SetActiveTabCommand}" CommandParameter="Tweaks" Content="Популярные твики" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,4" FontSize="12" FontWeight="Bold"/>
+                    <Button Command="{Binding SetActiveTabCommand}" CommandParameter="ShellExtensions" Content="Сторонние расширения Shell" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,8,4" FontSize="12" FontWeight="Bold"/>
+                    <Button Command="{Binding SetActiveTabCommand}" CommandParameter="CustomBuilder" Content="Создать пункт меню" Style="{StaticResource StormSecondaryButton}" Padding="14,8" Margin="0,0,0,4" FontSize="12" FontWeight="Bold"/>
                 </WrapPanel>
             </Border>
 
-            <!-- Items List -->
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
-                <StackPanel>
-                    <TextBlock Text="Пункты контекстного меню и расширения Проводника" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
-                    <ItemsControl ItemsSource="{Binding FilteredItems}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,8">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                             <ColumnDefinition Width="*"/>
-                                             <ColumnDefinition Width="Auto"/>
-                                             <ColumnDefinition Width="Auto"/>
-                                             <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
-                                            <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding Location, StringFormat='Расположение: {0}'}" FontSize="10" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
-                                        </StackPanel>
+            <!-- TAB 1: POPULAR TWEAKS -->
+            <StackPanel Visibility="{Binding IsTweaksTab, Converter={StaticResource BoolToVisConverter}}">
+                <!-- Menu Style Switch Banner -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" Margin="0,0,24,0" VerticalAlignment="Center">
+                            <TextBlock Text="Классическое быстрое меню Windows 10" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="Мгновенный показ всех команд при нажатии правой кнопкой мыши без скрытия под «Показать дополнительные параметры»." FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <CheckBox Grid.Column="1" IsChecked="{Binding IsClassicMenu}" Command="{Binding ToggleClassicMenuCommand}" Content="Классическое меню" VerticalAlignment="Center"/>
+                    </Grid>
+                </Border>
 
-                                        <Border Grid.Column="1" Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="8,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Category}" FontSize="10" FontWeight="Bold" Foreground="#10B981"/>
-                                        </Border>
+                <!-- Filter Categories -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,0,0,16">
+                    <WrapPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Все" Content="Все пункты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,4" FontSize="11.5" FontWeight="Bold"/>
+                        <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Инструменты" Content="Инструменты" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,4" FontSize="11.5" FontWeight="Bold"/>
+                        <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Очистка" Content="Очистка меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,6,4" FontSize="11.5" FontWeight="Bold"/>
+                        <Button Command="{Binding FilterCategoryCommand}" CommandParameter="Сторонние" Content="Сторонние меню" Style="{StaticResource StormSecondaryButton}" Padding="12,6" Margin="0,0,0,4" FontSize="11.5" FontWeight="Bold"/>
+                    </WrapPanel>
+                </Border>
 
-                                        <Border Grid.Column="2" Background="#1A00D2FF" CornerRadius="4" Padding="8,4" Margin="4,0,12,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Location}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
-                                        </Border>
+                <!-- Items List -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Пункты контекстного меню и расширения Проводника" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                        <ItemsControl ItemsSource="{Binding FilteredItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                 <ColumnDefinition Width="*"/>
+                                                 <ColumnDefinition Width="Auto"/>
+                                                 <ColumnDefinition Width="Auto"/>
+                                                 <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                <TextBlock Text="{Binding Title}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Location, StringFormat='Расположение: {0}'}" FontSize="10" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                            </StackPanel>
 
-                                        <Button Grid.Column="3" 
-                                                Command="{Binding DataContext.ToggleItemStateCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                                CommandParameter="{Binding}"
-                                                Style="{StaticResource StormSecondaryButton}"
-                                                Padding="14,6"
-                                                VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusColor}" FontSize="11" FontWeight="Bold"/>
-                                        </Button>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
+                                            <Border Grid.Column="1" Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="8,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Category}" FontSize="10" FontWeight="Bold" Foreground="#10B981"/>
+                                            </Border>
+
+                                            <Border Grid.Column="2" Background="#1A00D2FF" CornerRadius="4" Padding="8,4" Margin="4,0,12,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Location}" FontSize="10" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            </Border>
+
+                                            <Button Grid.Column="3" 
+                                                    Command="{Binding DataContext.ToggleItemStateCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource StormSecondaryButton}"
+                                                    Padding="14,6"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding StatusText}" Foreground="{Binding StatusColor}" FontSize="11" FontWeight="Bold"/>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- TAB 2: SHELL EXTENSIONS -->
+            <StackPanel Visibility="{Binding IsShellExtensionsTab, Converter={StaticResource BoolToVisConverter}}">
+                <!-- Search & Actions Bar -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,12,0">
+                            <Grid>
+                                <TextBox Text="{Binding ShellSearchText, UpdateSourceTrigger=PropertyChanged}" FontSize="12.5" Foreground="{DynamicResource TextPrimaryBrush}" Background="Transparent" BorderThickness="0"/>
+                                <TextBlock Text="Поиск расширений по названию или CLSID..." IsHitTestVisible="False" FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding ShellSearchText}" Value="">
+                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+                        <Button Grid.Column="1" Command="{Binding ScanShellExtensionsCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,10">
+                            <TextBlock Text="Обновить список расширений" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Shell Extensions List -->
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Обнаруженные расширения контекстного меню Проводника" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                        <ItemsControl ItemsSource="{Binding FilteredShellExtensions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                                <TextBlock Text="{Binding Clsid, StringFormat='CLSID: {0}'}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                                <TextBlock Text="{Binding ParentPath, StringFormat='Раздел: {0}'}" FontSize="9.5" Foreground="{DynamicResource AccentPrimaryBrush}" Margin="0,2,0,0"/>
+                                            </StackPanel>
+
+                                            <Border Grid.Column="1" Background="#1A00D2FF" CornerRadius="4" Padding="8,4" Margin="8,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Location}" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                            </Border>
+
+                                            <Border Grid.Column="2" Background="#1A10B981" CornerRadius="4" Padding="8,4" Margin="4,0,12,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding StateText}" FontSize="10.5" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </Border>
+
+                                            <Button Grid.Column="3"
+                                                    Command="{Binding DataContext.ToggleShellExtensionCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource StormSecondaryButton}"
+                                                    Padding="14,6"
+                                                    VerticalAlignment="Center">
+                                                <TextBlock Text="Вкл / Выкл" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- TAB 3: CUSTOM BUILDER -->
+            <StackPanel Visibility="{Binding IsCustomBuilderTab, Converter={StaticResource BoolToVisConverter}}">
+                <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="20" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Конструктор собственных пунктов контекстного меню" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="Создавайте удобные быстрые действия для файлов, папок или рабочего стола с автоматической интеграцией в Проводник Windows." FontSize="12.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,18" TextWrapping="Wrap"/>
+
+                        <!-- Field 1: Title -->
+                        <TextBlock Text="Название пункта в контекстном меню" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <Border Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,0,14">
+                            <TextBox Text="{Binding NewItemTitle, UpdateSourceTrigger=PropertyChanged}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
+
+                        <!-- Field 2: Target Scope -->
+                        <TextBlock Text="Область применения" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <ComboBox ItemsSource="{Binding AvailableScopes}" SelectedItem="{Binding NewItemScope}" Margin="0,0,0,14" Height="36"/>
+
+                        <!-- Field 3: Command Path -->
+                        <TextBlock Text="Команда или путь к исполняемому файлу" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,8,0">
+                                <TextBox Text="{Binding NewItemCommandPath, UpdateSourceTrigger=PropertyChanged}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Border>
+                            <Button Grid.Column="1" Command="{Binding BrowseCommandPathCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,8">
+                                <TextBlock Text="Обзор..." FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                        </Grid>
+
+                        <!-- Field 4: Icon Path -->
+                        <TextBlock Text="Путь к значку (необязательно, .ico, .exe или .dll)" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="{DynamicResource AppBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,8,0">
+                                <TextBox Text="{Binding NewItemIconPath, UpdateSourceTrigger=PropertyChanged}" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Border>
+                            <Button Grid.Column="1" Command="{Binding BrowseIconPathCommand}" Style="{StaticResource StormSecondaryButton}" Padding="16,8">
+                                <TextBlock Text="Выбрать значок..." FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            </Button>
+                        </Grid>
+
+                        <!-- Field 5: Admin Rights CheckBox -->
+                        <CheckBox IsChecked="{Binding NewItemRunAsAdmin}" Content="Запускать команду от имени Администратора (щит UAC)" Margin="0,0,0,18"/>
+
+                        <!-- Submit Button -->
+                        <Button Command="{Binding CreateCustomItemCommand}" Style="{StaticResource StormHeroButton}" Padding="20,12" HorizontalAlignment="Left">
+                            <TextBlock Text="Внедрить пункт в контекстное меню" FontSize="13" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </Button>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
 
             <!-- Status Banner -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="14,10">

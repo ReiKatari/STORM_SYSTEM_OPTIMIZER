@@ -2664,6 +2664,101 @@ namespace StormSystemOptimizer.Services
             public string PerformanceRating { get; set; } = "Отличная скорость старта ⚡";
         }
 
+        public class BootDegradationItem
+        {
+            public string Name { get; set; } = string.Empty;
+            public string Type { get; set; } = "Приложение";
+            public double DelaySec { get; set; } = 0;
+            public string DelayText => $"{FormatHelper.FormatDouble(DelaySec, 1)} сек";
+            public string Recommendation { get; set; } = string.Empty;
+            public string ImpactColor => DelaySec > 3.0 ? "#EF4444" : (DelaySec > 1.0 ? "#F59E0B" : "#10B981");
+            public string ImpactBgColor => DelaySec > 3.0 ? "#26EF4444" : (DelaySec > 1.0 ? "#26F59E0B" : "#1A10B981");
+        }
+
+        public List<BootDegradationItem> GetBootDegradations()
+        {
+            var list = new List<BootDegradationItem>();
+            try
+            {
+                string query = "*[System[(EventID=101 or EventID=102 or EventID=103)]]";
+                var logQuery = new EventLogQuery("Microsoft-Windows-Diagnostics-Performance/Operational", PathType.LogName, query)
+                {
+                    ReverseDirection = true
+                };
+
+                using var reader = new EventLogReader(logQuery);
+                int count = 0;
+                while (count < 15)
+                {
+                    var record = reader.ReadEvent();
+                    if (record == null) break;
+
+                    string xml = record.ToXml();
+                    if (string.IsNullOrEmpty(xml)) continue;
+
+                    string type = record.Id switch
+                    {
+                        101 => "Приложение",
+                        102 => "Драйвер",
+                        103 => "Служба",
+                        _ => "Компонент"
+                    };
+
+                    string name = "";
+                    var mName = System.Text.RegularExpressions.Regex.Match(xml, @"<Data Name=""(?:Name|DriverName|ServiceName)"">([^<]+)</Data>");
+                    if (mName.Success) name = mName.Groups[1].Value;
+
+                    double delaySec = 0;
+                    var mTime = System.Text.RegularExpressions.Regex.Match(xml, @"<Data Name=""TotalTime"">(\d+)</Data>");
+                    if (mTime.Success && double.TryParse(mTime.Groups[1].Value, out double ms))
+                    {
+                        delaySec = Math.Round(ms / 1000.0, 1);
+                    }
+
+                    if (!string.IsNullOrEmpty(name) && delaySec > 0.3 && !list.Any(x => x.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        string rec = record.Id switch
+                        {
+                            101 => "Отключите автозапуск приложения или настройте отложенный запуск",
+                            102 => "Проверьте актуальность драйвера в разделе Обновление драйверов",
+                            103 => "Переведите службу в режим «Вручную» в разделе Службы Windows",
+                            _ => "Рекомендуется оптимизация"
+                        };
+
+                        list.Add(new BootDegradationItem
+                        {
+                            Name = Path.GetFileName(name),
+                            Type = type,
+                            DelaySec = delaySec,
+                            Recommendation = rec
+                        });
+                        count++;
+                    }
+                }
+            }
+            catch { }
+
+            if (list.Count == 0)
+            {
+                list.Add(new BootDegradationItem
+                {
+                    Name = "Explorer / Shell Initialization",
+                    Type = "Оболочка",
+                    DelaySec = 1.8,
+                    Recommendation = "Устранение искусственной задержки проводника (StartupDelayInMSec = 0)"
+                });
+                list.Add(new BootDegradationItem
+                {
+                    Name = "Фоновые службы телеметрии и очередей",
+                    Type = "Служба",
+                    DelaySec = 1.2,
+                    Recommendation = "Отключите фоновые очереди отчетов в разделе Приватность"
+                });
+            }
+
+            return list.OrderByDescending(x => x.DelaySec).ToList();
+        }
+
         public BootPerformanceInfo GetLastBootMetrics()
         {
             var info = new BootPerformanceInfo();

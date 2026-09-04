@@ -240,6 +240,10 @@ namespace StormSystemOptimizer
                 "SecurityAudit" => new SecurityAuditPage(),
                 "BrowserExtensions" => new BrowserExtensionsPage(),
                 "TaskSchedulerAudit" => new TaskSchedulerAuditPage(),
+                "Defrag" => new DefragPage(),
+                "TaskbarCustomizer" => new TaskbarCustomizerPage(),
+                "Wallpapers" => new WallpapersPage(),
+                "IconTheme" => new IconThemePage(),
                 "Settings" => new SettingsPage(),
                 _ => new DashboardPage()
             };

@@ -233,6 +233,51 @@ namespace StormSystemOptimizer.Services
             return list;
         }
 
+        public bool DeleteStartupEntry(StartupEntry entry)
+        {
+            try
+            {
+                if (!string.IsNullOrEmpty(entry.RegistryPath))
+                {
+                    var root = entry.Location.StartsWith("HKLM") ? Registry.LocalMachine : Registry.CurrentUser;
+                    using var mainKey = root.OpenSubKey(entry.RegistryPath, true);
+                    mainKey?.DeleteValue(entry.Name, false);
+
+                    string backupKeyPath = entry.RegistryPath + @"\StormDisabled";
+                    using var backupKey = root.OpenSubKey(backupKeyPath, true);
+                    backupKey?.DeleteValue(entry.Name, false);
+                }
+                else if (!string.IsNullOrEmpty(entry.Command) && File.Exists(entry.Command) && (entry.Command.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) || entry.Command.EndsWith(".url", StringComparison.OrdinalIgnoreCase)))
+                {
+                    File.Delete(entry.Command);
+                }
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool AddStartupEntry(string name, string exePath)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true);
+                if (key != null)
+                {
+                    string safePath = exePath.Contains(" ") && !exePath.StartsWith("\"") ? $"\"{exePath}\"" : exePath;
+                    key.SetValue(name, safePath);
+                    return true;
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public bool SetDelayedStartup(StartupEntry entry, int delaySeconds = 45)
         {
             try

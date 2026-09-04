@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Win32;
@@ -567,6 +568,167 @@ namespace StormSystemOptimizer.Services
             });
         }
 
+        public List<ShellExtensionItem> ScanThirdPartyShellExtensions()
+        {
+            var list = new List<ShellExtensionItem>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            var targets = new (string path, string location)[]
+            {
+                (@"*\shellex\ContextMenuHandlers", "Все файлы"),
+                (@"Directory\shellex\ContextMenuHandlers", "Папки"),
+                (@"Directory\Background\shellex\ContextMenuHandlers", "Рабочий стол и фон"),
+                (@"Drive\shellex\ContextMenuHandlers", "Диски")
+            };
+
+            foreach (var t in targets)
+            {
+                try
+                {
+                    using var key = Registry.ClassesRoot.OpenSubKey(t.path);
+                    if (key == null) continue;
+
+                    foreach (var subName in key.GetSubKeyNames())
+                    {
+                        if (string.IsNullOrWhiteSpace(subName)) continue;
+                        if (subName.Equals("WorkFolders", StringComparison.OrdinalIgnoreCase) ||
+                            subName.Equals("Sharing", StringComparison.OrdinalIgnoreCase))
+                            continue;
+
+                        bool isEnabled = !subName.StartsWith("-");
+                        string cleanName = subName.TrimStart('-');
+                        string compKey = $"{cleanName}_{t.location}";
+                        if (seen.Contains(compKey)) continue;
+                        seen.Add(compKey);
+
+                        string clsid = "";
+                        try
+                        {
+                            using var sub = key.OpenSubKey(subName);
+                            clsid = sub?.GetValue("")?.ToString() ?? "";
+                        }
+                        catch { }
+
+                        list.Add(new ShellExtensionItem
+                        {
+                            Name = cleanName,
+                            KeyName = subName,
+                            ParentPath = t.path,
+                            Location = t.location,
+                            Clsid = clsid,
+                            IsEnabled = isEnabled
+                        });
+                    }
+                }
+                catch { }
+            }
+
+            return list;
+        }
+
+        public bool ToggleShellExtension(ShellExtensionItem item, bool enable)
+        {
+            try
+            {
+                using var parent = Registry.ClassesRoot.OpenSubKey(item.ParentPath, true);
+                if (parent == null) return false;
+
+                string currentKeyName = item.KeyName;
+                string newKeyName = enable ? item.KeyName.TrimStart('-') : (item.KeyName.StartsWith("-") ? item.KeyName : "-" + item.KeyName);
+
+                if (currentKeyName.Equals(newKeyName, StringComparison.OrdinalIgnoreCase)) return true;
+
+                // Rename subkey by copying value and deleting old
+                using (var oldKey = parent.OpenSubKey(currentKeyName))
+                {
+                    if (oldKey != null)
+                    {
+                        object? val = oldKey.GetValue("");
+                        using var newKey = parent.CreateSubKey(newKeyName);
+                        if (val != null) newKey.SetValue("", val);
+                    }
+                }
+                parent.DeleteSubKeyTree(currentKeyName, false);
+                item.KeyName = newKeyName;
+                item.IsEnabled = enable;
+                RestartExplorer();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool CreateCustomContextMenuItem(string title, string targetScope, string commandPath, string iconPath, bool runAsAdmin)
+        {
+            try
+            {
+                string safeName = "STORM_" + new string(title.Where(char.IsLetterOrDigit).ToArray());
+                if (string.IsNullOrWhiteSpace(safeName) || safeName == "STORM_") safeName = "STORM_CustomTool_" + Environment.TickCount;
+
+                string subKeyPath = targetScope switch
+                {
+                    "Папки" => $@"Directory\shell\{safeName}",
+                    "Рабочий стол и фон" => $@"Directory\Background\shell\{safeName}",
+                    "Диски" => $@"Drive\shell\{safeName}",
+                    _ => $@"*\shell\{safeName}"
+                };
+
+                using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{subKeyPath}");
+                if (key == null) return false;
+
+                key.SetValue("", title);
+                if (!string.IsNullOrWhiteSpace(iconPath))
+                {
+                    key.SetValue("Icon", iconPath);
+                }
+
+                if (runAsAdmin)
+                {
+                    key.SetValue("HasLUAShield", "");
+                }
+
+                using var cmdKey = key.CreateSubKey("command");
+                if (cmdKey != null)
+                {
+                    string safeCmd = commandPath.Contains(" ") && !commandPath.StartsWith("\"") ? $"\"{commandPath}\"" : commandPath;
+                    string execLine = targetScope.Contains("Рабочий") ? safeCmd : $"{safeCmd} \"%1\"";
+                    cmdKey.SetValue("", execLine);
+                }
+
+                RestartExplorer();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool DeleteCustomContextMenuItem(string title, string targetScope)
+        {
+            try
+            {
+                string safeName = "STORM_" + new string(title.Where(char.IsLetterOrDigit).ToArray());
+                string subKeyPath = targetScope switch
+                {
+                    "Папки" => $@"Software\Classes\Directory\shell\{safeName}",
+                    "Рабочий стол и фон" => $@"Software\Classes\Directory\Background\shell\{safeName}",
+                    "Диски" => $@"Software\Classes\Drive\shell\{safeName}",
+                    _ => $@"Software\Classes\*\shell\{safeName}"
+                };
+
+                Registry.CurrentUser.DeleteSubKeyTree(subKeyPath, false);
+                RestartExplorer();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private static void RestartExplorer()
         {
             try
@@ -579,5 +741,23 @@ namespace StormSystemOptimizer.Services
             }
             catch { }
         }
+    }
+
+    public class ShellExtensionItem : ObservableObject
+    {
+        public string Name { get; set; } = string.Empty;
+        public string KeyName { get; set; } = string.Empty;
+        public string ParentPath { get; set; } = string.Empty;
+        public string Location { get; set; } = "Все файлы";
+        public string Clsid { get; set; } = string.Empty;
+
+        private bool _isEnabled = true;
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set => SetProperty(ref _isEnabled, value);
+        }
+
+        public string StateText => IsEnabled ? "Включено" : "Отключено";
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,6 +18,7 @@ namespace StormSystemOptimizer.ViewModels
     public partial class StartupViewModel : ObservableObject
     {
         public ObservableCollection<StartupEntry> StartupItems { get; } = new();
+        public ObservableCollection<StartupEntry> FilteredStartupItems { get; } = new();
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsNotBusy))]
@@ -27,10 +29,19 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _statusText = "Загрузка автозапуска...";
 
+        [ObservableProperty]
+        private string _searchText = string.Empty;
+
+        [ObservableProperty]
+        private string _selectedCategory = "Все";
+
         public StartupViewModel()
         {
             LoadStartupApps();
         }
+
+        partial void OnSearchTextChanged(string value) => ApplyFilter();
+        partial void OnSelectedCategoryChanged(string value) => ApplyFilter();
 
         [RelayCommand]
         public void LoadStartupApps()
@@ -38,7 +49,44 @@ namespace StormSystemOptimizer.ViewModels
             StartupItems.Clear();
             var list = StartupService.Instance.GetStartupEntries();
             foreach (var item in list) StartupItems.Add(item);
+            ApplyFilter();
             StatusText = $"Найдено программ в автозагрузке: {StartupItems.Count}";
+        }
+
+        [RelayCommand]
+        public void FilterCategory(string category)
+        {
+            SelectedCategory = category ?? "Все";
+        }
+
+        private void ApplyFilter()
+        {
+            var query = StartupItems.AsEnumerable();
+
+            if (!string.Equals(SelectedCategory, "Все", StringComparison.OrdinalIgnoreCase))
+            {
+                if (SelectedCategory.Contains("Реестр", StringComparison.OrdinalIgnoreCase))
+                    query = query.Where(x => x.Location.Contains("Реестр", StringComparison.OrdinalIgnoreCase) || x.Location.Contains("Run", StringComparison.OrdinalIgnoreCase));
+                else if (SelectedCategory.Contains("Папка", StringComparison.OrdinalIgnoreCase))
+                    query = query.Where(x => x.Location.Contains("Папка", StringComparison.OrdinalIgnoreCase) || x.Location.Contains("Startup", StringComparison.OrdinalIgnoreCase));
+                else if (SelectedCategory.Contains("Служб", StringComparison.OrdinalIgnoreCase))
+                    query = query.Where(x => x.Location.Contains("Служба", StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                string search = SearchText.Trim();
+                query = query.Where(x =>
+                    x.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    x.Command.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    x.Publisher.Contains(search, StringComparison.OrdinalIgnoreCase));
+            }
+
+            FilteredStartupItems.Clear();
+            foreach (var item in query)
+            {
+                FilteredStartupItems.Add(item);
+            }
         }
 
         [RelayCommand]
@@ -47,6 +95,93 @@ namespace StormSystemOptimizer.ViewModels
             if (entry != null)
             {
                 StartupService.Instance.ToggleStartupEntry(entry, entry.IsEnabled);
+            }
+        }
+
+        [RelayCommand]
+        public void OpenFileLocation(StartupEntry entry)
+        {
+            if (entry == null || string.IsNullOrWhiteSpace(entry.Command)) return;
+            try
+            {
+                string cleanPath = entry.Command.Trim('"', ' ');
+                if (cleanPath.Contains(".exe", StringComparison.OrdinalIgnoreCase))
+                {
+                    int exeIdx = cleanPath.IndexOf(".exe", StringComparison.OrdinalIgnoreCase);
+                    cleanPath = cleanPath.Substring(0, exeIdx + 4);
+                }
+                if (File.Exists(cleanPath))
+                {
+                    Process.Start("explorer.exe", $"/select,\"{cleanPath}\"");
+                }
+                else
+                {
+                    string dir = Path.GetDirectoryName(cleanPath) ?? "";
+                    if (Directory.Exists(dir))
+                    {
+                        Process.Start("explorer.exe", $"\"{dir}\"");
+                    }
+                    else
+                    {
+                        MessageBox.Show("Файл приложения не найден на диске. Возможно, запись устарела.", "Расположение файла", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Не удалось открыть расположение: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        [RelayCommand]
+        public void DeleteEntry(StartupEntry entry)
+        {
+            if (entry == null) return;
+            var res = MessageBox.Show($"Вы действительно хотите безвозвратно удалить «{entry.Name}» из автозапуска Windows?", "Удаление из автозапуска", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (res != MessageBoxResult.Yes) return;
+
+            bool ok = StartupService.Instance.DeleteStartupEntry(entry);
+            if (ok)
+            {
+                StartupItems.Remove(entry);
+                FilteredStartupItems.Remove(entry);
+                StatusText = $"Запись «{entry.Name}» удалена из автозапуска!";
+            }
+            else
+            {
+                MessageBox.Show("Не удалось удалить запись. Требуются права Администратора.", "Удаление", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        [RelayCommand]
+        public void AddCustomApp()
+        {
+            try
+            {
+                var dlg = new Microsoft.Win32.OpenFileDialog
+                {
+                    Title = "Выберите исполняемый файл для автозапуска",
+                    Filter = "Исполняемые файлы (*.exe;*.bat;*.cmd;*.lnk)|*.exe;*.bat;*.cmd;*.lnk|Все файлы (*.*)|*.*"
+                };
+                if (dlg.ShowDialog() == true)
+                {
+                    string filePath = dlg.FileName;
+                    string name = Path.GetFileNameWithoutExtension(filePath);
+                    bool ok = StartupService.Instance.AddStartupEntry(name, filePath);
+                    if (ok)
+                    {
+                        LoadStartupApps();
+                        StatusText = $"Программа «{name}» успешно добавлена в автозапуск!";
+                    }
+                    else
+                    {
+                        MessageBox.Show("Не удалось добавить программу в автозапуск.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка: {ex.Message}", "Автозапуск", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
