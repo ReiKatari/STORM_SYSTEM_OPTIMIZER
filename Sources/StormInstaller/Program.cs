@@ -23,7 +23,7 @@ namespace StormUniversal.Installer
         private PictureBox picHeaderLogo = null!;
         private Panel headerPanel = null!;
 
-        private const string AppVersion = "2.1.7";
+        private const string AppVersion = "2.1.8";
         private const string AppDisplayName = "STORM SYSTEM OPTIMIZER";
         private const string AppFolderName = "STORM SYSTEM OPTIMIZER";
         private const string ExeName = "StormSystemOptimizer.exe";
@@ -89,43 +89,60 @@ namespace StormUniversal.Installer
 
         private void InitializeComponent()
         {
-            this.Text = $"{AppDisplayName} \u2014 STORM INSTALLER";
+            this.Text = $"{AppDisplayName} - STORM INSTALLER";
             this.Size = new Size(640, 540);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
-            this.BackColor = Color.FromArgb(11, 15, 25);
+            this.BackColor = Color.FromArgb(10, 14, 23);
             this.ForeColor = Color.White;
             this.Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
 
-            // 1. Dark Stylized Header
+            // 1. Dark Stylized Cyber Header
             headerPanel = new Panel
             {
                 Dock = DockStyle.Top,
                 Height = 88,
-                BackColor = Color.FromArgb(17, 24, 39),
+                BackColor = Color.FromArgb(10, 14, 23),
                 Padding = new Padding(22, 14, 22, 14)
             };
             headerPanel.Paint += (s, e) =>
             {
-                using var p = new Pen(Color.FromArgb(14, 165, 233), 2f);
-                e.Graphics.DrawLine(p, 0, headerPanel.Height - 1, headerPanel.Width, headerPanel.Height - 1);
+                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                using (var bgBrush = new LinearGradientBrush(
+                    headerPanel.ClientRectangle,
+                    Color.FromArgb(9, 12, 20),
+                    Color.FromArgb(16, 22, 36),
+                    LinearGradientMode.Vertical))
+                {
+                    e.Graphics.FillRectangle(bgBrush, headerPanel.ClientRectangle);
+                }
+                using (var glowPen = new Pen(Color.FromArgb(30, 0, 210, 255), 1f))
+                {
+                    e.Graphics.DrawLine(glowPen, 0, 0, headerPanel.Width, 0);
+                }
+                using (var p = new Pen(Color.FromArgb(0, 210, 255), 1.5f))
+                {
+                    e.Graphics.DrawLine(p, 0, headerPanel.Height - 1, headerPanel.Width, headerPanel.Height - 1);
+                }
             };
 
             lblTitle = new Label
             {
                 Text = AppDisplayName,
-                Font = new Font("Segoe UI", 15.5f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(14, 165, 233),
+                Font = new Font("Segoe UI", 16f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(0, 210, 255),
+                BackColor = Color.Transparent,
                 AutoSize = true,
-                Location = new Point(22, 16)
+                Location = new Point(22, 15)
             };
 
             lblSubtitle = new Label
             {
                 Text = $"\u041C\u0430\u0441\u0442\u0435\u0440 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438 \u2022 \u0412\u0435\u0440\u0441\u0438\u044F {AppVersion} \u2022 STORM TEAM",
                 Font = new Font("Segoe UI", 9.2f, FontStyle.Regular),
-                ForeColor = Color.FromArgb(156, 163, 175),
+                ForeColor = Color.FromArgb(148, 163, 184),
+                BackColor = Color.Transparent,
                 AutoSize = true,
                 Location = new Point(24, 49)
             };
@@ -153,7 +170,8 @@ namespace StormUniversal.Installer
             var bodyPanel = new Panel
             {
                 Location = new Point(24, 98),
-                Size = new Size(576, 350)
+                Size = new Size(576, 335),
+                BackColor = Color.Transparent
             };
 
             // Red-Black Signature Logo in Body (Clean, without frames/borders, directly below header icon)
@@ -239,8 +257,8 @@ namespace StormUniversal.Installer
             txtInstallPath = new TextBox
             {
                 Text = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), AppFolderName),
-                Location = new Point(5, 105),
-                Size = new Size(460, 26),
+                Location = new Point(5, 106),
+                Size = new Size(465, 26),
                 BackColor = Color.FromArgb(17, 24, 39),
                 ForeColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle,
@@ -251,16 +269,24 @@ namespace StormUniversal.Installer
             btnBrowse = new Button
             {
                 Text = "\u041E\u0431\u0437\u043E\u0440...",
-                Location = new Point(475, 104),
-                Size = new Size(95, 28),
+                Location = new Point(476, txtInstallPath.Top),
+                Size = new Size(94, txtInstallPath.Height),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(30, 41, 59),
-                ForeColor = Color.FromArgb(14, 165, 233),
+                ForeColor = Color.FromArgb(0, 210, 255),
+                Font = new Font("Segoe UI", 9.0f, FontStyle.Regular),
                 Cursor = Cursors.Hand
             };
-            btnBrowse.FlatAppearance.BorderColor = Color.FromArgb(14, 165, 233);
+            btnBrowse.FlatAppearance.BorderColor = Color.FromArgb(0, 210, 255);
+            btnBrowse.FlatAppearance.BorderSize = 1;
             btnBrowse.Click += BtnBrowse_Click;
             bodyPanel.Controls.Add(btnBrowse);
+
+            txtInstallPath.SizeChanged += (s, e) =>
+            {
+                btnBrowse.Height = txtInstallPath.Height;
+                btnBrowse.Top = txtInstallPath.Top;
+            };
 
             var lblOptions = new Label
             {
@@ -349,18 +375,23 @@ namespace StormUniversal.Installer
             var bottomPanel = new Panel
             {
                 Dock = DockStyle.Bottom,
-                Height = 60,
-                BackColor = Color.FromArgb(17, 24, 39),
+                Height = 62,
+                BackColor = Color.FromArgb(14, 19, 31),
                 Padding = new Padding(24, 12, 24, 12)
+            };
+            bottomPanel.Paint += (s, e) =>
+            {
+                using var p = new Pen(Color.FromArgb(30, 41, 59), 1.5f);
+                e.Graphics.DrawLine(p, 0, 0, bottomPanel.Width, 0);
             };
 
             btnCancel = new Button
             {
                 Text = "\u041E\u0442\u043C\u0435\u043D\u0430",
                 Size = new Size(110, 36),
-                Location = new Point(365, 12),
+                Location = new Point(365, 13),
                 FlatStyle = FlatStyle.Flat,
-                BackColor = Color.FromArgb(30, 41, 59),
+                BackColor = Color.FromArgb(28, 38, 56),
                 ForeColor = Color.FromArgb(226, 232, 240),
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
                 Cursor = Cursors.Hand
@@ -372,19 +403,25 @@ namespace StormUniversal.Installer
             btnInstall = new Button
             {
                 Text = "\uD83D\uDCE6  \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C",
-                Size = new Size(135, 36),
-                Location = new Point(485, 12),
+                Size = new Size(138, 36),
+                Location = new Point(485, 13),
                 FlatStyle = FlatStyle.Flat,
-                BackColor = Color.FromArgb(14, 165, 233),
+                BackColor = Color.FromArgb(0, 163, 255),
                 ForeColor = Color.White,
                 Font = new Font("Segoe UI", 9.8f, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
-            btnInstall.FlatAppearance.BorderColor = Color.FromArgb(56, 189, 248);
+            btnInstall.FlatAppearance.BorderColor = Color.FromArgb(0, 210, 255);
             btnInstall.Click += BtnInstall_Click;
             bottomPanel.Controls.Add(btnInstall);
 
             this.Controls.Add(bottomPanel);
+
+            this.Shown += (s, e) =>
+            {
+                btnBrowse.Height = txtInstallPath.Height;
+                btnBrowse.Top = txtInstallPath.Top;
+            };
         }
 
         private void Mode_CheckedChanged(object? sender, EventArgs e)
