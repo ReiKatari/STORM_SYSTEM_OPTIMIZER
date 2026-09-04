@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Text;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -16,14 +17,11 @@ namespace StormUniversal.Installer
     {
         private ProgressBar progressBar = null!;
         private Label lblStatus = null!;
-        private Label lblTitle = null!;
-        private Label lblSubtitle = null!;
         private Button btnInstall = null!;
         private Button btnCancel = null!;
-        private PictureBox picHeaderLogo = null!;
-        private Panel headerPanel = null!;
+        private CyberHeaderPanel headerPanel = null!;
 
-        private const string AppVersion = "2.1.8";
+        private const string AppVersion = "2.1.9";
         private const string AppDisplayName = "STORM SYSTEM OPTIMIZER";
         private const string AppFolderName = "STORM SYSTEM OPTIMIZER";
         private const string ExeName = "StormSystemOptimizer.exe";
@@ -99,71 +97,12 @@ namespace StormUniversal.Installer
             this.Font = new Font("Segoe UI", 9.5f, FontStyle.Regular);
 
             // 1. Dark Stylized Cyber Header
-            headerPanel = new Panel
+            headerPanel = new CyberHeaderPanel
             {
-                Dock = DockStyle.Top,
-                Height = 88,
-                BackColor = Color.FromArgb(10, 14, 23),
-                Padding = new Padding(22, 14, 22, 14)
+                Title = AppDisplayName,
+                Subtitle = $"\u041C\u0430\u0441\u0442\u0435\u0440 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438 \u2022 \u0412\u0435\u0440\u0441\u0438\u044F {AppVersion} \u2022 STORM TEAM",
+                HeaderIcon = this.Icon?.ToBitmap()
             };
-            headerPanel.Paint += (s, e) =>
-            {
-                e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-                using (var bgBrush = new LinearGradientBrush(
-                    headerPanel.ClientRectangle,
-                    Color.FromArgb(9, 12, 20),
-                    Color.FromArgb(16, 22, 36),
-                    LinearGradientMode.Vertical))
-                {
-                    e.Graphics.FillRectangle(bgBrush, headerPanel.ClientRectangle);
-                }
-                using (var glowPen = new Pen(Color.FromArgb(30, 0, 210, 255), 1f))
-                {
-                    e.Graphics.DrawLine(glowPen, 0, 0, headerPanel.Width, 0);
-                }
-                using (var p = new Pen(Color.FromArgb(0, 210, 255), 1.5f))
-                {
-                    e.Graphics.DrawLine(p, 0, headerPanel.Height - 1, headerPanel.Width, headerPanel.Height - 1);
-                }
-            };
-
-            lblTitle = new Label
-            {
-                Text = AppDisplayName,
-                Font = new Font("Segoe UI", 16f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(0, 210, 255),
-                BackColor = Color.Transparent,
-                AutoSize = true,
-                Location = new Point(22, 15)
-            };
-
-            lblSubtitle = new Label
-            {
-                Text = $"\u041C\u0430\u0441\u0442\u0435\u0440 \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0438 \u2022 \u0412\u0435\u0440\u0441\u0438\u044F {AppVersion} \u2022 STORM TEAM",
-                Font = new Font("Segoe UI", 9.2f, FontStyle.Regular),
-                ForeColor = Color.FromArgb(148, 163, 184),
-                BackColor = Color.Transparent,
-                AutoSize = true,
-                Location = new Point(24, 49)
-            };
-
-            // Top-Right Header Icon (Clean Program Icon, without frames or borders)
-            picHeaderLogo = new PictureBox
-            {
-                Location = new Point(548, 16),
-                Size = new Size(54, 54),
-                SizeMode = PictureBoxSizeMode.Zoom,
-                BackColor = Color.Transparent
-            };
-
-            if (this.Icon != null)
-            {
-                picHeaderLogo.Image = this.Icon.ToBitmap();
-            }
-
-            headerPanel.Controls.Add(lblTitle);
-            headerPanel.Controls.Add(lblSubtitle);
-            headerPanel.Controls.Add(picHeaderLogo);
             this.Controls.Add(headerPanel);
 
             // 2. Body Panel
@@ -388,30 +327,32 @@ namespace StormUniversal.Installer
             btnCancel = new Button
             {
                 Text = "\u041E\u0442\u043C\u0435\u043D\u0430",
-                Size = new Size(110, 36),
-                Location = new Point(365, 13),
+                Size = new Size(135, 36),
+                Location = new Point(310, 13),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(28, 38, 56),
                 ForeColor = Color.FromArgb(226, 232, 240),
-                Font = new Font("Segoe UI", 9.5f, FontStyle.Regular),
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
             btnCancel.FlatAppearance.BorderColor = Color.FromArgb(51, 65, 85);
+            btnCancel.FlatAppearance.BorderSize = 1;
             btnCancel.Click += (s, e) => this.Close();
             bottomPanel.Controls.Add(btnCancel);
 
             btnInstall = new Button
             {
                 Text = "\uD83D\uDCE6  \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C",
-                Size = new Size(138, 36),
-                Location = new Point(485, 13),
+                Size = new Size(135, 36),
+                Location = new Point(455, 13),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(0, 163, 255),
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 9.8f, FontStyle.Bold),
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
             btnInstall.FlatAppearance.BorderColor = Color.FromArgb(0, 210, 255);
+            btnInstall.FlatAppearance.BorderSize = 1;
             btnInstall.Click += BtnInstall_Click;
             bottomPanel.Controls.Add(btnInstall);
 
@@ -911,6 +852,94 @@ exit
                 catch { }
             }
             catch { }
+        }
+    }
+
+    internal sealed class CyberHeaderPanel : Panel
+    {
+        public string Title { get; set; } = "";
+        public string Subtitle { get; set; } = "";
+        public Image? HeaderIcon { get; set; }
+
+        public CyberHeaderPanel()
+        {
+            this.SetStyle(
+                ControlStyles.UserPaint |
+                ControlStyles.AllPaintingInWmPaint |
+                ControlStyles.OptimizedDoubleBuffer |
+                ControlStyles.ResizeRedraw, true);
+            this.UpdateStyles();
+            this.Dock = DockStyle.Top;
+            this.Height = 88;
+            this.BackColor = Color.FromArgb(9, 12, 20);
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
+
+            var rect = this.ClientRectangle;
+            if (rect.Width <= 0 || rect.Height <= 0) return;
+
+            // 1. Stylized Dark Cyber Vertical Gradient (#090C14 -> #121C2E)
+            using (var bgBrush = new LinearGradientBrush(
+                rect,
+                Color.FromArgb(9, 12, 20),      // #090C14 (deepest night cyber)
+                Color.FromArgb(18, 28, 46),     // #121C2E (rich cyber slate with deep blue ambiance)
+                LinearGradientMode.Vertical))
+            {
+                g.FillRectangle(bgBrush, rect);
+            }
+
+            // Top ambient neon glow lines
+            using (var glowPen1 = new Pen(Color.FromArgb(140, 0, 210, 255), 1.5f))
+            {
+                g.DrawLine(glowPen1, 0, 0, rect.Width, 0);
+            }
+            using (var glowPen2 = new Pen(Color.FromArgb(45, 0, 210, 255), 1f))
+            {
+                g.DrawLine(glowPen2, 0, 1, rect.Width, 1);
+            }
+
+            // Subtle cyber tech accent line
+            using (var techPen = new Pen(Color.FromArgb(22, 0, 210, 255), 1f))
+            {
+                g.DrawLine(techPen, 24, rect.Height - 6, rect.Width - 24, rect.Height - 6);
+            }
+
+            // Bottom neat neon cyan divider (1.5px) with soft ambient glow
+            using (var bottomGlowPen = new Pen(Color.FromArgb(70, 0, 210, 255), 3f))
+            {
+                g.DrawLine(bottomGlowPen, 0, rect.Height - 2, rect.Width, rect.Height - 2);
+            }
+            using (var dividerPen = new Pen(Color.FromArgb(0, 210, 255), 1.5f)) // Neon Cyan #00D2FF
+            {
+                g.DrawLine(dividerPen, 0, rect.Height - 2, rect.Width, rect.Height - 2);
+            }
+
+            // Clean program icon at top right (548, 16) - without frames, borders, or backgrounds
+            if (HeaderIcon != null)
+            {
+                g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                g.DrawImage(HeaderIcon, new Rectangle(548, 16, 54, 54));
+            }
+
+            // 2. Draw Title: Neon Cyan #00D2FF
+            using (var titleFont = new Font("Segoe UI", 16.5f, FontStyle.Bold))
+            using (var titleBrush = new SolidBrush(Color.FromArgb(0, 210, 255)))
+            {
+                g.DrawString(Title, titleFont, titleBrush, new PointF(22, 14));
+            }
+
+            // 3. Draw Subtitle: Contrast Slate #94A3B8
+            using (var subFont = new Font("Segoe UI", 9.5f, FontStyle.Regular))
+            using (var subBrush = new SolidBrush(Color.FromArgb(148, 163, 184)))
+            {
+                g.DrawString(Subtitle, subFont, subBrush, new PointF(24, 48));
+            }
         }
     }
 }
