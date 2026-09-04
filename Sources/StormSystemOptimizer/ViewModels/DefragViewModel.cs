@@ -131,7 +131,7 @@ namespace StormSystemOptimizer.ViewModels
             OnPropertyChanged(nameof(IsNotBusy));
             StatusMessage = "Сканирование подключенных дисковых накопителей...";
 
-            Drives.Clear();
+            var loaded = new List<DefragDriveItem>();
 
             await Task.Run(() =>
             {
@@ -139,7 +139,8 @@ namespace StormSystemOptimizer.ViewModels
                 {
                     foreach (var drive in DriveInfo.GetDrives())
                     {
-                        if (!drive.IsReady || drive.DriveType != System.IO.DriveType.Fixed) continue;
+                        if (!drive.IsReady) continue;
+                        if (drive.DriveType != System.IO.DriveType.Fixed && drive.DriveType != System.IO.DriveType.Removable) continue;
 
                         string letter = drive.Name.TrimEnd('\\');
                         bool isSsd = DefragService.Instance.IsDriveSsd(letter);
@@ -147,7 +148,9 @@ namespace StormSystemOptimizer.ViewModels
                         long freeBytes = drive.AvailableFreeSpace;
                         double freePct = totalBytes > 0 ? (double)freeBytes / totalBytes * 100.0 : 0;
 
-                        string label = string.IsNullOrWhiteSpace(drive.VolumeLabel) ? "Локальный диск" : drive.VolumeLabel;
+                        string label = string.IsNullOrWhiteSpace(drive.VolumeLabel) 
+                            ? (drive.DriveType == System.IO.DriveType.Removable ? "Съемный накопитель" : "Локальный диск") 
+                            : drive.VolumeLabel;
                         string driveTypeStr = isSsd ? "SSD / NVMe (Flash)" : "HDD (Магнитный диск)";
 
                         var item = new DefragDriveItem
@@ -164,21 +167,45 @@ namespace StormSystemOptimizer.ViewModels
                             StatusColor = isSsd ? "#00D2FF" : "#10B981"
                         };
 
-                        Application.Current?.Dispatcher?.Invoke(() => Drives.Add(item));
+                        loaded.Add(item);
+                    }
+
+                    if (loaded.Count > 1)
+                    {
+                        var allItem = new DefragDriveItem
+                        {
+                            Letter = "ALL",
+                            Label = "Все подключенные диски",
+                            DriveType = "Пакетная оптимизация всех накопителей",
+                            IsSsd = false,
+                            TotalSpace = $"{loaded.Count} томов",
+                            FreeSpace = "Комплексно",
+                            FreePercent = 50.0,
+                            FragmentationPercent = 0.0,
+                            StatusText = "Готов к пакетному TRIM и дефрагментации",
+                            StatusColor = "#A855F7"
+                        };
+                        loaded.Insert(0, allItem);
                     }
                 }
                 catch { }
             });
 
+            Drives.Clear();
+            foreach (var item in loaded)
+            {
+                Drives.Add(item);
+            }
+
             if (Drives.Count > 0)
             {
-                SelectedDrive = Drives[0];
+                SelectedDrive = Drives.Count > 1 && Drives[0].Letter == "ALL" ? Drives[1] : Drives[0];
                 UpdateClusterGridForDrive(SelectedDrive);
             }
 
             IsBusy = false;
             OnPropertyChanged(nameof(IsNotBusy));
-            StatusMessage = $"Обнаружено накопителей: {Drives.Count}. Выберите диск для обслуживания.";
+            StatusMessage = $"Обнаружено накопителей: {loaded.Count(d => d.Letter != "ALL")}. Выберите диск для обслуживания.";
         }
 
         partial void OnSelectedDriveChanged(DefragDriveItem? value)
@@ -285,6 +312,12 @@ namespace StormSystemOptimizer.ViewModels
         {
             if (SelectedDrive == null || IsBusy) return;
 
+            if (SelectedDrive.Letter == "ALL")
+            {
+                await RunBatchOptimizationAsync();
+                return;
+            }
+
             if (SelectedDrive.IsSsd)
             {
                 await RunTrimOptimizationAsync();
@@ -292,6 +325,78 @@ namespace StormSystemOptimizer.ViewModels
             else
             {
                 await RunHddDefragAsync(false);
+            }
+        }
+
+        private async Task RunBatchOptimizationAsync()
+        {
+            var targets = Drives.Where(d => d.Letter != "ALL").ToList();
+            if (targets.Count == 0) return;
+
+            IsBusy = true;
+            OnPropertyChanged(nameof(IsNotBusy));
+            ActiveMode = "Пакетная оптимизация всех дисков";
+            Progress = 0;
+            StatusMessage = $"Старт пакетного обслуживания {targets.Count} накопителей...";
+            RawLog = $"=== ПАКЕТНАЯ ОПТИМИЗАЦИЯ НАКОПИТЕЛЕЙ: {DateTime.Now:dd.MM.yyyy HH:mm:ss} ===\r\n";
+
+            for (int i = 0; i < targets.Count; i++)
+            {
+                var d = targets[i];
+                StatusMessage = $"[{i + 1}/{targets.Count}] Оптимизация тома {d.Letter} ({d.DriveType})...";
+                Progress = (double)i / targets.Count * 100.0;
+
+                try
+                {
+                    string args = d.IsSsd ? $"{d.Letter} /L /U" : $"{d.Letter} /O /U";
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = "defrag.exe",
+                        Arguments = args,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    using var p = Process.Start(psi);
+                    if (p != null)
+                    {
+                        string outStr = await p.StandardOutput.ReadToEndAsync();
+                        await p.WaitForExitAsync();
+                        RawLog += $"\r\n--- Том {d.Letter} ({d.Label}) ---\r\n{outStr}\r\n";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    RawLog += $"\r\n[ОШИБКА] Том {d.Letter}: {ex.Message}\r\n";
+                }
+            }
+
+            Progress = 100;
+            IsBusy = false;
+            OnPropertyChanged(nameof(IsNotBusy));
+            ActiveMode = "Завершено";
+            StatusMessage = $"Пакетная оптимизация {targets.Count} дисков успешно завершена!";
+            TrayService.Instance.ShowNotification("Оптимизация накопителей ✓", StatusMessage);
+        }
+
+        [RelayCommand]
+        public void ClearLog()
+        {
+            RawLog = "Журнал очищен.\r\n";
+        }
+
+        [RelayCommand]
+        public void CopyLog()
+        {
+            if (!string.IsNullOrWhiteSpace(RawLog))
+            {
+                try
+                {
+                    Clipboard.SetText(RawLog);
+                    TrayService.Instance.ShowNotification("Журнал дефрагментации", "Лог скопирован в буфер обмена!");
+                }
+                catch { }
             }
         }
 

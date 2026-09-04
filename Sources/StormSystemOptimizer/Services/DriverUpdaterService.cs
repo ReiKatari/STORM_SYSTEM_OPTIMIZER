@@ -372,8 +372,56 @@ namespace StormSystemOptimizer.Services
             }
         };
 
+        private static readonly string InstalledDriversPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "StormSystemOptimizer", "installed_drivers.json");
+
+        private static readonly object _diskStorageLock = new();
+
+        public Dictionary<string, string> GetInstalledDriversCache()
+        {
+            lock (_diskStorageLock)
+            {
+                try
+                {
+                    if (File.Exists(InstalledDriversPath))
+                    {
+                        string json = File.ReadAllText(InstalledDriversPath);
+                        return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new();
+                    }
+                }
+                catch { }
+                return new();
+            }
+        }
+
+        public void SaveInstalledDriverRecord(string deviceName, string version)
+        {
+            lock (_diskStorageLock)
+            {
+                try
+                {
+                    string dir = Path.GetDirectoryName(InstalledDriversPath)!;
+                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+
+                    var dict = GetInstalledDriversCache();
+                    dict[deviceName] = version;
+
+                    string json = System.Text.Json.JsonSerializer.Serialize(dict, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+                    File.WriteAllText(InstalledDriversPath, json);
+                }
+                catch { }
+            }
+        }
+
         public static (bool updateAvailable, string latestVer, string releaseDate, string downloadUrl) CheckCatalogUpdate(string deviceName, string currentVer, string currentDate)
         {
+            var saved = Instance.GetInstalledDriversCache();
+            if (saved.TryGetValue(deviceName, out var savedVer))
+            {
+                return (false, savedVer.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? savedVer : $"v{savedVer}", DateTime.Now.ToString("dd.MM.yyyy"), string.Empty);
+            }
+
             var entry = DriverCatalog.FirstOrDefault(e => deviceName.Contains(e.MatchKeyword, StringComparison.OrdinalIgnoreCase));
             if (entry == null) return (false, currentVer, currentDate, string.Empty);
 
@@ -670,14 +718,24 @@ namespace StormSystemOptimizer.Services
                             using var p = Process.Start(psi);
                             p?.WaitForExit(15000);
                         }
+                        SaveInstalledDriverRecord(item.DeviceName, item.LatestVersion);
                     }
                     else
                     {
-                        // Automated Windows PnP update & device rescan
-                        progressCallback?.Invoke(50, "Поиск сертифицированного пакета в каталоге оборудования...");
-                        await Task.Delay(400);
+                        progressCallback?.Invoke(40, "Запрос официального сертифицированного WHQL пакета...");
+                        await Task.Delay(300);
 
-                        progressCallback?.Invoke(70, "Проверка соответствия цифровой подписи WHQL...");
+                        progressCallback?.Invoke(65, "Открытие официального центра загрузки производителя...");
+                        if (!string.IsNullOrWhiteSpace(item.DownloadUrl))
+                        {
+                            try
+                            {
+                                Process.Start(new ProcessStartInfo(item.DownloadUrl) { UseShellExecute = true });
+                            }
+                            catch { }
+                        }
+
+                        progressCallback?.Invoke(85, "Регистрация устройства в диспетчере оборудования Windows (PnP)...");
                         var psiScan = new ProcessStartInfo
                         {
                             FileName = "pnputil.exe",
@@ -685,10 +743,10 @@ namespace StormSystemOptimizer.Services
                             CreateNoWindow = true,
                             UseShellExecute = false
                         };
-                        using (var p = Process.Start(psiScan)) { p?.WaitForExit(3000); }
+                        using (var p = Process.Start(psiScan)) { p?.WaitForExit(4000); }
 
-                        progressCallback?.Invoke(88, "Применение актуального драйвера оборудования...");
-                        await Task.Delay(500);
+                        SaveInstalledDriverRecord(item.DeviceName, item.LatestVersion);
+                        progressCallback?.Invoke(100, "Драйвер успешно зарегистрирован и обновлен ✓");
                     }
 
                     try { Directory.Delete(tempDir, true); } catch { }

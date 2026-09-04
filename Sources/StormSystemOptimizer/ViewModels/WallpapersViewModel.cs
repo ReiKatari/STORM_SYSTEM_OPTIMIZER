@@ -17,6 +17,9 @@ namespace StormSystemOptimizer.ViewModels
         private string _selectedCategory = "Все";
 
         [ObservableProperty]
+        private string _selectedResolution = "Все разрешения";
+
+        [ObservableProperty]
         private bool _isNoLockScreen = false;
 
         [ObservableProperty]
@@ -38,12 +41,21 @@ namespace StormSystemOptimizer.ViewModels
         {
             "Все",
             "STORM Dark",
+            "Тёмный арт",
             "Киберпанк",
             "Космос",
-            "Природа",
+            "Игры и Арт",
             "Абстракция",
-            "Минимализм",
-            "Игры и Арт"
+            "Живые обои"
+        };
+
+        public ObservableCollection<string> Resolutions { get; } = new()
+        {
+            "Все разрешения",
+            "8K Ultra HD",
+            "4K UHD",
+            "QHD 2K",
+            "Full HD"
         };
 
         public WallpapersViewModel()
@@ -61,17 +73,34 @@ namespace StormSystemOptimizer.ViewModels
             {
                 Wallpapers.Add(wp);
             }
-            FilterCategory(SelectedCategory);
+            ApplyFilter();
         }
 
         [RelayCommand]
         public void FilterCategory(string cat)
         {
             SelectedCategory = cat;
+            ApplyFilter();
+        }
+
+        [RelayCommand]
+        public void FilterResolution(string res)
+        {
+            SelectedResolution = res;
+            ApplyFilter();
+        }
+
+        private void ApplyFilter()
+        {
             FilteredWallpapers.Clear();
             foreach (var wp in Wallpapers)
             {
-                if (cat == "Все" || wp.Category.Equals(cat, StringComparison.OrdinalIgnoreCase))
+                bool matchesCat = SelectedCategory == "Все" || wp.Category.Equals(SelectedCategory, StringComparison.OrdinalIgnoreCase);
+                bool matchesRes = SelectedResolution == "Все разрешения" 
+                    || wp.Resolution.StartsWith(SelectedResolution, StringComparison.OrdinalIgnoreCase) 
+                    || wp.Resolution.Contains(SelectedResolution, StringComparison.OrdinalIgnoreCase);
+
+                if (matchesCat && matchesRes)
                 {
                     FilteredWallpapers.Add(wp);
                 }

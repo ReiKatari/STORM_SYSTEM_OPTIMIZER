@@ -468,5 +468,33 @@ namespace StormSystemOptimizer.Services
 
         [DllImport("user32.dll")]
         public static extern int SetWindowCompositionAttribute(IntPtr hwnd, ref WindowCompositionAttributeData data);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct APPBARDATA
+        {
+            public int cbSize;
+            public IntPtr hWnd;
+            public uint uCallbackMessage;
+            public uint uEdge;
+            public RECT rc;
+            public int lParam;
+        }
+
+        public const uint ABM_GETSTATE = 4;
+        public const uint ABM_SETSTATE = 10;
+        public const int ABS_AUTOHIDE = 1;
+        public const int ABS_ALWAYSONTOP = 2;
+
+        [DllImport("shell32.dll")]
+        public static extern UIntPtr SHAppBarMessage(uint dwMessage, ref APPBARDATA pData);
     }
 }

@@ -207,6 +207,48 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
+        public async Task UpdateDriverAsync(DriverItem? d)
+        {
+            if (d == null || !d.IsUpdateAvailable || d.IsUpdating) return;
+
+            d.IsUpdating = true;
+            d.UpdateProgress = 10;
+            d.UpdateProgressText = "Подготовка...";
+            StatusText = $"Обновление драйвера {d.DeviceName}...";
+
+            var (ok, msg) = await DriverUpdaterService.Instance.InstallDriverAsync(d, (pct, status) =>
+            {
+                System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
+                {
+                    d.UpdateProgress = pct;
+                    d.UpdateProgressText = status;
+                    StatusText = $"{d.DeviceName}: {status}";
+                });
+            });
+
+            if (ok)
+            {
+                d.CurrentVersion = d.LatestVersion;
+                d.IsUpdateAvailable = false;
+                d.UpdateProgress = 100;
+                d.UpdateProgressText = "Установлен успешно ✓";
+                DriverUpdaterService.Instance.SaveInstalledDriverRecord(d.DeviceName, d.LatestVersion);
+            }
+            else
+            {
+                d.UpdateProgressText = msg;
+            }
+
+            await Task.Delay(1200);
+            d.IsUpdating = false;
+
+            OutdatedCount = _allDrivers.Count(item => item.IsUpdateAvailable);
+            HasUpdates = OutdatedCount > 0;
+            StatsSummary = $"{_allDrivers.Count} устройств в системе • {(HasUpdates ? $"Доступно {OutdatedCount} обновления оборудования ⚡" : "Все драйверы актуальны ✅")}";
+            TrayService.Instance.ShowNotification("Центр обновления драйверов", msg);
+        }
+
+        [RelayCommand]
         public async Task UpdateAllDriversAsync()
         {
             var outdated = _allDrivers.Where(d => d.IsUpdateAvailable && !d.IsUpdating).ToList();
@@ -331,50 +373,6 @@ namespace StormSystemOptimizer.ViewModels
             StatsSummary = $"{DisplayBackups.Count} резервных копий и точек восстановления найдено";
             StatusText = $"Загружено {DisplayBackups.Count} точек доступа и архивов драйверов.";
             IsBusy = false;
-        }
-
-        [RelayCommand]
-        public async Task UpdateDriverAsync(DriverItem? item)
-        {
-            if (item == null || item.IsUpdating) return;
-
-            item.IsUpdating = true;
-            item.UpdateProgress = 10;
-            item.UpdateProgressText = "Подготовка...";
-            StatusText = $"Обновление драйвера для {item.DeviceName}...";
-
-            var (ok, msg) = await DriverUpdaterService.Instance.InstallDriverAsync(item, (pct, status) =>
-            {
-                System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
-                {
-                    item.UpdateProgress = pct;
-                    item.UpdateProgressText = status;
-                    StatusText = $"{item.DeviceName}: {status}";
-                });
-            });
-
-            if (ok)
-            {
-                item.CurrentVersion = item.LatestVersion;
-                item.IsUpdateAvailable = false;
-                item.UpdateProgress = 100;
-                item.UpdateProgressText = "Установлен успешно ✓";
-                StatusText = msg;
-                TrayService.Instance.ShowNotification("Центр обновления драйверов ⚡", msg);
-            }
-            else
-            {
-                item.UpdateProgressText = "Ошибка установки";
-                StatusText = msg;
-                TrayService.Instance.ShowNotification("Ошибка обновления ⚠️", msg);
-            }
-
-            OutdatedCount = _allDrivers.Count(d => d.IsUpdateAvailable);
-            HasUpdates = OutdatedCount > 0;
-            StatsSummary = $"{_allDrivers.Count} устройств в системе • {(HasUpdates ? $"Доступно {OutdatedCount} обновления оборудования ⚡" : "Все драйверы актуальны ✅")}";
-
-            await Task.Delay(1500);
-            item.IsUpdating = false;
         }
 
         [RelayCommand]

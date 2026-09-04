@@ -17,6 +17,33 @@ namespace StormSystemOptimizer.Services
 
         private TaskbarCustomizerService() { }
 
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern IntPtr SendMessageTimeout(
+            IntPtr hWnd,
+            uint Msg,
+            UIntPtr wParam,
+            string lParam,
+            uint fuFlags,
+            uint uTimeout,
+            out UIntPtr lpdwResult);
+
+        [DllImport("shell32.dll")]
+        private static extern void SHChangeNotify(int wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
+
+        public void NotifyExplorerSettingChange(string section = "TraySettings")
+        {
+            try
+            {
+                const int HWND_BROADCAST = 0xffff;
+                const uint WM_SETTINGCHANGE = 0x001A;
+                const uint SMTO_ABORTIFHUNG = 0x0002;
+                SendMessageTimeout((IntPtr)HWND_BROADCAST, WM_SETTINGCHANGE, UIntPtr.Zero, section, SMTO_ABORTIFHUNG, 2000, out _);
+                SendMessageTimeout((IntPtr)HWND_BROADCAST, WM_SETTINGCHANGE, UIntPtr.Zero, "Policy", SMTO_ABORTIFHUNG, 2000, out _);
+                SHChangeNotify(0x08000000, 0, IntPtr.Zero, IntPtr.Zero); // SHCNE_ASSOCCHANGED
+            }
+            catch { }
+        }
+
         public int GetTaskbarAlignment()
         {
             try
@@ -38,6 +65,7 @@ namespace StormSystemOptimizer.Services
             {
                 using var key = Registry.CurrentUser.CreateSubKey(ExplorerAdvancedKey);
                 key?.SetValue("TaskbarAl", alignment, RegistryValueKind.DWord);
+                NotifyExplorerSettingChange();
                 return true;
             }
             catch
@@ -67,6 +95,7 @@ namespace StormSystemOptimizer.Services
             {
                 using var key = Registry.CurrentUser.CreateSubKey(ExplorerAdvancedKey);
                 key?.SetValue("TaskbarSi", size, RegistryValueKind.DWord);
+                NotifyExplorerSettingChange();
                 return true;
             }
             catch
@@ -96,6 +125,7 @@ namespace StormSystemOptimizer.Services
             {
                 using var key = Registry.CurrentUser.CreateSubKey(ExplorerAdvancedKey);
                 key?.SetValue("TaskbarGlomLevel", glomLevel, RegistryValueKind.DWord);
+                NotifyExplorerSettingChange();
                 return true;
             }
             catch
@@ -125,6 +155,195 @@ namespace StormSystemOptimizer.Services
             {
                 using var key = Registry.CurrentUser.CreateSubKey(ExplorerSearchKey);
                 key?.SetValue("SearchboxTaskbarMode", mode, RegistryValueKind.DWord);
+                NotifyExplorerSettingChange();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool GetTaskViewButton()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(ExplorerAdvancedKey);
+                if (key != null)
+                {
+                    object? val = key.GetValue("ShowTaskViewButton");
+                    if (val is int i) return i != 0;
+                }
+            }
+            catch { }
+            return true;
+        }
+
+        public bool SetTaskViewButton(bool show)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(ExplorerAdvancedKey);
+                key?.SetValue("ShowTaskViewButton", show ? 1 : 0, RegistryValueKind.DWord);
+                NotifyExplorerSettingChange();
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool GetWidgetsButton()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(ExplorerAdvancedKey);
+                if (key != null)
+                {
+                    object? val = key.GetValue("TaskbarDa");
+                    if (val is int i) return i != 0;
+                }
+            }
+            catch { }
+            return true;
+        }
+
+        public bool SetWidgetsButton(bool show)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(ExplorerAdvancedKey);
+                key?.SetValue("TaskbarDa", show ? 1 : 0, RegistryValueKind.DWord);
+                NotifyExplorerSettingChange();
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool GetShowSecondsInClock()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(ExplorerAdvancedKey);
+                if (key != null)
+                {
+                    object? val = key.GetValue("ShowSecondsInSystemClock");
+                    if (val is int i) return i == 1;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        public bool SetShowSecondsInClock(bool show)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(ExplorerAdvancedKey);
+                key?.SetValue("ShowSecondsInSystemClock", show ? 1 : 0, RegistryValueKind.DWord);
+                NotifyExplorerSettingChange();
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool GetHideRecommendedStart()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(ExplorerAdvancedKey);
+                if (key != null)
+                {
+                    object? val = key.GetValue("Start_IrisRecommendations");
+                    if (val is int i) return i == 0;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        public bool SetHideRecommendedStart(bool hide)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(ExplorerAdvancedKey);
+                key?.SetValue("Start_IrisRecommendations", hide ? 0 : 1, RegistryValueKind.DWord);
+                NotifyExplorerSettingChange();
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool GetLockTaskbar()
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(ExplorerAdvancedKey);
+                if (key != null)
+                {
+                    object? val = key.GetValue("TaskbarSizeMove");
+                    if (val is int i) return i == 0;
+                }
+            }
+            catch { }
+            return true;
+        }
+
+        public bool SetLockTaskbar(bool locked)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.CreateSubKey(ExplorerAdvancedKey);
+                key?.SetValue("TaskbarSizeMove", locked ? 0 : 1, RegistryValueKind.DWord);
+                NotifyExplorerSettingChange();
+                return true;
+            }
+            catch { return false; }
+        }
+
+        public bool GetAutoHideTaskbar()
+        {
+            try
+            {
+                var data = new NativeMethods.APPBARDATA
+                {
+                    cbSize = Marshal.SizeOf(typeof(NativeMethods.APPBARDATA)),
+                    hWnd = NativeMethods.FindWindow("Shell_TrayWnd", null)
+                };
+                uint state = (uint)NativeMethods.SHAppBarMessage(NativeMethods.ABM_GETSTATE, ref data);
+                if (state != 0)
+                {
+                    return (state & NativeMethods.ABS_AUTOHIDE) != 0;
+                }
+
+                using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3");
+                if (key != null && key.GetValue("Settings") is byte[] bytes && bytes.Length > 8)
+                {
+                    return (bytes[8] & 0x01) != 0;
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        public bool SetAutoHideTaskbar(bool autoHide)
+        {
+            try
+            {
+                using var key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3", true);
+                if (key != null && key.GetValue("Settings") is byte[] bytes && bytes.Length > 8)
+                {
+                    if (autoHide) bytes[8] |= 0x01;
+                    else bytes[8] &= unchecked((byte)~0x01);
+                    key.SetValue("Settings", bytes, RegistryValueKind.Binary);
+                }
+
+                var data = new NativeMethods.APPBARDATA
+                {
+                    cbSize = Marshal.SizeOf(typeof(NativeMethods.APPBARDATA)),
+                    hWnd = NativeMethods.FindWindow("Shell_TrayWnd", null),
+                    lParam = autoHide ? NativeMethods.ABS_AUTOHIDE : NativeMethods.ABS_ALWAYSONTOP
+                };
+                NativeMethods.SHAppBarMessage(NativeMethods.ABM_SETSTATE, ref data);
+                NotifyExplorerSettingChange();
                 return true;
             }
             catch

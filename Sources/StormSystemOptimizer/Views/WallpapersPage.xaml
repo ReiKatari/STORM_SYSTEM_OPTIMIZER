@@ -25,7 +25,7 @@
                             </Border>
                             <TextBlock Text="Обои рабочего стола и экрана блокировки" FontSize="20" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
                         </StackPanel>
-                        <TextBlock Text="Каталог 4K и QHD обоев, мгновенное отключение экрана блокировки и видеообои на базе WorkerW."
+                        <TextBlock Text="Коллекция 20 ультра-четких 8K и 4K обоев, фильтрация по категориям и разрешениям, отключение экрана блокировки и живые луп-обои WorkerW."
                                    FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap"/>
                     </StackPanel>
 
@@ -93,31 +93,59 @@
                 </StackPanel>
             </Border>
 
-            <!-- Categories Tabs -->
-            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="10" Padding="12,8" Margin="0,0,0,16">
-                <ItemsControl ItemsSource="{Binding Categories}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Command="{Binding DataContext.FilterCategoryCommand, RelativeSource={RelativeSource AncestorType=Page}}"
-                                    CommandParameter="{Binding}"
-                                    Content="{Binding}"
-                                    Style="{StaticResource StormSecondaryButton}"
-                                    Padding="12,6" Margin="0,0,6,4"
-                                    FontSize="11.5" FontWeight="Bold"/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+            <!-- Filters Card (Categories & Resolutions) -->
+            <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="16,12" Margin="0,0,0,16">
+                <StackPanel>
+                    <!-- Categories -->
+                    <DockPanel Margin="0,0,0,10" LastChildFill="True">
+                        <TextBlock Text="Категория:" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,14,0" Width="85" DockPanel.Dock="Left"/>
+                        <ItemsControl ItemsSource="{Binding Categories}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.FilterCategoryCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Content="{Binding}"
+                                            Style="{StaticResource StormSecondaryButton}"
+                                            Padding="12,6" Margin="0,0,6,4"
+                                            FontSize="11.5" FontWeight="Bold"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+
+                    <!-- Resolutions -->
+                    <DockPanel LastChildFill="True">
+                        <TextBlock Text="Разрешение:" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" Margin="0,0,14,0" Width="85" DockPanel.Dock="Left"/>
+                        <ItemsControl ItemsSource="{Binding Resolutions}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.FilterResolutionCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                            CommandParameter="{Binding}"
+                                            Content="{Binding}"
+                                            Style="{StaticResource StormSecondaryButton}"
+                                            Padding="12,6" Margin="0,0,6,4"
+                                            FontSize="11.5" FontWeight="Bold"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+                </StackPanel>
             </Border>
 
             <!-- Wallpapers Grid -->
             <Border Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource CardBorderBrush}" BorderThickness="1" CornerRadius="12" Padding="18" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Каталог ультра-четких обоев 4K и QHD" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,14"/>
+                    <TextBlock Text="Каталог 20 премиальных ультра-обоев (8K, 4K, QHD, FHD и Живые лупы)" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,14"/>
 
                     <ItemsControl ItemsSource="{Binding FilteredWallpapers}">
                         <ItemsControl.ItemsPanel>

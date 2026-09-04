@@ -33,6 +33,40 @@ namespace StormSystemOptimizer.ViewModels
         [ObservableProperty]
         private string _quickToolbarFolderPath = string.Empty;
 
+        [ObservableProperty]
+        private bool _isTaskbarAutoHide;
+
+        [ObservableProperty]
+        private bool _isTaskViewVisible;
+
+        [ObservableProperty]
+        private bool _isWidgetsVisible;
+
+        [ObservableProperty]
+        private bool _isSecondsInClock;
+
+        [ObservableProperty]
+        private bool _isHideRecommended;
+
+        [ObservableProperty]
+        private bool _isTaskbarLocked;
+
+        public bool IsLeftAlignment => SelectedAlignmentIndex == 0;
+        public bool IsCenterAlignment => SelectedAlignmentIndex == 1;
+
+        public bool IsSmallSize => SelectedSizeIndex == 0;
+        public bool IsMediumSize => SelectedSizeIndex == 1;
+        public bool IsLargeSize => SelectedSizeIndex == 2;
+
+        public bool IsGroupingAlways => SelectedGroupingIndex == 0;
+        public bool IsGroupingWhenFull => SelectedGroupingIndex == 1;
+        public bool IsGroupingNever => SelectedGroupingIndex == 2;
+
+        public bool IsSearchHidden => SelectedSearchBoxIndex == 0;
+        public bool IsSearchIcon => SelectedSearchBoxIndex == 1;
+        public bool IsSearchBox => SelectedSearchBoxIndex == 2;
+        public bool IsSearchButton => SelectedSearchBoxIndex == 3;
+
         public ObservableCollection<string> AlignmentOptions { get; } = new()
         {
             "Слева (классический стиль Windows 10)",
@@ -67,6 +101,107 @@ namespace StormSystemOptimizer.ViewModels
             SelectedSizeIndex = TaskbarCustomizerService.Instance.GetTaskbarSize();
             SelectedGroupingIndex = TaskbarCustomizerService.Instance.GetTaskbarGrouping();
             SelectedSearchBoxIndex = TaskbarCustomizerService.Instance.GetSearchBoxMode();
+
+            _isTaskbarAutoHide = TaskbarCustomizerService.Instance.GetAutoHideTaskbar();
+            _isTaskViewVisible = TaskbarCustomizerService.Instance.GetTaskViewButton();
+            _isWidgetsVisible = TaskbarCustomizerService.Instance.GetWidgetsButton();
+            _isSecondsInClock = TaskbarCustomizerService.Instance.GetShowSecondsInClock();
+            _isHideRecommended = TaskbarCustomizerService.Instance.GetHideRecommendedStart();
+            _isTaskbarLocked = TaskbarCustomizerService.Instance.GetLockTaskbar();
+        }
+
+        [RelayCommand]
+        public void ToggleAutoHide()
+        {
+            IsTaskbarAutoHide = !IsTaskbarAutoHide;
+            TaskbarCustomizerService.Instance.SetAutoHideTaskbar(IsTaskbarAutoHide);
+            StatusMessage = IsTaskbarAutoHide ? "Автоматическое скрытие панели задач активировано!" : "Автоматическое скрытие панели задач отключено.";
+            TrayService.Instance.ShowNotification("Панель задач", StatusMessage);
+        }
+
+        [RelayCommand]
+        public void SelectAlignment(int index)
+        {
+            SelectedAlignmentIndex = index;
+            OnPropertyChanged(nameof(IsLeftAlignment));
+            OnPropertyChanged(nameof(IsCenterAlignment));
+            ApplyAlignment();
+        }
+
+        [RelayCommand]
+        public void SelectSize(int index)
+        {
+            SelectedSizeIndex = index;
+            OnPropertyChanged(nameof(IsSmallSize));
+            OnPropertyChanged(nameof(IsMediumSize));
+            OnPropertyChanged(nameof(IsLargeSize));
+            ApplySize();
+        }
+
+        [RelayCommand]
+        public void SelectGrouping(int index)
+        {
+            SelectedGroupingIndex = index;
+            OnPropertyChanged(nameof(IsGroupingAlways));
+            OnPropertyChanged(nameof(IsGroupingWhenFull));
+            OnPropertyChanged(nameof(IsGroupingNever));
+            ApplyGrouping();
+        }
+
+        [RelayCommand]
+        public void SelectSearchBox(int index)
+        {
+            SelectedSearchBoxIndex = index;
+            OnPropertyChanged(nameof(IsSearchHidden));
+            OnPropertyChanged(nameof(IsSearchIcon));
+            OnPropertyChanged(nameof(IsSearchBox));
+            OnPropertyChanged(nameof(IsSearchButton));
+            ApplySearchBox();
+        }
+
+        [RelayCommand]
+        public void ToggleTaskView()
+        {
+            IsTaskViewVisible = !IsTaskViewVisible;
+            TaskbarCustomizerService.Instance.SetTaskViewButton(IsTaskViewVisible);
+            StatusMessage = IsTaskViewVisible ? "Кнопка «Вид задач» включена на панели задач." : "Кнопка «Вид задач» скрыта с панели задач.";
+            TrayService.Instance.ShowNotification("Панель задач", StatusMessage);
+        }
+
+        [RelayCommand]
+        public void ToggleWidgets()
+        {
+            IsWidgetsVisible = !IsWidgetsVisible;
+            TaskbarCustomizerService.Instance.SetWidgetsButton(IsWidgetsVisible);
+            StatusMessage = IsWidgetsVisible ? "Виджеты и погода включены на панели задач." : "Виджеты и погода скрыты с панели задач.";
+            TrayService.Instance.ShowNotification("Панель задач", StatusMessage);
+        }
+
+        [RelayCommand]
+        public void ToggleSecondsInClock()
+        {
+            IsSecondsInClock = !IsSecondsInClock;
+            TaskbarCustomizerService.Instance.SetShowSecondsInClock(IsSecondsInClock);
+            StatusMessage = IsSecondsInClock ? "Отображение секунд в часах трея активировано!" : "Отображение секунд в часах трея отключено.";
+            TrayService.Instance.ShowNotification("Часы Windows ⏱", StatusMessage);
+        }
+
+        [RelayCommand]
+        public void ToggleHideRecommended()
+        {
+            IsHideRecommended = !IsHideRecommended;
+            TaskbarCustomizerService.Instance.SetHideRecommendedStart(IsHideRecommended);
+            StatusMessage = IsHideRecommended ? "Раздел «Рекомендуем» в меню Пуск скрыт." : "Раздел «Рекомендуем» в меню Пуск включен.";
+            TrayService.Instance.ShowNotification("Меню Пуск", StatusMessage);
+        }
+
+        [RelayCommand]
+        public void ToggleLockTaskbar()
+        {
+            IsTaskbarLocked = !IsTaskbarLocked;
+            TaskbarCustomizerService.Instance.SetLockTaskbar(IsTaskbarLocked);
+            StatusMessage = IsTaskbarLocked ? "Панель задач заблокирована от случайного перемещения." : "Панель задач разблокирована.";
+            TrayService.Instance.ShowNotification("Панель задач", StatusMessage);
         }
 
         [RelayCommand]
@@ -88,7 +223,7 @@ namespace StormSystemOptimizer.ViewModels
             bool ok = TaskbarCustomizerService.Instance.SetTaskbarSize(SelectedSizeIndex);
             if (ok)
             {
-                StatusMessage = "Размер панели задач успешно изменен. Перезапустите Проводник для применения.";
+                StatusMessage = "Размер панели задач успешно изменен. Перезапустите Проводник при необходимости.";
                 TrayService.Instance.ShowNotification("Панель задач", StatusMessage);
             }
         }
