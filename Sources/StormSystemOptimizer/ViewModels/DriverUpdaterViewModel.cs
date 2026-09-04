@@ -145,11 +145,22 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public async Task LoadDriversAsync()
         {
+            await FetchDriversAsync(forceRefresh: false);
+        }
+
+        [RelayCommand]
+        public async Task RefreshDriversAsync()
+        {
+            await FetchDriversAsync(forceRefresh: true);
+        }
+
+        private async Task FetchDriversAsync(bool forceRefresh)
+        {
             if (IsBusy) return;
             IsBusy = true;
             StatusText = "Сканирование цифровых подписей WHQL и версий драйверов...";
 
-            _allDrivers = await DriverUpdaterService.Instance.ScanDriversAsync();
+            _allDrivers = await DriverUpdaterService.Instance.ScanDriversAsync(forceRefresh);
             ApplyFilter();
 
             OutdatedCount = _allDrivers.Count(d => d.IsUpdateAvailable);

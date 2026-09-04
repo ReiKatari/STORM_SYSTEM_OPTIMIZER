@@ -67,8 +67,20 @@ namespace StormSystemOptimizer.Services
             LoadBlacklist();
 
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/2.1.6");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/2.1.7");
             _httpClient.Timeout = TimeSpan.FromSeconds(20);
+        }
+
+        private static List<SoftwareUpdateItem>? _cachedUpdates;
+        private static DateTime _lastCacheTime;
+        private static readonly object _cacheLock = new();
+
+        public static void InvalidateCache()
+        {
+            lock (_cacheLock)
+            {
+                _cachedUpdates = null;
+            }
         }
 
         private void LoadBlacklist()
@@ -116,8 +128,19 @@ namespace StormSystemOptimizer.Services
 
         public bool IsBlacklisted(string packageIdOrName) => _blacklistedPackages.Contains(packageIdOrName);
 
-        public async Task<List<SoftwareUpdateItem>> ScanInstalledAppsForUpdatesAsync(bool includeBeta = false)
+        public async Task<List<SoftwareUpdateItem>> ScanInstalledAppsForUpdatesAsync(bool includeBeta = false, bool forceRefresh = false)
         {
+            if (!forceRefresh)
+            {
+                lock (_cacheLock)
+                {
+                    if (_cachedUpdates != null && (DateTime.UtcNow - _lastCacheTime).TotalMinutes < 5)
+                    {
+                        return _cachedUpdates.Select(u => u.Clone()).ToList();
+                    }
+                }
+            }
+
             return await Task.Run(() =>
             {
                 var installedList = new List<SoftwareUpdateItem>();
@@ -227,8 +250,14 @@ namespace StormSystemOptimizer.Services
                     }
                 }
 
-                return installedList.OrderByDescending(a => a.IsUpdateAvailable && !a.IsBlacklisted)
-                                   .ThenBy(a => a.Name).ToList();
+                var res = installedList.OrderByDescending(a => a.IsUpdateAvailable && !a.IsBlacklisted)
+                                       .ThenBy(a => a.Name).ToList();
+                lock (_cacheLock)
+                {
+                    _cachedUpdates = res;
+                    _lastCacheTime = DateTime.UtcNow;
+                }
+                return res;
             });
         }
 
@@ -365,7 +394,7 @@ namespace StormSystemOptimizer.Services
                 if (p != null)
                 {
                     string output = p.StandardOutput.ReadToEnd();
-                    p.WaitForExit(6000);
+                    p.WaitForExit(1500);
 
                     using var reader = new StringReader(output);
                     string? line;

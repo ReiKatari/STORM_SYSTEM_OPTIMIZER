@@ -64,5 +64,26 @@ namespace StormSystemOptimizer.Models
 
         public string StatusColor => IsBlacklisted ? "#64748B" : (IsUpdateAvailable ? (IsBeta ? "#C084FC" : "#F59E0B") : "#10B981");
         public string StatusBgColor => IsBlacklisted ? "#1E293B" : (IsUpdateAvailable ? (IsBeta ? "#26C084FC" : "#26F59E0B") : "#2610B981");
+
+        public SoftwareUpdateItem Clone()
+        {
+            return new SoftwareUpdateItem
+            {
+                Id = Id,
+                PackageId = PackageId,
+                Name = Name,
+                InstalledVersion = InstalledVersion,
+                AvailableVersion = AvailableVersion,
+                Publisher = Publisher,
+                AppType = AppType,
+                IsUpdateAvailable = IsUpdateAvailable,
+                IsBlacklisted = IsBlacklisted,
+                IsUpdating = IsUpdating,
+                UpdateProgress = UpdateProgress,
+                UpdateProgressText = UpdateProgressText,
+                IsBeta = IsBeta,
+                IconSource = IconSource
+            };
+        }
     }
 }

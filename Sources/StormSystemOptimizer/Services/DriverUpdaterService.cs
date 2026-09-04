@@ -14,242 +14,286 @@ namespace StormSystemOptimizer.Services
         private static DriverUpdaterService? _instance;
         public static DriverUpdaterService Instance => _instance ??= new DriverUpdaterService();
 
+        private static List<DriverItem>? _cachedDrivers;
+        private static DateTime _lastCacheTime;
+        private static readonly object _cacheLock = new();
+
+        public static void InvalidateCache()
+        {
+            lock (_cacheLock)
+            {
+                _cachedDrivers = null;
+            }
+        }
+
         private DriverUpdaterService() { }
 
-        public async Task<List<DriverItem>> GetAllSystemDriversAsync()
+        public async Task<List<DriverItem>> ScanDriversAsync(bool forceRefresh = false) => await GetAllSystemDriversAsync(forceRefresh);
+
+        public async Task<List<DriverItem>> GetAllSystemDriversAsync(bool forceRefresh = false)
         {
-            return await Task.Run(() =>
+            if (!forceRefresh)
             {
-                var list = new List<DriverItem>();
-                var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-                // 1. GPU Drivers (Win32_VideoController)
-                try
+                lock (_cacheLock)
                 {
-                    using var searcher = new ManagementObjectSearcher("SELECT Caption, DriverVersion, DriverDate, AdapterCompatibility FROM Win32_VideoController");
-                    foreach (ManagementObject obj in searcher.Get())
+                    if (_cachedDrivers != null && (DateTime.UtcNow - _lastCacheTime).TotalMinutes < 10)
                     {
-                        string name = obj["Caption"]?.ToString()?.Trim() ?? string.Empty;
-                        if (string.IsNullOrEmpty(name) || seenNames.Contains(name)) continue;
-                        seenNames.Add(name);
-
-                        string rawVersion = obj["DriverVersion"]?.ToString()?.Trim() ?? string.Empty;
-                        string rawDate = obj["DriverDate"]?.ToString()?.Trim() ?? string.Empty;
-                        string provider = obj["AdapterCompatibility"]?.ToString()?.Trim() ?? "NVIDIA";
-
-                        string formattedVersion = FormatGpuDriverVersion(provider, name, rawVersion);
-                        string latestVer = formattedVersion;
-                        string downloadUrl = "https://www.nvidia.com/Download/index.aspx";
-                        bool updateAvailable = false;
-
-                        if (name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) || name.Contains("GeForce", StringComparison.OrdinalIgnoreCase))
-                        {
-                            latestVer = "610.88";
-                            downloadUrl = "https://www.nvidia.com/Download/index.aspx";
-                            updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
-                            if (!updateAvailable && string.Compare(formattedVersion, latestVer, StringComparison.OrdinalIgnoreCase) > 0)
-                            {
-                                latestVer = formattedVersion;
-                            }
-                        }
-                        else if (name.Contains("AMD", StringComparison.OrdinalIgnoreCase) || name.Contains("Radeon", StringComparison.OrdinalIgnoreCase))
-                        {
-                            latestVer = "24.8.1";
-                            downloadUrl = "https://www.amd.com/en/support";
-                            updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
-                        }
-                        else if (name.Contains("Intel", StringComparison.OrdinalIgnoreCase))
-                        {
-                            latestVer = "32.0.101.5972";
-                            downloadUrl = "https://www.intel.com/content/www/us/en/download-center/home.html";
-                            updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
-                        }
-
-                        list.Add(new DriverItem
-                        {
-                            DeviceName = name,
-                            ProviderName = provider.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ? "NVIDIA Corporation" : provider,
-                            CurrentVersion = formattedVersion,
-                            LatestVersion = latestVer,
-                            DriverDate = FormatWmiDate(rawDate),
-                            Category = "Видеокарта",
-                            IsUpdateAvailable = updateAvailable,
-                            DownloadUrl = downloadUrl
-                        });
+                        return _cachedDrivers.Select(d => d.Clone()).ToList();
                     }
                 }
-                catch { }
+            }
 
-                // 2. CPU / Processor (Win32_Processor)
-                try
+            var tGpu = Task.Run(QueryGpuDrivers);
+            var tCpu = Task.Run(QueryCpuDrivers);
+            var tBoard = Task.Run(QueryBoardAndBiosDrivers);
+            var tPnp = Task.Run(QueryPnpDrivers);
+
+            await Task.WhenAll(tGpu, tCpu, tBoard, tPnp);
+
+            var list = new List<DriverItem>();
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var item in tGpu.Result.Concat(tCpu.Result).Concat(tBoard.Result).Concat(tPnp.Result))
+            {
+                if (string.IsNullOrWhiteSpace(item.DeviceName) || seen.Contains(item.DeviceName)) continue;
+                seen.Add(item.DeviceName);
+                list.Add(item);
+            }
+
+            var result = list.OrderByDescending(d => d.IsUpdateAvailable)
+                             .ThenBy(d => d.Category != "Видеокарта")
+                             .ThenBy(d => d.Category != "Процессор")
+                             .ThenBy(d => d.Category != "Материнская плата")
+                             .ThenBy(d => d.DeviceName).ToList();
+
+            lock (_cacheLock)
+            {
+                _cachedDrivers = result;
+                _lastCacheTime = DateTime.UtcNow;
+            }
+
+            return result;
+        }
+
+        private static List<DriverItem> QueryGpuDrivers()
+        {
+            var list = new List<DriverItem>();
+            try
+            {
+                using var searcher = new ManagementObjectSearcher("SELECT Caption, DriverVersion, DriverDate, AdapterCompatibility FROM Win32_VideoController");
+                foreach (ManagementObject obj in searcher.Get())
                 {
-                    using var searcher = new ManagementObjectSearcher("SELECT Name, Manufacturer, NumberOfCores FROM Win32_Processor");
-                    foreach (ManagementObject obj in searcher.Get())
+                    string name = obj["Caption"]?.ToString()?.Trim() ?? string.Empty;
+                    if (string.IsNullOrEmpty(name)) continue;
+
+                    string rawVersion = obj["DriverVersion"]?.ToString()?.Trim() ?? string.Empty;
+                    string rawDate = obj["DriverDate"]?.ToString()?.Trim() ?? string.Empty;
+                    string provider = obj["AdapterCompatibility"]?.ToString()?.Trim() ?? "NVIDIA";
+
+                    string formattedVersion = FormatGpuDriverVersion(provider, name, rawVersion);
+                    string latestVer = formattedVersion;
+                    string downloadUrl = "https://www.nvidia.com/Download/index.aspx";
+                    bool updateAvailable = false;
+
+                    if (name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) || name.Contains("GeForce", StringComparison.OrdinalIgnoreCase))
                     {
-                        string name = obj["Name"]?.ToString()?.Trim() ?? string.Empty;
-                        if (string.IsNullOrEmpty(name) || seenNames.Contains(name)) continue;
-                        seenNames.Add(name);
-
-                        string mfg = obj["Manufacturer"]?.ToString()?.Trim() ?? "AuthenticAMD";
-                        string provider = mfg.Contains("AMD", StringComparison.OrdinalIgnoreCase) ? "Advanced Micro Devices" : "Intel Corporation";
-                        string latestVer = mfg.Contains("AMD", StringComparison.OrdinalIgnoreCase) ? "v6.07.22.037" : "v10.1.19890.8524";
-                        string url = mfg.Contains("AMD", StringComparison.OrdinalIgnoreCase) ? "https://www.amd.com/en/support" : "https://www.intel.com/content/www/us/en/download-center/home.html";
-
-                        list.Add(new DriverItem
+                        latestVer = "610.88";
+                        downloadUrl = "https://www.nvidia.com/Download/index.aspx";
+                        updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
+                        if (!updateAvailable && string.Compare(formattedVersion, latestVer, StringComparison.OrdinalIgnoreCase) > 0)
                         {
-                            DeviceName = name,
-                            ProviderName = provider,
-                            CurrentVersion = "v10.0.26100.8951",
-                            LatestVersion = latestVer,
-                            DriverDate = "15.06.2024",
-                            Category = "Процессор",
-                            IsUpdateAvailable = false,
-                            DownloadUrl = url
-                        });
-                    }
-                }
-                catch { }
-
-                // 3. BIOS / UEFI Firmware (Win32_BIOS + Win32_BaseBoard)
-                try
-                {
-                    string biosVer = "v1.0", biosDate = "01.01.2024", biosMfr = "American Megatrends";
-                    string boardMfr = "ASUS", boardModel = "Motherboard";
-
-                    using (var searcher = new ManagementObjectSearcher("SELECT SMBIOSBIOSVersion, ReleaseDate, Manufacturer FROM Win32_BIOS"))
-                    {
-                        foreach (ManagementObject obj in searcher.Get())
-                        {
-                            biosVer = obj["SMBIOSBIOSVersion"]?.ToString()?.Trim() ?? biosVer;
-                            biosDate = obj["ReleaseDate"]?.ToString()?.Trim() ?? biosDate;
-                            biosMfr = obj["Manufacturer"]?.ToString()?.Trim() ?? biosMfr;
+                            latestVer = formattedVersion;
                         }
                     }
-
-                    using (var searcher = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard"))
+                    else if (name.Contains("AMD", StringComparison.OrdinalIgnoreCase) || name.Contains("Radeon", StringComparison.OrdinalIgnoreCase))
                     {
-                        foreach (ManagementObject obj in searcher.Get())
-                        {
-                            boardMfr = obj["Manufacturer"]?.ToString()?.Trim() ?? boardMfr;
-                            boardModel = obj["Product"]?.ToString()?.Trim() ?? boardModel;
-                        }
+                        latestVer = "24.8.1";
+                        downloadUrl = "https://www.amd.com/en/support";
+                        updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
                     }
-
-                    string searchUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{boardMfr} {boardModel} BIOS update download support official");
-                    string curVerStr = biosVer.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? biosVer : $"v{biosVer}";
+                    else if (name.Contains("Intel", StringComparison.OrdinalIgnoreCase))
+                    {
+                        latestVer = "32.0.101.5972";
+                        downloadUrl = "https://www.intel.com/content/www/us/en/download-center/home.html";
+                        updateAvailable = SoftwareUpdaterService.IsNewerVersion(latestVer, formattedVersion);
+                    }
 
                     list.Add(new DriverItem
                     {
-                        DeviceName = $"BIOS и UEFI прошивка ({boardMfr} {boardModel})",
-                        ProviderName = $"{biosMfr} / {boardMfr}",
-                        CurrentVersion = curVerStr,
-                        LatestVersion = $"{curVerStr} (Актуальная UEFI)",
-                        DriverDate = FormatWmiDate(biosDate),
-                        Category = "BIOS и прошивка",
-                        IsUpdateAvailable = false,
-                        DownloadUrl = searchUrl
+                        DeviceName = name,
+                        ProviderName = provider.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase) ? "NVIDIA Corporation" : provider,
+                        CurrentVersion = formattedVersion,
+                        LatestVersion = latestVer,
+                        DriverDate = FormatWmiDate(rawDate),
+                        Category = "Видеокарта",
+                        IsUpdateAvailable = updateAvailable,
+                        DownloadUrl = downloadUrl
                     });
                 }
-                catch { }
+            }
+            catch { }
+            return list;
+        }
 
-                // 4. Motherboard & Baseboard (Win32_BaseBoard)
-                try
+        private static List<DriverItem> QueryCpuDrivers()
+        {
+            var list = new List<DriverItem>();
+            try
+            {
+                using var searcher = new ManagementObjectSearcher("SELECT Name, Manufacturer, NumberOfCores FROM Win32_Processor");
+                foreach (ManagementObject obj in searcher.Get())
                 {
-                    using var searcher = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard");
+                    string name = obj["Name"]?.ToString()?.Trim() ?? string.Empty;
+                    if (string.IsNullOrEmpty(name)) continue;
+
+                    string mfg = obj["Manufacturer"]?.ToString()?.Trim() ?? "AuthenticAMD";
+                    string provider = mfg.Contains("AMD", StringComparison.OrdinalIgnoreCase) ? "Advanced Micro Devices" : "Intel Corporation";
+                    string latestVer = mfg.Contains("AMD", StringComparison.OrdinalIgnoreCase) ? "v6.07.22.037" : "v10.1.19890.8524";
+                    string url = mfg.Contains("AMD", StringComparison.OrdinalIgnoreCase) ? "https://www.amd.com/en/support" : "https://www.intel.com/content/www/us/en/download-center/home.html";
+
+                    list.Add(new DriverItem
+                    {
+                        DeviceName = name,
+                        ProviderName = provider,
+                        CurrentVersion = "v10.0.26100.8951",
+                        LatestVersion = latestVer,
+                        DriverDate = "15.06.2024",
+                        Category = "Процессор",
+                        IsUpdateAvailable = false,
+                        DownloadUrl = url
+                    });
+                }
+            }
+            catch { }
+            return list;
+        }
+
+        private static List<DriverItem> QueryBoardAndBiosDrivers()
+        {
+            var list = new List<DriverItem>();
+            try
+            {
+                string biosVer = "v1.0", biosDate = "01.01.2024", biosMfr = "American Megatrends";
+                string boardMfr = "ASUS", boardModel = "Motherboard";
+
+                using (var searcher = new ManagementObjectSearcher("SELECT SMBIOSBIOSVersion, ReleaseDate, Manufacturer FROM Win32_BIOS"))
+                {
                     foreach (ManagementObject obj in searcher.Get())
                     {
-                        string mfg = obj["Manufacturer"]?.ToString()?.Trim() ?? string.Empty;
-                        string prod = obj["Product"]?.ToString()?.Trim() ?? string.Empty;
-                        string name = $"{mfg} {prod}".Trim();
-                        if (string.IsNullOrEmpty(name) || seenNames.Contains(name)) continue;
-                        seenNames.Add(name);
-
-                        list.Add(new DriverItem
-                        {
-                            DeviceName = $"Системная плата: {name}",
-                            ProviderName = mfg,
-                            CurrentVersion = "v10.0.26100.8951",
-                            LatestVersion = "v10.0.26100.8951",
-                            DriverDate = "21.06.2024",
-                            Category = "Материнская плата",
-                            IsUpdateAvailable = false,
-                            DownloadUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} drivers bios download official")
-                        });
+                        biosVer = obj["SMBIOSBIOSVersion"]?.ToString()?.Trim() ?? biosVer;
+                        biosDate = obj["ReleaseDate"]?.ToString()?.Trim() ?? biosDate;
+                        biosMfr = obj["Manufacturer"]?.ToString()?.Trim() ?? biosMfr;
                     }
                 }
-                catch { }
 
-                // 4. All PnP Hardware Controllers (Win32_PnPSignedDriver)
-                try
+                using (var searcher = new ManagementObjectSearcher("SELECT Manufacturer, Product FROM Win32_BaseBoard"))
                 {
-                    using var searcher = new ManagementObjectSearcher(
-                        "SELECT DeviceName, DriverVersion, DriverDate, DriverProviderName, DeviceClass FROM Win32_PnPSignedDriver " +
-                        "WHERE DeviceClass = 'NET' OR DeviceClass = 'MEDIA' OR DeviceClass = 'SCSIADAPTER' OR DeviceClass = 'HDC' OR DeviceClass = 'USB' OR DeviceClass = 'BLUETOOTH' OR DeviceClass = 'SYSTEM'");
-
                     foreach (ManagementObject obj in searcher.Get())
                     {
-                        string name = obj["DeviceName"]?.ToString()?.Trim() ?? string.Empty;
-                        string devClass = obj["DeviceClass"]?.ToString()?.Trim() ?? string.Empty;
-                        if (string.IsNullOrEmpty(name) || seenNames.Contains(name)) continue;
-
-                        // Filter virtual miniports and non-essential entries
-                        if (name.StartsWith("WAN Miniport", StringComparison.OrdinalIgnoreCase) ||
-                            name.StartsWith("Microsoft Kernel", StringComparison.OrdinalIgnoreCase) ||
-                            name.StartsWith("NDIS", StringComparison.OrdinalIgnoreCase) ||
-                            name.Contains("Remote Desktop", StringComparison.OrdinalIgnoreCase) ||
-                            name.Equals("ACPI Fan", StringComparison.OrdinalIgnoreCase) ||
-                            name.Equals("ACPI Fixed Feature Button", StringComparison.OrdinalIgnoreCase))
-                            continue;
-
-                        seenNames.Add(name);
-
-                        string provider = obj["DriverProviderName"]?.ToString()?.Trim() ?? "Microsoft";
-                        string version = obj["DriverVersion"]?.ToString()?.Trim() ?? "10.0.26100.1";
-                        string rawDate = obj["DriverDate"]?.ToString()?.Trim() ?? string.Empty;
-
-                        string category = devClass switch
-                        {
-                            "NET" => "Сеть",
-                            "MEDIA" => "Звук",
-                            "SCSIADAPTER" or "HDC" => "Накопители",
-                            "BLUETOOTH" => "Bluetooth",
-                            "USB" => "Чипсет и USB",
-                            "SYSTEM" when name.Contains("Chipset", StringComparison.OrdinalIgnoreCase) || name.Contains("PCI", StringComparison.OrdinalIgnoreCase) || name.Contains("SMBus", StringComparison.OrdinalIgnoreCase) => "Материнская плата",
-                            _ => "Чипсет и USB"
-                        };
-
-                        string downloadUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} driver download official");
-                        string formattedDate = FormatWmiDate(rawDate);
-
-                        var (isOutdated, latestVer, releaseDate, updateUrl) = CheckCatalogUpdate(name, version, formattedDate);
-                        if (isOutdated && !string.IsNullOrEmpty(updateUrl))
-                        {
-                            downloadUrl = updateUrl;
-                        }
-
-                        list.Add(new DriverItem
-                        {
-                            DeviceName = name,
-                            ProviderName = provider,
-                            CurrentVersion = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}",
-                            LatestVersion = isOutdated
-                                ? (latestVer.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? latestVer : $"v{latestVer}")
-                                : (version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}"),
-                            DriverDate = formattedDate,
-                            Category = category,
-                            IsUpdateAvailable = isOutdated,
-                            DownloadUrl = downloadUrl
-                        });
+                        boardMfr = obj["Manufacturer"]?.ToString()?.Trim() ?? boardMfr;
+                        boardModel = obj["Product"]?.ToString()?.Trim() ?? boardModel;
                     }
                 }
-                catch { }
 
-                return list.OrderByDescending(d => d.IsUpdateAvailable)
-                           .ThenBy(d => d.Category != "Видеокарта")
-                           .ThenBy(d => d.Category != "Процессор")
-                           .ThenBy(d => d.Category != "Материнская плата")
-                           .ThenBy(d => d.DeviceName).ToList();
-            });
+                string searchUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{boardMfr} {boardModel} BIOS update download support official");
+                string curVerStr = biosVer.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? biosVer : $"v{biosVer}";
+
+                list.Add(new DriverItem
+                {
+                    DeviceName = $"BIOS и UEFI прошивка ({boardMfr} {boardModel})",
+                    ProviderName = $"{biosMfr} / {boardMfr}",
+                    CurrentVersion = curVerStr,
+                    LatestVersion = $"{curVerStr} (Актуальная UEFI)",
+                    DriverDate = FormatWmiDate(biosDate),
+                    Category = "BIOS и прошивка",
+                    IsUpdateAvailable = false,
+                    DownloadUrl = searchUrl
+                });
+
+                list.Add(new DriverItem
+                {
+                    DeviceName = $"Системная плата: {boardMfr} {boardModel}".Trim(),
+                    ProviderName = boardMfr,
+                    CurrentVersion = "v10.0.26100.8951",
+                    LatestVersion = "v10.0.26100.8951",
+                    DriverDate = "21.06.2024",
+                    Category = "Материнская плата",
+                    IsUpdateAvailable = false,
+                    DownloadUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{boardMfr} {boardModel} drivers bios download official")
+                });
+            }
+            catch { }
+            return list;
+        }
+
+        private static List<DriverItem> QueryPnpDrivers()
+        {
+            var list = new List<DriverItem>();
+            try
+            {
+                using var searcher = new ManagementObjectSearcher(
+                    "SELECT DeviceName, DriverVersion, DriverDate, DriverProviderName, DeviceClass FROM Win32_PnPSignedDriver " +
+                    "WHERE DeviceClass = 'NET' OR DeviceClass = 'MEDIA' OR DeviceClass = 'SCSIADAPTER' OR DeviceClass = 'HDC' OR DeviceClass = 'USB' OR DeviceClass = 'BLUETOOTH' OR DeviceClass = 'SYSTEM'");
+
+                foreach (ManagementObject obj in searcher.Get())
+                {
+                    string name = obj["DeviceName"]?.ToString()?.Trim() ?? string.Empty;
+                    string devClass = obj["DeviceClass"]?.ToString()?.Trim() ?? string.Empty;
+                    if (string.IsNullOrEmpty(name)) continue;
+
+                    // Filter virtual miniports and non-essential entries
+                    if (name.StartsWith("WAN Miniport", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("Microsoft Kernel", StringComparison.OrdinalIgnoreCase) ||
+                        name.StartsWith("NDIS", StringComparison.OrdinalIgnoreCase) ||
+                        name.Contains("Remote Desktop", StringComparison.OrdinalIgnoreCase) ||
+                        name.Equals("ACPI Fan", StringComparison.OrdinalIgnoreCase) ||
+                        name.Contains("Virtual", StringComparison.OrdinalIgnoreCase) ||
+                        name.Contains("PnP-Software", StringComparison.OrdinalIgnoreCase) ||
+                        name.Contains("Hyper-V", StringComparison.OrdinalIgnoreCase) ||
+                        name.Contains("Volume Manager", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    string version = obj["DriverVersion"]?.ToString()?.Trim() ?? "1.0.0.0";
+                    string rawDate = obj["DriverDate"]?.ToString()?.Trim() ?? string.Empty;
+                    string provider = obj["DriverProviderName"]?.ToString()?.Trim() ?? "Microsoft";
+
+                    string category = devClass switch
+                    {
+                        "NET" or "BLUETOOTH" => "Сеть",
+                        "MEDIA" => "Звук",
+                        "SCSIADAPTER" or "HDC" => "Накопители",
+                        "USB" => "USB",
+                        _ => "Чипсет"
+                    };
+
+                    string downloadUrl = "https://www.google.com/search?q=" + Uri.EscapeDataString($"{name} driver download official");
+                    string formattedDate = FormatWmiDate(rawDate);
+
+                    var (isOutdated, latestVer, releaseDate, updateUrl) = CheckCatalogUpdate(name, version, formattedDate);
+                    if (isOutdated && !string.IsNullOrEmpty(updateUrl))
+                    {
+                        downloadUrl = updateUrl;
+                    }
+
+                    list.Add(new DriverItem
+                    {
+                        DeviceName = name,
+                        ProviderName = provider,
+                        CurrentVersion = version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}",
+                        LatestVersion = isOutdated
+                            ? (latestVer.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? latestVer : $"v{latestVer}")
+                            : (version.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version : $"v{version}"),
+                        DriverDate = formattedDate,
+                        Category = category,
+                        IsUpdateAvailable = isOutdated,
+                        DownloadUrl = downloadUrl
+                    });
+                }
+            }
+            catch { }
+            return list;
         }
 
         public static readonly List<DriverCatalogEntry> DriverCatalog = new()

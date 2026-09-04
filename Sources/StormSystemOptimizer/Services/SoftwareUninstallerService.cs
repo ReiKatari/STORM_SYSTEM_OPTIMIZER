@@ -15,10 +15,33 @@ namespace StormSystemOptimizer.Services
         private static SoftwareUninstallerService? _instance;
         public static SoftwareUninstallerService Instance => _instance ??= new SoftwareUninstallerService();
 
+        private static List<InstalledAppItem>? _cachedApps;
+        private static DateTime _lastCacheTime;
+        private static readonly object _cacheLock = new();
+
+        public static void InvalidateCache()
+        {
+            lock (_cacheLock)
+            {
+                _cachedApps = null;
+            }
+        }
+
         private SoftwareUninstallerService() { }
 
-        public async Task<List<InstalledAppItem>> GetInstalledAppsAsync()
+        public async Task<List<InstalledAppItem>> GetInstalledAppsAsync(bool forceRefresh = false)
         {
+            if (!forceRefresh)
+            {
+                lock (_cacheLock)
+                {
+                    if (_cachedApps != null && (DateTime.UtcNow - _lastCacheTime).TotalMinutes < 5)
+                    {
+                        return _cachedApps.Select(a => a.Clone()).ToList();
+                    }
+                }
+            }
+
             return await Task.Run(() =>
             {
                 var apps = new Dictionary<string, InstalledAppItem>(StringComparer.OrdinalIgnoreCase);
@@ -36,7 +59,13 @@ namespace StormSystemOptimizer.Services
                 // 5. Scan Windows Store / UWP Apps
                 ScanWindowsStoreApps(apps);
 
-                return apps.Values.OrderBy(a => a.DisplayName).ToList();
+                var result = apps.Values.OrderBy(a => a.DisplayName).ToList();
+                lock (_cacheLock)
+                {
+                    _cachedApps = result;
+                    _lastCacheTime = DateTime.UtcNow;
+                }
+                return result;
             });
         }
 
@@ -106,32 +135,15 @@ namespace StormSystemOptimizer.Services
                             type = "Магазин Windows";
                         }
 
-                        // Calculate accurate size from install folder if estimated size is missing
-                        if (sizeMb == 0 && !string.IsNullOrEmpty(location) && Directory.Exists(location))
-                        {
-                            try
-                            {
-                                long totalBytes = 0;
-                                var dirInfo = new DirectoryInfo(location);
-                                foreach (var file in dirInfo.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 2, IgnoreInaccessible = true }))
-                                {
-                                    totalBytes += file.Length;
-                                }
-                                if (totalBytes > 0)
-                                {
-                                    sizeMb = Math.Round(totalBytes / (1024.0 * 1024.0), 1);
-                                }
-                            }
-                            catch { }
-                        }
-
                         if (sizeMb == 0)
                         {
                             sizeMb = type == "Игра" ? 12400.0 : (type == "Магазин Windows" || type == "Windows Store" ? 280.0 : 150.0);
                         }
 
-                        // Extract accurate version from main binary if DisplayVersion is missing or generic
-                        string accurateVersion = ExtractAccurateVersion(location, icon, rawVersion);
+                        // Fast version resolution without blocking disk reads if raw registry version exists
+                        string accurateVersion = !string.IsNullOrWhiteSpace(rawVersion) 
+                            ? rawVersion 
+                            : ExtractAccurateVersion(location, icon, rawVersion);
 
                         if (!apps.ContainsKey(name))
                         {
@@ -423,14 +435,42 @@ namespace StormSystemOptimizer.Services
                 // 1. Scan filesystem folders
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string localLow = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "LocalLow");
                 string programData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
                 string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
                 string docsDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 string savedGames = Path.Combine(userProfile, "Saved Games");
                 string localPrograms = Path.Combine(localAppData, "Programs");
                 string tempDir = Path.GetTempPath();
+                string progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                string progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                string commonFiles = Path.Combine(progFiles, "Common Files");
+                string commonFilesX86 = Path.Combine(progFilesX86, "Common Files");
 
-                var baseDirs = new[] { appData, localAppData, programData, docsDir, savedGames, localPrograms, tempDir };
+                var baseDirs = new List<string>
+                {
+                    appData, localAppData, localLow, programData, docsDir, savedGames,
+                    localPrograms, tempDir, progFiles, progFilesX86, commonFiles, commonFilesX86
+                };
+
+                // Add secondary drives Program Files and Games (e.g. D:\Program Files, D:\Games, E:\Games)
+                try
+                {
+                    foreach (var drive in DriveInfo.GetDrives())
+                    {
+                        if (drive.IsReady && drive.DriveType == DriveType.Fixed && !drive.RootDirectory.FullName.StartsWith("C:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string dRoot = drive.RootDirectory.FullName;
+                            string dProg = Path.Combine(dRoot, "Program Files");
+                            string dProgX86 = Path.Combine(dRoot, "Program Files (x86)");
+                            string dGames = Path.Combine(dRoot, "Games");
+                            if (Directory.Exists(dProg)) baseDirs.Add(dProg);
+                            if (Directory.Exists(dProgX86)) baseDirs.Add(dProgX86);
+                            if (Directory.Exists(dGames)) baseDirs.Add(dGames);
+                        }
+                    }
+                }
+                catch { }
 
                 foreach (var baseDir in baseDirs)
                 {
@@ -463,12 +503,23 @@ namespace StormSystemOptimizer.Services
                 if (!string.IsNullOrEmpty(app.InstallLocation) && Directory.Exists(app.InstallLocation) && !foundDirs.Contains(app.InstallLocation, StringComparer.OrdinalIgnoreCase))
                 {
                     foundDirs.Add(app.InstallLocation);
+                    try
+                    {
+                        var di = new DirectoryInfo(app.InstallLocation);
+                        long bytes = di.EnumerateFiles("*", new System.IO.EnumerationOptions { RecurseSubdirectories = true, MaxRecursionDepth = 4, IgnoreInaccessible = true }).Sum(f => f.Length);
+                        sizeMb += bytes / (1024.0 * 1024.0);
+                    }
+                    catch { }
                 }
 
                 // 2. Scan Registry Keys
                 ScanRegistryForLeftovers(Registry.CurrentUser, @"Software", aliases, safePub, foundRegs);
                 ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE", aliases, safePub, foundRegs);
                 ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE\WOW6432Node", aliases, safePub, foundRegs);
+                ScanRegistryForLeftovers(Registry.LocalMachine, @"SYSTEM\CurrentControlSet\Services", aliases, safePub, foundRegs);
+                ScanRegistryForLeftovers(Registry.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Run", aliases, safePub, foundRegs);
+                ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", aliases, safePub, foundRegs);
+                ScanRegistryForLeftovers(Registry.LocalMachine, @"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run", aliases, safePub, foundRegs);
 
                 // Scan Uninstall hives for leftover uninstallation keys
                 ScanUninstallHivesForLeftovers(aliases, foundRegs);
@@ -479,6 +530,57 @@ namespace StormSystemOptimizer.Services
                 app.ResidualRegistryCount = foundRegs.Count;
                 app.ResidualSizeMb = Math.Round(sizeMb, 1);
                 app.IsScanned = true;
+            });
+        }
+
+        public async Task<(List<string> folders, List<string> registryKeys, double sizeMb)> FindResidualsDetailedAsync(InstalledAppItem app)
+        {
+            await ScanResidualClutterAsync(app);
+            return (app.FoundFolders.ToList(), app.FoundRegistryKeys.ToList(), app.ResidualSizeMb);
+        }
+
+        public async Task<(int deletedDirs, int deletedRegs)> CleanSpecificResidualsAsync(InstalledAppItem app, IEnumerable<string> foldersToClean, IEnumerable<string> keysToClean)
+        {
+            return await Task.Run(() =>
+            {
+                int dDirs = 0;
+                foreach (var dir in foldersToClean)
+                {
+                    try
+                    {
+                        if (Directory.Exists(dir))
+                        {
+                            ForceDeleteDirectory(dir);
+                            dDirs++;
+                        }
+                    }
+                    catch { }
+                }
+
+                int dRegs = 0;
+                foreach (var reg in keysToClean)
+                {
+                    try
+                    {
+                        DeleteRegistryKey(reg);
+                        dRegs++;
+                    }
+                    catch { }
+                }
+
+                CleanShortcuts(app.DisplayName);
+
+                app.FoundFolders.RemoveAll(f => foldersToClean.Contains(f, StringComparer.OrdinalIgnoreCase));
+                app.FoundRegistryKeys.RemoveAll(k => keysToClean.Contains(k, StringComparer.OrdinalIgnoreCase));
+                app.ResidualFilesCount = app.FoundFolders.Count;
+                app.ResidualRegistryCount = app.FoundRegistryKeys.Count;
+                if (app.ResidualFilesCount == 0 && app.ResidualRegistryCount == 0)
+                {
+                    app.ResidualSizeMb = 0;
+                }
+
+                InvalidateCache();
+                return (dDirs, dRegs);
             });
         }
 
@@ -742,7 +844,7 @@ namespace StormSystemOptimizer.Services
                     {
                         try
                         {
-                            Directory.Delete(app.InstallLocation, true);
+                            ForceDeleteDirectory(app.InstallLocation);
                         }
                         catch { }
                     }
@@ -797,24 +899,44 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                string search = CleanForSearch(app.DisplayName);
+                var aliases = GetAppSearchAliases(app.DisplayName, app.Publisher);
+                var targetDirs = new List<string>();
+                if (!string.IsNullOrEmpty(app.InstallLocation)) targetDirs.Add(app.InstallLocation);
+                if (app.FoundFolders != null) targetDirs.AddRange(app.FoundFolders);
+
                 foreach (var proc in Process.GetProcesses())
                 {
                     try
                     {
-                        if (proc.ProcessName.Contains(search, StringComparison.OrdinalIgnoreCase))
-                        {
-                            proc.Kill(entireProcessTree: true);
+                        string pName = proc.ProcessName;
+                        if (pName.Equals("StormSystemOptimizer", StringComparison.OrdinalIgnoreCase) ||
+                            pName.Equals("explorer", StringComparison.OrdinalIgnoreCase) ||
+                            pName.Equals("devenv", StringComparison.OrdinalIgnoreCase))
                             continue;
+
+                        bool kill = false;
+                        foreach (var a in aliases)
+                        {
+                            if (a.Length >= 3 && pName.Contains(a, StringComparison.OrdinalIgnoreCase))
+                            {
+                                kill = true;
+                                break;
+                            }
                         }
 
-                        if (!string.IsNullOrEmpty(app.InstallLocation))
+                        if (!kill && targetDirs.Count > 0)
                         {
-                            string? fn = proc.MainModule?.FileName;
-                            if (!string.IsNullOrEmpty(fn) && fn.StartsWith(app.InstallLocation, StringComparison.OrdinalIgnoreCase))
+                            string? fn = null;
+                            try { fn = proc.MainModule?.FileName; } catch { }
+                            if (!string.IsNullOrEmpty(fn) && targetDirs.Any(td => fn.StartsWith(td, StringComparison.OrdinalIgnoreCase)))
                             {
-                                proc.Kill(entireProcessTree: true);
+                                kill = true;
                             }
+                        }
+
+                        if (kill)
+                        {
+                            proc.Kill(entireProcessTree: true);
                         }
                     }
                     catch { }
@@ -995,16 +1117,28 @@ namespace StormSystemOptimizer.Services
             try
             {
                 if (!Directory.Exists(path)) return;
+
+                // 1. Terminate any locking processes
+                try
+                {
+                    FileUnlockerService.Instance.UnlockTargetAsync(path, true).GetAwaiter().GetResult();
+                }
+                catch { }
+
+                // 2. Normalise attributes
                 var di = new DirectoryInfo(path);
                 foreach (var fi in di.EnumerateFileSystemInfos("*", SearchOption.AllDirectories))
                 {
                     try { fi.Attributes = FileAttributes.Normal; } catch { }
                 }
                 di.Attributes = FileAttributes.Normal;
+
+                // 3. Try standard directory delete
                 Directory.Delete(path, true);
             }
             catch
             {
+                // 4. Fallback cmd rmdir
                 try
                 {
                     var psi = new ProcessStartInfo
@@ -1019,6 +1153,25 @@ namespace StormSystemOptimizer.Services
                     p?.WaitForExit(3000);
                 }
                 catch { }
+
+                // 5. If still exists, unlock each file and schedule MoveFileEx delay delete on reboot
+                if (Directory.Exists(path))
+                {
+                    try
+                    {
+                        var di = new DirectoryInfo(path);
+                        foreach (var fi in di.EnumerateFiles("*", SearchOption.AllDirectories))
+                        {
+                            FileUnlockerService.Instance.UnlockAndDeleteAsync(fi.FullName).GetAwaiter().GetResult();
+                        }
+                        foreach (var subDir in di.EnumerateDirectories("*", SearchOption.AllDirectories).OrderByDescending(d => d.FullName.Length))
+                        {
+                            FileUnlockerService.Instance.UnlockAndDeleteAsync(subDir.FullName).GetAwaiter().GetResult();
+                        }
+                        FileUnlockerService.Instance.UnlockAndDeleteAsync(path).GetAwaiter().GetResult();
+                    }
+                    catch { }
+                }
             }
         }
 
@@ -1026,6 +1179,22 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
+                if (fullPath.Contains(@"SYSTEM\CurrentControlSet\Services\", StringComparison.OrdinalIgnoreCase))
+                {
+                    string svcName = fullPath.Substring(fullPath.LastIndexOf('\\') + 1);
+                    try
+                    {
+                        var psiSvc = new ProcessStartInfo("cmd.exe", $"/c sc.exe stop \"{svcName}\" & sc.exe delete \"{svcName}\"")
+                        {
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        };
+                        using var pSvc = Process.Start(psiSvc);
+                        pSvc?.WaitForExit(2000);
+                    }
+                    catch { }
+                }
+
                 if (fullPath.StartsWith("HKEY_CURRENT_USER\\", StringComparison.OrdinalIgnoreCase))
                 {
                     string sub = fullPath.Substring("HKEY_CURRENT_USER\\".Length);
@@ -1324,19 +1493,46 @@ namespace StormSystemOptimizer.Services
                     "History", "INetCache", "INetCookies", "NetHood", "PrintHood", "Recent", "SendTo",
                     "Start Menu", "Templates", "Programs", "Default", "All Users", "dotnet", "Pip",
                     "npm", "NuGet", "PackageManagement", "Windows PowerShell", "PowerShell", "git",
-                    "Gemini", "antigravity", "WindowsApps", "Windows Defender", "Windows Mail", "Windows NT",
-                    "Windows Sidebar", "Windows Media Player", "Common Files", "desktop.ini", "crypto",
-                    "assembly", "Installer", "System32", "SysWOW64", "WinSxS", "Boot"
+                    "Gemini", "antigravity", "WindowsApps", "Windows Defender", "Windows Defender Advanced Threat Protection",
+                    "Windows Mail", "Windows NT", "Windows Sidebar", "Windows Media Player", "WindowsPowerShell",
+                    "Common Files", "desktop.ini", "crypto", "assembly", "Installer", "System32", "SysWOW64",
+                    "WinSxS", "Boot", "Reference Assemblies", "Microsoft.NET", "MSBuild", "Internet Explorer",
+                    "ModifiableWindowsApps", "Uninstall Information"
                 };
 
                 string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string localLow = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "AppData", "LocalLow");
                 string progData = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
                 string localPrograms = Path.Combine(localAppData, "Programs");
                 string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                 string savedGames = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Saved Games");
+                string progFiles = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+                string progFilesX86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
 
-                var candidateLocations = new[] { appData, localAppData, progData, localPrograms, userDocs, savedGames };
+                var candidateLocations = new List<string>
+                {
+                    appData, localAppData, localLow, progData, localPrograms, userDocs, savedGames, progFiles, progFilesX86
+                };
+
+                try
+                {
+                    foreach (var drive in DriveInfo.GetDrives())
+                    {
+                        if (drive.IsReady && drive.DriveType == DriveType.Fixed && !drive.RootDirectory.FullName.StartsWith("C:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            string dRoot = drive.RootDirectory.FullName;
+                            string dProg = Path.Combine(dRoot, "Program Files");
+                            string dProgX86 = Path.Combine(dRoot, "Program Files (x86)");
+                            string dGames = Path.Combine(dRoot, "Games");
+                            if (Directory.Exists(dProg)) candidateLocations.Add(dProg);
+                            if (Directory.Exists(dProgX86)) candidateLocations.Add(dProgX86);
+                            if (Directory.Exists(dGames)) candidateLocations.Add(dGames);
+                        }
+                    }
+                }
+                catch { }
+
                 var candidateFolders = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
 
                 foreach (var baseDir in candidateLocations)
