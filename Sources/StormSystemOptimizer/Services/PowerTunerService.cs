@@ -5,6 +5,20 @@ using Microsoft.Win32;
 
 namespace StormSystemOptimizer.Services
 {
+    public class PowerSchemeStatus
+    {
+        public bool IsCoreParkingDisabled { get; set; }
+        public bool IsCStatesOptimized { get; set; }
+        public bool IsEppMaxPerformance { get; set; }
+        public bool IsHeteroSchedulingActive { get; set; }
+        public bool IsPcieAspmDisabled { get; set; }
+        public bool IsProcessorBoostAggressive { get; set; }
+        public bool IsSystemResponsivenessGaming { get; set; }
+        public bool IsGpuMaxPerformance { get; set; }
+        public bool IsUsbSelectiveSuspendDisabled { get; set; }
+        public bool AreHiddenAttributesUnlocked { get; set; }
+    }
+
     public class PowerTunerService
     {
         private static PowerTunerService? _instance;
@@ -38,6 +52,171 @@ namespace StormSystemOptimizer.Services
             }
             catch { }
             return "Сбалансированная";
+        }
+
+        public PowerSchemeStatus QueryActivePowerSchemeStatus()
+        {
+            var status = new PowerSchemeStatus();
+            try
+            {
+                // 1. System Responsiveness & Gaming profile
+                try
+                {
+                    using var sp = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile");
+                    if (sp != null)
+                    {
+                        var resp = sp.GetValue("SystemResponsiveness");
+                        var net = sp.GetValue("NetworkThrottlingIndex");
+                        if (resp is int r && r == 0 && (net is int n && (n == -1 || unchecked((uint)n) == 0xFFFFFFFF)))
+                        {
+                            status.IsSystemResponsivenessGaming = true;
+                        }
+                    }
+                }
+                catch { }
+
+                // 2. GPU Max Performance & HAGS
+                try
+                {
+                    using var gfx = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\GraphicsDrivers");
+                    if (gfx != null)
+                    {
+                        var hwSch = gfx.GetValue("HwSchMode");
+                        var tdr = gfx.GetValue("TdrDelay");
+                        if (hwSch is int h && h == 2 && tdr is int t && t >= 8)
+                        {
+                            status.IsGpuMaxPerformance = true;
+                        }
+                    }
+                }
+                catch { }
+
+                // 3. Hidden Power Attributes
+                try
+                {
+                    using var attrKey1 = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Power\PowerSettings\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318583");
+                    using var attrKey2 = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Power\PowerSettings\54533251-82be-4824-96c1-47b60b740d00\5d76a269-7444-4814-a82e-eb03a2b3b6cb");
+                    if (attrKey1?.GetValue("Attributes") is int a1 && a1 == 2 && attrKey2?.GetValue("Attributes") is int a2 && a2 == 2)
+                    {
+                        status.AreHiddenAttributesUnlocked = true;
+                    }
+                }
+                catch { }
+
+                // 4. Core Parking registry check
+                try
+                {
+                    using var parkKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Power\PowerSettings\54533251-82be-4824-96c1-47b60b740d00\0cc5b647-c1df-4637-891a-dec35c318583");
+                    if (parkKey?.GetValue("ValueMax") is int v && v == 0)
+                    {
+                        status.IsCoreParkingDisabled = true;
+                    }
+                }
+                catch { }
+
+                // 5. Query active powercfg settings
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "powercfg.exe",
+                    Arguments = "/q SCHEME_CURRENT",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var p = Process.Start(psi);
+                if (p != null)
+                {
+                    string output = p.StandardOutput.ReadToEnd();
+                    p.WaitForExit(3000);
+
+                    var settingValues = ParsePowerCfgQuery(output);
+
+                    // CPMINCORES: 0cc5b647-c1df-4637-891a-dec35c318583 (100)
+                    if (settingValues.TryGetValue("0cc5b647-c1df-4637-891a-dec35c318583", out int cpVal) && cpVal == 100)
+                    {
+                        status.IsCoreParkingDisabled = true;
+                    }
+
+                    // PROCTHROTTLEMIN: 893dee8e-2bef-41e0-89c6-b55d0929964c (100)
+                    if (settingValues.TryGetValue("893dee8e-2bef-41e0-89c6-b55d0929964c", out int throttleMin) && throttleMin == 100)
+                    {
+                        status.IsCStatesOptimized = true;
+                    }
+
+                    // PERFEPP: 36687f9e-e376-4514-b166-73136440792f (0)
+                    if (settingValues.TryGetValue("36687f9e-e376-4514-b166-73136440792f", out int eppVal) && eppVal == 0)
+                    {
+                        status.IsEppMaxPerformance = true;
+                    }
+
+                    // Hetero Scheduling: 93b8b6dc-0646-4d39-92a2-076e0f9ac606 (0)
+                    if (settingValues.TryGetValue("93b8b6dc-0646-4d39-92a2-076e0f9ac606", out int heteroVal) && heteroVal == 0)
+                    {
+                        status.IsHeteroSchedulingActive = true;
+                    }
+
+                    // PCIe ASPM: 0012ee47-9041-4b5d-9b77-535fba8b1442 (0) or ee12f906-d277-404b-b6da-f5761a545605 (0)
+                    if ((settingValues.TryGetValue("0012ee47-9041-4b5d-9b77-535fba8b1442", out int aspmVal) && aspmVal == 0) ||
+                        (settingValues.TryGetValue("ee12f906-d277-404b-b6da-f5761a545605", out int aspmVal2) && aspmVal2 == 0))
+                    {
+                        status.IsPcieAspmDisabled = true;
+                    }
+
+                    // Boost Mode: be337238-0d82-4146-a960-4f3749d470c7 (2)
+                    if (settingValues.TryGetValue("be337238-0d82-4146-a960-4f3749d470c7", out int boostVal) && boostVal == 2)
+                    {
+                        status.IsProcessorBoostAggressive = true;
+                    }
+
+                    // USB Selective Suspend: 48e6b63a-08b2-4590-80d6-6637f8138009 (0)
+                    if (settingValues.TryGetValue("48e6b63a-08b2-4590-80d6-6637f8138009", out int usbVal) && usbVal == 0)
+                    {
+                        status.IsUsbSelectiveSuspendDisabled = true;
+                    }
+                }
+            }
+            catch { }
+
+            return status;
+        }
+
+        private static System.Collections.Generic.Dictionary<string, int> ParsePowerCfgQuery(string output)
+        {
+            var dict = new System.Collections.Generic.Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            if (string.IsNullOrWhiteSpace(output)) return dict;
+
+            string currentGuid = string.Empty;
+            var lines = output.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            foreach (var rawLine in lines)
+            {
+                var line = rawLine.Trim();
+                if (line.StartsWith("GUID настройки питания:", StringComparison.OrdinalIgnoreCase) ||
+                    line.StartsWith("Power Setting GUID:", StringComparison.OrdinalIgnoreCase))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(line, @"([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    if (match.Success)
+                    {
+                        currentGuid = match.Groups[1].Value.ToLowerInvariant();
+                    }
+                }
+                else if (!string.IsNullOrEmpty(currentGuid) &&
+                         (line.Contains("от сети", StringComparison.OrdinalIgnoreCase) || line.Contains("Current AC", StringComparison.OrdinalIgnoreCase)) &&
+                         line.Contains("0x", StringComparison.OrdinalIgnoreCase))
+                {
+                    int idx = line.IndexOf("0x", StringComparison.OrdinalIgnoreCase);
+                    if (idx >= 0)
+                    {
+                        string hexPart = line.Substring(idx + 2).Trim();
+                        int space = hexPart.IndexOf(' ');
+                        if (space > 0) hexPart = hexPart.Substring(0, space);
+                        if (int.TryParse(hexPart, System.Globalization.NumberStyles.HexNumber, null, out int val))
+                        {
+                            dict[currentGuid] = val;
+                        }
+                    }
+                }
+            }
+            return dict;
         }
 
         public bool IsCoreParkingDisabled()

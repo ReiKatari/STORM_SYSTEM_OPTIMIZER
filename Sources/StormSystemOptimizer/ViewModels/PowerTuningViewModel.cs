@@ -24,31 +24,58 @@ namespace StormSystemOptimizer.ViewModels
         private string _cStatesStatus = "Оптимизированы (Ультра-низкая латентность CPU)";
 
         [ObservableProperty]
+        private string _cStatesBadgeColor = "#10B981";
+
+        [ObservableProperty]
         private string _statusMessage = "Готов к тюнингу схемы электропитания и ядер CPU";
 
         [ObservableProperty]
         private string _eppStatus = "EPP: 0% (Мгновенный отклик Speed Shift / CPPC)";
 
         [ObservableProperty]
+        private string _eppBadgeColor = "#10B981";
+
+        [ObservableProperty]
         private string _heteroStatus = "Приоритет P-Cores для игр активен";
+
+        [ObservableProperty]
+        private string _heteroBadgeColor = "#10B981";
 
         [ObservableProperty]
         private string _pcieAspmStatus = "PCIe энергосбережение: Отключено (0 ms задержка GPU/SSD)";
 
         [ObservableProperty]
+        private string _pcieAspmBadgeColor = "#10B981";
+
+        [ObservableProperty]
         private string _boostStatus = "Режим Boost: Агрессивный (Максимальная частота ядер)";
+
+        [ObservableProperty]
+        private string _boostBadgeColor = "#10B981";
 
         [ObservableProperty]
         private string _systemResponsivenessStatus = "Приоритет игр: 100% CPU без системного троттлинга";
 
         [ObservableProperty]
+        private string _systemResponsivenessBadgeColor = "#10B981";
+
+        [ObservableProperty]
         private string _gpuPowerStatus = "GPU: Maximum Performance (HAGS + TDR Delay)";
+
+        [ObservableProperty]
+        private string _gpuPowerBadgeColor = "#10B981";
 
         [ObservableProperty]
         private string _usbSuspendStatus = "USB: Отключение микро-засыпания контроллеров";
 
         [ObservableProperty]
+        private string _usbSuspendBadgeColor = "#10B981";
+
+        [ObservableProperty]
         private string _hiddenAttributesStatus = "Разблокировано 40+ скрытых параметров питания";
+
+        [ObservableProperty]
+        private string _hiddenAttributesBadgeColor = "#10B981";
 
         public PowerTuningViewModel()
         {
@@ -61,8 +88,9 @@ namespace StormSystemOptimizer.ViewModels
             IsUltimateActive = ActiveSchemeName.Contains("STORM", StringComparison.OrdinalIgnoreCase) ||
                                ActiveSchemeName.Contains("Ultimate", StringComparison.OrdinalIgnoreCase);
 
-            bool isUnparked = PowerTunerService.Instance.IsCoreParkingDisabled();
-            if (isUnparked)
+            var status = PowerTunerService.Instance.QueryActivePowerSchemeStatus();
+
+            if (status.IsCoreParkingDisabled)
             {
                 CoreParkingStatus = "✓ Парковка ядер: Отключена (100% ядер активны)";
                 CoreParkingBadgeColor = "#10B981";
@@ -73,15 +101,104 @@ namespace StormSystemOptimizer.ViewModels
                 CoreParkingBadgeColor = "#F59E0B";
             }
 
-            CStatesStatus = IsUltimateActive ? "✓ C-States оптимизированы (STORM ULTIMATE PLAN)" : "○ Стандартное энергосбережение";
-            EppStatus = IsUltimateActive ? "✓ EPP: 0% (Максимальный отклик Speed Shift)" : "○ EPP: Стандартный режим";
-            HeteroStatus = IsUltimateActive ? "✓ Приоритет P-Cores для игр активен" : "○ Авто-распределение Windows";
-            PcieAspmStatus = IsUltimateActive ? "✓ PCIe ASPM: Отключено (0 ms задержка)" : "○ PCIe ASPM: Включено";
-            BoostStatus = IsUltimateActive ? "✓ Режим Boost: Агрессивный" : "○ Режим Boost: Стандартный";
-            SystemResponsivenessStatus = IsUltimateActive ? "✓ Троттлинг 0% (Multimedia Profile Gaming)" : "○ Стандартный троттлинг 20%";
-            GpuPowerStatus = IsUltimateActive ? "✓ GPU Max Performance (HAGS активирован)" : "○ Стандартный видеодрайвер";
-            UsbSuspendStatus = IsUltimateActive ? "✓ USB Suspend: Отключено (0 ms Input Lag)" : "○ USB Suspend: Стандартный";
-            HiddenAttributesStatus = "✓ 40+ скрытых параметров Powercfg разблокированы";
+            if (status.IsCStatesOptimized)
+            {
+                CStatesStatus = "✓ C-States оптимизированы (минимальная задержка)";
+                CStatesBadgeColor = "#10B981";
+            }
+            else
+            {
+                CStatesStatus = "○ Стандартное энергосбережение C-States";
+                CStatesBadgeColor = "#F59E0B";
+            }
+
+            if (status.IsEppMaxPerformance)
+            {
+                EppStatus = "✓ EPP: 0% (Максимальный отклик Speed Shift и CPPC)";
+                EppBadgeColor = "#10B981";
+            }
+            else
+            {
+                EppStatus = "○ EPP: Стандартный энергосберегающий режим";
+                EppBadgeColor = "#F59E0B";
+            }
+
+            if (status.IsHeteroSchedulingActive)
+            {
+                HeteroStatus = "✓ Приоритет P-Cores для игр активен";
+                HeteroBadgeColor = "#10B981";
+            }
+            else
+            {
+                HeteroStatus = "○ Авто-распределение Windows";
+                HeteroBadgeColor = "#F59E0B";
+            }
+
+            if (status.IsPcieAspmDisabled)
+            {
+                PcieAspmStatus = "✓ PCIe ASPM: Отключено (0 ms задержка GPU и SSD)";
+                PcieAspmBadgeColor = "#10B981";
+            }
+            else
+            {
+                PcieAspmStatus = "○ PCIe ASPM: Включено энергосбережение";
+                PcieAspmBadgeColor = "#F59E0B";
+            }
+
+            if (status.IsProcessorBoostAggressive)
+            {
+                BoostStatus = "✓ Режим Boost: Агрессивный (максимум частоты)";
+                BoostBadgeColor = "#10B981";
+            }
+            else
+            {
+                BoostStatus = "○ Режим Boost: Стандартный";
+                BoostBadgeColor = "#F59E0B";
+            }
+
+            if (status.IsSystemResponsivenessGaming)
+            {
+                SystemResponsivenessStatus = "✓ Троттлинг 0% (Multimedia Profile Gaming активен)";
+                SystemResponsivenessBadgeColor = "#10B981";
+            }
+            else
+            {
+                SystemResponsivenessStatus = "○ Стандартный троттлинг Windows 20%";
+                SystemResponsivenessBadgeColor = "#F59E0B";
+            }
+
+            if (status.IsGpuMaxPerformance)
+            {
+                GpuPowerStatus = "✓ GPU Max Performance (HAGS и TDR тайм-аут активны)";
+                GpuPowerBadgeColor = "#10B981";
+            }
+            else
+            {
+                GpuPowerStatus = "○ Стандартный видеодрайвер Windows";
+                GpuPowerBadgeColor = "#F59E0B";
+            }
+
+            if (status.IsUsbSelectiveSuspendDisabled)
+            {
+                UsbSuspendStatus = "✓ USB Suspend: Отключено (0 ms Input Lag)";
+                UsbSuspendBadgeColor = "#10B981";
+            }
+            else
+            {
+                UsbSuspendStatus = "○ USB Suspend: Стандартный микро-сон";
+                UsbSuspendBadgeColor = "#F59E0B";
+            }
+
+            if (status.AreHiddenAttributesUnlocked)
+            {
+                HiddenAttributesStatus = "✓ 40+ скрытых параметров Powercfg разблокированы";
+                HiddenAttributesBadgeColor = "#10B981";
+            }
+            else
+            {
+                HiddenAttributesStatus = "○ Скрытые параметры заблокированы в системе";
+                HiddenAttributesBadgeColor = "#F59E0B";
+            }
         }
 
         [RelayCommand]
@@ -196,7 +313,7 @@ namespace StormSystemOptimizer.ViewModels
             {
                 RefreshStatus();
                 StatusMessage = "Системный и сетевой троттлинг отключен! Приоритет игровых задач максимален.";
-                TrayService.Instance.ShowNotification("Мультимедиа & Игры 🎮", "Троттлинг CPU снят, приоритет GPU и игровых потоков установлен на максимум!");
+                TrayService.Instance.ShowNotification("Мультимедиа и игры 🎮", "Троттлинг CPU снят, приоритет GPU и игровых потоков установлен на максимум!");
             }
         }
 

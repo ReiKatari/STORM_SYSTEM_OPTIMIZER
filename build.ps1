@@ -100,7 +100,7 @@ try {
 } catch { }
 
 # Step 5: Publish & Sign Installer
-Write-Host "[5/6] Publishing and Signing Installer v$appVersion..." -ForegroundColor Yellow
+Write-Host "[5/6] Publishing and Signing Installer $appVersion..." -ForegroundColor Yellow
 $installerPublishDir = Join-Path $installerProjDir "bin\Release\net8.0-windows\win-x64\publish"
 dotnet publish "$installerProjDir\StormInstaller.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:EnableCompressionInSingleFile=true -p:UseSharedCompilation=false
 
@@ -171,7 +171,7 @@ try {
 } catch { }
 
 Write-Host "============================================================" -ForegroundColor Green
-Write-Host " RELEASE v$appVersion SUCCESSFULLY BUILT AND PACKAGED! " -ForegroundColor Green
+Write-Host " RELEASE $appVersion SUCCESSFULLY BUILT AND PACKAGED! " -ForegroundColor Green
 Write-Host "============================================================" -ForegroundColor Green
 Write-Host " 1. Portable EXE: $assemblingDir\StormSystemOptimizer.exe" -ForegroundColor Cyan
 Write-Host " 2. Installer:    $setupExePath" -ForegroundColor Cyan

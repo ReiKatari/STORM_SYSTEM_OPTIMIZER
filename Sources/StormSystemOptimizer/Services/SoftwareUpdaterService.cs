@@ -67,7 +67,7 @@ namespace StormSystemOptimizer.Services
             LoadBlacklist();
 
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/2.1.9");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "STORM-SOFTWARE-UPDATER/2.2.0");
             _httpClient.Timeout = TimeSpan.FromSeconds(20);
         }
 
@@ -267,6 +267,9 @@ namespace StormSystemOptimizer.Services
             {
                 try
                 {
+                    app.IsUpdating = true;
+                    app.UpdateProgress = 5;
+                    app.UpdateProgressText = "Подготовка...";
                     progressCallback?.Invoke($"Проверка параметров для {app.Name}...");
 
                     (string LatestVersion, string BetaVersion, string DownloadUrl, string BetaDownloadUrl, string SilentArgs, string Publisher, string Category, string? WingetId) catalogEntry = default;
@@ -290,10 +293,36 @@ namespace StormSystemOptimizer.Services
                         string ext = catalogEntry.DownloadUrl.EndsWith(".msi", StringComparison.OrdinalIgnoreCase) ? ".msi" : ".exe";
                         string installerPath = Path.Combine(tempDir, $"{SanitizeFileName(app.Name)}_update{ext}");
 
+                        app.UpdateProgress = 15;
+                        app.UpdateProgressText = "Загрузка...";
                         progressCallback?.Invoke($"Загрузка новой версии {app.Name}...");
-                        var bytes = await _httpClient.GetByteArrayAsync(catalogEntry.DownloadUrl);
-                        await File.WriteAllBytesAsync(installerPath, bytes);
 
+                        using (var response = await _httpClient.GetAsync(catalogEntry.DownloadUrl, HttpCompletionOption.ResponseHeadersRead))
+                        {
+                            response.EnsureSuccessStatusCode();
+                            long totalBytes = response.Content.Headers.ContentLength ?? -1;
+                            using var contentStream = await response.Content.ReadAsStreamAsync();
+                            using var fileStream = new FileStream(installerPath, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+
+                            byte[] buffer = new byte[8192];
+                            long totalRead = 0;
+                            int read;
+                            while ((read = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                            {
+                                await fileStream.WriteAsync(buffer, 0, read);
+                                totalRead += read;
+                                if (totalBytes > 0)
+                                {
+                                    int pct = 15 + (int)((totalRead / (double)totalBytes) * 60);
+                                    app.UpdateProgress = Math.Min(pct, 75);
+                                    app.UpdateProgressText = $"Загрузка {app.UpdateProgress}% ({FormatHelper.FormatBytes(totalRead)} из {FormatHelper.FormatBytes(totalBytes)})";
+                                    progressCallback?.Invoke(app.UpdateProgressText);
+                                }
+                            }
+                        }
+
+                        app.UpdateProgress = 80;
+                        app.UpdateProgressText = "Тихая установка в систему...";
                         progressCallback?.Invoke($"Тихая установка обновления {app.Name}...");
                         var psi = new ProcessStartInfo
                         {
@@ -307,10 +336,16 @@ namespace StormSystemOptimizer.Services
 
                         app.InstalledVersion = app.AvailableVersion;
                         app.IsUpdateAvailable = false;
+                        app.UpdateProgress = 100;
+                        app.UpdateProgressText = "Обновлено успешно ✓";
+                        await Task.Delay(1200);
+                        app.IsUpdating = false;
                         return (true, $"Программа {app.Name} успешно обновлена до версии {app.InstalledVersion}!");
                     }
                     else if (!string.IsNullOrEmpty(catalogEntry.WingetId))
                     {
+                        app.UpdateProgress = 30;
+                        app.UpdateProgressText = "Обновление через WinGet...";
                         progressCallback?.Invoke($"Обновление {app.Name} через Microsoft WinGet...");
                         var psi = new ProcessStartInfo
                         {
@@ -324,10 +359,16 @@ namespace StormSystemOptimizer.Services
 
                         app.InstalledVersion = app.AvailableVersion;
                         app.IsUpdateAvailable = false;
+                        app.UpdateProgress = 100;
+                        app.UpdateProgressText = "Обновлено успешно ✓";
+                        await Task.Delay(1200);
+                        app.IsUpdating = false;
                         return (true, $"Программа {app.Name} успешно обновлена через WinGet!");
                     }
                     else
                     {
+                        app.UpdateProgress = 30;
+                        app.UpdateProgressText = "Поиск пакета в WinGet...";
                         progressCallback?.Invoke($"Поиск пакета {app.Name} в репозитории WinGet...");
                         var psi = new ProcessStartInfo
                         {
@@ -341,11 +382,17 @@ namespace StormSystemOptimizer.Services
 
                         app.InstalledVersion = app.AvailableVersion;
                         app.IsUpdateAvailable = false;
+                        app.UpdateProgress = 100;
+                        app.UpdateProgressText = "Обновлено успешно ✓";
+                        await Task.Delay(1200);
+                        app.IsUpdating = false;
                         return (true, $"Программа {app.Name} успешно обновлена!");
                     }
                 }
                 catch (Exception ex)
                 {
+                    app.UpdateProgressText = $"Ошибка: {ex.Message}";
+                    app.IsUpdating = false;
                     return (false, $"Ошибка при обновлении {app.Name}: {ex.Message}");
                 }
             });
@@ -494,7 +541,7 @@ namespace StormSystemOptimizer.Services
                 try
                 {
                     var dir = new DirectoryInfo(installLocation);
-                    var exes = dir.GetFiles("*.exe", SearchOption.AllDirectories);
+                    var exes = dir.GetFiles("*.exe", SearchOption.TopDirectoryOnly);
                     foreach (var exe in exes)
                     {
                         if (exe.Name.Contains("unins", StringComparison.OrdinalIgnoreCase) ||
@@ -522,11 +569,13 @@ namespace StormSystemOptimizer.Services
             try
             {
                 var steamPaths = new List<string>();
-                for (char c = 'C'; c <= 'Z'; c++)
+                var drives = DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveType == DriveType.Fixed);
+                foreach (var d in drives)
                 {
-                    string p1 = $"{c}:\\Steam\\steamapps";
-                    string p2 = $"{c}:\\Program Files (x86)\\Steam\\steamapps";
-                    string p3 = $"{c}:\\SteamLibrary\\steamapps";
+                    string root = d.RootDirectory.FullName;
+                    string p1 = Path.Combine(root, "Steam", "steamapps");
+                    string p2 = Path.Combine(root, "Program Files (x86)", "Steam", "steamapps");
+                    string p3 = Path.Combine(root, "SteamLibrary", "steamapps");
                     if (Directory.Exists(p1)) steamPaths.Add(p1);
                     if (Directory.Exists(p2)) steamPaths.Add(p2);
                     if (Directory.Exists(p3)) steamPaths.Add(p3);

@@ -203,7 +203,7 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="190"/>
                                         <ColumnDefinition Width="190"/>
-                                        <ColumnDefinition Width="130"/>
+                                        <ColumnDefinition Width="150"/>
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Device Name & Provider -->
@@ -224,28 +224,69 @@
                                         <TextBlock Text="Сертификация WHQL" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                                     </StackPanel>
 
-                                    <!-- Action Button or Locked Actual Badge -->
+                                    <!-- Action Button or Active Progress or Locked Actual Badge -->
                                     <StackPanel Grid.Column="3" VerticalAlignment="Center">
-                                        <!-- When Update Available -->
-                                        <Button Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolToVisConverter}}"
-                                                Command="{Binding DataContext.UpdateDriverCommand, RelativeSource={RelativeSource AncestorType=Page}}"
+                                        <!-- Active Installation Progress -->
+                                        <Border Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVisConverter}}"
+                                                Background="{DynamicResource AppBackgroundBrush}"
+                                                BorderBrush="{DynamicResource AccentPrimaryBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="8,6">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,3">
+                                                    <TextBlock Text="{Binding UpdateProgressText}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding UpdateProgress, StringFormat='{}{0}%'}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <ProgressBar Value="{Binding UpdateProgress}" Maximum="100" Height="4" Foreground="{DynamicResource AccentPrimaryBrush}" Background="{DynamicResource CardBackgroundBrush}" BorderThickness="0"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- When Update Available (and not updating) -->
+                                        <Button Command="{Binding DataContext.UpdateDriverCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                 CommandParameter="{Binding}"
-                                                Style="{StaticResource StormHeroButton}"
                                                 Padding="14,8">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource StormHeroButton}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <MultiDataTrigger>
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition Binding="{Binding IsUpdateAvailable}" Value="True"/>
+                                                                <Condition Binding="{Binding IsUpdating}" Value="False"/>
+                                                            </MultiDataTrigger.Conditions>
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </MultiDataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <Path Data="{StaticResource GeoAppUpdate}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0"/>
                                                 <TextBlock Text="Обновить" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                                             </StackPanel>
                                         </Button>
 
-                                        <!-- When Driver is Up to Date -->
-                                        <Border Visibility="{Binding IsUpdateAvailable, Converter={StaticResource InverseBoolToVisConverter}}"
-                                                Background="#2610B981"
+                                        <!-- When Driver is Up to Date (and not updating) -->
+                                        <Border Background="#2610B981"
                                                 BorderBrush="#10B981"
                                                 BorderThickness="1"
                                                 CornerRadius="8"
                                                 Padding="14,8"
                                                 ToolTip="Установлен актуальный сертифицированный драйвер WHQL">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <MultiDataTrigger>
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition Binding="{Binding IsUpdateAvailable}" Value="False"/>
+                                                                <Condition Binding="{Binding IsUpdating}" Value="False"/>
+                                                            </MultiDataTrigger.Conditions>
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </MultiDataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                                                 <Path Data="{StaticResource GeoCheck}" Fill="#10B981" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center"/>
                                                 <TextBlock Text="Актуален" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" VerticalAlignment="Center"/>

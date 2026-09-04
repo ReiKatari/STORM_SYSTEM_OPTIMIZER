@@ -21,7 +21,7 @@ namespace StormUniversal.Installer
         private Button btnCancel = null!;
         private CyberHeaderPanel headerPanel = null!;
 
-        private const string AppVersion = "2.1.9";
+        private const string AppVersion = "2.2.0";
         private const string AppDisplayName = "STORM SYSTEM OPTIMIZER";
         private const string AppFolderName = "STORM SYSTEM OPTIMIZER";
         private const string ExeName = "StormSystemOptimizer.exe";

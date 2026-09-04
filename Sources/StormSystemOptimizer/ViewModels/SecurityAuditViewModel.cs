@@ -30,6 +30,9 @@ namespace StormSystemOptimizer.ViewModels
         private double _shredProgress = 0;
 
         [ObservableProperty]
+        private bool _isShredding = false;
+
+        [ObservableProperty]
         private ShredAlgorithm _selectedAlgorithm = ShredAlgorithm.DoD5220;
 
         [ObservableProperty]
@@ -231,6 +234,7 @@ namespace StormSystemOptimizer.ViewModels
             if (res != MessageBoxResult.Yes) return;
 
             IsBusy = true;
+            IsShredding = true;
             ShredProgress = 0;
             StatusMessage = "Уничтожение файла методом многопроходной перезаписи...";
 
@@ -246,6 +250,7 @@ namespace StormSystemOptimizer.ViewModels
                 StatusMessage = ok ? "✅ Файл успешно и безвозвратно уничтожен!" : "Ошибка при уничтожении файла";
                 if (ok) ShredFilePath = string.Empty;
                 IsBusy = false;
+                IsShredding = false;
             });
         }
 
@@ -273,6 +278,7 @@ namespace StormSystemOptimizer.ViewModels
             if (res != MessageBoxResult.Yes) return;
 
             IsBusy = true;
+            IsShredding = true;
             ShredProgress = 0;
             StatusMessage = "Рекурсивное многопроходное уничтожение файлов в папке...";
 
@@ -288,6 +294,7 @@ namespace StormSystemOptimizer.ViewModels
                 StatusMessage = ok ? "✅ Папка и все вложенные файлы успешно уничтожены!" : "Ошибка при уничтожении папки";
                 if (ok) ShredFolderPath = string.Empty;
                 IsBusy = false;
+                IsShredding = false;
             });
         }
 
@@ -303,6 +310,7 @@ namespace StormSystemOptimizer.ViewModels
             if (res != MessageBoxResult.Yes) return;
 
             IsBusy = true;
+            IsShredding = true;
             ShredProgress = 0;
             StatusMessage = $"Затирание неразмеченного свободного пространства на диске {SelectedDrive}...";
 
@@ -317,6 +325,7 @@ namespace StormSystemOptimizer.ViewModels
             {
                 StatusMessage = ok ? $"✅ Свободное пространство на диске {SelectedDrive} успешно очищено!" : "Ошибка очистки свободного места";
                 IsBusy = false;
+                IsShredding = false;
             });
         }
     }
