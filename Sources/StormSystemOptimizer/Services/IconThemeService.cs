@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Win32;
 
@@ -22,7 +24,7 @@ namespace StormSystemOptimizer.Services
         private string _author = "STORM SOFT";
 
         [ObservableProperty]
-        private string _format = "Shell-пак";
+        private string _format = "Shell-пак (.ICO)";
 
         [ObservableProperty]
         private string _category = "Киберпанк";
@@ -34,22 +36,16 @@ namespace StormSystemOptimizer.Services
         private int _iconCount = 320;
 
         [ObservableProperty]
-        private double _rating = 4.9;
-
-        [ObservableProperty]
-        private int _downloadsCount = 85000;
-
-        [ObservableProperty]
-        private string _previewGeometryKey = "GeoApps";
+        private string _previewGeometryKey = "GeoFolder";
 
         [ObservableProperty]
         private string _accentColor = "#00D2FF";
 
         [ObservableProperty]
-        private string _compatibilityBadge = "Win 10/11";
+        private string _compatibilityBadge = "Windows 10 / 11 64-bit";
 
         [ObservableProperty]
-        private string _statusBadge = "Официальный пак";
+        private string _statusBadge = "Официальный стиль STORM SOFT";
 
         [ObservableProperty]
         private bool _isApplied = false;
@@ -67,7 +63,7 @@ namespace StormSystemOptimizer.Services
         private string _targetSystemName = string.Empty;
 
         [ObservableProperty]
-        private string _geometryKey = "GeoApps";
+        private string _geometryKey = "GeoFolder";
 
         [ObservableProperty]
         private bool _isSelected = true;
@@ -143,196 +139,229 @@ namespace StormSystemOptimizer.Services
             {
                 new() {
                     Title = "STORM Cyber Glow",
-                    Description = "Фирменный неоновый пак STORM SOFT для Windows 10 и 11. Включает 320 векторных значков дисков, папок, системных узлов и приложений с поддержкой выборочного применения.",
+                    Description = "Фирменный неоновый пак STORM SOFT для Windows 10 и 11. Включает векторные значки папок, дисков, компьютера и корзины в неоново-бирюзовой гамме.",
                     Author = "STORM SOFT",
-                    Format = "Векторный Shell-пак",
+                    Format = "Векторный Shell-пак (.ICO)",
                     Category = "STORM Dark",
-                    PreviewGeometryKey = "GeoApps",
+                    PreviewGeometryKey = "GeoFolder",
                     AccentColor = "#00D2FF",
                     IconCount = 320,
-                    Rating = 5.0,
-                    DownloadsCount = 142500,
-                    CompatibilityBadge = "Win 10/11 (100% совместимо)",
-                    StatusBadge = "Официальный пак STORM SOFT",
+                    CompatibilityBadge = "Windows 10 / 11 64-bit",
+                    StatusBadge = "Официальный стиль STORM SOFT",
                     IsApplied = isCustomApplied && activeTheme.Contains("STORM Cyber Glow")
                 },
                 new() {
                     Title = "Windows 11 Fluent Dark",
-                    Description = "Современный глубокий тёмный стиль Windows 11 с акриловыми градиентами папок, системных библиотек, накопителей и служебных утилит.",
+                    Description = "Современный глубокий тёмный стиль Windows 11 с акриловыми синими градиентами папок, системных библиотек, накопителей и служебных утилит.",
                     Author = "Fluent Team",
-                    Format = "Shell-пак",
+                    Format = "Fluent Shell-пак (.ICO)",
                     Category = "Fluent Design",
                     PreviewGeometryKey = "GeoExplorer",
                     AccentColor = "#38BDF8",
                     IconCount = 240,
-                    Rating = 4.9,
-                    DownloadsCount = 98400,
-                    CompatibilityBadge = "Win 10/11",
-                    StatusBadge = "Проверенный пак ✓",
+                    CompatibilityBadge = "Windows 10 / 11 64-bit",
+                    StatusBadge = "Акриловый стиль Fluent",
                     IsApplied = isCustomApplied && activeTheme.Contains("Fluent")
                 },
                 new() {
                     Title = "Cyberpunk Neon City 2077",
-                    Description = "Футуристический набор значков в стилистике Найт-Сити с яркими неоновыми контурами, кибер-папками и голографическими дисками.",
+                    Description = "Футуристический набор значков в стилистике Найт-Сити с яркими золотисто-жёлтыми контурами, кибер-папками и голографическими дисками.",
                     Author = "NightCity Modders",
-                    Format = "7tsp / ICO",
+                    Format = "Cyberpunk Shell-пак (.ICO)",
                     Category = "Киберпанк",
                     PreviewGeometryKey = "GeoGamepad",
-                    AccentColor = "#FF007F",
+                    AccentColor = "#FACC15",
                     IconCount = 180,
-                    Rating = 4.9,
-                    DownloadsCount = 86100,
-                    CompatibilityBadge = "Win 10/11",
-                    StatusBadge = "Популярный мод ✓",
+                    CompatibilityBadge = "Windows 10 / 11 64-bit",
+                    StatusBadge = "Неоновый кибер-стиль",
                     IsApplied = isCustomApplied && activeTheme.Contains("Cyberpunk")
                 },
                 new() {
                     Title = "Minimalist Monochrome Pro",
-                    Description = "Строгий матовый монохромный набор значков в сланцево-титановых тонах для максимальной концентрации и визуальной чистоты интерфейса.",
-                    Author = "Studio Minimal",
-                    Format = "Векторный пак",
+                    Description = "Строгий ультраминималистичный набор значков в платиново-серебристых тонах. Идеален для чистых тёмных рабочих столов без отвлекающих цветов.",
+                    Author = "DesignStudio Lab",
+                    Format = "Monochrome Shell-пак (.ICO)",
                     Category = "Минимализм",
-                    PreviewGeometryKey = "GeoMonitor",
-                    AccentColor = "#94A3B8",
-                    IconCount = 200,
-                    Rating = 4.8,
-                    DownloadsCount = 64200,
-                    CompatibilityBadge = "Все версии Windows",
-                    StatusBadge = "Премиум пак ✓",
-                    IsApplied = isCustomApplied && activeTheme.Contains("Minimalist")
+                    PreviewGeometryKey = "GeoComponent",
+                    AccentColor = "#E2E8F0",
+                    IconCount = 150,
+                    CompatibilityBadge = "Windows 10 / 11 64-bit",
+                    StatusBadge = "Платиновый минимализм",
+                    IsApplied = isCustomApplied && activeTheme.Contains("Monochrome")
                 },
                 new() {
                     Title = "macOS Tahoe Dark Glass",
-                    Description = "Премиальные стеклянные скругленные значки в стиле темного режима macOS со сглаженными тенями и глубоким микро-контрастом.",
-                    Author = "Cupertino Lab",
-                    Format = "Shell-пак",
-                    Category = "macOS Style",
+                    Description = "Элегантный темный стекломорфизм с аметистовыми акцентами, мягкими закруглениями и глубокими тенями в стиле современных интерфейсов Apple.",
+                    Author = "Cupertino Dark Team",
+                    Format = "Glass Shell-пак (.ICO)",
+                    Category = "Стекломорфизм",
                     PreviewGeometryKey = "GeoVisual",
                     AccentColor = "#A855F7",
-                    IconCount = 220,
-                    Rating = 4.9,
-                    DownloadsCount = 112000,
-                    CompatibilityBadge = "Win 10/11",
-                    StatusBadge = "Выбор пользователей ✓",
+                    IconCount = 210,
+                    CompatibilityBadge = "Windows 10 / 11 64-bit",
+                    StatusBadge = "Аметистовое стекло",
                     IsApplied = isCustomApplied && activeTheme.Contains("macOS")
                 },
                 new() {
                     Title = "Стандартные значки Windows (Default)",
-                    Description = "Оригинальные заводские значки Microsoft Windows (Shell32 / Imageres). Полный сброс любых пользовательских модификаций реестра и возврат стандартного вида Проводника.",
-                    Author = "Microsoft Windows",
-                    Format = "Системные библиотеки",
+                    Description = "Оригинальные заводские значки проводника, дисков, папок и корзины Microsoft Windows 10/11. Полный сброс всех пользовательских модификаций реестра.",
+                    Author = "Microsoft Corporation",
+                    Format = "Оригинальные библиотеки Windows",
                     Category = "По умолчанию",
-                    PreviewGeometryKey = "GeoSystemTools",
-                    AccentColor = "#10B981",
+                    PreviewGeometryKey = "GeoDevice",
+                    AccentColor = "#94A3B8",
                     IconCount = 0,
-                    Rating = 5.0,
-                    DownloadsCount = 350000,
                     CompatibilityBadge = "Все версии Windows",
-                    StatusBadge = "Заводской вид системы",
-                    IsApplied = !isCustomApplied
+                    StatusBadge = "Заводской вид Windows",
+                    IsApplied = !isCustomApplied || activeTheme.Contains("Default") || activeTheme.Contains("Стандартные")
                 }
             };
-
-            try
-            {
-                if (Directory.Exists(_iconsDir))
-                {
-                    foreach (var dir in Directory.GetDirectories(_iconsDir))
-                    {
-                        string dirName = Path.GetFileName(dir);
-                        if (dirName.Equals("STORM_Cyber_Glow", StringComparison.OrdinalIgnoreCase)) continue;
-
-                        var icoFiles = Directory.GetFiles(dir, "*.ico", SearchOption.AllDirectories);
-                        if (icoFiles.Length > 0)
-                        {
-                            themes.Add(new IconThemeItem
-                            {
-                                Title = dirName,
-                                Description = $"Установленный пользовательский пакет значков из каталога {dirName}.",
-                                Author = "Пользователь",
-                                Format = "ICO папка",
-                                Category = "Пользовательский",
-                                PreviewUrl = icoFiles[0],
-                                IconCount = icoFiles.Length,
-                                CompatibilityBadge = "Локальный пак",
-                                StatusBadge = "Установлен пользователем",
-                                IsApplied = false
-                            });
-                        }
-                    }
-                }
-            }
-            catch { }
 
             return themes;
         }
 
-        public async Task<bool> RebuildIconCacheAsync()
+        public async Task<bool> ApplyCuratedThemeAsync(string themeTitle)
         {
             return await Task.Run(() =>
             {
                 try
                 {
-                    // 1. Kill explorer
-                    foreach (var p in Process.GetProcessesByName("explorer"))
+                    if (themeTitle.Contains("Default") || themeTitle.Contains("Стандартные"))
                     {
-                        try { p.Kill(); p.WaitForExit(1500); } catch { }
+                        return ResetSystemIconsToDefault();
                     }
 
-                    // 2. Delete IconCache.db in %LOCALAPPDATA%
-                    string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                    string legacyCache = Path.Combine(localAppData, "IconCache.db");
-                    if (File.Exists(legacyCache))
+                    string safeName = string.Join("_", themeTitle.Split(Path.GetInvalidFileNameChars())).Replace(" ", "_");
+                    string themeDir = Path.Combine(_iconsDir, safeName);
+                    if (!Directory.Exists(themeDir))
                     {
-                        try { File.Delete(legacyCache); } catch { }
+                        Directory.CreateDirectory(themeDir);
                     }
 
-                    // 3. Delete modern icon and thumb caches
-                    string explorerCacheDir = Path.Combine(localAppData, "Microsoft", "Windows", "Explorer");
-                    if (Directory.Exists(explorerCacheDir))
-                    {
-                        var files = Directory.GetFiles(explorerCacheDir, "iconcache*.db")
-                            .Concat(Directory.GetFiles(explorerCacheDir, "thumbcache*.db"));
+                    // Generate distinct icons for each system element
+                    string folderIco = Path.Combine(themeDir, "folder.ico");
+                    string folderOpenIco = Path.Combine(themeDir, "folder_open.ico");
+                    string pcIco = Path.Combine(themeDir, "thispc.ico");
+                    string trashEmptyIco = Path.Combine(themeDir, "trash_empty.ico");
+                    string trashFullIco = Path.Combine(themeDir, "trash_full.ico");
+                    string userIco = Path.Combine(themeDir, "user.ico");
+                    string netIco = Path.Combine(themeDir, "network.ico");
+                    string driveIco = Path.Combine(themeDir, "drive.ico");
 
-                        foreach (var f in files)
-                        {
-                            try { File.Delete(f); } catch { }
-                        }
-                    }
+                    IconGenerator.SaveGeometryKeyToIcoFile("GeoFolder", folderIco, themeTitle);
+                    IconGenerator.SaveGeometryKeyToIcoFile("GeoFolderOpen", folderOpenIco, themeTitle);
+                    IconGenerator.SaveGeometryKeyToIcoFile("GeoThisPC", pcIco, themeTitle);
+                    IconGenerator.SaveGeometryKeyToIcoFile("GeoRecycleBinEmpty", trashEmptyIco, themeTitle);
+                    IconGenerator.SaveGeometryKeyToIcoFile("GeoRecycleBinFull", trashFullIco, themeTitle);
+                    IconGenerator.SaveGeometryKeyToIcoFile("GeoUserProfile", userIco, themeTitle);
+                    IconGenerator.SaveGeometryKeyToIcoFile("GeoNetwork", netIco, themeTitle);
+                    IconGenerator.SaveGeometryKeyToIcoFile("GeoLocalDrive", driveIco, themeTitle);
 
-                    // 4. Run ie4uinit.exe -show
-                    try
-                    {
-                        var psi = new ProcessStartInfo
-                        {
-                            FileName = "ie4uinit.exe",
-                            Arguments = "-show",
-                            UseShellExecute = false,
-                            CreateNoWindow = true
-                        };
-                        using var proc = Process.Start(psi);
-                        proc?.WaitForExit(2000);
-                    }
-                    catch { }
+                    // Apply to Shell Icons (3 = folder closed, 4 = folder open, 9 = drive)
+                    SetShellIcon("3", folderIco);
+                    SetShellIcon("4", folderOpenIco);
+                    SetShellIcon("9", driveIco);
 
-                    // 5. Restart Explorer
-                    Process.Start("explorer.exe");
+                    // Apply to CLSID desktop icons
+                    SetClsidDefaultIcon(@"{20D04FE0-3AEA-1069-A2D8-08002B30309D}", pcIco);
+                    SetClsidDefaultIconValue(@"{645FF040-5081-101B-9F08-00AA002F954E}", "empty", trashEmptyIco);
+                    SetClsidDefaultIconValue(@"{645FF040-5081-101B-9F08-00AA002F954E}", "full", trashFullIco);
+                    SetClsidDefaultIcon(@"{59031a47-0728-4441-b571-3115503794b1}", userIco);
+                    SetClsidDefaultIcon(@"{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}", netIco);
 
-                    // 6. Notify Shell
+                    SetActiveThemeName(themeTitle);
                     NativeMethods.SHChangeNotify(NativeMethods.SHCNE_ASSOCCHANGED, NativeMethods.SHCNF_FLUSH, IntPtr.Zero, IntPtr.Zero);
-
                     return true;
                 }
                 catch
                 {
-                    // Always ensure explorer is running
-                    if (Process.GetProcessesByName("explorer").Length == 0)
-                    {
-                        try { Process.Start("explorer.exe"); } catch { }
-                    }
                     return false;
                 }
             });
+        }
+
+        public bool ApplyIconToFolder(string folderPath, string geometryKey, string themeName, string? customAccentHex = null)
+        {
+            try
+            {
+                if (!Directory.Exists(folderPath)) return false;
+
+                string icoPath = Path.Combine(folderPath, "custom_folder_icon.ico");
+                if (File.Exists(icoPath))
+                {
+                    try { File.SetAttributes(icoPath, FileAttributes.Normal); } catch { }
+                }
+
+                IconGenerator.SaveGeometryKeyToIcoFile(geometryKey, icoPath, themeName, customAccentHex);
+                try { File.SetAttributes(icoPath, FileAttributes.Hidden | FileAttributes.System); } catch { }
+
+                string iniPath = Path.Combine(folderPath, "desktop.ini");
+                if (File.Exists(iniPath))
+                {
+                    try { File.SetAttributes(iniPath, FileAttributes.Normal); } catch { }
+                }
+
+                string iniContent = "[.ShellClassInfo]\r\nIconResource=custom_folder_icon.ico,0\r\n[ViewState]\r\nMode=\r\nVid=\r\nFolderType=Generic\r\n";
+                File.WriteAllText(iniPath, iniContent, System.Text.Encoding.Default);
+                try { File.SetAttributes(iniPath, FileAttributes.Hidden | FileAttributes.System); } catch { }
+
+                // Windows Explorer requires ReadOnly on folder to read desktop.ini
+                var folderAttr = File.GetAttributes(folderPath);
+                File.SetAttributes(folderPath, folderAttr | FileAttributes.ReadOnly);
+
+                NativeMethods.SHChangeNotify(NativeMethods.SHCNE_ASSOCCHANGED, NativeMethods.SHCNF_FLUSH, IntPtr.Zero, IntPtr.Zero);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool ApplyIconToShortcut(string shortcutPath, string geometryKey, string themeName, string? customAccentHex = null)
+        {
+            try
+            {
+                if (!File.Exists(shortcutPath) || !shortcutPath.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase)) return false;
+
+                string shortcutIconsDir = Path.Combine(_iconsDir, "ShortcutIcons");
+                if (!Directory.Exists(shortcutIconsDir)) Directory.CreateDirectory(shortcutIconsDir);
+
+                string icoPath = Path.Combine(shortcutIconsDir, $"sc_{Math.Abs(shortcutPath.GetHashCode())}_{geometryKey}.ico");
+                IconGenerator.SaveGeometryKeyToIcoFile(geometryKey, icoPath, themeName, customAccentHex);
+
+                Type? shellType = Type.GetTypeFromProgID("WScript.Shell");
+                if (shellType != null)
+                {
+                    dynamic? shell = Activator.CreateInstance(shellType);
+                    if (shell != null)
+                    {
+                        dynamic shortcut = shell.CreateShortcut(shortcutPath);
+                        shortcut.IconLocation = $"{icoPath},0";
+                        shortcut.Save();
+                        NativeMethods.SHChangeNotify(NativeMethods.SHCNE_ASSOCCHANGED, NativeMethods.SHCNF_FLUSH, IntPtr.Zero, IntPtr.Zero);
+                        return true;
+                    }
+                }
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public bool ExportIconToFile(string outputPath, string geometryKey, string themeName, string? customAccentHex = null)
+        {
+            try
+            {
+                IconGenerator.SaveGeometryKeyToIcoFile(geometryKey, outputPath, themeName, customAccentHex);
+                return File.Exists(outputPath);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public bool SetSystemIcon(string target, string iconPath)
@@ -344,24 +373,34 @@ namespace StormSystemOptimizer.Services
                 switch (target)
                 {
                     case "ThisPC":
+                    case "Этот компьютер":
                         SetClsidDefaultIcon(@"{20D04FE0-3AEA-1069-A2D8-08002B30309D}", iconPath);
                         break;
                     case "RecycleBinEmpty":
+                    case "Корзина (пустая)":
                         SetClsidDefaultIconValue(@"{645FF040-5081-101B-9F08-00AA002F954E}", "empty", iconPath);
                         break;
                     case "RecycleBinFull":
+                    case "Корзина (полная)":
                         SetClsidDefaultIconValue(@"{645FF040-5081-101B-9F08-00AA002F954E}", "full", iconPath);
                         break;
                     case "UserFolder":
+                    case "Папка пользователя":
                         SetClsidDefaultIcon(@"{59031a47-0728-4441-b571-3115503794b1}", iconPath);
                         break;
                     case "Network":
+                    case "Сеть":
                         SetClsidDefaultIcon(@"{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}", iconPath);
                         break;
                     case "Folders":
+                    case "Папки":
+                    case "Системная папка":
                         SetShellIcon("3", iconPath);
+                        SetShellIcon("4", iconPath);
                         break;
                     case "Drives":
+                    case "Диски":
+                    case "Локальный диск":
                         SetShellIcon("9", iconPath);
                         break;
                 }
@@ -379,27 +418,40 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                // Delete Shell Icons subkey in HKLM and HKCU (64-bit view)
                 try
                 {
                     using var hklm64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
-                    hklm64.DeleteSubKeyTree(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons", false);
+                    using var key = hklm64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons", true);
+                    if (key != null)
+                    {
+                        foreach (var val in key.GetValueNames())
+                        {
+                            try { key.DeleteValue(val); } catch { }
+                        }
+                    }
                 }
                 catch { }
 
                 try
                 {
                     using var hkcu64 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-                    hkcu64.DeleteSubKeyTree(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons", false);
+                    using var key = hkcu64.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons", true);
+                    if (key != null)
+                    {
+                        foreach (var val in key.GetValueNames())
+                        {
+                            try { key.DeleteValue(val); } catch { }
+                        }
+                    }
                 }
                 catch { }
 
-                // Reset CLSIDs
                 ResetClsidDefaultIcon(@"{20D04FE0-3AEA-1069-A2D8-08002B30309D}");
                 ResetClsidDefaultIcon(@"{645FF040-5081-101B-9F08-00AA002F954E}");
                 ResetClsidDefaultIcon(@"{59031a47-0728-4441-b571-3115503794b1}");
                 ResetClsidDefaultIcon(@"{F02C1A0D-BE21-4350-88B0-7367FC96EF3C}");
 
+                SetActiveThemeName("Стандартные значки Windows (Default)");
                 NativeMethods.SHChangeNotify(NativeMethods.SHCNE_ASSOCCHANGED, NativeMethods.SHCNF_FLUSH, IntPtr.Zero, IntPtr.Zero);
                 return true;
             }
@@ -409,24 +461,69 @@ namespace StormSystemOptimizer.Services
             }
         }
 
+        public async Task<bool> RebuildIconCacheAsync()
+        {
+            return await Task.Run(() =>
+            {
+                try
+                {
+                    foreach (var proc in Process.GetProcessesByName("explorer"))
+                    {
+                        try { proc.Kill(); proc.WaitForExit(2000); } catch { }
+                    }
+
+                    string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    string iconCacheDb = Path.Combine(localAppData, "IconCache.db");
+                    if (File.Exists(iconCacheDb))
+                    {
+                        try { File.Delete(iconCacheDb); } catch { }
+                    }
+
+                    string expCacheDir = Path.Combine(localAppData, "Microsoft", "Windows", "Explorer");
+                    if (Directory.Exists(expCacheDir))
+                    {
+                        foreach (var f in Directory.GetFiles(expCacheDir, "iconcache_*.db"))
+                        {
+                            try { File.Delete(f); } catch { }
+                        }
+                        foreach (var f in Directory.GetFiles(expCacheDir, "thumbcache_*.db"))
+                        {
+                            try { File.Delete(f); } catch { }
+                        }
+                    }
+
+                    try { Process.Start("explorer.exe"); } catch { }
+                    NativeMethods.SHChangeNotify(NativeMethods.SHCNE_ASSOCCHANGED, NativeMethods.SHCNF_FLUSH, IntPtr.Zero, IntPtr.Zero);
+                    return true;
+                }
+                catch
+                {
+                    if (Process.GetProcessesByName("explorer").Length == 0)
+                    {
+                        try { Process.Start("explorer.exe"); } catch { }
+                    }
+                    return false;
+                }
+            });
+        }
+
         private static void SetClsidDefaultIcon(string clsid, string iconPath)
         {
             try
             {
-                using var hkcu64 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-                using var key = hkcu64.CreateSubKey($@"Software\Classes\CLSID\{clsid}\DefaultIcon");
+                using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\CLSID\{clsid}\DefaultIcon");
                 key?.SetValue("", $"{iconPath},0");
             }
             catch { }
         }
 
-        private static void SetClsidDefaultIconValue(string clsid, string valName, string iconPath)
+        private static void SetClsidDefaultIconValue(string clsid, string valueName, string iconPath)
         {
             try
             {
-                using var hkcu64 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-                using var key = hkcu64.CreateSubKey($@"Software\Classes\CLSID\{clsid}\DefaultIcon");
-                key?.SetValue(valName, $"{iconPath},0");
+                using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\CLSID\{clsid}\DefaultIcon");
+                key?.SetValue(valueName, $"{iconPath},0");
+                key?.SetValue("", $"{iconPath},0");
             }
             catch { }
         }
@@ -435,8 +532,7 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
-                using var hkcu64 = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry64);
-                hkcu64.DeleteSubKeyTree($@"Software\Classes\CLSID\{clsid}\DefaultIcon", false);
+                Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\CLSID\{clsid}\DefaultIcon", false);
             }
             catch { }
         }
@@ -486,7 +582,6 @@ namespace StormSystemOptimizer.Services
                         }
                         catch
                         {
-                            // If zip fails (e.g. 7z format), try copying raw file
                             File.Copy(packageFilePath, Path.Combine(destDir, Path.GetFileName(packageFilePath)), true);
                         }
                     }
@@ -495,11 +590,9 @@ namespace StormSystemOptimizer.Services
                         File.Copy(packageFilePath, Path.Combine(destDir, Path.GetFileName(packageFilePath)), true);
                     }
 
-                    // Look for icons inside extracted tree and map best matches
                     var icoFiles = Directory.GetFiles(destDir, "*.ico", SearchOption.AllDirectories);
                     if (icoFiles.Length > 0)
                     {
-                        // Match folder, drive, recycle, pc
                         var folderIco = icoFiles.FirstOrDefault(f => f.Contains("folder", StringComparison.OrdinalIgnoreCase)) ?? icoFiles[0];
                         var pcIco = icoFiles.FirstOrDefault(f => f.Contains("computer", StringComparison.OrdinalIgnoreCase) || f.Contains("thispc", StringComparison.OrdinalIgnoreCase)) ?? icoFiles[0];
                         var trashIco = icoFiles.FirstOrDefault(f => f.Contains("trash", StringComparison.OrdinalIgnoreCase) || f.Contains("recycle", StringComparison.OrdinalIgnoreCase)) ?? icoFiles[0];
@@ -528,21 +621,21 @@ namespace StormSystemOptimizer.Services
                 "Этот компьютер", "Корзина (пустая)", "Корзина (полная)", "Папка пользователя", "Сеть",
                 "Панель управления", "Параметры Windows", "Диспетчер задач", "Службы Windows", "Редактор реестра",
                 "Командная строка", "PowerShell", "Терминал Windows", "Защитник Windows", "Центр обновления",
-                "Брандмауэр Windows", "Управление дисками", "Диспетчер устройств", "Сведения о системе", "Планировщик заданий",
-                "Монитор ресурсов", "Управление компьютером", "Групповые политики", "Очистка диска", "Дефрагментация",
-                "Восстановление системы", "Электропитание", "Параметры звука", "Параметры экрана", "Bluetooth устройства",
-                "Wi-Fi адаптер", "Сетевые подключения", "Шрифты системы", "Мышь и сенсор", "Клавиатура",
-                "Регион и язык", "Дата и время", "Учетные записи", "Автозагрузка", "Буфер обмена"
+                "Диспетчер устройств", "Управление дисками", "Просмотр событий", "Планировщик заданий", "Монитор ресурсов",
+                "Очистка диска", "Дефрагментация", "Свойства системы", "Сетевые подключения", "Брандмауэр",
+                "Электропитание", "Шрифты системы", "Звуковые устройства", "Клавиатура и мышь", "Специальные возможности",
+                "Архивация и восстановление", "Точка восстановления", "Конфигурация системы", "Сведения о системе", "Диагностика памяти",
+                "Редактор локальной политики", "Управление печатью", "Общие папки", "Локальные пользователи", "Среда восстановления"
             };
             string[] sysGeos = {
-                "GeoMonitor", "GeoClean", "GeoClean", "GeoExplorer", "GeoNetwork",
-                "GeoSettings", "GeoSettings", "GeoTask", "GeoServices", "GeoKey",
-                "GeoTerminal", "GeoTerminal", "GeoTerminal", "GeoDefender", "GeoUpdate",
-                "GeoFirewall", "GeoDisks", "GeoDevice", "GeoSystemInfo", "GeoTimer",
-                "GeoBenchmarks", "GeoSystemTools", "GeoShield", "GeoClean", "GeoDisks",
-                "GeoShield", "GeoPower", "GeoAudio", "GeoMonitor", "GeoUsb",
-                "GeoNetwork", "GeoNetwork", "GeoComponent", "GeoDevice", "GeoDevice",
-                "GeoSettings", "GeoTimer", "GeoShield", "GeoStartup", "GeoCopy"
+                "GeoThisPC", "GeoRecycleBinEmpty", "GeoRecycleBinFull", "GeoUserProfile", "GeoNetwork",
+                "GeoSettings", "GeoSettings", "GeoProcesses", "GeoServices", "GeoKey",
+                "GeoTerminal", "GeoTerminal", "GeoTerminal", "GeoShield", "GeoUpdate",
+                "GeoDevice", "GeoDisks", "GeoLog", "GeoTask", "GeoSpeedTest",
+                "GeoClean", "GeoDisks", "GeoSystemInfo", "GeoNetwork", "GeoFirewall",
+                "GeoPower", "GeoComponent", "GeoAudio", "GeoDevice", "GeoVisual",
+                "GeoStartup", "GeoShield", "GeoSettings", "GeoSystemInfo", "GeoRam",
+                "GeoKey", "GeoDevice", "GeoFolder", "GeoUserProfile", "GeoBios"
             };
             for (int i = 0; i < sysIcons.Length; i++)
             {
@@ -557,24 +650,24 @@ namespace StormSystemOptimizer.Services
 
             // 2. Папки и Диски (40)
             string[] folderIcons = {
-                "Системная папка", "Рабочий стол", "Загрузки", "Документы", "Музыка",
-                "Видео", "Изображения", "Облачное хранилище", "Локальный диск C:", "Локальный диск D:",
-                "Локальный диск E:", "Локальный диск F:", "SSD накопитель", "NVMe M.2 накопитель", "USB флеш-накопитель",
-                "Внешний жесткий диск", "Сетевой диск", "CD/DVD привод", "Виртуальный RAM диск", "Зашифрованный том",
-                "Архивная папка", "Общая сетевая папка", "Избранное", "Недавние папки", "Временные файлы",
-                "Системная папка Windows", "Папка Program Files", "Папка ProgramData", "Папка AppData", "Корзина диска",
-                "Резервные копии", "Папка проектов", "Папка скриптов", "Папка логов", "Папка кэша",
-                "Скрытая папка", "Защищенная папка", "Медиатека", "Фотоальбом", "Папка шаблонов"
+                "Системная папка", "Открытая папка", "Документы", "Загрузки", "Изображения",
+                "Музыка", "Видео", "Рабочий стол", "Избранное", "Облако OneDrive",
+                "Облако Яндекс Диск", "Облако Google Drive", "Локальный диск C:", "Локальный диск D:", "Локальный диск E:",
+                "Локальный диск F:", "Съемный USB накопитель", "Внешний жесткий диск", "Оптический привод DVD/BD", "Сетевой накопитель NAS",
+                "Папка Игры", "Папка Программы", "Папка Проекты", "Папка Архив", "Папка Временные файлы",
+                "Папка Безопасность", "Папка Мультимедиа", "Папка Исходный код", "Папка Базы данных", "Папка Скрипты",
+                "Папка Шрифты", "Папка Кэш", "Папка Бэкапы", "Папка Загрузки браузера", "Папка Скриншоты",
+                "Папка Записи видео", "Папка Документы работы", "Папка Личное", "Папка Шаблоны", "Папка Корзина проекта"
             };
             string[] folderGeos = {
-                "GeoExplorer", "GeoMonitor", "GeoAppUpdate", "GeoLog", "GeoAudio",
-                "GeoVisual", "GeoBrush", "GeoNetwork", "GeoDisks", "GeoDisks",
-                "GeoDisks", "GeoDisks", "GeoDisks", "GeoLightning", "GeoUsb",
-                "GeoDisks", "GeoNetwork", "GeoDisks", "GeoRam", "GeoLock",
-                "GeoExplorer", "GeoNetwork", "GeoStar", "GeoTimer", "GeoClean",
-                "GeoExplorer", "GeoApps", "GeoExplorer", "GeoExplorer", "GeoClean",
-                "GeoShield", "GeoTerminal", "GeoTerminal", "GeoLog", "GeoClean",
-                "GeoEyeOff", "GeoFolderLock", "GeoVisual", "GeoBrush", "GeoComponent"
+                "GeoFolder", "GeoFolderOpen", "GeoOffice", "GeoAppUpdate", "GeoBrush",
+                "GeoAudio", "GeoVisual", "GeoMonitor", "GeoStar", "GeoNetwork",
+                "GeoNetwork", "GeoNetwork", "GeoLocalDrive", "GeoLocalDrive", "GeoLocalDrive",
+                "GeoLocalDrive", "GeoUsb", "GeoDisks", "GeoDisks", "GeoNetwork",
+                "GeoGamepad", "GeoApps", "GeoTerminal", "GeoFolderLock", "GeoClean",
+                "GeoShield", "GeoAudio", "GeoTerminal", "GeoDatabase", "GeoTerminal",
+                "GeoComponent", "GeoClean", "GeoShield", "GeoBrowser", "GeoBrush",
+                "GeoVisual", "GeoOffice", "GeoUserProfile", "GeoCopy", "GeoRecycleBinEmpty"
             };
             for (int i = 0; i < folderIcons.Length; i++)
             {
@@ -582,31 +675,31 @@ namespace StormSystemOptimizer.Services
                     Name = folderIcons[i],
                     Category = "Папки и Диски",
                     GeometryKey = folderGeos[i % folderGeos.Length],
-                    TargetSystemName = $"FolderDisk_{i+1}",
+                    TargetSystemName = $"Folder_{i+1}",
                     IsSelected = true
                 });
             }
 
             // 3. Браузеры (40)
             string[] browserIcons = {
-                "Google Chrome", "Mozilla Firefox", "Microsoft Edge", "Opera GX", "Brave Browser",
-                "Vivaldi", "Tor Browser", "Yandex Browser", "Chromium", "Safari",
-                "Waterfox", "LibreWolf", "DuckDuckGo", "Pale Moon", "Midori",
-                "Arc Browser", "Maxthon", "Sidekick", "Zen Browser", "Thorium",
-                "Floorp", "Baidu Browser", "SeaMonkey", "Sleipnir", "Iridium",
-                "SRWare Iron", "Ungoogled Chromium", "Falkon", "Otter Browser", "NetSurf",
-                "Avast Secure Browser", "CCleaner Browser", "Epic Privacy Browser", "Ghostery Dawn", "Mullvad Browser",
-                "Min Browser", "Konqueror", "qutebrowser", "Nyxt Browser", "Lynx Browser"
+                "Google Chrome", "Mozilla Firefox", "Microsoft Edge", "Yandex Browser", "Opera One",
+                "Opera GX Gaming", "Brave Browser", "Vivaldi", "Tor Browser", "Chromium",
+                "Waterfox", "LibreWolf", "Pale Moon", "Midori", "Falkon",
+                "Maxthon", "Sidekick", "Arc Browser", "DuckDuckGo Browser", "Epic Privacy Browser",
+                "Avast Secure Browser", "CCleaner Browser", "Sleipnir", "Ghostery Dawn", "Ungoogled Chromium",
+                "Floorp", "Mullvad Browser", "Thorium", "Zen Browser", "Orion Browser",
+                "SeaMonkey", "Comodo Dragon", "SRWare Iron", "Cent Browser", "Slimjet",
+                "Iridium Browser", "Otter Browser", "Puffin Secure", "Bonsai Browser", "Min Minimal Browser"
             };
             string[] browserGeos = {
-                "GeoBrowser", "GeoLightning", "GeoBrowser", "GeoGameBoost", "GeoShield",
-                "GeoVisual", "GeoEyeOff", "GeoRocket", "GeoComponent", "GeoRadar",
-                "GeoSpeedTest", "GeoPrivacy", "GeoSecurityAudit", "GeoStar", "GeoClean",
-                "GeoBrush", "GeoRocket", "GeoTask", "GeoMonitor", "GeoCpu",
-                "GeoSpeedTest", "GeoNetwork", "GeoAudio", "GeoLightning", "GeoShield",
-                "GeoLock", "GeoTerminal", "GeoRadar", "GeoVisual", "GeoLog",
-                "GeoShield", "GeoClean", "GeoEyeOff", "GeoPrivacy", "GeoLock",
-                "GeoSpeedTest", "GeoNetwork", "GeoTerminal", "GeoComponent", "GeoTerminal"
+                "GeoBrowser", "GeoFirewall", "GeoNetwork", "GeoRocket", "GeoSpeedTest",
+                "GeoGamepad", "GeoShield", "GeoVisual", "GeoKey", "GeoBrowser",
+                "GeoSpeedTest", "GeoShield", "GeoStar", "GeoComponent", "GeoRadar",
+                "GeoRocket", "GeoApps", "GeoVisual", "GeoShield", "GeoPrivacy",
+                "GeoShield", "GeoClean", "GeoBrowser", "GeoPrivacy", "GeoBrowser",
+                "GeoRocket", "GeoShield", "GeoLightning", "GeoVisual", "GeoStar",
+                "GeoNetwork", "GeoShield", "GeoComponent", "GeoSpeedTest", "GeoRocket",
+                "GeoPrivacy", "GeoBrowser", "GeoShield", "GeoApps", "GeoComponent"
             };
             for (int i = 0; i < browserIcons.Length; i++)
             {
@@ -638,7 +731,7 @@ namespace StormSystemOptimizer.Services
                 "GeoMonitor", "GeoGame", "GeoLaunchers", "GeoRocket", "GeoGameBoost",
                 "GeoDevice", "GeoGpu", "GeoComponent", "GeoSpeedTest", "GeoShield",
                 "GeoLightning", "GeoStar", "GeoFirewall", "GeoRadar", "GeoVisual",
-                "GeoComponent", "GeoSpeedTest", "GeoFirewall", "GeoGameBoost", "GeoPower"
+                "GeoComponent", "GeoSpeedTest", "GeoFirewall", "GeoGameBoost", "GeoSkull"
             };
             for (int i = 0; i < gameIcons.Length; i++)
             {
@@ -732,7 +825,7 @@ namespace StormSystemOptimizer.Services
                 "GeoDisks", "GeoSpeedTest", "GeoUsb", "GeoClean", "GeoSearch",
                 "GeoLog", "GeoSystemInfo", "GeoStartup", "GeoTask", "GeoRadar",
                 "GeoDisks", "GeoDisks", "GeoUninstaller", "GeoGarbage", "GeoBenchmarks",
-                "GeoFirewall", "GeoCpu", "GeoBenchmarks", "GeoRam", "GeoDisk",
+                "GeoFirewall", "GeoCpu", "GeoBenchmarks", "GeoRam", "GeoDisks",
                 "GeoCpu", "GeoSpeedTest", "GeoFan", "GeoCopy", "GeoVisual",
                 "GeoVisual", "GeoKey", "GeoShield", "GeoNetwork", "GeoMonitor"
             };
@@ -780,50 +873,6 @@ namespace StormSystemOptimizer.Services
             }
 
             return list;
-        }
-
-        public async Task<bool> ApplySelectedCyberGlowIconsAsync(IEnumerable<StormIconEntry> selectedIcons)
-        {
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    string stormDir = Path.Combine(_iconsDir, "STORM_Cyber_Glow");
-                    if (!Directory.Exists(stormDir)) Directory.CreateDirectory(stormDir);
-
-                    string stormIcoPath = Path.Combine(stormDir, "storm_cyber_glow.ico");
-                    string baseAppIcon = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Assets", "AppIcon.ico");
-                    if (!File.Exists(baseAppIcon))
-                    {
-                        baseAppIcon = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AppIcon.ico");
-                    }
-
-                    if (File.Exists(baseAppIcon))
-                    {
-                        try { File.Copy(baseAppIcon, stormIcoPath, true); } catch { }
-                    }
-
-                    string targetIcon = File.Exists(stormIcoPath) ? stormIcoPath : baseAppIcon;
-
-                    foreach (var icon in selectedIcons)
-                    {
-                        if (icon.Name == "Этот компьютер") SetSystemIcon("ThisPC", targetIcon);
-                        else if (icon.Name == "Корзина (пустая)") SetSystemIcon("RecycleBinEmpty", targetIcon);
-                        else if (icon.Name == "Корзина (полная)") SetSystemIcon("RecycleBinFull", targetIcon);
-                        else if (icon.Name == "Папка пользователя") SetSystemIcon("UserFolder", targetIcon);
-                        else if (icon.Name == "Сеть") SetSystemIcon("Network", targetIcon);
-                        else if (icon.Name == "Системная папка") SetSystemIcon("Folders", targetIcon);
-                        else if (icon.Name.StartsWith("Локальный диск")) SetSystemIcon("Drives", targetIcon);
-                    }
-
-                    NativeMethods.SHChangeNotify(NativeMethods.SHCNE_ASSOCCHANGED, NativeMethods.SHCNF_FLUSH, IntPtr.Zero, IntPtr.Zero);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            });
         }
     }
 }

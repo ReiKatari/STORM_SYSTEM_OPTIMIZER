@@ -1,7 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
@@ -28,6 +30,12 @@ namespace StormSystemOptimizer.ViewModels
 
         [ObservableProperty]
         private bool _isCatalogPreviewOpen = false;
+
+        [ObservableProperty]
+        private bool _isIconDetailOpen = false;
+
+        [ObservableProperty]
+        private StormIconEntry? _selectedIconDetail;
 
         [ObservableProperty]
         private string _selectedCatalogCategory = "Все";
@@ -121,7 +129,7 @@ namespace StormSystemOptimizer.ViewModels
 
         private void UpdateSelectedCount()
         {
-            SelectedCount = System.Linq.Enumerable.Count(CatalogIcons, i => i.IsSelected);
+            SelectedCount = CatalogIcons.Count(i => i.IsSelected);
         }
 
         [RelayCommand]
@@ -137,9 +145,156 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
+        public void OpenIconActionDialog(StormIconEntry? icon)
+        {
+            if (icon == null) return;
+            SelectedIconDetail = icon;
+            IsIconDetailOpen = true;
+        }
+
+        [RelayCommand]
+        public void CloseIconActionDialog()
+        {
+            IsIconDetailOpen = false;
+        }
+
+        [RelayCommand]
+        public async Task ApplyDetailIconToFolderAsync()
+        {
+            if (SelectedIconDetail == null) return;
+
+            var dlg = new OpenFolderDialog
+            {
+                Title = $"Выберите папку для применения значка «{SelectedIconDetail.Name}»"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                string folder = dlg.FolderName;
+                string activeTheme = IconThemeService.Instance.GetActiveThemeName();
+                bool ok = IconThemeService.Instance.ApplyIconToFolder(folder, SelectedIconDetail.GeometryKey, activeTheme);
+                if (ok)
+                {
+                    StatusMessage = $"Значок «{SelectedIconDetail.Name}» успешно применен к папке «{Path.GetFileName(folder)}»!";
+                    TrayService.Instance.ShowNotification("Значки системы 📁", StatusMessage);
+                    IsIconDetailOpen = false;
+                }
+                else
+                {
+                    StatusMessage = "Не удалось применить значок к папке.";
+                }
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplyDetailIconToShortcutAsync()
+        {
+            if (SelectedIconDetail == null) return;
+
+            var dlg = new OpenFileDialog
+            {
+                Title = $"Выберите ярлык (.lnk) для применения значка «{SelectedIconDetail.Name}»",
+                Filter = "Ярлыки Windows (*.lnk)|*.lnk"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                string shortcut = dlg.FileName;
+                string activeTheme = IconThemeService.Instance.GetActiveThemeName();
+                bool ok = IconThemeService.Instance.ApplyIconToShortcut(shortcut, SelectedIconDetail.GeometryKey, activeTheme);
+                if (ok)
+                {
+                    StatusMessage = $"Значок «{SelectedIconDetail.Name}» успешно применен к ярлыку «{Path.GetFileName(shortcut)}»!";
+                    TrayService.Instance.ShowNotification("Значки системы 🔗", StatusMessage);
+                    IsIconDetailOpen = false;
+                }
+                else
+                {
+                    StatusMessage = "Не удалось обновить значок ярлыка.";
+                }
+            }
+        }
+
+        [RelayCommand]
+        public async Task ApplyDetailIconAsSystemAsync(string target)
+        {
+            if (SelectedIconDetail == null) return;
+
+            string activeTheme = IconThemeService.Instance.GetActiveThemeName();
+            string customAssignedDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "StormSystemOptimizer", "IconThemes", "CustomAssigned");
+            if (!Directory.Exists(customAssignedDir)) Directory.CreateDirectory(customAssignedDir);
+
+            string tempIco = Path.Combine(customAssignedDir, $"{SelectedIconDetail.GeometryKey}.ico");
+            IconThemeService.Instance.ExportIconToFile(tempIco, SelectedIconDetail.GeometryKey, activeTheme);
+
+            bool ok = IconThemeService.Instance.SetSystemIcon(target, tempIco);
+            if (ok)
+            {
+                await IconThemeService.Instance.RebuildIconCacheAsync();
+                RefreshAppliedThemeStatus();
+                StatusMessage = $"Значок «{SelectedIconDetail.Name}» успешно назначен для «{target}»!";
+                TrayService.Instance.ShowNotification("Значки системы 💻", StatusMessage);
+                IsIconDetailOpen = false;
+            }
+            else
+            {
+                StatusMessage = "Не удалось назначить системный значок.";
+            }
+        }
+
+        [RelayCommand]
+        public void ExportDetailIconAsIco()
+        {
+            if (SelectedIconDetail == null) return;
+
+            var dlg = new SaveFileDialog
+            {
+                Title = $"Экспортировать значок «{SelectedIconDetail.Name}»",
+                Filter = "Значки Windows (*.ico)|*.ico",
+                FileName = $"{SelectedIconDetail.Name.Replace(" ", "_")}.ico"
+            };
+
+            if (dlg.ShowDialog() == true)
+            {
+                string activeTheme = IconThemeService.Instance.GetActiveThemeName();
+                bool ok = IconThemeService.Instance.ExportIconToFile(dlg.FileName, SelectedIconDetail.GeometryKey, activeTheme);
+                if (ok)
+                {
+                    StatusMessage = $"Файл значка успешно сохранен: {dlg.FileName}";
+                    TrayService.Instance.ShowNotification("Экспорт значка 💾", StatusMessage);
+                    IsIconDetailOpen = false;
+                }
+            }
+        }
+
+        [RelayCommand]
+        public void CopyDetailIconToClipboard()
+        {
+            if (SelectedIconDetail == null) return;
+
+            try
+            {
+                string activeTheme = IconThemeService.Instance.GetActiveThemeName();
+                var geo = IconGenerator.GetGeometryFromKey(SelectedIconDetail.GeometryKey);
+                if (geo != null)
+                {
+                    var rtb = IconGenerator.RenderIconFrame(geo, 256, activeTheme);
+                    Clipboard.SetImage(rtb);
+                    StatusMessage = $"Изображение значка «{SelectedIconDetail.Name}» (256×256 PNG) скопировано в буфер обмена!";
+                    TrayService.Instance.ShowNotification("Буфер обмена 📋", StatusMessage);
+                }
+            }
+            catch
+            {
+                StatusMessage = "Не удалось скопировать значок в буфер обмена.";
+            }
+        }
+
+        [RelayCommand]
         public void SelectAllCatalogIcons(object? parameter)
         {
-            bool select = parameter is bool b ? b : (parameter?.ToString() == "True" || parameter?.ToString() == "true");
+            bool select = parameter is bool b ? b : (parameter is string s && bool.TryParse(s, out var parsed) && parsed);
             foreach (var icon in FilteredCatalogIcons)
             {
                 icon.IsSelected = select;
@@ -162,14 +317,16 @@ namespace StormSystemOptimizer.ViewModels
         private void ApplyCatalogFilter()
         {
             FilteredCatalogIcons.Clear();
-            string search = CatalogSearchText?.Trim() ?? string.Empty;
+            string search = CatalogSearchText?.Trim().ToLowerInvariant() ?? string.Empty;
 
             foreach (var icon in CatalogIcons)
             {
-                bool matchesCat = SelectedCatalogCategory == "Все" || icon.Category.Equals(SelectedCatalogCategory, StringComparison.OrdinalIgnoreCase);
-                bool matchesSearch = string.IsNullOrEmpty(search) || icon.Name.Contains(search, StringComparison.OrdinalIgnoreCase) || icon.Category.Contains(search, StringComparison.OrdinalIgnoreCase);
+                bool matchesCategory = SelectedCatalogCategory == "Все" || icon.Category == SelectedCatalogCategory;
+                bool matchesSearch = string.IsNullOrEmpty(search) ||
+                                     icon.Name.ToLowerInvariant().Contains(search) ||
+                                     icon.Category.ToLowerInvariant().Contains(search);
 
-                if (matchesCat && matchesSearch)
+                if (matchesCategory && matchesSearch)
                 {
                     FilteredCatalogIcons.Add(icon);
                 }
@@ -177,79 +334,42 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
-        public async Task ApplySelectedIconsAsync()
+        public async Task ApplySelectedCatalogIconsAsync()
         {
-            var selected = System.Linq.Enumerable.ToList(System.Linq.Enumerable.Where(CatalogIcons, i => i.IsSelected));
+            var selected = CatalogIcons.Where(i => i.IsSelected).ToList();
             if (selected.Count == 0)
             {
-                StatusMessage = "Не выбрано ни одного значка для применения!";
+                StatusMessage = "Выберите хотя бы один значок для применения.";
                 return;
             }
 
             IsBusy = true;
-            StatusMessage = $"Применение {selected.Count} выбранных значков STORM Cyber Glow...";
-            bool ok = await IconThemeService.Instance.ApplySelectedCyberGlowIconsAsync(selected);
+            StatusMessage = $"Генерация и применение {selected.Count} значков в систему...";
+
+            string activeTheme = IconThemeService.Instance.GetActiveThemeName();
+            bool ok = await IconThemeService.Instance.ApplyCuratedThemeAsync(activeTheme);
             if (ok)
             {
                 await IconThemeService.Instance.RebuildIconCacheAsync();
                 RefreshAppliedThemeStatus();
-                StatusMessage = $"Успешно применено {selected.Count} значков из пака STORM Cyber Glow!";
-                TrayService.Instance.ShowNotification("Значки STORM Cyber Glow ⚡", StatusMessage);
-                IsCatalogPreviewOpen = false;
+                StatusMessage = $"Успешно применены {selected.Count} значков в стиле «{activeTheme}»!";
+                TrayService.Instance.ShowNotification("Каталог значков 🎨", StatusMessage);
             }
             else
             {
-                StatusMessage = "Ошибка при установке значков.";
+                StatusMessage = "Не удалось применить значки.";
             }
+
             IsBusy = false;
         }
 
         [RelayCommand]
-        public async Task RebuildIconCacheAsync()
-        {
-            IsBusy = true;
-            StatusMessage = "Очистка кэша значков IconCache.db и перезапуск Проводника...";
-            bool ok = await IconThemeService.Instance.RebuildIconCacheAsync();
-            IsBusy = false;
-            if (ok)
-            {
-                RefreshAppliedThemeStatus();
-                StatusMessage = "Кэш значков Windows успешно очищен и перестроен!";
-                TrayService.Instance.ShowNotification("Кэш значков ⚡", StatusMessage);
-            }
-            else
-            {
-                StatusMessage = "Произошла ошибка при перестройке кэша значков.";
-            }
-        }
-
-        [RelayCommand]
-        public async Task ResetIconsToDefaultAsync()
-        {
-            IsBusy = true;
-            StatusMessage = "Восстановление стандартных системных значков Windows...";
-            bool ok = IconThemeService.Instance.ResetSystemIconsToDefault();
-            if (ok)
-            {
-                await IconThemeService.Instance.RebuildIconCacheAsync();
-                RefreshAppliedThemeStatus();
-                StatusMessage = "Все системные значки успешно сброшены до стандартных!";
-                TrayService.Instance.ShowNotification("Значки системы", StatusMessage);
-            }
-            else
-            {
-                StatusMessage = "Не удалось сбросить значки. Требуются права администратора.";
-            }
-            IsBusy = false;
-        }
-
-        [RelayCommand]
-        public void BrowseIconPackage()
+        public void BrowseCustomPackage()
         {
             var dlg = new OpenFileDialog
             {
-                Title = "Выберите пакет значков",
-                Filter = "Пакеты значков (*.iconpack;*.ip;*.7tsp;*.zip;*.ico)|*.iconpack;*.ip;*.7tsp;*.zip;*.ico|Все файлы (*.*)|*.*"
+                Title = "Выберите архив с пакетом значков",
+                Filter = "Пакеты значков (*.zip;*.iconpack;*.ip;*.7tsp;*.ico)|*.zip;*.iconpack;*.ip;*.7tsp;*.ico|Все файлы (*.*)|*.*"
             };
 
             if (dlg.ShowDialog() == true)
@@ -259,24 +379,28 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
-        public async Task InstallPackageAsync()
+        public async Task InstallCustomPackageAsync()
         {
-            if (string.IsNullOrWhiteSpace(CustomPackagePath)) return;
+            if (string.IsNullOrWhiteSpace(CustomPackagePath) || !File.Exists(CustomPackagePath)) return;
 
             IsBusy = true;
-            StatusMessage = "Распаковка и установка пакета значков...";
+            StatusMessage = "Установка стороннего пакета значков...";
+
             bool ok = await IconThemeService.Instance.InstallIconPackageArchiveAsync(CustomPackagePath);
             if (ok)
             {
+                string themeName = Path.GetFileNameWithoutExtension(CustomPackagePath);
+                IconThemeService.Instance.SetActiveThemeName(themeName);
                 await IconThemeService.Instance.RebuildIconCacheAsync();
                 LoadThemes();
-                StatusMessage = "Пакет значков успешно установлен и применен!";
-                TrayService.Instance.ShowNotification("Темы значков 🎨", StatusMessage);
+                StatusMessage = $"Сторонний пакет «{themeName}» успешно установлен!";
+                TrayService.Instance.ShowNotification("Пакет значков", StatusMessage);
             }
             else
             {
-                StatusMessage = "Не удалось применить пакет значков. Проверьте формат архива.";
+                StatusMessage = "Ошибка при распаковке и установке пакета значков.";
             }
+
             IsBusy = false;
         }
 
@@ -285,8 +409,8 @@ namespace StormSystemOptimizer.ViewModels
         {
             var dlg = new OpenFileDialog
             {
-                Title = "Выберите значок",
-                Filter = "Значки (*.ico;*.png)|*.ico;*.png|Все файлы (*.*)|*.*"
+                Title = "Выберите файл значка (.ico или .png)",
+                Filter = "Файлы значков (*.ico;*.png)|*.ico;*.png|Все файлы (*.*)|*.*"
             };
 
             if (dlg.ShowDialog() == true)
@@ -296,9 +420,9 @@ namespace StormSystemOptimizer.ViewModels
         }
 
         [RelayCommand]
-        public async Task ApplyCustomIconAsync()
+        public void ApplyCustomSingleIcon()
         {
-            if (string.IsNullOrWhiteSpace(CustomIconFilePath)) return;
+            if (string.IsNullOrWhiteSpace(CustomIconFilePath) || !File.Exists(CustomIconFilePath)) return;
 
             string targetKey = SelectedCustomTarget switch
             {
@@ -312,11 +436,9 @@ namespace StormSystemOptimizer.ViewModels
                 _ => "Folders"
             };
 
-            StatusMessage = $"Применение значка для элемента «{SelectedCustomTarget}»...";
             bool ok = IconThemeService.Instance.SetSystemIcon(targetKey, CustomIconFilePath);
             if (ok)
             {
-                await IconThemeService.Instance.RebuildIconCacheAsync();
                 RefreshAppliedThemeStatus();
                 StatusMessage = $"Значок для «{SelectedCustomTarget}» успешно обновлен!";
                 TrayService.Instance.ShowNotification("Значки системы", StatusMessage);
@@ -333,76 +455,20 @@ namespace StormSystemOptimizer.ViewModels
             if (item == null) return;
             IsBusy = true;
 
-            if (item.Title.Contains("STORM Cyber Glow"))
+            StatusMessage = $"Применение темы значков «{item.Title}»...";
+            bool ok = await IconThemeService.Instance.ApplyCuratedThemeAsync(item.Title);
+            if (ok)
             {
-                StatusMessage = "Применение системной темы значков STORM Cyber Glow...";
-                bool ok = await IconThemeService.Instance.ApplySelectedCyberGlowIconsAsync(CatalogIcons);
-                if (ok)
-                {
-                    IconThemeService.Instance.SetActiveThemeName(item.Title);
-                    await IconThemeService.Instance.RebuildIconCacheAsync();
-                    RefreshAppliedThemeStatus();
-                    StatusMessage = "Тема значков STORM Cyber Glow успешно активирована в системе!";
-                    TrayService.Instance.ShowNotification("Значки системы ⚡", StatusMessage);
-                }
-                else
-                {
-                    StatusMessage = "Не удалось применить тему STORM Cyber Glow.";
-                }
-            }
-            else if (item.Title.Contains("Стандартные") || item.Title.Contains("Default") || item.Title.Contains("Windows"))
-            {
-                StatusMessage = "Восстановление стандартных системных значков Windows...";
-                bool ok = IconThemeService.Instance.ResetSystemIconsToDefault();
-                if (ok)
-                {
-                    IconThemeService.Instance.SetActiveThemeName(item.Title);
-                    await IconThemeService.Instance.RebuildIconCacheAsync();
-                    RefreshAppliedThemeStatus();
-                    StatusMessage = "Все системные значки успешно возвращены к стандарту Windows!";
-                    TrayService.Instance.ShowNotification("Значки системы", StatusMessage);
-                }
-                else
-                {
-                    StatusMessage = "Не удалось восстановить стандартные значки. Требуются права администратора.";
-                }
+                await IconThemeService.Instance.RebuildIconCacheAsync();
+                RefreshAppliedThemeStatus();
+                StatusMessage = item.Title.Contains("Default") || item.Title.Contains("Стандартные")
+                    ? "Все системные значки успешно возвращены к стандарту Windows!"
+                    : $"Тема значков «{item.Title}» успешно активирована в системе!";
+                TrayService.Instance.ShowNotification("Значки системы ⚡", StatusMessage);
             }
             else
             {
-                if (!string.IsNullOrEmpty(item.PreviewUrl) && File.Exists(item.PreviewUrl))
-                {
-                    StatusMessage = $"Активация пользовательской темы «{item.Title}»...";
-                    bool ok = await IconThemeService.Instance.InstallIconPackageArchiveAsync(item.PreviewUrl);
-                    if (ok)
-                    {
-                        IconThemeService.Instance.SetActiveThemeName(item.Title);
-                        await IconThemeService.Instance.RebuildIconCacheAsync();
-                        RefreshAppliedThemeStatus();
-                        StatusMessage = $"Пользовательская тема «{item.Title}» успешно активирована!";
-                        TrayService.Instance.ShowNotification("Темы значков", StatusMessage);
-                    }
-                    else
-                    {
-                        StatusMessage = "Не удалось применить пользовательскую тему.";
-                    }
-                }
-                else
-                {
-                    StatusMessage = $"Применение темы значков «{item.Title}»...";
-                    bool ok = await IconThemeService.Instance.ApplySelectedCyberGlowIconsAsync(CatalogIcons);
-                    if (ok)
-                    {
-                        IconThemeService.Instance.SetActiveThemeName(item.Title);
-                        await IconThemeService.Instance.RebuildIconCacheAsync();
-                        RefreshAppliedThemeStatus();
-                        StatusMessage = $"Тема значков «{item.Title}» успешно активирована в системе!";
-                        TrayService.Instance.ShowNotification("Значки системы 🎨", StatusMessage);
-                    }
-                    else
-                    {
-                        StatusMessage = $"Не удалось применить тему «{item.Title}».";
-                    }
-                }
+                StatusMessage = $"Не удалось применить тему «{item.Title}». Проверьте права администратора.";
             }
 
             IsBusy = false;
