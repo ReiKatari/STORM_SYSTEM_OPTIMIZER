@@ -75,6 +75,186 @@ namespace StormSystemOptimizer.Services
 
         private void ScanScheduledTasks(List<ScheduledTaskItem> list)
         {
+            bool comSucceeded = false;
+            try
+            {
+                Type? schedulerType = Type.GetTypeFromProgID("Schedule.Service");
+                if (schedulerType != null)
+                {
+                    dynamic scheduler = Activator.CreateInstance(schedulerType)!;
+                    scheduler.Connect();
+                    dynamic rootFolder = scheduler.GetFolder(@"\");
+                    EnumerateComFolder(rootFolder, list);
+                    if (list.Count > 0)
+                    {
+                        comSucceeded = true;
+                    }
+                }
+            }
+            catch
+            {
+                comSucceeded = false;
+            }
+
+            if (!comSucceeded)
+            {
+                ScanViaPowerShell(list);
+            }
+
+            if (list.Count == 0)
+            {
+                ScanViaSchtasksCsv(list);
+            }
+        }
+
+        private void EnumerateComFolder(dynamic folder, List<ScheduledTaskItem> list)
+        {
+            try
+            {
+                dynamic tasks = folder.GetTasks(0);
+                foreach (dynamic task in tasks)
+                {
+                    try
+                    {
+                        string taskPath = (string)task.Path;
+                        string taskName = (string)task.Name;
+                        bool isEnabled = (bool)task.Enabled;
+
+                        dynamic def = task.Definition;
+                        string author = "";
+                        try { author = (string)def.RegistrationInfo.Author ?? ""; } catch { }
+
+                        string actionsStr = "";
+                        try
+                        {
+                            dynamic actions = def.Actions;
+                            foreach (dynamic act in actions)
+                            {
+                                try
+                                {
+                                    if (act.Type == 0) // ExecAction
+                                    {
+                                        string p = (string)act.Path ?? "";
+                                        string a = (string)act.Arguments ?? "";
+                                        string combined = string.IsNullOrWhiteSpace(a) ? p : $"{p} {a}";
+                                        if (string.IsNullOrEmpty(actionsStr))
+                                            actionsStr = combined;
+                                        else
+                                            actionsStr += $"; {combined}";
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                        catch { }
+
+                        string triggersStr = "";
+                        try
+                        {
+                            dynamic triggers = def.Triggers;
+                            if (triggers.Count > 0)
+                            {
+                                triggersStr = "По расписанию / событию";
+                            }
+                        }
+                        catch { }
+
+                        // Filter benign system tasks unless suspicious
+                        if (taskPath.StartsWith(@"\Microsoft\Windows\", StringComparison.OrdinalIgnoreCase) && !IsPathSuspicious(actionsStr))
+                        {
+                            continue;
+                        }
+
+                        var risk = AnalyzeTaskRisk(taskPath, actionsStr, author, out string reason);
+
+                        list.Add(new ScheduledTaskItem
+                        {
+                            TaskName = string.IsNullOrEmpty(taskName) ? taskPath : taskName,
+                            TaskPath = taskPath,
+                            Author = string.IsNullOrWhiteSpace(author) ? "Система" : author,
+                            Trigger = string.IsNullOrWhiteSpace(triggersStr) ? "По расписанию" : triggersStr,
+                            ActionCommand = actionsStr,
+                            State = isEnabled ? "Включена" : "Отключена",
+                            IsEnabled = isEnabled,
+                            IsWmi = false,
+                            RiskLevel = risk,
+                            RiskReason = reason
+                        });
+                    }
+                    catch { }
+                }
+
+                dynamic subfolders = folder.GetFolders(0);
+                foreach (dynamic subfolder in subfolders)
+                {
+                    try
+                    {
+                        EnumerateComFolder(subfolder, list);
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+        }
+
+        private void ScanViaPowerShell(List<ScheduledTaskItem> list)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = "-NoProfile -ExecutionPolicy Bypass -Command \"Get-ScheduledTask | Where-Object { $_.TaskPath -notlike '\\Microsoft\\Windows*' } | Select-Object TaskPath, TaskName, State, @{n='Author';e={$_.Author}}, @{n='Action';e={$_.Actions.Execute + ' ' + $_.Actions.Arguments}} | ConvertTo-Json -Compress\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    StandardOutputEncoding = System.Text.Encoding.UTF8
+                };
+                using var p = Process.Start(psi);
+                if (p == null) return;
+                string json = p.StandardOutput.ReadToEnd();
+                p.WaitForExit(10000);
+
+                if (string.IsNullOrWhiteSpace(json)) return;
+
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var elements = doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array
+                    ? doc.RootElement.EnumerateArray().ToList()
+                    : new List<System.Text.Json.JsonElement> { doc.RootElement };
+
+                foreach (var el in elements)
+                {
+                    string name = el.TryGetProperty("TaskName", out var n) ? n.GetString() ?? "" : "";
+                    string path = el.TryGetProperty("TaskPath", out var pt) ? pt.GetString() ?? "" : "";
+                    string state = el.TryGetProperty("State", out var st) ? st.GetString() ?? "" : "Ready";
+                    string author = el.TryGetProperty("Author", out var au) ? au.GetString() ?? "" : "";
+                    string action = el.TryGetProperty("Action", out var ac) ? ac.GetString() ?? "" : "";
+
+                    string fullPath = (path.TrimEnd('\\') + "\\" + name).TrimStart('\\');
+                    bool isEnabled = !state.Equals("Disabled", StringComparison.OrdinalIgnoreCase);
+
+                    var risk = AnalyzeTaskRisk(fullPath, action, author, out string reason);
+
+                    list.Add(new ScheduledTaskItem
+                    {
+                        TaskName = name,
+                        TaskPath = fullPath.StartsWith("\\") ? fullPath : "\\" + fullPath,
+                        Author = string.IsNullOrWhiteSpace(author) ? "Система" : author,
+                        Trigger = "По событию / расписанию",
+                        ActionCommand = action,
+                        State = isEnabled ? "Включена" : "Отключена",
+                        IsEnabled = isEnabled,
+                        IsWmi = false,
+                        RiskLevel = risk,
+                        RiskReason = reason
+                    });
+                }
+            }
+            catch { }
+        }
+
+        private void ScanViaSchtasksCsv(List<ScheduledTaskItem> list)
+        {
             try
             {
                 var psi = new ProcessStartInfo
@@ -84,7 +264,7 @@ namespace StormSystemOptimizer.Services
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     CreateNoWindow = true,
-                    StandardOutputEncoding = System.Text.Encoding.GetEncoding(866) // OEM Russian CP
+                    StandardOutputEncoding = System.Text.Encoding.GetEncoding(866)
                 };
 
                 using var proc = Process.Start(psi);
@@ -96,21 +276,20 @@ namespace StormSystemOptimizer.Services
                 var lines = output.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 if (lines.Length <= 1) return;
 
-                // First line is CSV header
                 for (int i = 1; i < lines.Length; i++)
                 {
                     var cols = ParseCsvLine(lines[i]);
-                    if (cols.Count < 9) continue;
+                    if (cols.Count < 2) continue;
 
-                    string taskPath = cols[0].Trim('"');
+                    string taskPath = cols[1].Trim('"');
+                    if (string.IsNullOrWhiteSpace(taskPath)) continue;
+
                     string taskName = Path.GetFileName(taskPath);
-                    string state = cols.Count > 3 ? cols[3].Trim('"') : "Ready";
+                    string state = cols.Count > 11 ? cols[11].Trim('"') : (cols.Count > 3 ? cols[3].Trim('"') : "Ready");
                     string author = cols.Count > 7 ? cols[7].Trim('"') : "";
                     string action = cols.Count > 8 ? cols[8].Trim('"') : "";
 
-                    // Ignore standard safe Microsoft tasks
-                    if (taskPath.StartsWith(@"\Microsoft\Windows\", StringComparison.OrdinalIgnoreCase) &&
-                        !IsPathSuspicious(action))
+                    if (taskPath.StartsWith(@"\Microsoft\Windows\", StringComparison.OrdinalIgnoreCase) && !IsPathSuspicious(action))
                     {
                         continue;
                     }
@@ -124,7 +303,7 @@ namespace StormSystemOptimizer.Services
                     {
                         TaskName = string.IsNullOrEmpty(taskName) ? taskPath : taskName,
                         TaskPath = taskPath,
-                        Author = author,
+                        Author = string.IsNullOrWhiteSpace(author) ? "Система" : author,
                         Trigger = cols.Count > 5 ? cols[5].Trim('"') : "По расписанию",
                         ActionCommand = action,
                         State = isEnabled ? "Включена" : "Отключена",

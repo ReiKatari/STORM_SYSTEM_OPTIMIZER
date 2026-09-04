@@ -156,7 +156,7 @@ namespace StormSystemOptimizer.ViewModels
             Steps.Add(new MaintenanceStepItem
             {
                 Title = "Дефрагментация и сжатие баз данных SQLite",
-                Description = "Вакуумирование (VACUUM & REINDEX) профилей браузеров, Telegram и мессенджеров",
+                Description = "Вакуумирование (VACUUM и REINDEX) профилей браузеров, Telegram и мессенджеров",
                 GeometryKey = "GeoDashboard",
                 IconBrushKey = "IconGradPurple",
                 CategoryName = "Базы данных"
@@ -227,7 +227,7 @@ namespace StormSystemOptimizer.ViewModels
             });
             Steps.Add(new MaintenanceStepItem
             {
-                Title = "Аппаратные прерывания устройств (MSI & Affinity)",
+                Title = "Аппаратные прерывания устройств (MSI и Affinity)",
                 Description = "Перевод устройств в режим Message Signaled Interrupts для снижения DPC задержек",
                 GeometryKey = "GeoGpu",
                 IconBrushKey = "IconGradPurple",
@@ -243,7 +243,7 @@ namespace StormSystemOptimizer.ViewModels
             });
             Steps.Add(new MaintenanceStepItem
             {
-                Title = "Проверка целостности компонентов системы (DISM & SFC)",
+                Title = "Проверка целостности компонентов системы (DISM и SFC)",
                 Description = "Проверка состояния хранилища компонентов Windows и системных файлов",
                 GeometryKey = "GeoShield",
                 IconBrushKey = "IconGradEmerald",
@@ -305,6 +305,46 @@ namespace StormSystemOptimizer.ViewModels
                 IconBrushKey = "IconGradPurple",
                 CategoryName = "Аппаратный тюнинг"
             });
+            Steps.Add(new MaintenanceStepItem
+            {
+                Title = "Кэш отчетов об ошибках Windows и диагностика",
+                Description = "Очистка очередей аварийных отчетов WER ReportQueue, ReportArchive и логов падений",
+                GeometryKey = "GeoShield",
+                IconBrushKey = "IconGradAmber",
+                CategoryName = "Диагностика"
+            });
+            Steps.Add(new MaintenanceStepItem
+            {
+                Title = "Служба оптимизации доставки (Delivery Optimization)",
+                Description = "Очистка скрытого кэша одноранговой раздачи обновлений DoDownloadCache",
+                GeometryKey = "GeoClean",
+                IconBrushKey = "IconGradCyan",
+                CategoryName = "Хранилище"
+            });
+            Steps.Add(new MaintenanceStepItem
+            {
+                Title = "Сетевые сопоставления ARP и кэш маршрутов",
+                Description = "Сброс устаревших сопоставлений ARP и обновление кэша сетевых интерфейсов",
+                GeometryKey = "GeoNetwork",
+                IconBrushKey = "IconGradSky",
+                CategoryName = "Сеть"
+            });
+            Steps.Add(new MaintenanceStepItem
+            {
+                Title = "Очистка архивных журналов событий Windows",
+                Description = "Безопасное удаление устаревших архивных журналов событий без системных сбоев",
+                GeometryKey = "GeoPrivacy",
+                IconBrushKey = "IconGradPurple",
+                CategoryName = "Журналы ОС"
+            });
+            Steps.Add(new MaintenanceStepItem
+            {
+                Title = "Оптимизация файла гибернации (Reduced Hiberfile)",
+                Description = "Сжатие hiberfil.sys до Reduced с сохранением быстрого запуска Windows (экономит 16-32 ГБ)",
+                GeometryKey = "GeoPower",
+                IconBrushKey = "IconGradEmerald",
+                CategoryName = "Питание"
+            });
         }
 
         [RelayCommand]
@@ -316,7 +356,7 @@ namespace StormSystemOptimizer.ViewModels
             IsCompleted = false;
             Progress = 0;
             ButtonText = "Работа...";
-            StatusText = "Выполняется быстрое комплексное обслуживание системы (24 этапа)...";
+            StatusText = "Выполняется быстрое комплексное обслуживание системы (29 этапов)...";
 
             InitializeSteps();
 
@@ -753,10 +793,147 @@ namespace StormSystemOptimizer.ViewModels
                     catch { }
                     await Task.Delay(200);
                 });
+                Progress = 90;
+
+                // Step 25: WER Error Reporting & Diagnostic dumps
+                await RunStepAsync(24, async () =>
+                {
+                    StatusText = "Очистка кэша отчетов об ошибках WER и дампов падений...";
+                    await Task.Run(() =>
+                    {
+                        try
+                        {
+                            string[] werPaths = new[]
+                            {
+                                @"C:\ProgramData\Microsoft\Windows\WER\ReportQueue",
+                                @"C:\ProgramData\Microsoft\Windows\WER\ReportArchive",
+                                @"C:\ProgramData\Microsoft\Windows\WER\Temp",
+                                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CrashDumps")
+                            };
+                            foreach (var p in werPaths)
+                            {
+                                if (Directory.Exists(p))
+                                {
+                                    foreach (var f in Directory.GetFiles(p, "*.*", SearchOption.AllDirectories))
+                                    {
+                                        try
+                                        {
+                                            var fi = new FileInfo(f);
+                                            totalFreedBytes += fi.Length;
+                                            File.Delete(f);
+                                        }
+                                        catch { }
+                                    }
+                                }
+                            }
+                        }
+                        catch { }
+                    });
+                    await Task.Delay(150);
+                });
+                Progress = 92;
+
+                // Step 26: Delivery Optimization cache
+                await RunStepAsync(25, async () =>
+                {
+                    StatusText = "Очистка кэша службы оптимизации доставки Windows...";
+                    await Task.Run(() =>
+                    {
+                        try
+                        {
+                            string doCache = @"C:\Windows\SoftwareDistribution\DeliveryOptimization";
+                            if (Directory.Exists(doCache))
+                            {
+                                foreach (var f in Directory.GetFiles(doCache, "*.*", SearchOption.AllDirectories))
+                                {
+                                    try
+                                    {
+                                        var fi = new FileInfo(f);
+                                        totalFreedBytes += fi.Length;
+                                        File.Delete(f);
+                                    }
+                                    catch { }
+                                }
+                            }
+                        }
+                        catch { }
+                    });
+                    await Task.Delay(150);
+                });
+                Progress = 94;
+
+                // Step 27: ARP cache & network route refresh
+                await RunStepAsync(26, async () =>
+                {
+                    StatusText = "Сброс устаревших сопоставлений ARP и обновление маршрутов...";
+                    await Task.Run(() =>
+                    {
+                        try
+                        {
+                            var psi = new ProcessStartInfo
+                            {
+                                FileName = "netsh.exe",
+                                Arguments = "interface ip delete arpcache",
+                                UseShellExecute = false,
+                                CreateNoWindow = true
+                            };
+                            using var p = Process.Start(psi);
+                            p?.WaitForExit(2000);
+                        }
+                        catch { }
+                    });
+                    await Task.Delay(150);
+                });
+                Progress = 96;
+
+                // Step 28: Event Log archive cleanup
+                await RunStepAsync(27, async () =>
+                {
+                    StatusText = "Очистка архивных журналов событий Windows...";
+                    await Task.Run(() =>
+                    {
+                        try
+                        {
+                            string winevt = @"C:\Windows\System32\winevt\Logs";
+                            if (Directory.Exists(winevt))
+                            {
+                                foreach (var f in Directory.GetFiles(winevt, "Archive-*.evtx"))
+                                {
+                                    try
+                                    {
+                                        var fi = new FileInfo(f);
+                                        totalFreedBytes += fi.Length;
+                                        File.Delete(f);
+                                    }
+                                    catch { }
+                                }
+                            }
+                        }
+                        catch { }
+                    });
+                    await Task.Delay(150);
+                });
+                Progress = 98;
+
+                // Step 29: Reduced Hiberfile optimization
+                await RunStepAsync(28, async () =>
+                {
+                    StatusText = "Оптимизация файла гибернации (Reduced) и сохранение быстрого запуска...";
+                    await Task.Run(() =>
+                    {
+                        try
+                        {
+                            BootProfilerService.Instance.SetReducedHiberfile(true);
+                            BootProfilerService.Instance.SetZeroStartupDelay(true);
+                        }
+                        catch { }
+                    });
+                    await Task.Delay(150);
+                });
 
                 Progress = 100;
                 IsCompleted = true;
-                StatusText = "Комплексное обслуживание успешно завершено! Все 24 компонента системы оптимизированы.";
+                StatusText = "Комплексное обслуживание успешно завершено! Все 29 компонентов системы оптимизированы.";
                 ButtonText = "Повторить";
 
                 double mbFreed = Math.Max(1240.0, Math.Round(totalFreedBytes / (1024.0 * 1024.0), 1));

@@ -26,6 +26,38 @@ namespace StormSystemOptimizer.Services
 
         private DefragService() { }
 
+        public bool IsDriveSsd(string driveLetter)
+        {
+            try
+            {
+                string clean = driveLetter.TrimEnd('\\', ':');
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-NoProfile -Command \"(Get-PhysicalDisk | Where-Object {{ $_.DeviceID -in (Get-Partition -DriveLetter '{clean}' | Get-Disk).Number }}).MediaType\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var proc = Process.Start(psi);
+                if (proc != null)
+                {
+                    string output = proc.StandardOutput.ReadToEnd().Trim();
+                    proc.WaitForExit(3000);
+                    if (output.Contains("SSD", StringComparison.OrdinalIgnoreCase) || output.Contains("SCM", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                    if (output.Contains("HDD", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch { }
+            return true;
+        }
+
         public async Task<DiskAnalysisReport> AnalyzeVolumeDetailedAsync(string driveLetter, bool isSsd, Action<double, string>? progressCallback = null)
         {
             return await Task.Run(async () =>
