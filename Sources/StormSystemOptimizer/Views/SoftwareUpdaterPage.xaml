@@ -129,7 +129,7 @@
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="190"/>
                                         <ColumnDefinition Width="190"/>
-                                        <ColumnDefinition Width="180"/>
+                                        <ColumnDefinition Width="200"/>
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Name & Publisher & Type Badge -->
@@ -155,23 +155,53 @@
                                         <TextBlock Text="Официальный репозиторий" FontSize="10.5" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0" TextWrapping="Wrap"/>
                                     </StackPanel>
 
-                                    <!-- Action Buttons -->
+                                    <!-- Action Buttons & Live Progress -->
                                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right">
                                         
-                                        <!-- Update Button (When IsUpdateAvailable == true) -->
-                                        <Button Visibility="{Binding IsUpdateAvailable, Converter={StaticResource BoolToVisConverter}}"
-                                                Command="{Binding DataContext.SilentUpdateAppCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        <!-- Active In-App Updating Progress -->
+                                        <Border Visibility="{Binding IsUpdating, Converter={StaticResource BoolToVisConverter}}"
+                                                Background="{DynamicResource AppBackgroundBrush}"
+                                                BorderBrush="{DynamicResource AccentPrimaryBrush}"
+                                                BorderThickness="1"
+                                                CornerRadius="8"
+                                                Padding="8,6"
+                                                MinWidth="130"
+                                                Margin="0,0,6,0">
+                                            <StackPanel>
+                                                <Grid Margin="0,0,0,3">
+                                                    <TextBlock Text="{Binding UpdateProgressText}" FontSize="9.5" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding UpdateProgress, StringFormat='{}{0}%'}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource AccentPrimaryBrush}" HorizontalAlignment="Right"/>
+                                                </Grid>
+                                                <ProgressBar Value="{Binding UpdateProgress}" Maximum="100" Height="4" Foreground="{DynamicResource AccentPrimaryBrush}" Background="{DynamicResource CardBackgroundBrush}" BorderThickness="0"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <!-- Update Button (When IsUpdateAvailable == true && IsUpdating == false) -->
+                                        <Button Command="{Binding DataContext.SilentUpdateAppCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                 CommandParameter="{Binding}"
-                                                Style="{StaticResource StormHeroButton}"
                                                 Padding="14,8"
                                                 Margin="0,0,6,0">
+                                            <Button.Style>
+                                                <Style TargetType="Button" BasedOn="{StaticResource StormHeroButton}">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                    <Style.Triggers>
+                                                        <MultiDataTrigger>
+                                                            <MultiDataTrigger.Conditions>
+                                                                <Condition Binding="{Binding IsUpdateAvailable}" Value="True"/>
+                                                                <Condition Binding="{Binding IsUpdating}" Value="False"/>
+                                                            </MultiDataTrigger.Conditions>
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </MultiDataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
                                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                                 <Path Data="{StaticResource GeoAppUpdate}" Fill="#FFFFFF" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0"/>
                                                 <TextBlock Text="Обновить" FontSize="11.5" FontWeight="Bold" Foreground="#FFFFFF"/>
                                             </StackPanel>
                                         </Button>
 
-                                        <!-- Actual Badge (When IsUpdateAvailable == false && IsBlacklisted == false) -->
+                                        <!-- Actual Badge (When IsUpdateAvailable == false && IsBlacklisted == false && IsUpdating == false) -->
                                         <Border Background="#2610B981" BorderBrush="#10B981" BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,0,6,0">
                                             <Border.Style>
                                                 <Style TargetType="Border">
@@ -181,6 +211,7 @@
                                                             <MultiDataTrigger.Conditions>
                                                                 <Condition Binding="{Binding IsUpdateAvailable}" Value="False"/>
                                                                 <Condition Binding="{Binding IsBlacklisted}" Value="False"/>
+                                                                <Condition Binding="{Binding IsUpdating}" Value="False"/>
                                                             </MultiDataTrigger.Conditions>
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                         </MultiDataTrigger>
@@ -200,7 +231,7 @@
                                         </Border>
 
                                         <!-- Blacklist Toggle Button -->
-                                        <Button Command="{Binding DataContext.ToggleBlacklistCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        <Button Command="{Binding DataContext.ToggleBlacklistCommand, RelativeSource={RelativeSource AncestorType=Page}}"
                                                 CommandParameter="{Binding}"
                                                 Style="{StaticResource StormSecondaryButton}"
                                                 Padding="8,8"

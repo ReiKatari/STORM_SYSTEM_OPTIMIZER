@@ -209,26 +209,55 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public async Task UpdateAllDriversAsync()
         {
-            var outdated = _allDrivers.Where(d => d.IsUpdateAvailable).ToList();
+            var outdated = _allDrivers.Where(d => d.IsUpdateAvailable && !d.IsUpdating).ToList();
             if (outdated.Count == 0) return;
 
-            StatusText = $"Создание единой точки восстановления перед пакетом обновлений...";
-            await SystemRestoreService.Instance.CreateRestorePointAsync("Перед пакетным обновлением драйверов оборудования");
+            IsBusy = true;
+            StatusText = $"Пакетное обновление {outdated.Count} драйверов оборудования...";
 
-            foreach (var d in outdated)
+            int updated = 0;
+            for (int i = 0; i < outdated.Count; i++)
             {
-                if (!string.IsNullOrEmpty(d.DownloadUrl))
+                var d = outdated[i];
+                StatusText = $"[{i + 1}/{outdated.Count}] Обновление {d.DeviceName}...";
+                d.IsUpdating = true;
+                d.UpdateProgress = 10;
+                d.UpdateProgressText = "Подготовка...";
+
+                var (ok, msg) = await DriverUpdaterService.Instance.InstallDriverAsync(d, (pct, status) =>
                 {
-                    try
+                    System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
                     {
-                        Process.Start(new ProcessStartInfo { FileName = d.DownloadUrl, UseShellExecute = true });
-                    }
-                    catch { }
+                        d.UpdateProgress = pct;
+                        d.UpdateProgressText = status;
+                        StatusText = $"[{i + 1}/{outdated.Count}] {d.DeviceName}: {status}";
+                    });
+                });
+
+                if (ok)
+                {
+                    updated++;
+                    d.CurrentVersion = d.LatestVersion;
+                    d.IsUpdateAvailable = false;
+                    d.UpdateProgress = 100;
+                    d.UpdateProgressText = "Установлен успешно ✓";
                 }
+                else
+                {
+                    d.UpdateProgressText = msg;
+                }
+
+                await Task.Delay(1000);
+                d.IsUpdating = false;
             }
 
-            TrayService.Instance.ShowNotification("Центр обновления драйверов ⚡", $"Запущена загрузка официальных обновлений для {outdated.Count} устройств. Точка восстановления создана.");
-            StatusText = $"Открыты официальные страницы загрузки для {outdated.Count} устаревших устройств.";
+            OutdatedCount = _allDrivers.Count(d => d.IsUpdateAvailable);
+            HasUpdates = OutdatedCount > 0;
+            StatsSummary = $"{_allDrivers.Count} устройств в системе • {(HasUpdates ? $"Доступно {OutdatedCount} обновления оборудования ⚡" : "Все драйверы актуальны ✅")}";
+            string finalMsg = $"Обновление завершено! Успешно обновлено {updated} из {outdated.Count} драйверов.";
+            StatusText = finalMsg;
+            TrayService.Instance.ShowNotification("Центр обновления драйверов ⚡", finalMsg);
+            IsBusy = false;
         }
 
         [RelayCommand]
@@ -307,28 +336,45 @@ namespace StormSystemOptimizer.ViewModels
         [RelayCommand]
         public async Task UpdateDriverAsync(DriverItem? item)
         {
-            if (item == null) return;
+            if (item == null || item.IsUpdating) return;
 
-            // Prompt / Create restore point automatically before driver upgrade
-            StatusText = $"Создание точки восстановления перед обновлением {item.DeviceName}...";
-            await SystemRestoreService.Instance.CreateRestorePointAsync($"Перед обновлением драйвера {item.DeviceName}");
+            item.IsUpdating = true;
+            item.UpdateProgress = 10;
+            item.UpdateProgressText = "Подготовка...";
+            StatusText = $"Обновление драйвера для {item.DeviceName}...";
 
-            // Open download portal
-            if (!string.IsNullOrEmpty(item.DownloadUrl))
+            var (ok, msg) = await DriverUpdaterService.Instance.InstallDriverAsync(item, (pct, status) =>
             {
-                try
+                System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
                 {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = item.DownloadUrl,
-                        UseShellExecute = true
-                    });
-                }
-                catch { }
+                    item.UpdateProgress = pct;
+                    item.UpdateProgressText = status;
+                    StatusText = $"{item.DeviceName}: {status}";
+                });
+            });
+
+            if (ok)
+            {
+                item.CurrentVersion = item.LatestVersion;
+                item.IsUpdateAvailable = false;
+                item.UpdateProgress = 100;
+                item.UpdateProgressText = "Установлен успешно ✓";
+                StatusText = msg;
+                TrayService.Instance.ShowNotification("Центр обновления драйверов ⚡", msg);
+            }
+            else
+            {
+                item.UpdateProgressText = "Ошибка установки";
+                StatusText = msg;
+                TrayService.Instance.ShowNotification("Ошибка обновления ⚠️", msg);
             }
 
-            TrayService.Instance.ShowNotification("Центр обновления драйверов ⚡", $"Точка восстановления создана. Открыта официальная страница загрузки для {item.DeviceName}.");
-            StatusText = $"Открыта загрузка для {item.DeviceName}.";
+            OutdatedCount = _allDrivers.Count(d => d.IsUpdateAvailable);
+            HasUpdates = OutdatedCount > 0;
+            StatsSummary = $"{_allDrivers.Count} устройств в системе • {(HasUpdates ? $"Доступно {OutdatedCount} обновления оборудования ⚡" : "Все драйверы актуальны ✅")}";
+
+            await Task.Delay(1500);
+            item.IsUpdating = false;
         }
 
         [RelayCommand]

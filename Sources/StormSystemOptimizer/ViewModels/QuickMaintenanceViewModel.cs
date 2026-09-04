@@ -361,6 +361,14 @@ namespace StormSystemOptimizer.ViewModels
                                     try
                                     {
                                         var fi = new FileInfo(f);
+                                        // Protect active browser sessions, lockfiles and scoped temp directories
+                                        if (DateTime.UtcNow - fi.LastWriteTimeUtc < TimeSpan.FromHours(6)) continue;
+                                        if (f.EndsWith(".lock", StringComparison.OrdinalIgnoreCase) ||
+                                            f.Contains("scoped_dir", StringComparison.OrdinalIgnoreCase) ||
+                                            f.Contains("msedge", StringComparison.OrdinalIgnoreCase) ||
+                                            f.Contains("chrome", StringComparison.OrdinalIgnoreCase))
+                                            continue;
+
                                         totalFreedBytes += fi.Length;
                                         File.Delete(f);
                                     }

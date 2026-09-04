@@ -218,8 +218,7 @@ namespace StormSystemOptimizer.Services
             {
                 var exes = Directory.GetFiles(folderPath, "*.exe", new System.IO.EnumerationOptions
                 {
-                    RecurseSubdirectories = true,
-                    MaxRecursionDepth = 2,
+                    RecurseSubdirectories = false,
                     IgnoreInaccessible = true
                 });
 

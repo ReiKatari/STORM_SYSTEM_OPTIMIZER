@@ -493,11 +493,11 @@ namespace StormSystemOptimizer.Services
             var opera = new BrowserTabItem
             {
                 Id = "opera",
-                Name = "Opera & Opera GX",
+                Name = "Opera и Opera GX",
                 IconEmoji = "⭕",
                 Subtitle = "Браузер с игровыми лимитерами GX Control и сайдбаром",
                 ProcessNames = new List<string> { "opera" },
-                Tweak1Title = "Оптимизация RAM & CPU Limiter (GX Control)",
+                Tweak1Title = "Оптимизация RAM и CPU Limiter (GX Control)",
                 Tweak1Description = "Настраивает мягкое ограничение ресурсов без крашей тяжелых вкладок",
                 Tweak2Title = "Отключить авто-загрузку новостей GX Corner в фоне",
                 Tweak2Description = "Экономит интернет-трафик и такты GPU при каждом открытии новой вкладки",
@@ -644,11 +644,10 @@ namespace StormSystemOptimizer.Services
         {
             try
             {
+                // Only clean safe volatile cache directories. NEVER delete components, extensions, or storage!
                 string[] rootCaches = new[]
                 {
-                    "component_crx_cache",
-                    "extensions_crx_cache",
-                    "Crashpad",
+                    @"Crashpad\reports",
                     "BrowserMetrics",
                     "DeferredBrowserMetrics",
                     "ShaderCache",
@@ -672,6 +671,8 @@ namespace StormSystemOptimizer.Services
                         dirName.Equals("Guest Profile", StringComparison.OrdinalIgnoreCase))
                     {
                         item.ProfileCount++;
+                        // Safe caches only: HTTP cache, compiled JS/WASM code, GPU & shader buffers
+                        // Strictly excluded: Storage (contains WebUI internal extensions), Service Worker, blob_storage
                         string[] profileCaches = new[]
                         {
                             "Cache",
@@ -683,18 +684,8 @@ namespace StormSystemOptimizer.Services
                             "DawnCache",
                             "DawnGraphiteCache",
                             "DawnWebGPUCache",
-                            "Service Worker",
-                            @"Service Worker\CacheStorage",
-                            @"Service Worker\ScriptCache",
-                            "Storage",
-                            @"Storage\ext",
-                            "Shared Dictionary",
-                            @"Shared Dictionary\cache",
-                            "optimization_guide_hint_cache_store",
-                            "AutofillAiModelCache",
                             "Media Cache",
-                            "Application Cache",
-                            "blob_storage"
+                            @"Shared Dictionary\cache"
                         };
 
                         foreach (var pc in profileCaches)
@@ -763,13 +754,12 @@ namespace StormSystemOptimizer.Services
                     {
                         if (File.Exists(db))
                         {
-                            // Truncate SQLite WAL (-wal) and Shared Memory (-shm) leftover lock files
-                            string wal = db + "-wal";
-                            string shm = db + "-shm";
-                            string journal = db + "-journal";
-                            if (File.Exists(wal)) try { File.Delete(wal); } catch { }
-                            if (File.Exists(shm)) try { File.Delete(shm); } catch { }
-                            if (File.Exists(journal)) try { File.Delete(journal); } catch { }
+                            // Safely touch file attributes to allow defragmentation without deleting SQLite WAL/SHM locks
+                            var fi = new FileInfo(db);
+                            if ((fi.Attributes & FileAttributes.ReadOnly) != 0)
+                            {
+                                fi.Attributes = FileAttributes.Normal;
+                            }
                             count++;
                         }
                     }
