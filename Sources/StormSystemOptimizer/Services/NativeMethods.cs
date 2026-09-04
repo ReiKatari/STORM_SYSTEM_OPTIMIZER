@@ -413,6 +413,44 @@ namespace StormSystemOptimizer.Services
         public const uint SPIF_UPDATEINIFILE = 0x01;
         public const uint SPIF_SENDCHANGE = 0x02;
 
+        public enum DesktopWallpaperPosition
+        {
+            Center = 0,
+            Tile = 1,
+            Stretch = 2,
+            Fit = 3,
+            Fill = 4,
+            Span = 5
+        }
+
+        [ComImport, Guid("C2CF3110-460E-4fc1-B9D0-8A1C0C9CC4BD")]
+        public class DesktopWallpaperClass
+        {
+        }
+
+        [ComImport, Guid("B92CA26B-AEA6-4246-BA50-20CBEED658F9"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        public interface IDesktopWallpaper
+        {
+            void SetWallpaper([MarshalAs(UnmanagedType.LPWStr)] string? monitorID, [MarshalAs(UnmanagedType.LPWStr)] string wallpaper);
+            [return: MarshalAs(UnmanagedType.LPWStr)]
+            string GetWallpaper([MarshalAs(UnmanagedType.LPWStr)] string? monitorID);
+            [return: MarshalAs(UnmanagedType.LPWStr)]
+            string GetMonitorDevicePathAt(uint monitorIndex);
+            uint GetMonitorDevicePathCount();
+            RECT GetMonitorRECT([MarshalAs(UnmanagedType.LPWStr)] string monitorID);
+            void SetBackgroundColor(uint color);
+            uint GetBackgroundColor();
+            void SetPosition(DesktopWallpaperPosition position);
+            DesktopWallpaperPosition GetPosition();
+            void SetSlideshow(IntPtr items);
+            IntPtr GetSlideshow();
+            void SetSlideshowOptions(uint options, uint slideshowTick);
+            [PreserveSig]
+            uint AdvanceSlideshow([MarshalAs(UnmanagedType.LPWStr)] string? monitorID, uint direction);
+            uint GetStatus();
+            bool Enable([MarshalAs(UnmanagedType.Bool)] bool enableFlag);
+        }
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr FindWindow(string lpClassName, string? lpWindowName);
 

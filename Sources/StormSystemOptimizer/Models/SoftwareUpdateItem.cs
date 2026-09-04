@@ -52,18 +52,26 @@ namespace StormSystemOptimizer.Models
         [NotifyPropertyChangedFor(nameof(StatusBgColor))]
         private bool _isBeta = false;
 
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(StatusText))]
+        [NotifyPropertyChangedFor(nameof(StatusColor))]
+        [NotifyPropertyChangedFor(nameof(StatusBgColor))]
+        private string? _customStatusText = null;
+
         public string TypeBadgeColor => AppType == "Игра" ? "#FB7185" : (AppType == "Windows Store" ? "#38BDF8" : "#00D2FF");
         public string TypeBadgeBg => AppType == "Игра" ? "#26FB7185" : (AppType == "Windows Store" ? "#2638BDF8" : "#2600D2FF");
 
         public ImageSource? IconSource { get; set; }
         public bool HasIcon => IconSource != null;
 
-        public string StatusText => IsBlacklisted 
-            ? "🔒 В черном списке (Игнорируется)" 
-            : (IsUpdateAvailable ? (IsBeta ? $"🧪 Доступна Beta v{AvailableVersion}" : $"⚡ Доступна v{AvailableVersion}") : "✅ Актуальна (v" + InstalledVersion + ")");
+        public string StatusText => !string.IsNullOrEmpty(CustomStatusText)
+            ? CustomStatusText
+            : (IsBlacklisted 
+                ? "🔒 В черном списке (Игнорируется)" 
+                : (IsUpdateAvailable ? (IsBeta ? $"🧪 Доступна Beta v{AvailableVersion}" : $"⚡ Доступна v{AvailableVersion}") : "✅ Актуальна (v" + InstalledVersion + ")"));
 
-        public string StatusColor => IsBlacklisted ? "#64748B" : (IsUpdateAvailable ? (IsBeta ? "#C084FC" : "#F59E0B") : "#10B981");
-        public string StatusBgColor => IsBlacklisted ? "#1E293B" : (IsUpdateAvailable ? (IsBeta ? "#26C084FC" : "#26F59E0B") : "#2610B981");
+        public string StatusColor => !string.IsNullOrEmpty(CustomStatusText) ? "#38BDF8" : (IsBlacklisted ? "#64748B" : (IsUpdateAvailable ? (IsBeta ? "#C084FC" : "#F59E0B") : "#10B981"));
+        public string StatusBgColor => !string.IsNullOrEmpty(CustomStatusText) ? "#2638BDF8" : (IsBlacklisted ? "#1E293B" : (IsUpdateAvailable ? (IsBeta ? "#26C084FC" : "#26F59E0B") : "#2610B981"));
 
         public SoftwareUpdateItem Clone()
         {
@@ -82,6 +90,7 @@ namespace StormSystemOptimizer.Models
                 UpdateProgress = UpdateProgress,
                 UpdateProgressText = UpdateProgressText,
                 IsBeta = IsBeta,
+                CustomStatusText = CustomStatusText,
                 IconSource = IconSource
             };
         }

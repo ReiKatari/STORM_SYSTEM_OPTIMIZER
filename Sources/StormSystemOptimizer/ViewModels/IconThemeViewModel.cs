@@ -78,6 +78,23 @@ namespace StormSystemOptimizer.ViewModels
             {
                 IconThemes.Add(th);
             }
+            RefreshAppliedThemeStatus();
+        }
+
+        public void RefreshAppliedThemeStatus()
+        {
+            bool isCustom = IconThemeService.Instance.IsCustomThemeApplied();
+            foreach (var th in IconThemes)
+            {
+                if (th.Title.Contains("STORM Cyber Glow"))
+                {
+                    th.IsApplied = isCustom;
+                }
+                else if (th.Title.Contains("Стандартные") || th.Title.Contains("Default") || th.Title.Contains("Windows"))
+                {
+                    th.IsApplied = !isCustom;
+                }
+            }
         }
 
         private void LoadCatalog()
@@ -171,6 +188,7 @@ namespace StormSystemOptimizer.ViewModels
             if (ok)
             {
                 await IconThemeService.Instance.RebuildIconCacheAsync();
+                RefreshAppliedThemeStatus();
                 StatusMessage = $"Успешно применено {selected.Count} значков из пака STORM Cyber Glow!";
                 TrayService.Instance.ShowNotification("Значки STORM Cyber Glow ⚡", StatusMessage);
                 IsCatalogPreviewOpen = false;
@@ -191,6 +209,7 @@ namespace StormSystemOptimizer.ViewModels
             IsBusy = false;
             if (ok)
             {
+                RefreshAppliedThemeStatus();
                 StatusMessage = "Кэш значков Windows успешно очищен и перестроен!";
                 TrayService.Instance.ShowNotification("Кэш значков ⚡", StatusMessage);
             }
@@ -209,6 +228,7 @@ namespace StormSystemOptimizer.ViewModels
             if (ok)
             {
                 await IconThemeService.Instance.RebuildIconCacheAsync();
+                RefreshAppliedThemeStatus();
                 StatusMessage = "Все системные значки успешно сброшены до стандартных!";
                 TrayService.Instance.ShowNotification("Значки системы", StatusMessage);
             }
@@ -245,6 +265,7 @@ namespace StormSystemOptimizer.ViewModels
             if (ok)
             {
                 await IconThemeService.Instance.RebuildIconCacheAsync();
+                LoadThemes();
                 StatusMessage = "Пакет значков успешно установлен и применен!";
                 TrayService.Instance.ShowNotification("Темы значков 🎨", StatusMessage);
             }
@@ -292,6 +313,7 @@ namespace StormSystemOptimizer.ViewModels
             if (ok)
             {
                 await IconThemeService.Instance.RebuildIconCacheAsync();
+                RefreshAppliedThemeStatus();
                 StatusMessage = $"Значок для «{SelectedCustomTarget}» успешно обновлен!";
                 TrayService.Instance.ShowNotification("Значки системы", StatusMessage);
             }
@@ -305,12 +327,61 @@ namespace StormSystemOptimizer.ViewModels
         public async Task ApplyThemeAsync(IconThemeItem item)
         {
             if (item == null) return;
-            StatusMessage = $"Применение темы значков «{item.Title}»...";
-            foreach (var th in IconThemes) th.IsApplied = false;
-            item.IsApplied = true;
-            await IconThemeService.Instance.RebuildIconCacheAsync();
-            StatusMessage = $"Тема значков «{item.Title}» успешно активирована!";
-            TrayService.Instance.ShowNotification("Темы значков", StatusMessage);
+            IsBusy = true;
+
+            if (item.Title.Contains("STORM Cyber Glow"))
+            {
+                StatusMessage = "Применение системной темы значков STORM Cyber Glow...";
+                bool ok = await IconThemeService.Instance.ApplySelectedCyberGlowIconsAsync(CatalogIcons);
+                if (ok)
+                {
+                    await IconThemeService.Instance.RebuildIconCacheAsync();
+                    RefreshAppliedThemeStatus();
+                    StatusMessage = "Тема значков STORM Cyber Glow успешно активирована в системе!";
+                    TrayService.Instance.ShowNotification("Значки системы ⚡", StatusMessage);
+                }
+                else
+                {
+                    StatusMessage = "Не удалось применить тему STORM Cyber Glow.";
+                }
+            }
+            else if (item.Title.Contains("Стандартные") || item.Title.Contains("Default") || item.Title.Contains("Windows"))
+            {
+                StatusMessage = "Восстановление стандартных системных значков Windows...";
+                bool ok = IconThemeService.Instance.ResetSystemIconsToDefault();
+                if (ok)
+                {
+                    await IconThemeService.Instance.RebuildIconCacheAsync();
+                    RefreshAppliedThemeStatus();
+                    StatusMessage = "Все системные значки успешно возвращены к стандарту Windows!";
+                    TrayService.Instance.ShowNotification("Значки системы", StatusMessage);
+                }
+                else
+                {
+                    StatusMessage = "Не удалось восстановить стандартные значки. Требуются права администратора.";
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(item.PreviewUrl))
+                {
+                    StatusMessage = $"Активация пользовательской темы «{item.Title}»...";
+                    bool ok = await IconThemeService.Instance.InstallIconPackageArchiveAsync(item.PreviewUrl);
+                    if (ok)
+                    {
+                        await IconThemeService.Instance.RebuildIconCacheAsync();
+                        RefreshAppliedThemeStatus();
+                        StatusMessage = $"Пользовательская тема «{item.Title}» успешно активирована!";
+                        TrayService.Instance.ShowNotification("Темы значков", StatusMessage);
+                    }
+                    else
+                    {
+                        StatusMessage = "Не удалось применить пользовательскую тему.";
+                    }
+                }
+            }
+
+            IsBusy = false;
         }
     }
 }
