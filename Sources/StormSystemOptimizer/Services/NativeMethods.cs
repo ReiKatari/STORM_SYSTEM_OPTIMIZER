@@ -428,7 +428,7 @@ namespace StormSystemOptimizer.Services
         {
         }
 
-        [ComImport, Guid("B92CA26B-AEA6-4246-BA50-20CBEED658F9"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+        [ComImport, Guid("B92B56A9-8B55-4E14-9A89-0199BBB6F93B"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
         public interface IDesktopWallpaper
         {
             void SetWallpaper([MarshalAs(UnmanagedType.LPWStr)] string? monitorID, [MarshalAs(UnmanagedType.LPWStr)] string wallpaper);
