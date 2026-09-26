@@ -55,5 +55,5 @@ deepseek_key.txt
 google-credentials.json
 installer/Output/
 *.tmp*
-*.wal
-
+# Local build scripts
+build_v*.ps1
